@@ -34,11 +34,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from zxspectrum.core.memory import RAM_SIZE
-from zxspectrum.core.snapshot import write_sna
-from zxspectrum.core.z80 import Registers
+from sna import RAM_SIZE, Registers, write_sna
 from scripts.build_rom_source import require_skool2asm, require_tool
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
