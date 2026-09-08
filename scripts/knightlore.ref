@@ -1,0 +1,118 @@
+; Ref file for the Knight Lore HTML disassembly, used by
+; scripts/build_knightlore.py --html. Like scripts/knightlore_annotations.ctl
+; this is source rather than output: prose and addresses only, no game bytes,
+; so it is committed.
+;
+; The prose pages are "box pages": [Page:X] names a SectionPrefix, and each
+; [X:anchor:Title] section below becomes one titled block on that page. A ref
+; file has no multi-line values, so this is the only way to write a page of
+; prose -- PageContent= would have to be a single very long line.
+;
+; Careful with semicolons: one is a comment only at the start of a line.
+; Careful with macro names too -- #UDGARRAY or #GRAPHIC written in prose is
+; expanded rather than printed, and the build fails.
+
+[Game]
+Game=Knight Lore
+Copyright=&copy; 1984 Ultimate Play the Game
+Release=Disassembled from a snapshot of the loaded game
+Created=Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> #VERSION, driven by <code>scripts/build_knightlore.py</code>.
+LinkOperands=CALL,DEFW,DJNZ,JP,JR
+
+[Index:Reference:About this disassembly]
+Architecture
+Provenance
+Facts
+
+[Titles]
+Architecture=How the game is put together
+Provenance=Where this disassembly comes from
+
+[PageHeaders]
+Architecture=How the game is put together
+Provenance=Where this disassembly comes from
+
+[Page:Architecture]
+SectionPrefix=Arch
+
+[Page:Provenance]
+SectionPrefix=Prov
+
+[Arch:map:The memory map]
+Knight Lore is loaded, not unpacked: a snapshot taken after loading is the
+whole game. It occupies from #R$6108 to the top of memory, and its variables
+sit below that from $5BA0 up, with the stack below them again. Nothing lives
+under $5BA0 that the game cares about.
+
+[Arch:map2:What is where]
+$5BA0-$5C07 are the game's variables and $5C08-$6107 the object table -- forty
+records of thirty-two bytes. $6108-$D8F2 is the game itself, 30699 bytes of
+code and data, opening with the status font at #R$6108. $D8F3-$F0F2 is the
+screen buffer the drawing code composes into, and $F100 upwards holds lookup
+tables the game builds for itself at start-up.
+
+[Arch:sysvars:Living on top of the system variables]
+The object table starts at $5C08, which on a stock Spectrum is LAST-K -- where
+the ROM leaves the last key pressed. That is not an accident and not a
+conflict: Knight Lore never calls the ROM once it is running, so the whole
+system-variable area from $5BA0 up is just memory. It reads the keyboard
+itself, at #R$B5F7, by selecting a half-row and reading port $FE.
+
+[Arch:loop:The main loop]
+One frame is #R$AFBD walking all forty object records, followed by #R$B000
+drawing the result. Each object is dispatched on its type byte through the
+table at #R$B096, and the loop pushes its own continuation before jumping so
+that a handler ends with a plain RET. The stack is reloaded to $5BA0 before
+every object, so no handler can leave anything behind for the next one.
+
+[Arch:random:Randomness]
+There is no random number generator as such. #R$AF6C seeds from the ROM's
+frame counter at start-up, and #R$AFE4 stirs in the refresh register after
+every object -- so the sequence depends on how long the machine has been on
+and how much work each frame did. That is what makes two games different.
+
+[Arch:sprites:The sprites]
+103 sprites share one format: a width in bytes, a height in rows, then a mask
+byte and a bitmap byte for every cell. Carrying the mask with the artwork is
+what lets the game draw objects in any order and still have them overlap
+correctly, which is the whole trick of the isometric view. The lookup at
+#R$7112 turns an object type and a facing into one of them.
+
+[Prov:sources:What this is built from]
+The code map -- which bytes are instructions, which are data, and what the
+routines are called -- is derived from the Knight Lore disassembly by tcdev
+(2017), as converted to SkoolKit form by Michael R. Cook (2019). Only that
+factual layer is taken. None of their prose is reproduced: the commentary here
+is written from the code in this build.
+
+[Prov:licence:On reuse]
+Neither of those works carries a licence, so they are treated here as
+reference and credit only. Knight Lore itself is copyright 1984 Ultimate Play
+the Game, and was designed and written by Tim and Chris Stamper. This
+repository contains no bytes of it -- run the build against a snapshot you own
+and it produces the disassembly locally.
+
+[Prov:trust:Why the map can be trusted]
+It is not taken on faith. Every byte the map describes is disassembled and
+reassembled on each build and compared with the snapshot, so a boundary in the
+wrong place shows up as a mismatch rather than as quiet nonsense. The build
+also checks that every label and every hand-written comment lands on an
+instruction boundary, because SkoolKit will silently resume decoding from the
+middle of an instruction if one does not.
+
+[Fact:objects:Forty objects, thirty-two bytes each]
+The object table is exactly $5C08 to $6108, and $6108 is the first byte of the
+font. The loop at #R$AFE4 detects the end of the table by comparing IX with
+the address of the font rather than with a count, so the two are the same
+number by construction.
+
+[Fact:threesizes:Every room is one of three sizes]
+A room record does not carry its dimensions; it carries an index into the
+three-entry table at #R$6248. The castle is large but it is built from three
+box sizes.
+
+[Fact:mirror:Facing west is facing east, reversed]
+Among the tables the game builds at start-up (#R$D69E) is the bit-reversal of
+every byte value, at #R$F100. Mirroring a sprite horizontally is then a table
+lookup per byte, which is how the game gets a knight walking west out of the
+artwork for one walking east without storing it twice.

@@ -325,3 +325,78 @@ Same copyright treatment as the others — `game_disassembly/` is gitignored
 and never committed. Load `game_disassembly/aticatac/aticatac.sna` +
 `aticatac.sld` over MCP or DAP for source-level debugging, same as Manic
 Miner.
+
+## Example: Knight Lore
+
+```powershell
+python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --html
+```
+
+The other three builds discover which bytes are instructions by running the
+game and recording what executes. This one doesn't, and the reason is worth
+stating plainly: someone had already done the work. tcdev disassembled and
+annotated Knight Lore in 2017, and Michael R. Cook converted that to SkoolKit
+form in 2019. Rediscovering their map by playing the game would have been
+slower and worse.
+
+What is taken from it is the factual layer only — where the blocks are, which
+are code and which are data, the sub-block lengths, and the labels — pulled out
+with `skool2ctl -w abs` into `scripts/knightlore_structure.ctl`. Neither work
+carries a licence, so none of their prose is reproduced; the commentary in
+`scripts/knightlore_annotations.ctl` and `scripts/knightlore.ref` is written
+from the code in this build. That is the same posture as pobtastic's Atic Atac
+names: use the facts, credit the person, write your own words.
+
+Borrowed facts still have to be checked. Assembling the reference disassembly
+and diffing `$6108..$D8F2` against the snapshot matches on 30697 of 30699
+bytes, and the two that differ are the operand of `LD HL,$F100` at `$D6B8` —
+where the snapshot is right and SkoolKit's own `skool2bin` is wrong, because it
+clamps an operand that points past the end of the binary it is writing. After
+that the usual round trip applies: 40696 bytes out, compared with the snapshot,
+every build.
+
+The build makes a second, stricter comparison. Every byte of the snapshot it
+writes comes either from the disassembly or from the snapshot it read, so the
+two files should be identical, and the build says so:
+
+```
+Verified: 40696 bytes reassemble byte-for-byte
+Verified: the snapshot it writes is the snapshot it read, all 49179 bytes
+```
+
+That second line covers what the first cannot. The round trip only sees the
+game block; it is blind to the registers, and this snapshot is taken mid-frame
+rather than at a cold start, so a machine resumed without its IX, IY and
+alternates does not carry on playing. It also catches a trap in the .sna
+format: the header's SP is the value *after* PC has been pushed, which is what
+SkoolKit reports, while `write_sna()` does the pushing itself and wants the
+value from before. Handing SkoolKit's number straight over leaves the rebuilt
+machine two bytes into its own stack, and nothing else in the build notices.
+
+**A control file can silently shift the whole disassembly.** An instruction
+comment is written `  $ADDR,N`, where N is a byte count. Get N wrong and
+SkoolKit does not complain — it resumes decoding from wherever the count ran
+out, reads the tail of one instruction as the head of another, and carries on.
+Writing `$B028,6` over a seven-byte run turned `ADD A,$06 / LD B,A` into
+`ADD A,$06 / LD B,$47 / LD B,A`, two bytes appeared, and everything above
+`$B02F` moved. The round trip caught it, but it surfaced as an sjasmplus error
+about writing past 65536 on the last line of the file — 9000 lines away from
+the cause. So `check_alignment()` now runs on the generated skool and fails the
+build naming the annotation, and `check_coverage()` checks the map's blocks run
+in order from `$6108`. NEG is two bytes; count with the listing, not by eye.
+
+Two things about the game came out of writing the annotations. The object table
+is forty records of thirty-two bytes at `$5C08`, which is LAST-K — Knight Lore
+puts its own data straight over the ROM's system variables, because it never
+calls the ROM once it is running and reads the keyboard itself at `$B5F7`. And
+all 103 sprites share one format: a width, a height, then a mask byte and a
+bitmap byte per cell. The check that proves it is arithmetic rather than
+inspection — for every one of them the gap to the next label is exactly
+`2 + 2 * (width AND $7F) * height`. Carrying the mask with the artwork is what
+lets the game overlap objects in depth without drawing back to front, which is
+the whole trick of the isometric view.
+
+Same copyright treatment as the others — `game_disassembly/` is gitignored and
+never committed, and no bytes of the game are in this repository. Load
+`game_disassembly/knightlore/knightlore.sna` + `knightlore.sld` over MCP or DAP
+for source-level debugging.

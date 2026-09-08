@@ -1,15 +1,16 @@
 # ZX Spectrum game disassemblies
 
-Reproducible disassemblies of three Spectrum games, built with
-[SkoolKit](https://skoolkit.ca). Each is a script that takes the original tape
-and produces a commented disassembly, a browsable HTML version, and a snapshot
-you can debug at source level.
+Reproducible disassemblies of four Spectrum games, built with
+[SkoolKit](https://skoolkit.ca). Each is a script that takes an original tape
+or snapshot and produces a commented disassembly, a browsable HTML version, and
+a snapshot you can debug at source level.
 
 | Game | Coverage | Build |
 |---|---|---|
 | Atic Atac (1983, Ultimate) | **100%** &mdash; 30208 of 30208 bytes, 631 named entries | `scripts/build_aticatac.py` |
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
+| Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
 
 ## Nothing copyrighted is committed here
 
@@ -25,11 +26,12 @@ yourself.
 ## Building
 
 You need Python 3.11+, SkoolKit, a 48K ROM at `roms/48.rom`, sjasmplus at
-`tools/sjasmplus/`, and a tape image.
+`tools/sjasmplus/`, and a tape image or snapshot.
 
 ```
 pip install skoolkit
 python scripts/build_aticatac.py --tape "Atic Atac.tap" --html
+python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --html
 ```
 
 The build ends by reassembling what it disassembled and comparing it with the
@@ -76,6 +78,12 @@ game's own bytes with `#UDGARRAY` rather than pasting in screenshots, are from
 [pobtastic's Atic Atac disassembly](https://skoolkit.arcadegeek.co.uk/ultimate/aticatac/).
 Comparing the two corrected several things here.
 
-Games are copyright their respective owners: Atic Atac and the Ultimate Play the
-Game name, Ultimate; Manic Miner, Bug-Byte/Software Projects; Fairlight, The
-Edge.
+Knight Lore's code map &mdash; which bytes are instructions, which are data, and
+what the routines are called &mdash; is derived from the disassembly by
+**tcdev** (2017), as converted to SkoolKit form by **Michael R. Cook** (2019).
+Only that factual layer is taken; neither work carries a licence, so none of
+their prose is reproduced and the commentary here is written from the code.
+
+Games are copyright their respective owners: Atic Atac, Knight Lore and the
+Ultimate Play the Game name, Ultimate; Manic Miner, Bug-Byte/Software Projects;
+Fairlight, The Edge.
