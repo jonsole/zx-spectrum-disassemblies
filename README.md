@@ -1,6 +1,6 @@
 # ZX Spectrum game disassemblies
 
-Reproducible disassemblies of four Spectrum games, built with
+Reproducible disassemblies of five Spectrum games, built with
 [SkoolKit](https://skoolkit.ca). Each is a script that takes an original tape
 or snapshot and produces a commented disassembly, a browsable HTML version, and
 a snapshot you can debug at source level.
@@ -11,6 +11,7 @@ a snapshot you can debug at source level.
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
+| The Hobbit (1982, Melbourne House) | partial &mdash; dictionary and the picture interpreter | `scripts/build_hobbit.py` |
 
 ## Nothing copyrighted is committed here
 
