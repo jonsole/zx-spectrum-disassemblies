@@ -390,6 +390,9 @@ def dictionary_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
 # The picture table: L9DBD's format, [location, lo, hi] records ending at a
 # location of $FF, each pointing at that location's picture stream.
 PICTURE_TABLE = 0xCC00
+# The action table, keyed by the action code in $B6E7: codes 1-10 are the
+# directions, all handled by MOVE; the rest have handlers of their own.
+ACTION_TABLE = 0xC730
 
 
 def keyed_table(memory, base: int) -> list[tuple[int, int, int]]:
@@ -676,6 +679,12 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # flow into it would mean the decode had gone astray, so it is a barrier
     # rather than somewhere to follow.
     barriers = [(WORD_INDEX, ENTRY)]
+    # The action table's handlers are code on the table's own evidence -- the
+    # playthrough reached 29 of its 31 as routine entries -- and they sit
+    # behind a dispatch, which is the one thing following branches cannot see
+    # through. So they are seeds in their own right, not guesses.
+    dispatched = {handler for _, handler, _ in keyed_table(memory, ACTION_TABLE)}
+    executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call
     # decodes everything after it one byte out -- so any instruction this

@@ -252,3 +252,26 @@ E $74BA The flags in the top nibble choose whether the word is inflected, and th
 E $74BA Measured rather than read off: PRINT_WORD was called directly with each of the sixteen flag values and the buffer read back, then $B6E8 and $B6EA were toggled by hand to test the dispatch. The word at $6AC1 comes out as "shatter" or "shatters" exactly as the rule above predicts in all six cases, the ones at $6AA4 and $67FE inflect the same way, and no word in the indexed list inflects at all -- none of them has that bit set, which fits, since the indexed list is what the parser matches against and nothing is ever printed from it.
 E $74BA $B6EA holds who the sentence is about, and zero means the player -- so the test really is subject agreement. Watched across real sentences: while the game narrates you it is zero and no verb inflects, and while it narrates anybody else it holds that character's identifier and the inflectable verbs take their -s. $B6E8 is a second participant, and flag $10 is how a word is made to agree with that one instead.
 E $74BA The identifiers are not a flag but a character number: $B6E8 is set to $FF at $79B6, loaded from tables at $7956 and $7942 elsewhere, and compared against list entries with CP (HL) at $7A73. One turn of narration walked $B6EA through a run of consecutive values while repeating the same verb, which is a group of characters being described one after another rather than anything to do with grammar.
+
+# --------------------------------------------------------------------------
+# Actions
+# --------------------------------------------------------------------------
+
+@ $9DBD label=FIND_RECORD
+c $9DBD Find a record in a keyed table
+D $9DBD The game's general-purpose lookup. A table is a run of three-byte records -- a key, then a two-byte value -- ending at a key of $FF, and this walks it in order looking for the key in A. It is not sorted and does not need to be. Eleven routines use it: the picture table at $CC00 is one, the action table at $C730 another.
+R $9DBD I:A The key to find
+R $9DBD I:IX The table
+R $9DBD O:IX The matching record, or the $FF that ended the table
+R $9DBD O:F NZ if the key was found, Z if the table ran out
+E $9DBD Done in the alternate register set, so the caller's BC, DE and HL survive it.
+
+@ $C730 label=ACTION_TABLE
+b $C730 What to do for each action code
+D $C730 A FIND_RECORD table keyed by the action code in $B6E7, whose values are the routines that carry the action out. Codes 1 to 10 are the ten directions and all go to MOVE, so one routine walks everybody everywhere; the other codes each have a handler of their own, a few of them shared.
+D $C730 Every handler address here is real code on the table's own evidence: the playthrough reached 29 of the 31 as routine entry points. The two it did not, for codes 42 and 55, are the reason this table matters for the code map -- a dispatch is exactly what following branches cannot see through, so they are named here and seeded from here.
+
+@ $8D9D label=MOVE
+c $8D9D Move a character one step
+D $8D9D Called for every character that moves, the player included, with the direction in $B6E7. Watched directly: a single turn in which the player only typed INVENTORY ran this 21 times for nine other characters, each wandering on its own -- which is The Hobbit's independent cast, seen from the inside.
+D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood, and the four diagonals will be among 4 to 8, but which is which has not been watched and is not asserted here.
