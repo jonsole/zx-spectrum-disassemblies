@@ -227,7 +227,24 @@ D $969A Polls the whole keyboard through port $FE and returns once something is 
 # --------------------------------------------------------------------------
 
 @ $67AB label=SECOND_LIST
-b $67AB A second word list, not reached from the index
-D $67AB Packed the same way as the indexed dictionary -- one 5-bit letter per byte, bit 7 ending a word -- and running up the alphabet again from the start, but nothing in the 26-letter index at $6000 points into it and its class bits are not the ones the indexed list uses. So it is a second vocabulary with a second reader, and neither has been found yet.
-D $67AB Left undecoded on purpose. build_hobbit.py stops at this boundary rather than walking on: decoding it as though it were the first list gives 133 words with the wrong part of speech against each one, and then runs off the end of it into two entries of nonsense, which is how it was noticed at all.
-E $67AB Worth doing next by finding its reader rather than by guessing at the bytes: a watchpoint on a read of $67AB while the game plays will say who wants it, and the words themselves (ARRIVES, ASIDE, ASLEEP, AWAY, BEHIND, BELOW, PREPARE, RECOVER, SHATTER) look more like the vocabulary of the messages the game composes than anything a player would type.
+b $67AB The words the game prints, as opposed to the words it reads
+D $67AB Packed exactly like the indexed dictionary above -- one 5-bit letter per byte, bit 7 ending a word -- and running up the alphabet again from the start. Nothing in the 26-letter index at $6000 reaches it, and nothing anywhere holds its address: PRINT_WORD is handed a 12-bit offset from $6000 and lands wherever that points, so a word is only ever referred to by its own offset and the start of the list is of no interest to anything.
+D $67AB Which is why searching for a pointer to $67AB, as an address or as an offset, finds nothing at all. It was found instead with a read watchpoint over the whole range while the game played: it stays untouched through the opening, LOOK and INVENTORY, and is first read on a command that composes a sentence about an object.
+E $67AB So the two lists divide by direction, not by content: the indexed one is what MATCH_WORD searches when you type, and this one is the vocabulary the messages are built from. Both live inside the 12-bit reach of PRINT_WORD, $6000-$6FFF, which is what the whole dictionary region is sized for.
+
+# --------------------------------------------------------------------------
+# Words in and words out
+# --------------------------------------------------------------------------
+
+@ $6F47 label=MATCH_WORD
+c $6F47 Look a typed word up in the dictionary
+D $6F47 Copies the word from the input line, turning each letter into its 5-bit code with AND $1F -- which works because 'A' is $41 and the codes were chosen to be the low five bits of the ASCII -- and stops at the first character below $40, so punctuation and spaces end a word without being tested for.
+D $6F47 Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there it walks entries one at a time and gives up when an entry's initial letter stops matching the one typed, which is the bucket's only end marker.
+E $6F47 A linear scan, not a binary search -- which is the other half of why the list only has to be grouped by initial letter and can be loosely ordered within a group, as BLOW before BLOOD and HELP before HEART are.
+
+@ $74BA label=PRINT_WORD
+c $74BA Expand a packed word into letters
+D $74BA Takes a 2-byte word reference: the low 12 bits are an offset from $6000 to the entry, and the top 4 bits are flags the tail of the routine acts on. Zero means print nothing. The letters come back out as lowercase ASCII by adding $60 to each 5-bit code.
+D $74BA The loop is where the game states the format's awkward rule itself. It stops on a byte with bit 7 set, except that if only two letters have been emitted it carries on regardless -- because the top bits of the first two bytes are the word's part of speech, so bit 7 there is not a terminator. At exactly three letters it goes back and re-tests the second byte's bit 7 before deciding. A decoder that simply stops at the first bit 7 splits ATTACK into AT and TACK.
+R $74BA I:HL The word reference to read, or use the entry at $74C2 with it already in DE
+E $74BA The flags in the top nibble are read after the letters, against $B6E8 and $B6EA and the following entry's class bits, and decide how the word is presented rather than which word it is. Not worked out yet.

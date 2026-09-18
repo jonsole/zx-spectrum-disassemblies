@@ -71,9 +71,20 @@ game, not a decoding error: those pairs were checked byte by byte.
 
 A SECOND word list follows the indexed one at $67AB, running up the alphabet
 again in the same letter encoding but with different class bits, and nothing in
-the 26-letter index points into it. What reads it is not yet known, so
-decode_words stops at the boundary and it is left as an undecoded data block --
-see hobbit_annotations.ctl.
+the 26-letter index points into it. It is the vocabulary the game's messages are
+composed from, as against the one it searches when you type: PRINT_WORD ($74BA)
+is handed a 12-bit offset from $6000 and expands whatever entry it lands on, so
+no pointer to the list's start exists anywhere and its words are only ever named
+individually. Found with a read watchpoint over the range -- it stays untouched
+through the opening, LOOK and INVENTORY, and is first read on a command that
+composes a sentence about an object.
+
+decode_words still stops at the boundary, because the two lists do not share a
+part-of-speech encoding and running on labels 133 of them wrongly.
+
+PRINT_WORD is also the authority for the rule above: it stops on a byte with bit
+7 set unless only two letters have been emitted, which is the game's own way of
+saying that the first two bytes carry class bits rather than a terminator.
 
 THE CORRECTNESS SIGNAL. There is no reference disassembly to diff against, but
 there is a better check than "it assembled": the .asm is fed back through
