@@ -430,6 +430,37 @@ WALKTHROUGH = [
 ]
 
 
+def verb_drill(memory) -> list[str]:
+    """A command for every verb in the game's own dictionary.
+
+    WALKTHROUGH above is written by hand, and a hand-written list of commands
+    goes stale the moment it is not re-read against the game: it was typing 11
+    of the 53 verbs, so two thirds of the command dispatcher was never entered
+    and no amount of following branches could reach it, because a dispatch
+    table is exactly what recursive descent cannot see through.
+
+    So the drill is derived rather than written. Every verb the dictionary
+    holds gets typed twice, bare and with an object, which reaches both the
+    intransitive and the transitive paths -- and because the list comes out of
+    the game, a verb can never be missed by an oversight here.
+
+    The object is the map, which is in the player's reach from the first turn.
+    Most of these sentences are refusals rather than actions; that is fine,
+    since what is being exercised is the dispatcher rather than the story.
+    """
+    verbs = [w.text for w in decode_words(memory) if w.part_of_speech == "verb"]
+    already = set()
+    for command in WALKTHROUGH:
+        already.update(command.replace(",", " ").split())
+    commands = []
+    for verb in verbs:
+        if verb in already:
+            continue
+        commands.append(verb)
+        commands.append(f"{verb} THE MAP")
+    return commands
+
+
 def _keys_for(char: str) -> list[str]:
     """The keys held down to produce one typed character."""
     if char == " ":
@@ -467,7 +498,8 @@ def _key_tracer_class():
     return KeyTracer
 
 
-def _session_script(hold: float, gap: float, think: float, settle: float):
+def _session_script(commands: list[str], hold: float, gap: float, think: float,
+                    settle: float):
     """(keys-held, seconds) steps: dismiss the title screen, then type.
 
     `settle` is not padding. The game answers the title screen by drawing Bag
@@ -478,7 +510,7 @@ def _session_script(hold: float, gap: float, think: float, settle: float):
     the same single LOOK finds 1392. Longer buys nothing.
     """
     script = [([], settle), (["SPACE"], 0.2), ([], settle)]
-    for command in WALKTHROUGH:
+    for command in commands:
         for char in command + "\n":
             script.append((_keys_for(char), hold))
             script.append(([], gap))
@@ -520,8 +552,43 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # flow into it would mean the decode had gone astray, so it is a barrier
     # rather than somewhere to follow.
     barriers = [(WORD_INDEX, ENTRY)]
-    code, indirect, blocked = codemap.walk(memory, executed | {ENTRY},
-                                           LOAD_ADDR, GAME_END, barriers)
+    # Follow the branches, then let the CPU overrule the result. A byte in the
+    # game's variables reads as CALL NZ,$7874, and following that phantom call
+    # decodes everything after it one byte out -- so any instruction this
+    # produces that straddles an address the CPU executed is wrong by
+    # definition, is struck out, and the walk is done again without it. That
+    # converges, and it cannot be argued with: those boundaries came from a
+    # real processor, and these came from a table.
+    forbidden: set[int] = set()
+    for _ in range(12):
+        code, indirect, blocked = codemap.walk(memory, executed | {ENTRY},
+                                               LOAD_ADDR, GAME_END, barriers,
+                                               forbidden)
+        straddling = {a for a in code
+                      if any((a + o) & 0xFFFF in executed
+                             for o in range(1, codemap.decode(memory, a).length))}
+        if not straddling:
+            break
+        forbidden |= straddling
+    if forbidden:
+        _log(f"  {len(forbidden)} decoded instruction(s) struck out for "
+             f"straddling an address the CPU executed")
+
+    # Last containment, and it only ever takes claims away. An instruction the
+    # CPU never executed, sitting in a 256-byte page where it executed nothing
+    # at all across every command typed, is far likelier to be the database
+    # read as code than a routine the playthrough happened to miss -- the pages
+    # this drops are $B3xx-$B6xx, which is where the game's own variables live.
+    # It would also drop a genuinely unreached routine that happened to sit in
+    # an otherwise untouched page, and that is the price: this disassembly
+    # would rather be short of code than full of fiction, because nothing
+    # downstream can tell the difference.
+    hot_pages = {a >> 8 for a in executed}
+    cold = {a for a in code if a not in executed and (a >> 8) not in hot_pages}
+    if cold:
+        code -= cold
+        _log(f"  {len(cold)} start(s) dropped from pages the CPU never entered "
+             f"({', '.join(f'${p:02X}xx' for p in sorted({a >> 8 for a in cold}))})")
 
     inside, aimed_at = set(), set()
     for address in code:
@@ -584,7 +651,8 @@ def build_code_map(snapshot_path: Path, out: Path, hold: float, gap: float,
 
     executed: set[int] = set()
     pc, keystrokes = ENTRY, 0
-    for keys, seconds in _session_script(hold, gap, think, settle):
+    commands = WALKTHROUGH + verb_drill(snapshot.memory)
+    for keys, seconds in _session_script(commands, hold, gap, think, settle):
         tracer.keys = set(keys)
         simulator.trace(pc, 0, 0,
                         simulator.registers[T] + int(seconds * TSTATES_PER_SECOND),
@@ -601,7 +669,7 @@ def build_code_map(snapshot_path: Path, out: Path, hold: float, gap: float,
     out.write_bytes(bytes(data))
 
     reached = sum(1 for a in range(ENTRY, GAME_END) if data[a])
-    _log(f"  {len(WALKTHROUGH)} commands typed ({keystrokes} keystrokes); "
+    _log(f"  {len(commands)} commands typed ({keystrokes} keystrokes); "
          f"{len(executed)} addresses executed, and {reached} instruction "
          f"starts known past the entry point once the branches are followed")
     if reached < 1000:

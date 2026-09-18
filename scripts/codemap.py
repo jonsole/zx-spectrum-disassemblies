@@ -152,32 +152,52 @@ def decode(memory, address):
     return Instruction(address, length, (), True)
 
 
-def walk(memory, seeds, start, end, barriers=()):
+def walk(memory, seeds, start, end, barriers=(), forbidden=()):
     """Every instruction start reachable from `seeds` by following edges.
 
     `barriers` are (lo, hi) ranges known to be data -- the packed dictionary,
     say. Control flow into one of those means this decoder has gone wrong, so
     they are not entered, and each one that is hit is reported.
+
+    `forbidden` are addresses that must not be treated as instruction starts,
+    however the walk arrives at them. Data decoded as code is the one failure
+    this cannot avoid by itself -- a byte in the game's variables happens to
+    read as CALL NZ,$7874, and following that phantom call lands the decode one
+    byte out for everything after it -- so the caller settles those cases with
+    the execution map, whose boundaries came from a CPU, and walks again.
     """
-    in_range = lambda a: start <= a < end and not any(lo <= a < hi for lo, hi in barriers)
-    blocked, code, pending = set(), set(), [a for a in seeds if in_range(a)]
-    indirect = set()
+    forbidden = set(forbidden)
+    trusted = set(seeds)
+    in_range = lambda a: (start <= a < end and a not in forbidden
+                          and not any(lo <= a < hi for lo, hi in barriers))
+    blocked, code, indirect = set(), set(), set()
+    pending = [(a, True) for a in seeds if in_range(a)]
     while pending:
-        address = pending.pop()
+        address, believed = pending.pop()
         if address in code:
             continue
         code.add(address)
         instruction = decode(memory, address)
         if instruction.indirect:
             indirect.add(address)
-        following = list(instruction.targets)
+
+        # Branches are followed only out of an instruction a CPU really
+        # executed. Past that the walk goes straight on and stops at the first
+        # RET or unconditional jump, because chaining speculation is what turns
+        # one wrong byte into thousands: a byte in the game's variables reads
+        # as a CALL, and following its "branches" manufactures a whole database
+        # of instructions that no round-trip check can tell from real ones.
+        following = []
+        if believed:
+            following += [(t, t in trusted) for t in instruction.targets]
         if instruction.falls_through:
-            following.append((address + instruction.length) & 0xFFFF)
-        for target in following:
+            following.append(((address + instruction.length) & 0xFFFF, believed))
+
+        for target, target_believed in following:
             if target in code:
                 continue
             if in_range(target):
-                pending.append(target)
+                pending.append((target, target_believed))
             elif start <= target < end:
                 blocked.add(target)
     return code, indirect, blocked
