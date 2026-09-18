@@ -489,6 +489,75 @@ def _session_script(hold: float, gap: float, think: float, settle: float):
     return script
 
 
+def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
+    """Follow the game's own branches out from everything that ran.
+
+    The playthrough can only find code it managed to reach, and for a game
+    driven by typed sentences that leaves a lot untouched. codemap.walk takes
+    those addresses as seeds and follows every call, jump and fall-through
+    from them, which finds routines the walkthrough never entered without
+    guessing at anything: an address is only added because something already
+    known to be code goes there.
+
+    Seeding from the execution map rather than from the entry point alone is
+    the point. Recursive descent stops dead at an indirect jump, and descent
+    from $6C00 by itself reaches only about two thirds of what actually ran --
+    so it cannot replace the execution map, only extend it. Whatever a real
+    CPU reached through a dispatch table is already a seed here.
+
+    The check afterwards is what makes the hand-written decoder in codemap.py
+    trustworthy: every address the CPU executed must come out of it as an
+    instruction start too. It found a real bug when first run -- DD/FD on an
+    opcode naming (HL) carries a displacement byte, so it is two bytes longer
+    than the plain form and not one -- and a wrong length there is invisible
+    downstream, because the round-trip check cannot tell data disassembled as
+    instructions from the real thing.
+    """
+    import codemap
+
+    # The packed dictionary is data on the game's own evidence: nothing in it
+    # is ever executed, and its format is decoded and self-checking. Control
+    # flow into it would mean the decode had gone astray, so it is a barrier
+    # rather than somewhere to follow.
+    barriers = [(WORD_INDEX, ENTRY)]
+    code, indirect, blocked = codemap.walk(memory, executed | {ENTRY},
+                                           LOAD_ADDR, GAME_END, barriers)
+
+    inside, aimed_at = set(), set()
+    for address in code:
+        instruction = codemap.decode(memory, address)
+        aimed_at.update(instruction.targets)
+        for offset in range(1, instruction.length):
+            inside.add((address + offset) & 0xFFFF)
+    # An executed address inside a decoded instruction is one of two things.
+    # If something branches to it deliberately, the game is entering those
+    # bytes two ways on purpose -- at $8113 a JR aims at the second byte of an
+    # ED 52, so falling in runs SBC HL,DE and jumping in runs the $52 as a
+    # one-byte no-op that skips it. That is real, and both readings are code.
+    # If nothing aims at it, the decode has drifted out of step and every
+    # instruction after it is invented, which nothing downstream would catch.
+    disagreed = sorted(executed & inside - aimed_at)
+    overlapped = sorted(executed & inside & aimed_at)
+    if disagreed:
+        sys.exit(
+            f"error: {len(disagreed)} address(es) the CPU executed fall inside "
+            f"an instruction codemap.py decoded and nothing branches to them, "
+            f"first at ${disagreed[0]:04X} -- its instruction lengths are "
+            f"wrong, and the disassembly it would produce is invented. Fix "
+            f"codemap.py rather than skipping this check.")
+    if overlapped:
+        _log(f"  {len(overlapped)} address(es) entered both as part of an "
+             f"instruction and as one of their own: "
+             + ", ".join(f"${a:04X}" for a in overlapped[:4]))
+
+    _log(f"  following branches from there: +{len(code - executed)} more "
+         f"instruction starts ({len(indirect)} indirect jumps stopped it)")
+    if blocked:
+        _log(f"  {len(blocked)} branch(es) into the dictionary ignored -- "
+             f"suspicious, since nothing should jump into data")
+    return code
+
+
 def build_code_map(snapshot_path: Path, out: Path, hold: float, gap: float,
                    think: float, settle: float) -> None:
     from skoolkit import CSimulator, read_bin_file
@@ -523,15 +592,18 @@ def build_code_map(snapshot_path: Path, out: Path, hold: float, gap: float,
         pc = simulator.registers[PC]
         keystrokes += 1 if keys else 0
 
+    ran = {a for a in executed if ENTRY <= a < GAME_END}
+    code = extend_by_descent(list(snapshot.memory), ran)
+
     data = bytearray(65536)
-    for address in executed:
+    for address in executed | code:
         data[address] = 1
     out.write_bytes(bytes(data))
 
     reached = sum(1 for a in range(ENTRY, GAME_END) if data[a])
     _log(f"  {len(WALKTHROUGH)} commands typed ({keystrokes} keystrokes); "
-         f"{len(executed)} addresses executed, {reached} of them past the "
-         f"entry point")
+         f"{len(executed)} addresses executed, and {reached} instruction "
+         f"starts known past the entry point once the branches are followed")
     if reached < 1000:
         _log("  WARNING: too few for a game this size -- the typing is "
              "probably not reaching the parser. Try --hold/--gap/--think.")
