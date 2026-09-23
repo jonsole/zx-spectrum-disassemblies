@@ -1259,7 +1259,6 @@ b $CA84 The timers END_OF_TURN counts down
 D $CA84 Ten 7-byte entries, ending at $FF: byte 0 is the timer's length in turns, and starting it is copying that into byte 1, the count -- WINE_DRUNK does exactly that for timer 7, and timer 9 restarts itself the same way. Bytes 2 and 3 are the routine to run when the count reaches zero. Byte 4 is how many turns before then to warn, and bytes 5 and 6 the routine to warn with. All of them are reached through #R$9B80's JP (HL).
 D $CA84 This table and what follows it, $BF bytes in all, are copied aside by START and copied back on every new game; SAVE and LOAD take the same $BF bytes.
 N $CA84 Timer 0, 2 turns: the barrel reaches the long lake (#R$A5FB); started by BARREL_THROWN
-@ $CA84 label=TIMER0
 B $CA84,1,1
   $CA84,1 Its length in turns
 @ $CA85 label=TIMER0_COUNT
