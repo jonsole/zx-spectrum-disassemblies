@@ -1198,6 +1198,42 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     if shared_start is not None:
         starts.append(shared_start)
 
+    # A heading for each script: what it is, and in brief what it does, up to
+    # where it ends or runs on into another script with a heading of its own.
+    purpose: dict[int, str] = {}
+    for table in tables.values():
+        for _, key, target in table["entries"]:
+            if target not in purpose:
+                purpose[target] = ("An ordinary script" if key == 0 else
+                                   f"The reaction to {pattern_sentence(memory, key)}")
+    for slot in program["slots"]:
+        purpose.setdefault(slot["current"], "Where the script starts")
+    for step in steps.values():
+        for target in (step["target"], step["fallback"]):
+            if target is not None:
+                purpose.setdefault(target, "Where a jump or a refusal goes on")
+    # Routines a step calls are named by the annotations, scripts by `labels`.
+    routine_names = {int(a, 16): name for a, name in re.findall(
+        r"^@ \$([0-9A-F]{4}) label=(\S+)",
+        ANNOTATIONS.read_text(encoding="utf-8") if ANNOTATIONS.exists() else "", re.M)}
+    name_of_address = lambda a: labels.get(a) or routine_names.get(a) or f"${a:04X}"
+    headings: dict[int, str] = {}
+    for start, what in purpose.items():
+        brief, at = [], start
+        for _ in range(40):
+            step = steps[at]
+            brief.append(describe_step(memory, program, step, name_of_address)
+                         .split(" (")[0].replace("Call ", "")
+                         .replace("Switch to one of its first ", "switch at random among its first ")
+                         .replace(" scripts at random", ""))
+            if step["ends"]:
+                break
+            at += step["length"]
+            if at in purpose:
+                brief.append(f"then on as {labels[at]}")
+                break
+        headings[start] = f"{labels[start]} -- {what}: " + ", ".join(brief) + "."
+
     items = [(a, "table") for a in tables] + [(a, "step") for a in steps]
     for address, kind in sorted(items):
         if address in starts:
@@ -1208,16 +1244,40 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
             else:
                 who = ", ".join(names[n] for n in tables[address]["owners"])
                 out.append(f"b ${address:04X} Scripts: {who}")
-                out.append(f"D ${address:04X} Its script table first -- key 0 for "
-                           f"an ordinary script, an action code for a reaction -- "
-                           f"then the scripts.")
+                out.append(f"D ${address:04X} What {who} does, turn by turn. "
+                           f"CHARACTERS_ACT runs one step of a character's script "
+                           f"each turn it can, and a step is an action the character "
+                           f"tries as if it had typed it: RUN, TAKE, GIVE TO. A step "
+                           f"that names nothing acts on whatever fits.")
+                out.append(f"D ${address:04X} First comes the script table: one "
+                           f"entry per script, a key and the script's address. Key "
+                           f"0 is an ordinary script -- the ones a character "
+                           f"wanders between, picked at random by a 'switch at "
+                           f"random' step. Any other key is an action code, and "
+                           f"that script is the character's reaction when that is "
+                           f"done to it: attacked, given something, captured.")
+                out.append(f"D ${address:04X} Then the scripts, one step to a "
+                           f"line. A step's first byte says what it is: its low "
+                           f"four bits $00-$03 an action with objects (or, $01 and "
+                           f"$03, a routine to call), $04 an action with none, "
+                           f"$0E go to, $0F switch at random, $0C switch to a "
+                           f"reaction. $10 added means an address follows, where "
+                           f"the script goes on if the step is refused; $20 that "
+                           f"the character's part is over once it works; $40 "
+                           f"that an order from the player cannot interrupt it. "
+                           f"So $14 is an action with no objects, with somewhere "
+                           f"to go if it is refused. The Characters page has "
+                           f"every script written out.")
         if address in labels:
             out.append(f"@ ${address:04X} label={labels[address]}")
+        if kind == "step" and address in headings:
+            out.append(f"N ${address:04X} {headings[address]}")
         if kind == "table":
             table = tables[address]
             for at, key, target in table["entries"]:
-                what = ("An ordinary script" if key == 0 else
-                        f"On {pattern_sentence(memory, key)}")
+                what = (f"Key 0, an ordinary script: {labels[target]}" if key == 0 else
+                        f"Key ${key:02X}, {pattern_sentence(memory, key)}: "
+                        f"its reaction, {labels[target]}")
                 out.append(f"B ${at:04X},1,1")
                 out.append(f"  ${at:04X},1 {what}")
                 # No comment line for the word: one would turn it back into
@@ -1956,7 +2016,9 @@ def build_html(skool: Path, out: Path) -> None:
     hobbit_pages.build(out, pages)
 
     _log("Building HTML disassembly...")
-    args = ["-d", str(out), "-t"]
+    # -a: operands and links read GANDALF_A and DRAW_LINE, as the source
+    # does, rather than $C8C2 and $8151.
+    args = ["-d", str(out), "-t", "-a"]
     args.append(str(skool))
     if REF.exists():
         args.append(str(REF))
