@@ -371,7 +371,7 @@ b $C063 Every object and every character, by number
 D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
 D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
 D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
-D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Bytes 4-6 are still open.
+D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Byte 4's low four bits say how things are placed with this object, as PLACED_WORD prints it: 0 in, 1 on, 2 behind (the curtain, which the wall is behind), 3 under (the trap door), 4 tied to (the rope). Its high four bits are set only on characters and the window, and group them -- 1 for the player, Gandalf, Thorin and Bard; 2 for Gollum and the goblins; 4 for the wood elf and the butler; 5 for Elrond; 8 for the window -- which reads like a kind or a side, but what tests it is not yet found. Bytes 5 and 6 are still open.
 D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 0 is on four doors and not worked out. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
 
 @ $9BCA label=GET_OBJECT
@@ -1999,3 +1999,78 @@ R $7AF5 O:F NZ if it would work
   $7B43,13 $7A14 answers instead
   $7B50,2 It would work
   $7B52,5 For real again
+
+# --------------------------------------------------------------------------
+# The ordinary action handlers
+# --------------------------------------------------------------------------
+#
+# Every handler is run twice for anyone but the player: once with $B6FA clear
+# to ask whether it would work (see WOULD_WORK), and once for real. FOR_REAL
+# is the dividing line in each: the checks come before it, and it answers the
+# test by returning straight out of the handler with $B6FB set.
+
+@ $9D44 label=FOR_REAL
+c $9D44 Only a test? Then say it would work, and leave the handler
+D $9D44 With $B6FA set this returns and the handler goes on to do the action. With it clear it sets $B6FB -- yes, it would work -- and drops its own return address, so the RET leaves the handler that called it.
+@ $8C9B label=MUST_CARRY
+  $9D44,6 For real: carry on
+  $9D4A,4 A test: yes, it would work
+  $9D4E,2 ...and out of the handler
+c $8C9B Refuse unless the actor has the first object
+D $8C9B "you are not carrying it.", and out of the handler that called it.
+@ $8CF1 label=CAN_LIFT
+  $8C9B,4 The actor has it: fine
+  $8C9F,7 Otherwise "you are not carrying it.", from the caller
+c $8CF1 Can the actor pick the first object up?
+D $8CF1 Its weight and all it holds must fit what the actor can carry -- byte 3 of the actor's record less its own weight and load -- or "the ... is too heavy to lift." and "you are carrying too much."; and a liquid cannot be picked up at all. A refusal leaves the handler that called it.
+@ $9D97 label=COUNT_HELD
+  $8CF1,18 Its weight with all it holds, at most 255
+  $8D03,13 More than the actor can carry at all? "too heavy to lift"
+  $8D10,16 More than it can carry besides its load? "you are carrying too much"
+  $8D20,5 Refused, from the caller
+  $8D25,10 Fine, unless $9246 objects or it is a liquid
+  $8D2F,4 Refused
+c $9D97 How many visible things does object A hold?
+R $9D97 I:A The holder
+R $9D97 O:A The count
+@ $A09D label=PLACED_WORD
+  $9D9C,6 Count from 0, through every object
+  $9DA2,20 Held by A and visible: count it
+c $A09D Print how things are placed with this object: "in the", "on the"...
+D $A09D Picked by the low four bits of byte 4 of its record, from the phrases at $AFCA, four bytes apart: in, on, behind, under, tied to.
+R $A09D I:IX The object's record
+@ $8C4B label=DO_LOOK
+  $A09D,17 The phrase for its byte 4
+c $8C4B LOOK
+D $8C4B Inside something -- the barrel, say -- the actor is told what it is in and what else is in there with it: "you are in the barrel." and "you see :". Otherwise the whole location is described again, as on a first visit.
+@ $8CA6 label=DO_DROP
+  $8C4B,3 The test ends here
+  $8C4E,11 Held by nothing: describe the place
+  $8C59,12 "you are"...
+  $8C65,23 ...in the ..., and its name
+  $8C7C,8 A full stop and a new line
+  $8C84,17 "you see :" and what else it holds
+  $8C95,6 Describe the location
+c $8CA6 DROP
+D $8CA6 The object goes to whatever holds the actor, or to the ground if nothing does. Something tied to the rope goes with the rope: it is the rope that is dropped. A liquid is not dropped but lost: it goes nowhere, and "... evaporates.".
+@ $8D33 label=DO_TAKE
+  $8CA6,6 Must be carrying it; the test ends here
+  $8CAC,15 Tied to the rope? Then it is the rope that is dropped
+  $8CBB,14 It is held by what holds the actor
+  $8CC9,5 Not a liquid: done
+  $8CCE,17 A liquid goes nowhere: "... evaporates."
+c $8D33 TAKE and CARRY
+D $8D33 Refused if the actor has it already ("you are already carrying the ..."), if it will not lift (CAN_LIFT), or if the actor is inside it. Something tied to the rope is taken by taking the rope.
+@ $90EB label=DO_INVENTORY
+  $8D33,9 Has it already? "you are already carrying the ..."
+  $8D3C,3 Can it be lifted?
+  $8D3F,22 Is the actor inside it, at any depth? Refused
+  $8D55,7 The test ends here
+  $8D5C,14 The actor holds it now...
+  $8D6A,4 ...or, if it is tied to the rope, the rope
+c $90EB INVENTORY
+D $90EB "you are carrying." and a list of what the actor holds, or "nothing".
+  $90EB,3 The test ends here
+  $90EE,6 "you are carrying."
+  $90F4,13 Nothing? "nothing"
+  $9101,13 Otherwise the list
