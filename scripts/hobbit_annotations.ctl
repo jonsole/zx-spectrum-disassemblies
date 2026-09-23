@@ -1334,12 +1334,37 @@ R $9D53 I:A The object
 
 @ $6C00 label=START
 c $6C00 The game's entry point
-D $6C00 Reached by PRINT USR 27648. It first copies the whole of the game's changeable state aside -- the objects to $F400, the rooms straight after them, the variables at $B6EB and the TIMERS block to $5F00 -- and every new game at $6C27 copies it back, which is how dying and starting again restores the world as it was loaded.
+D $6C00 Reached by PRINT USR 27648, and never left: it runs on into MAIN_LOOP at $6D13, which is the game. It first copies the whole of the game's changeable state aside -- the objects to $F400, the rooms straight after them, the variables at $B6EB and the TIMERS block to $5F00 -- and every new game at $6C27 copies it back, which is how dying and starting again restores the world as it was loaded.
   $6C01,19 The objects and the rooms, to $F400 onwards
   $6C14,19 The variables and the timers, to $5F00 onwards
   $6C27,4 A new game starts here
   $6C2B,20 Not yet worked out: zeroes two bytes found through picture 5's entry
   $6C3F,38 Copy the saved state back
+  $6C65,8 Black border; the ROM told the border is black too
+  $6C6D,9 The title screen: wait for a key
+  $6C76,9 N held down: no pictures ($B707)
+  $6C7F,32 Both windows' cursors to the start
+  $6C9F,8 No orders waiting
+  $6CA7,5 Seed RANDOM from R
+  $6CAC,33 The rest of the variables: sober, no printer, printing on, a capital first, no score
+  $6CCD,31 Clear the screen and draw the divider
+  $6CEC,5 The first 17 lines of story without a pause
+  $6CF1,6 Come back here with a command to repeat? Straight to it
+  $6CF7,3 Shut a road and choose a riddle
+  $6CFA,25 The first turn: "> LOOK" printed and put in the line
+  $6D13,10 The main loop: a new line; nine lines of story before a pause
+  $6D1D,5 Read it; @ reruns the last
+  $6D22,15 Tokenise it into TOKENS
+  $6D31,7 The next word; unknown: say so
+  $6D38,22 An opening quote: an order to someone
+  $6D4E,30 A closing quote: end the order, as if with THEN
+  $6D6C,15 Keep the token, to the end of the line
+  $6D7B,15 A quote left open: "what ?"
+  $6D8A,6 Parse from the start of TOKENS
+  $6D90,6 The next command in it
+  $6D96,12 Obey it, and on while there are more
+  $6DA2,11 "i do not know the word "...
+  $6DAD,28 ...and the word itself, in quotes
 
 # --------------------------------------------------------------------------
 # The other characters: scripts
@@ -3134,3 +3159,67 @@ B $B71D,1,1
   $B71D,1 The action pattern's flags, from its first two words (PATTERN_FLAGS)
 B $B71E,1,1
   $B71E,1 The action pattern's flags, from its last two words
+
+@ $6D13 label=MAIN_LOOP
+@ $6DA2 label=UNKNOWN_WORD
+@ $792F label=QUOTE_LEFT_OPEN
+c $792F "what ?": the line ended inside a quotation
+@ $6DCC label=DIVIDER
+b $6DCC The wavy line between the story and the input window
+D $6DCC Five pairs of bytes, each pair repeated across a pixel row at $5140 by START.
+; span $6FF2,7
+@ $6FF2 label=FIRST_COMMAND
+b $6FF2 The first turn's command
+D $6FF2 "> LOOK" and a carriage return: START prints it as if it had been typed, and copies LOOK into INPUT_LINE, so the game opens with a description nobody asked for.
+B $6FF2,2,2
+  $6FF2,2 The prompt, "> "
+B $6FF4,5,5
+  $6FF4,5 LOOK, and a carriage return
+@ $7079 label=TYPED_WORD
+b $7079 TOKENISE's working copy of the word being looked up
+D $7079 The word as 5-bit letter codes at $707A, up to $709B, which holds how many letters it has.
+; span $7079,35
+@ $74A6 label=WORD_BUFFER
+b $74A6 Where PRINT_WORD assembles a word's letters before printing
+D $74A6 Twenty bytes. What is in them in the loaded game is only what was left there, which is why it reads like code.
+; span $74A6,20
+@ $8822 label=FONT
+b $8822 The story's font: six pixels wide, from the space to $7F
+D $8822 Ninety-six characters of eight bytes each, drawn by NARROW_CHAR.
+B $8822,768,8
+; span $8822,768
+; span $8BFB,40
+; span $8C23,40
+; span $7295,46
+; span $B71F,24
+@ $C82D label=SCRIPTS
+b $C82D The characters' scripts
+D $C82D Each character's script table and the scripts it points at, in the format CHARACTERS describes, from the goblins' at the start to the rest of the cast; the steps SCRIPT_DO, SCRIPT_BARE and the opcodes of CHARACTERS_ACT carry out. Not yet laid out entry by entry.
+; span $C82D,599
+
+@ $9BDC label=PLAYER_MOVED
+b $9BDC Cleared by MOVE_HELD when the player is among what it moves
+# Code that nothing reaches. Each reads as instructions, but no call, jump,
+# table or record leads to it, so it is left as data with what it would do
+# said beside it -- the rule this disassembly keeps is to mark as code only
+# what there is evidence runs.
+@ $78FB label=UNREACHED_78FB
+b $78FB Unreached: LD C,6 and JR $7905
+D $78FB A third way into COPY_FRAME_PHRASE, for six bytes, that nothing uses.
+@ $82FD label=UNREACHED_82FD
+b $82FD Unreached: code before and including special word slot 0's handler
+D $82FD SPECIAL_WORDS names $8315 as the handler for slot 0, but slot 0 holds no word, so PARSE_SPECIAL can never choose it; the bytes from $82FD to $8390 read as code and nothing else leads into them.
+; span $82FD,148
+@ $9030 label=UNREACHED_9030
+b $9030 Unreached: LD (IX+1),$FF -- let something go
+@ $92E8 label=UNREACHED_92E8
+b $92E8 Unreached: LD A,$83 and JP SAY_STATE_OF -- "the ... is broken."
+@ $A1AE label=UNREACHED_A1AE
+b $A1AE Unreached: a routine that walks the objects held by one
+D $A1AE It reads as a search of the object index for what is held by the object in A, returning the first. Nothing calls it.
+@ $A536 label=UNREACHED_A536
+b $A536 Unreached: an OPEN for the wood elf alone
+D $A536 Reads as: unless the actor is the wood elf ($40), refuse; otherwise DO_OPEN. No object's record carries it.
+@ $A70A label=UNREACHED_A70A
+b $A70A Unreached: wipe the exit through the first object
+D $A70A Reads as: find the exit through the first object (EXIT_VIA) and, if there is one, set its three bytes to zero -- the way the hidden roads are shut. Nothing calls it.

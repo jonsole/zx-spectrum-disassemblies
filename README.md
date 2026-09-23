@@ -11,7 +11,7 @@ a snapshot you can debug at source level.
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
-| The Hobbit (1982, Melbourne House) | 366 of 366 routines named: parser, messages, pictures, actions, characters and timers; the database decoded; the variables block not yet described | `scripts/build_hobbit.py` |
+| The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine and table named and described (the character scripts as one block, not yet entry by entry) | `scripts/build_hobbit.py` |
 
 ## Nothing copyrighted is committed here
 
