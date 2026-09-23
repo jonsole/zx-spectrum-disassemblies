@@ -11,7 +11,7 @@ a snapshot you can debug at source level.
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
-| The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine and table named and described (the character scripts as one block, not yet entry by entry) | `scripts/build_hobbit.py` |
+| The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 
 The Hobbit's HTML disassembly is published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**, with a map of the

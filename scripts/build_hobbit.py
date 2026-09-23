@@ -347,6 +347,35 @@ def check_dictionary(memory, words: list[Word]) -> None:
          f"({examples}, ...)")
 
 
+SECOND_LIST = 0x67AB
+
+
+def printed_words(memory) -> list[tuple[int, int, str]]:
+    """The words the game prints (SECOND_LIST): (address, length, text) for
+    each, up to the zeros that pad it out to the code at ENTRY.
+
+    Packed as the indexed list is, and ended as PRINT_WORD ends one: on a byte
+    with bit 7 set from the third letter on -- except that when the second
+    byte's own bit 7 is set (the word can take an ending) a bit 7 on the third
+    letter does not end it. Stopping there anyway splits APPROACH, SING and
+    SLIDE in two.
+    """
+    words, address = [], SECOND_LIST
+    while memory[address] or memory[address + 1]:
+        start = address
+        codes = [memory[address] & 0x1F, memory[address + 1] & 0x1F]
+        address += 2
+        while True:
+            byte = memory[address]
+            address += 1
+            codes.append(byte & 0x1F)
+            if byte & 0x80 and not (len(codes) == 3 and memory[start + 1] & 0x80):
+                break
+        words.append((start, address - start,
+                      "".join(LETTERS[c] if c < len(LETTERS) else "?" for c in codes).strip()))
+    return words
+
+
 def dictionary_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     """Control-file blocks for the index and the word list."""
     words = decode_words(memory)
@@ -402,7 +431,19 @@ def dictionary_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         out.append(f"B ${word.address:04X},{word.length},{word.length}")
         out.append(f"  ${word.address:04X},{word.length} {word.text} ({note})")
     out.append("")
-    return NEWLINE.join(out) + NEWLINE, [(WORD_INDEX, end)]
+    # The printed words, a line each; the block itself is described in the
+    # annotations. A word something names gets a label of its own.
+    printed = printed_words(memory)
+    for address, length, text in printed:
+        if address in REFERENCES:
+            out.append(f"@ ${address:04X} label=WORD_{_label_word(text)}")
+        out.append(f"B ${address:04X},{length},{length}")
+        out.append(f"  ${address:04X},{length} {text}")
+    tail = printed[-1][0] + printed[-1][1]
+    out.append(f"B ${tail:04X},{ENTRY - tail},{ENTRY - tail}")
+    out.append(f"  ${tail:04X},{ENTRY - tail} Zeros, to the start of the code")
+    out.append("")
+    return NEWLINE.join(out) + NEWLINE, [(WORD_INDEX, end), (SECOND_LIST, ENTRY)]
 
 
 # --------------------------------------------------------------------------
@@ -667,6 +708,69 @@ OBJECT_PLACED = ["in", "on", "behind", "under", "tied to"]
 OBJECT_SIDES = {0x10: "the player's", 0x20: "the goblins'", 0x40: "the elves'"}
 
 
+# Every address an instruction or a comment refers to, gathered by build_asm
+# before the generated blocks are written, so that a field of a record gets a
+# label of its own exactly when something names it: PLAYER_WHERE, TIMER4_COUNT.
+REFERENCES: set[int] = set()
+
+# The 16-bit operands that are addresses: LD rr,nn and LD (nn)/LD A,(nn) and
+# their like, jumps and calls, and the index-register and ED-prefixed forms.
+_NN_AT_1 = {0x01, 0x11, 0x21, 0x31, 0x22, 0x2A, 0x32, 0x3A, 0xC3, 0xCD,
+            0xC2, 0xCA, 0xD2, 0xDA, 0xE2, 0xEA, 0xF2, 0xFA,
+            0xC4, 0xCC, 0xD4, 0xDC, 0xE4, 0xEC, 0xF4, 0xFC}
+_NN_AT_2_DD = {0x21, 0x22, 0x2A}
+_NN_AT_2_ED = {0x43, 0x4B, 0x53, 0x5B, 0x63, 0x6B, 0x73, 0x7B}
+_COMMENT_ADDRESS = re.compile(r"\$([6-9A-F][0-9A-F]{3})\b")
+_DIRECTIVE_HEAD = re.compile(r"^\s*[A-Za-z]?\s*\$[0-9A-F]{4}(?:,[0-9,*:]+)?")
+
+
+def code_references(memory, code_starts: set[int]) -> set[int]:
+    """The operand of every instruction in the code map that carries one."""
+    def word(a: int) -> int:
+        return memory[a] | (memory[a + 1] << 8)
+
+    found = set()
+    for a in code_starts:
+        op = memory[a]
+        if op in _NN_AT_1:
+            found.add(word(a + 1))
+        elif op in (0xDD, 0xFD) and memory[a + 1] in _NN_AT_2_DD:
+            found.add(word(a + 2))
+        elif op == 0xED and memory[a + 1] in _NN_AT_2_ED:
+            found.add(word(a + 2))
+    return found
+
+
+def comment_references(text: str) -> set[int]:
+    """Every game address the annotations' prose mentions, leaving out the
+    address each directive itself is placed at."""
+    found = set()
+    for line in text.splitlines():
+        if line.startswith(("@", "#", ";")):
+            continue
+        rest = _DIRECTIVE_HEAD.sub("", line, count=1)
+        found |= {int(h, 16) for h in _COMMENT_ADDRESS.findall(rest)}
+    return found
+
+
+def label_fields(lines: list[str], fields: dict[int, str]) -> list[str]:
+    """Put `@ $a label=NAME` before the sub-block at each referenced address
+    of `fields` (address -> label)."""
+    out = []
+    for line in lines:
+        m = re.match(r"^[BWT] \$([0-9A-F]{4}),", line)
+        if m and int(m.group(1), 16) in fields and int(m.group(1), 16) in REFERENCES:
+            out.append(f"@ ${m.group(1)} label={fields[int(m.group(1), 16)]}")
+        out.append(line)
+    return out
+
+
+# The fields of an object record that get a label when something names them.
+OBJECT_FIELDS = {1: "HOLDER", 2: "SIZE", 3: "WEIGHT", 4: "PLACED", 5: "STRENGTH",
+                 6: "DEFENCE", 7: "FLAGS", 8: "NAME", 10: "ADJECTIVE",
+                 12: "ADJECTIVE2", 14: "DESCRIPTION", 16: "WHERE"}
+
+
 def object_labels(memory) -> dict[int, str]:
     """A label for every object record, from its name: STRONG_PORTCULLIS.
 
@@ -775,13 +879,18 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
                 f"  ${start + 7:04X},1 Flags: {', '.join(flag_words) or 'none'}"]
         name_words = [word_at(memory, memory[start + 8 + i] | (memory[start + 9 + i] << 8)) or "-"
                       for i in (0, 2, 4)]
-        out += [f"B ${start + 8:04X},6,6",
-                f"  ${start + 8:04X},6 Its name: {name_words[0].upper()}, then "
-                f"{', '.join(w.upper() for w in name_words[1:] if w != '-') or 'no adjectives'}"]
+        out += [f"B ${start + 8:04X},2,2", f"  ${start + 8:04X},2 Its name: {name_words[0].upper()}",
+                f"B ${start + 10:04X},2,2",
+                f"  ${start + 10:04X},2 " + (f"An adjective: {name_words[1].upper()}"
+                                              if name_words[1] != "-" else "No adjective"),
+                f"B ${start + 12:04X},2,2",
+                f"  ${start + 12:04X},2 " + (f"Another: {name_words[2].upper()}"
+                                              if name_words[2] != "-" else "No second adjective")]
         described = memory[start + 14] | (memory[start + 15] << 8)
-        out += [f"B ${start + 14:04X},2,2",
-                f"  ${start + 14:04X},2 " + (f"Its own description: #R${described:04X}"
-                                              if described else "No description of its own")]
+        # A word, so that the description is its message's label; the
+        # comment goes on the W line, as one of its own would make it bytes.
+        out += ([f"W ${start + 14:04X},2,2 Its own description"] if described else
+                [f"B ${start + 14:04X},2,2", f"  ${start + 14:04X},2 No description of its own"])
         if record["listed"]:
             out += [f"B ${start + 16:04X},{record['listed']},{record['listed']}",
                     f"  ${start + 16:04X},{record['listed']} "
@@ -800,6 +909,11 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
                     f"W ${address + 1:04X},2,2"]
         out += [f"B ${record['end'] - 1:04X},1,1",
                 f"  ${record['end'] - 1:04X},1 End of its handlers", ""]
+        head = len(out) - 1
+        while not out[head].startswith(f"D ${start:04X}"):
+            head -= 1
+        out[head + 1:] = label_fields(out[head + 1:], {start + k: f"{labels[start]}_{v}"
+                                                        for k, v in OBJECT_FIELDS.items()})
         spans.append((start, record["end"]))
 
     # ACTION_TABLE: the action and its handler, the handler a label.
@@ -900,8 +1014,11 @@ ARRIVAL_HOOKS = 0xC78E
 # that byte as a control code -- one byte doing two jobs, as at $8113.
 # The fourth tail is the last room description: location 67, "the east bank
 # of a black river", is the end of location 66's description of the other bank.
-MESSAGE_TAILS = {0xADA9: "a tail", 0xB018: "a tail", 0xB143: "a tail",
-                 0xB6CF: "a tail", 0xAFB5: "an overlap"}
+MESSAGE_TAILS = {0xADA9: "a tail", 0xADC4: "a tail", 0xB018: "a tail",
+                 0xB143: "a tail", 0xB6CF: "a tail", 0xAFB5: "an overlap"}
+# A word inside a message that the code writes before running it: DO_LOOK puts
+# the preposition for where the player is (ROOM_PREPOSITIONS) into "you are ...".
+MESSAGE_SLOTS = {0xAFFD: "MSG_IN_SLOT"}
 
 
 def message_elements(memory, address: int) -> tuple[list[int], int]:
@@ -1012,6 +1129,25 @@ def message_pointers(memory, code_starts: set[int]) -> set[int]:
     return pointers
 
 
+def message_labels(memory, addresses: list[int]) -> dict[int, str]:
+    """A label for each message from its first few words: MSG_YOU_ARE_DEAD.
+    Control codes are left out; a message of nothing but codes is named for
+    what it is, and a name already taken gets a letter after it."""
+    labels, used = {}, set()
+    for address in addresses:
+        words = re.findall(r"[a-z]+", re.sub(r"\{[^}]*\}", " ", message_text(memory, address)).lower())
+        name = "MSG_" + ("_".join(words[:4]).upper() if words else "CODES_ONLY")
+        while len(name) > 28 and "_" in name[4:]:
+            name = name.rsplit("_", 1)[0]
+        base, n = name, 0
+        while name in used:
+            name = f"{base}_{chr(ord('B') + n)}"
+            n += 1
+        used.add(name)
+        labels[address] = name
+    return labels
+
+
 def message_blocks(memory, pointers: set[int]) -> tuple[str, list[tuple[int, int]]]:
     """Control-file blocks for the common words, the control codes and every
     message, each titled with its own text."""
@@ -1030,18 +1166,29 @@ def message_blocks(memory, pointers: set[int]) -> tuple[str, list[tuple[int, int
     out.append("")
     spans = [(COMMON_WORDS, MESSAGES)]
     starts_set = set(starts)
+    names = message_labels(memory, starts + sorted(MESSAGE_TAILS))
     for i, start in enumerate(starts):
         _, end = message_elements(memory, start)
         text = message_text(memory, start)
         entered = [p for p in MESSAGE_TAILS if start < p < end]
-        label = f"MSG_{start:04X}"
-        out.append(f"@ ${start:04X} label={label}")
+        out.append(f"@ ${start:04X} label={names[start]}")
         out.append(f"b ${start:04X} Message: {text[:60]}")
         out.append(f"D ${start:04X} {text}")
         for p in entered:
-            out.append(f"D ${start:04X} Also entered at ${p:04X} ({MESSAGE_TAILS[p]}): "
+            out.append(f"D ${start:04X} Also entered at #R${p:04X} ({MESSAGE_TAILS[p]}): "
                        f"{message_text(memory, p)}")
-        out.append(f"B ${start:04X},{end - start}")
+        # A line break, and a label, at each way in and each slot the code
+        # writes, so that what points there is a label too.
+        cuts = sorted({p for p in list(MESSAGE_TAILS) + list(MESSAGE_SLOTS)
+                       + [q + 2 for q in MESSAGE_SLOTS] if start < p < end})
+        at = start
+        for cut in cuts + [end]:
+            if at != start and at in MESSAGE_SLOTS:
+                out.append(f"@ ${at:04X} label={MESSAGE_SLOTS[at]}")
+            elif at in MESSAGE_TAILS:
+                out.append(f"@ ${at:04X} label={names[at]}")
+            out.append(f"B ${at:04X},{cut - at}")
+            at = cut
         out.append("")
         spans.append((start, end))
     return NEWLINE.join(out) + NEWLINE, spans
@@ -1259,9 +1406,9 @@ def script_program(memory) -> dict:
     # Labels. A table is named after its first owner; an ordinary script
     # after the table's owner and its place in it (A, B, ...); a reaction
     # after the action it answers, and the owner too unless several
-    # characters share it; anything else a jump or a fallback leads to by its
-    # address. Letters, not numbers, after an underscore: skool2asm's own
-    # labels are NAME_0, NAME_1 and so on.
+    # characters share it; anything else a jump or a fallback leads to after
+    # the table it follows, going on with its letters. Letters, not numbers,
+    # after an underscore: skool2asm's own labels are NAME_0, NAME_1 and so on.
     labels: dict[int, str] = {}
     def owner(table) -> str:
         return _label_word(names[table["owners"][0]])
@@ -1271,6 +1418,7 @@ def script_program(memory) -> dict:
             shared.setdefault(target, set()).add(id(table))
     for address, table in sorted(tables.items()):
         labels[address] = owner(table) + "_SCRIPTS"
+    next_letter = {}
     for address, table in sorted(tables.items()):
         ordinary = 0
         for _, key, target in table["entries"]:
@@ -1295,13 +1443,29 @@ def script_program(memory) -> dict:
                 if name in labels.values():
                     name += f"_AT_{target:04X}"
                 labels[target] = name
-    for address, step in steps.items():
-        for target in (step["target"], step["fallback"]):
-            if target is not None and target not in labels:
-                labels[target] = f"SCRIPT_{target:04X}"
-    for slot in slots:
-        if slot["current"] not in labels:
-            labels[slot["current"]] = f"SCRIPT_{slot['current']:04X}"
+        next_letter[address] = ordinary
+
+    def letters(n: int) -> str:
+        return chr(ord("A") + n) if n < 26 else letters(n // 26 - 1) + chr(ord("A") + n % 26)
+    # Tables that follow one another with no scripts between share the
+    # scripts after them -- the three goblins' do -- and a step there is
+    # named for the kind of character they all are.
+    region, prefix = {}, {}
+    for address, table in sorted(tables.items()):
+        before = [a for a in region if tables[a]["end"] + 1 == address]
+        region[address] = region[before[0]] if before else address
+    for first in set(region.values()):
+        group = [a for a in region if region[a] == first]
+        kinds = {_label_word(names[o]).split("_")[-1] for a in group for o in tables[a]["owners"]}
+        prefix[first] = (f"{kinds.pop()}S" if len(group) > 1 and len(kinds) == 1
+                         else owner(tables[first]))
+        next_letter[first] = 0 if len(group) > 1 else next_letter[first]
+    others = {t for step in steps.values() for t in (step["target"], step["fallback"])
+              if t is not None} | {slot["current"] for slot in slots}
+    for target in sorted(others - set(labels)):
+        first = region[max(a for a in tables if a <= target)]
+        labels[target] = f"{prefix[first]}_{letters(next_letter[first])}"
+        next_letter[first] += 1
     return {"slots": slots, "tables": tables, "steps": steps, "labels": labels,
             "names": names}
 
@@ -1354,6 +1518,8 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     """
     program = script_program(memory)
     labels, names = program["labels"], program["names"]
+    # The step BARD_TAKES_ORDER rewrites, named whether or not a jump names it.
+    labels.setdefault(BARD_ORDER_STEP, "BARD_ORDER_STEP")
     tables, steps = program["tables"], program["steps"]
     link = lambda address: f"#R${address:04X}"
     out = ["; Generated by scripts/build_hobbit.py -- do not edit.", ""]
@@ -1468,6 +1634,14 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
             out += [f"B ${address:04X},1,1", f"  ${address:04X},1 {text}",
                     f"W ${address + 1:04X},2,2"]
             body = 3
+        elif address == BARD_ORDER_STEP:
+            # Its action and objects are the bytes BARD_TAKES_ORDER writes.
+            out += [f"B ${address:04X},1,1", f"  ${address:04X},1 {text}",
+                    f"@ ${address + 1:04X} label=BARD_ORDER_ACTION",
+                    f"B ${address + 1:04X},1,1", f"  ${address + 1:04X},1 The action",
+                    f"@ ${address + 2:04X} label=BARD_ORDER_OBJECTS",
+                    f"B ${address + 2:04X},2,2", f"  ${address + 2:04X},2 Its objects"]
+            body = 4
         else:
             body = step["length"] - (2 if step["fallback"] is not None else 0)
             out += [f"B ${address:04X},{body},{body}", f"  ${address:04X},{body} {text}"]
@@ -1478,8 +1652,14 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     # The slots, field by field, so that where each points is a label too,
     # and each character's name a link to its object record.
     record_of = {r["number"]: r["start"] for r in object_records(memory)}
+    slot_labels = set()
     for slot in program["slots"]:
         a = slot["address"]
+        slot_label = _label_word(names[slot["character"]]) + "_SLOT"
+        if slot_label in slot_labels:
+            slot_label = slot_label[:-5] + f"_{a:04X}_SLOT"
+        slot_labels.add(slot_label)
+        out.append(f"@ ${a:04X} label={slot_label}")
         who = names[slot["character"]]
         record = f"#R${record_of[slot['character']]:04X}({who})"
         first = (f"Empty at the start: {record}'s, once an arrival hook writes it in"
@@ -1588,17 +1768,30 @@ def room_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
                    f"and how the player is placed there (bits 1-3)")
         out.append(f"B ${start + 1:04X},1,1")
         out.append(f"  ${start + 1:04X},1 Capacity: {room_holds}")
-        out.append(f"B ${start + 2:04X},6,6")
-        out.append(f"  ${start + 2:04X},6 Its name: noun, then adjectives")
-        out.append(f"B ${start + 8:04X},2,2")
+        words = [word_at(memory, memory[start + 2 + i] | (memory[start + 3 + i] << 8))
+                 for i in (0, 2, 4)]
+        out += [f"B ${start + 2:04X},2,2", f"  ${start + 2:04X},2 Its name: {words[0].upper()}",
+                f"B ${start + 4:04X},2,2",
+                f"  ${start + 4:04X},2 " + (f"An adjective: {words[1].upper()}"
+                                             if words[1] else "No adjective"),
+                f"B ${start + 6:04X},2,2",
+                f"  ${start + 6:04X},2 " + (f"Another: {words[2].upper()}"
+                                             if words[2] else "No second adjective")]
         described = memory[start + 8] | (memory[start + 9] << 8)
-        out.append(f"  ${start + 8:04X},2 " + (f"A longer description, at ${described:04X}"
-                   if described else "No longer description"))
+        if start + 8 in REFERENCES:
+            out.append(f"@ ${start + 8:04X} label=ROOM{location}_DESCRIPTION")
+        # A word, so that it reads as the message's label; the comment is on
+        # the W line, since one of its own would turn it back into bytes.
+        out.append(f"W ${start + 8:04X},2,2 " + ("A longer description" if described
+                                                 else "No longer description"))
         for address, direction, via, destination in room["exits"]:
             through = f" through object {via}" if via else ""
             to = (f"to location {destination}" if destination else
                   "to nowhere yet: FIND_EXIT passes over it until a location "
                   "is written in")
+            if address in REFERENCES:
+                out.append(f"@ ${address:04X} label=ROOM{location}_"
+                           f"{DIRECTIONS[direction].upper().replace(' ', '_')}")
             out.append(f"B ${address:04X},3,3")
             out.append(f"  ${address:04X},3 {DIRECTIONS[direction].capitalize()}"
                        f"{through} {to}")
@@ -2041,6 +2234,13 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     from skoolkit import skool2asm, sna2ctl, sna2skool
 
     _log("Generating control file...")
+    # What the code and the comments refer to, so that the generated blocks
+    # can label exactly the fields something names.
+    code_starts = {a for a, flag in enumerate(code_map.read_bytes()) if flag}
+    REFERENCES.clear()
+    REFERENCES.update(code_references(game_memory(snapshot), code_starts))
+    if ANNOTATIONS.exists():
+        REFERENCES.update(comment_references(ANNOTATIONS.read_text(encoding="utf-8")))
     auto_ctl = _capture(sna2ctl.main, [
         "-m", str(code_map), "-h",
         "-s", str(LOAD_ADDR), "-e", str(GAME_END), str(snapshot),
@@ -2052,7 +2252,6 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     pictures_text, pictures_spans = picture_blocks(game_memory(snapshot))
     pictures_ctl.write_text(pictures_text, encoding="utf-8")
     messages_ctl = OUT_DIR / "hobbit-messages.ctl"
-    code_starts = {a for a, flag in enumerate(code_map.read_bytes()) if flag}
     messages_text, messages_spans = message_blocks(
         game_memory(snapshot), message_pointers(game_memory(snapshot), code_starts))
     messages_ctl.write_text(messages_text, encoding="utf-8")
