@@ -704,6 +704,10 @@ CODES_WITH_OPERAND = {0x02, 0x0B}
 # the line ($C); an unknown word ($D) never reaches the parser.
 PARSER_CLASSES = 0x75D2
 PARSER_CLASS_COUNT = 13
+# PARSE_SPECIAL's words and, 26 bytes on, a handler for each. Slot 0 holds no
+# word, so its handler cannot be reached through the table and is not a seed.
+SPECIAL_WORDS = 0x8271
+SPECIAL_COUNT = 13
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -1154,6 +1158,11 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # through JP (HL): twelve of the thirteen were reached in play.
     dispatched |= {memory[PARSER_CLASSES + 2 * c] | (memory[PARSER_CLASSES + 2 * c + 1] << 8)
                    for c in range(PARSER_CLASS_COUNT)}
+    # And PARSE_SPECIAL's, one per special word -- the game's own commands
+    # among them, SAVE and LOAD included, which the playthrough never types.
+    handlers = SPECIAL_WORDS + 2 * SPECIAL_COUNT
+    dispatched |= {memory[handlers + 2 * i] | (memory[handlers + 2 * i + 1] << 8)
+                   for i in range(1, SPECIAL_COUNT)}
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call

@@ -776,12 +776,35 @@ c $7790 Parse an article
 
 @ $8251 label=PARSE_SPECIAL
 c $8251 Parse a quantifier, pronoun or game command
+  $8251,6 Search SPECIAL_WORDS, 13 of them
+  $8257,13 Match the low byte, then the high
+  $8264,3 Not there: start the command again
+  $8267,10 Found: jump to its handler, 26 bytes on
 
 @ $770B label=PARSE_AND
 c $770B Parse AND
+  $770B,2 Just had AND: a verb now would start another command
+  $770E,7 Pass over any more ANDs
+  $7715,8 Back to the word after them, and save that place...
+  $771D,15 ...with E, the frame and the frame count: the checkpoint PARSE_VERB goes back to
+  $772C,3 Then end this part as THEN would
 
 @ $75FA label=PARSE_THEN
 c $75FA Parse THEN or a full stop
+  $75FA,10 No verb yet, and no earlier frame to borrow one from...
+  $7604,10 ...an empty line: nothing to do
+  $760E,6 ...no verb outside a quotation: "what ?"
+  $7614,10 $B719 = 1 means ALL: set bit 7 of the verb's second byte
+  $761E,12 Count the frame, except for the AND in ALL EXCEPT
+  $762A,8 On to the next frame; if an AND ended this one, keep going: TAKE THE MAP AND THE KEY
+  $7632,6 Finishing a command that was left unfinished?
+  $7638,39 Compare the new frame's noun with the old command's...
+  $765F,11 ...or its second noun...
+  $766A,23 ...and copy the new words into whichever of the old noun and adjectives are empty
+  $7682,34 Every frame with no verb takes the verb of the frame before
+  $76A4,58 And a frame with the same verb but no second phrase borrows the one before's: PUT THE MAP AND THE KEY IN THE CHEST
+  $76DE,7 Nothing more on the line: done
+  $76E5,7 More: outside a quotation, go back to the main loop for it; inside one, carry straight on
 
 @ $75F6 label=PARSE_END
 c $75F6 Parse the end of the line
@@ -1040,3 +1063,45 @@ D $782B E's bit 6 says the first, at offset 4, is still empty, and bit 7 the sec
 @ $7850 label=FILE_FIRST_PHRASE
 c $7850 Put PHRASE into the frame's first noun phrase
   $7850,8 The first, at offset 4
+
+@ $8271 label=SPECIAL_WORDS
+b $8271 The special words, and what PARSE_SPECIAL does with each
+D $8271 Thirteen word references, then a handler for each, reached through JP (HL) -- so the handlers are code seeds. Among them are the game's own commands: SAVE and LOAD, which the playthrough never types, QUIT, PAUSE, HELP, SCORE, and PRINT and NOPRINT. Slot 0 holds no word, so its handler is never reached through here; ONE's handler just goes on to the next word.
+W $8271,26,2
+  $8271,2 NO WORD
+  $8273,2 ALL
+  $8275,2 EXCEPT
+  $8277,2 IT
+  $8279,2 ONE
+  $827B,2 PRINT
+  $827D,2 NOPRINT
+  $827F,2 LOAD
+  $8281,2 SAVE
+  $8283,2 QUIT
+  $8285,2 HELP
+  $8287,2 SCORE
+  $8289,2 PAUSE
+W $828B,26,2
+  $828B,2 Handler for SLOT 0
+  $828D,2 Handler for ALL
+  $828F,2 Handler for EXCEPT
+  $8291,2 Handler for IT
+  $8293,2 Handler for ONE
+  $8295,2 Handler for PRINT
+  $8297,2 Handler for NOPRINT
+  $8299,2 Handler for LOAD
+  $829B,2 Handler for SAVE
+  $829D,2 Handler for QUIT
+  $829F,2 Handler for HELP
+  $82A1,2 Handler for SCORE
+  $82A3,2 Handler for PAUSE
+
+@ $78B7 label=COPY_VERB_ON
+c $78B7 Give the frame at IY the verb of the frame at IX
+D $78B7 Keeping its own ALL bit. In some cases it also moves the frame's own phrase to second place and borrows the first phrase and the adverb from the frame before; exactly when is not yet worked out.
+  $78B8,17 The verb, keeping this frame's own ALL bit
+  $78CA,10 Not yet worked out
+
+@ $789F label=FRAME_BELOW
+c $789F Step IY down one frame
+  $78A0,5 24 bytes down
