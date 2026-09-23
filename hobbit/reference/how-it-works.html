@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: How it works</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="HowItWorks">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="The Hobbit" src="../images/logo.png" /></a></td>
+<td class="page-header">How the game works</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#overview">The shape of it</a></li>
+<li><a href="#reading">Reading a line</a></li>
+<li><a href="#words">Words</a></li>
+<li><a href="#parsing">Parsing a sentence</a></li>
+<li><a href="#patterns">From a sentence to an action</a></li>
+<li><a href="#objects">Finding the objects: try, and see what works</a></li>
+<li><a href="#doing">Doing it</a></li>
+<li><a href="#telling">Telling the story</a></li>
+<li><a href="#world">The world's turn</a></li>
+<li><a href="#characters">How the characters decide what to do</a></li>
+<li><a href="#moving">Moving about</a></li>
+<li><a href="#light">Light and dark</a></li>
+<li><a href="#fighting">Fighting and breaking things</a></li>
+<li><a href="#chance">Chance</a></li>
+<li><a href="#ending">Winning, dying and starting again</a></li>
+<li><a href="#pictures">Pictures</a></li>
+</ul>
+<div><span id="overview"></span></div>
+<div class="box box-1">
+<div class="box-title">The shape of it</div>
+<div class="paragraph">
+The Hobbit is a small program driving a large database. Of the 40000 bytes, most are data: a dictionary, 59 sentence patterns, 61 object and character records, 80 room records, 177 messages, 22 line-drawn pictures and the characters' scripts. The code between them is a parser, an interpreter for each of those formats, and one routine that carries out any action for anyone.
+</div>
+<div class="paragraph">
+That last point is the game's central idea. The player and the other characters are the same kind of thing -- a record in <a href="../asm/49251.html">OBJECT_INDEX</a> -- and they act through the same code. When Thorin opens a door, his script puts the action code for OPEN and the door's number into <a href="../asm/46810.html#46823">ACTION</a> and <a href="../asm/46810.html#46824">TARGET</a>, exactly where the parser puts them when you type OPEN DOOR, and <a href="../asm/38159.html">DO_ACTION</a> does the rest. Doors, keys, rivers and ropes behave the same whoever uses them, because there is only one copy of the rules.
+</div>
+<div class="paragraph">
+A turn, in outline:
+<ol>
+<li><b>Read a line</b> (<a href="../asm/28118.html">READ_LINE</a>), and turn its words into tokens (<a href="../asm/28311.html">TOKENISE</a>).</li>
+<li><b>Parse</b> it into one or more commands, each in a 24-byte frame (<a href="../asm/30085.html">PARSE_COMMAND</a>).</li>
+<li>For each command, <b>find the sentence pattern</b> it fits, which gives the action code (<a href="../asm/31646.html">MATCH_PATTERN</a>), and <b>find the objects</b> its names mean, trying each candidate until one works (<a href="../asm/31252.html">MATCH_AND_TRY</a>).</li>
+<li><b>Tell it and do it</b>: narrate the action (<a href="../asm/28971.html">NARRATE_ACTION</a>) and carry it out (<a href="../asm/38159.html">DO_ACTION</a>).</li>
+<li><b>The world's turn</b> (<a href="../asm/38579.html">END_OF_TURN</a>): has the player won; every other character acts (<a href="../asm/38926.html">CHARACTERS_ACT</a>); the timers count down.</li>
+</ol>
+<a href="../asm/31072.html">OBEY</a> is where steps 3 to 5 happen, once for every command on the line.
+</div>
+</div>
+<div><span id="reading"></span></div>
+<div class="box box-2">
+<div class="box-title">Reading a line</div>
+<div class="paragraph">
+<a href="../asm/28118.html">READ_LINE</a> prints the prompt and takes keys into <a href="../asm/28665.html">INPUT_LINE</a>: letters, space, quote, comma and full stop, with backspace to correct. Three things are more than a line editor:
+<ul>
+<li><b>The game types for you.</b> <a href="../asm/29257.html">GET_KEY</a> counts down while it waits, and if nothing is pressed in time it types WAIT and presses ENTER itself -- which is why WAIT appears on screen when nobody typed it, and why the world goes on without you. The time allowed, <a href="../asm/46860.html#46868">PATIENCE</a>, adapts to how fast the player types.</li>
+<li><b>One-key moves.</b> On an empty line the cursor keys 5, 6, 7 and 8 are W, S, N and E, and each is a whole command (<a href="../asm/28239.html">ONE_KEY_MOVES</a>).</li>
+<li><b>@</b> on an empty line runs the last command again (<a href="../asm/28282.html">REPEAT_LAST</a>).</li>
+</ul>
+The first turn is not typed at all: the main loop copies LOOK into the line from <a href="../asm/28658.html#28660">LOOK_COMMAND</a>, which is how the game opens with a description.
+</div>
+</div>
+<div><span id="words"></span></div>
+<div class="box box-1">
+<div class="box-title">Words</div>
+<div class="paragraph">
+The dictionary at <a href="../asm/24640.html">WORD_LIST</a> packs each word one letter to a byte, as a 5-bit code -- A is 1, which is the low five bits of ASCII 'A', so MATCH_WORD gets the code with a single AND $1F. Bit 7 marks the last letter. Bits 5 and 6 of the first two bytes together are the word's class: verb, noun, adjective, adverb, preposition, article, AND, THEN and so on. A 26-entry index at <a href="../asm/24576.html">WORD_INDEX</a> gives the first word for each initial letter, and a word ends its letter's run only by having a different initial -- the list is grouped, not sorted.
+</div>
+<div class="paragraph">
+<a href="../asm/28311.html">TOKENISE</a> turns each typed word into a two-byte token: its class in the top nibble and its 12-bit offset in the dictionary below. Synonyms come out as the word they stand for, so GET SWORD is TAKE SWORD before anything else sees it. Words may be shortened -- EXAM is EXAMINE, INV is INVENTORY -- and lengthened a little: SWORDS is SWORD, but only for entries of four letters or more, so INT is INTO and not IN. A word not in the dictionary stops the line with "i do not know the word ...".
+</div>
+<div class="paragraph">
+The words the game prints are a second list, <a href="../asm/26539.html">SECOND_LIST</a>, packed the same way but reached by no index: a message names a word by its 12-bit offset from <a href="../asm/24576.html">WORD_INDEX</a>, so nothing ever holds the list's own address. The parser's list and the printer's list divide by direction -- the one you type into, the one the story is written from.
+</div>
+</div>
+<div><span id="parsing"></span></div>
+<div class="box box-2">
+<div class="box-title">Parsing a sentence</div>
+<div class="paragraph">
+The parser is a state machine over the tokens. The class of each token picks a handler from <a href="../asm/30162.html">PARSER_CLASSES</a>, through JP (HL), and register E carries the state: whether a verb may come next, an adverb, an article, whether the first or second noun phrase is still empty. A word where it is not allowed gets "what ?" or the like (<a href="../asm/31017.html">NOT_ALLOWED_HERE</a>).
+</div>
+<div class="paragraph">
+What it builds is a <b>frame</b> of 24 bytes (<a href="../asm/47560.html">COMMAND_FRAME</a>): the verb, an adverb or direction, and two noun phrases of ten bytes each -- two prepositions, the noun and two adjectives -- every word as its two-byte reference, articles dropped. VICIOUSLY ATTACK THE TROLL WITH THE SWORD becomes ATTACK, VICIOUSLY, TROLL, and WITH SWORD. And a noun phrase is laid out exactly as an object's name is in its record, so deciding what the player means is a byte comparison (<a href="../asm/29171.html">NAME_MATCHES</a>): the noun must match, the adjectives are optional and may come in either order, but a wrong one rules the object out.
+</div>
+<div class="paragraph">
+A line can hold several commands, each in its own frame below the first (<a href="../asm/47104.html">FRAMES</a>):
+<ul>
+<li><b>THEN</b> and a full stop end one command and start the next.</li>
+<li><b>AND</b> joins noun phrases, but if a verb follows it, it becomes THEN: TAKE THE MAP AND DROP IT is two commands. <a href="../asm/30475.html">PARSE_AND</a> keeps a checkpoint (<a href="../asm/30068.html">AND_TOKENS</a>) to go back to when that happens.</li>
+<li><b>ALL</b> sets a bit on the verb, and <b>ALL ... EXCEPT</b> puts the exceptions in frames of their own that the command skips (<a href="../asm/33490.html">WORD_ALL</a>, <a href="../asm/33466.html">WORD_EXCEPT</a>).</li>
+<li><b>IT</b> is the last target's name, kept at <a href="../asm/46810.html#46816">IT_NAME</a>, put back as if it had been typed.</li>
+<li><b>Quotes</b> make an order: SAY TO THORIN "GO EAST" parses GO EAST in frames marked as said to someone (<a href="../asm/46860.html#46875">IS_ORDER</a>), which DO_TALK later hands to the character.</li>
+<li><b>Special words</b> -- SAVE, LOAD, QUIT, PAUSE, HELP, SCORE, PRINT, NOPRINT -- are handled on the spot by <a href="../asm/33361.html">PARSE_SPECIAL</a> from <a href="../asm/33393.html">SPECIAL_WORDS</a>, and never become actions.</li>
+</ul>
+When the game has to ask "which ... ?", it keeps the unfinished sentence (<a href="../asm/32116.html">KEEP_QUESTION</a>), and the next line's answer is fitted into it rather than parsed as a new command.
+</div>
+</div>
+<div><span id="patterns"></span></div>
+<div class="box box-1">
+<div class="box-title">From a sentence to an action</div>
+<div class="paragraph">
+The game has no table of verbs. It has <a href="../asm/43859.html">ACTION_PATTERNS</a>: 59 sentence shapes of eight bytes each, a verb, a particle and a preposition as word references plus flags -- TAKE, TAKE OFF, TAKE OUT OF, PUT IN, PUT ON, GIVE TO. <b>An action code is simply a pattern's place in that list</b>, counting from 1, and that code is the key to everything else: <a href="../asm/50992.html">ACTION_TABLE</a>, the objects' own handlers, the characters' reactions and their scripts. The first ten are the directions, each with GO as its last word, so NORTH and GO NORTH are one action.
+</div>
+<div class="paragraph">
+<a href="../asm/31646.html">MATCH_PATTERN</a> gathers a probe of four words -- the verb, then a particle and a preposition picked from the noun phrases -- and searches the patterns with the same name comparison the objects use, so word order does not matter. A verb that fits no pattern just passes the time: "you ... . time passes...".
+</div>
+<div class="paragraph">
+Which phrase is the target and which the instrument is decided by the prepositions, not by the order they were typed in (<a href="../asm/31779.html">ASSIGN_PHRASES</a>): the phrase that has the preposition the pattern expects is the one it belongs to, wherever it came in the sentence. The pattern's flags then set its options (<a href="../asm/31608.html">PATTERN_OPTIONS</a>): whether the action needs light, and whether an object is a place rather than a thing, as for ENTER.
+</div>
+</div>
+<div><span id="objects"></span></div>
+<div class="box box-2">
+<div class="box-title">Finding the objects: try, and see what works</div>
+<div class="paragraph">
+Names are not resolved to objects up front. <a href="../asm/31252.html">MATCH_AND_TRY</a> walks every object whose name fits the target -- within the actor's reach (<a href="../asm/40500.html">IN_REACH</a>) -- and for each, every object that fits the instrument, and <b>tries the action on each pair</b> until one would work. When two things share a name, the one used is the first the action works on.
+</div>
+<div class="paragraph">
+Trying is a real run of the action with one flag down. <a href="../asm/46810.html#46842">DOING_IT</a> clear means "only a test": every handler checks the flag before it changes anything, and instead answers in <a href="../asm/46810.html#46843">SUCCEEDED</a> whether it would have worked (<a href="../asm/40260.html">FOR_REAL</a>). So there is one copy of each rule, used both to decide and to do.
+</div>
+<div class="paragraph">
+If nothing works, <a href="../asm/32188.html">TARGET_TROUBLE</a> decides what to say. One thing fitted: it is done for real, and its own refusal is printed -- "the door is locked.". Several fitted and none worked: "which ... ?" (<a href="../asm/32131.html">ASK_WHICH</a>). None fitted: the name is looked for everywhere, to say either "i do not see the ... here" or why the thing that is somewhere else will not do. A refused command costs no time: <a href="../asm/31072.html">OBEY</a> goes on to the next command without the world's turn.
+</div>
+</div>
+<div><span id="doing"></span></div>
+<div class="box box-1">
+<div class="box-title">Doing it</div>
+<div class="paragraph">
+<a href="../asm/38159.html">DO_ACTION</a> is the one place any action is carried out, for anyone:
+<ol>
+<li>Refused outright if it makes no sense (<a href="../asm/39748.html">SENSIBLE</a>) -- attacking yourself, putting the box in the box.</li>
+<li>In the dark, only what the actor carries can be used, and actions that need light are refused ("i see nothing here.").</li>
+<li><b>The objects get the first say.</b> An object record can carry handlers of its own, keyed by action code (<a href="../asm/39809.html">FIND_OBJECT_HANDLER</a>): the barrel has its own CLIMB INTO, the rope its own PULL, the curious map its own EXAMINE for Elrond. For most actions the first object is asked; for DROP IN, PUT IN, PUT ON, TAKE OUT OF and THROW THROUGH (<a href="../asm/41483.html">SECOND_FIRST</a>) the second is, because the container or the gap decides.</li>
+<li>Only if neither object has a handler does the ordinary one run, from <a href="../asm/50992.html">ACTION_TABLE</a>. All ten directions go to <a href="../asm/36253.html">MOVE</a>.</li>
+<li>A handler can be followed by more records keyed 0, which run too: the wine has the ordinary DRINK and then <a href="../asm/43769.html">WINE_DRUNK</a>, so drinking it also makes you drunk.</li>
+<li>Last, a character that something was done to reacts (<a href="../asm/38367.html">REACT_TO_ACTION</a>).</li>
+</ol>
+</div>
+</div>
+<div><span id="telling"></span></div>
+<div class="box box-2">
+<div class="box-title">Telling the story</div>
+<div class="paragraph">
+The game never stores a finished sentence about an action. <a href="../asm/28971.html">NARRATE_ACTION</a> builds one from the pattern: who, "cannot" if it was refused, the verb, the first object after its particle and the second after its preposition. The same code tells you what you did and what Thorin did, which is why the other characters' doings read so uniformly.
+</div>
+<div class="paragraph">
+Everything else it says is a message in a small bytecode run by <a href="../asm/29395.html">RUN_MESSAGE</a>: a byte with bit 7 set starts a two-byte word reference, $60-$7F is one of 32 common words, $20-$5F a literal character, and below $20 a control code (<a href="../asm/29333.html">CONTROL_CODES</a>). The control codes print the actor's name, IS or ARE, HIS or YOUR, the target, the instrument -- so one message serves the whole cast: "you are not carrying it." and "Gandalf is not carrying it." are the same bytes.
+</div>
+<div class="paragraph">
+Verbs agree with their subject. A word reference carries flags, and <a href="../asm/29882.html">PRINT_WORD</a> adds a word's ending when the sentence is about someone other than the player -- <a href="../asm/46810.html#46826">ACTING</a> is zero for the player -- from <a href="../asm/46879.html">ENDINGS</a>: -s, -es, -ies, and a backspace then -ies, which is how CARRY becomes CARRIES.
+</div>
+<div class="paragraph">
+What other characters do is only printed when the player can see it. In the dark, the first thing each turn is heard instead: "you hear a noise.".
+</div>
+</div>
+<div><span id="world"></span></div>
+<div class="box box-1">
+<div class="box-title">The world's turn</div>
+<div class="paragraph">
+After every command that was carried out, <a href="../asm/38579.html">END_OF_TURN</a> runs the rest of the world:
+<ol>
+<li><b>Has the player won?</b> (<a href="../asm/43478.html">CHECK_WON</a>) -- the valuable treasure in the wooden chest.</li>
+<li><b>Every other character acts</b> (<a href="../asm/38926.html">CHARACTERS_ACT</a>).</li>
+<li><b>The timers count down</b> (<a href="../asm/51844.html">TIMERS</a>). Ten of them, each with a length, a count, a routine for when it runs out, and a warning routine for the turns before: the bog that swallows you if you stay in it, the web that smothers you, the wine that wears off, the magic door that opens and shuts, the hole in the mountain's side. Only one timer fires in a turn; a second is held back a turn, so two events never land at once.</li>
+</ol>
+Many timers are started by arriving somewhere: <a href="../asm/51086.html">ARRIVAL_HOOKS</a> is a table of routines keyed by location that <a href="../asm/36253.html">MOVE</a> runs when the player gets there. That is how a place can be deadly only after a few turns in it.
+</div>
+</div>
+<div><span id="characters"></span></div>
+<div class="box box-2">
+<div class="box-title">How the characters decide what to do</div>
+<div class="paragraph">
+Each character has a slot in <a href="../asm/51915.html">CHARACTERS</a>: who it is, where its script has got to, its <b>script table</b>, how many of its scripts it wanders among, and how many orders it will take. The scripts themselves -- decoded step by step on the <a href="characters.html&#35;scripts">Characters page</a> -- are a small instruction set (<a href="../asm/38926.html">CHARACTERS_ACT</a>):
+<ul>
+<li><b>An action</b>, with or without objects: TAKE the chest, GO NORTH, ATTACK the player, RUN. The step is tried exactly as a typed command would be -- tested, then done (<a href="../asm/39366.html">ACTOR_TRIES</a>).</li>
+<li><b>A routine</b> instead of an action, run once as a test and again for real if it would work (<a href="../asm/39208.html">SCRIPT_DO</a>).</li>
+<li><b>A pause</b>: nothing this turn.</li>
+<li><b>Go to</b> another step, or <b>switch at random</b> to one of the character's ordinary scripts (<a href="../asm/39513.html">SCRIPT_RANDOM</a>). This is how Gandalf and Thorin wander: their ordinary scripts are one list of moves entered at different places, and a random switch now and then sends them off somewhere new.</li>
+</ul>
+Every step can carry a <b>fallback</b>: where to go on if it is refused. A step that fails moves on, a step that succeeds ends the character's turn, and six failures in a row end it too -- so a character keeps trying things until something works, one success per turn.
+</div>
+<div class="paragraph">
+<b>Reactions.</b> A script table's entries keyed 0 are the ordinary scripts; the rest are keyed by action codes. When something is done to a character -- given something, attacked, captured -- <a href="../asm/39584.html">REACT</a> looks the action up in its table and, if it has a script for it, switches to it. So giving Thorin something, or hitting him, changes what he does next.
+</div>
+<div class="paragraph">
+<b>Orders.</b> SAY TO THORIN "GO EAST" is parsed into frames of its own and handed over by <a href="../asm/36916.html">DO_TALK</a>, which decides how many sentences the character will accept: a random number up to its limit -- Thorin 6, Gandalf and Elrond 5, Gollum 3, the wood elf and the trolls 1, the warg and the goblins never. The orders wait in <a href="../asm/46904.html">ORDERS</a>, and each turn one replaces the character's script step, unless the step it is on is marked as one an order cannot interrupt. That, together with the random limit, is why Thorin sometimes does what he is told and sometimes does not.
+</div>
+<div class="paragraph">
+<b>Captivity.</b> A character held by something closed can do nothing; held by something open, it tries to CLIMB OUT OF it (<a href="../asm/39702.html">CAPTIVE</a>).
+</div>
+<div class="paragraph">
+<b>Leaving the story.</b> A step marked for it empties the character's slot when it succeeds, and a character that is killed gives its slot up (<a href="../asm/38783.html">KILL</a>). Three slots start empty -- the butler's, Bard's and the dragon's -- and are filled by arrival hooks when the story reaches them.
+</div>
+</div>
+<div><span id="moving"></span></div>
+<div class="box box-1">
+<div class="box-title">Moving about</div>
+<div class="paragraph">
+<a href="../asm/36253.html">MOVE</a> moves whoever is acting, the player included. A room's record is a 10-byte head -- lit or dark, visited, capacity, name, description -- followed by its exits, three bytes each: a direction, an object the way goes through (a door, a gate, a river), and where it leads (<a href="../asm/40712.html">FIND_EXIT</a>).
+</div>
+<div class="paragraph">
+A way through an object is shut unless the object is open or broken; the actor, with everything it carries, must fit through it; and the room it goes into must have space (<a href="../asm/36485.html">CAN_PASS</a>). Nearly every room has no limit, but some are small.
+</div>
+<div class="paragraph">
+The first time the player reaches a place, it is described in full with its picture, and the score goes up if the place is worth points (<a href="../asm/36206.html">VISIT_SCORES</a>, 750 between fourteen places). Coming back gives only the name and what is there (<a href="../asm/38568.html">DESCRIBE_BRIEFLY</a>).
+</div>
+<div class="paragraph">
+One road in five is shut at the start of each game (<a href="../asm/51214.html">HIDDEN_ROADS</a>); it opens again when Elrond reads the curious map and tells you the way.
+</div>
+</div>
+<div><span id="light"></span></div>
+<div class="box box-2">
+<div class="box-title">Light and dark</div>
+<div class="paragraph">
+Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passages, Gollum's lake, the Elvenking's halls and the passage into the mountain. Only the player is ever in the dark -- the characters see everywhere (<a href="../asm/38381.html">TOO_DARK</a>). The one light in the game is the short strong sword, which glows from the start: carried, it lights every dark place.
+</div>
+<div class="paragraph">
+In the dark, a move goes in a random direction, and falling in the dark too often is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
+</div>
+</div>
+<div><span id="fighting"></span></div>
+<div class="box box-1">
+<div class="box-title">Fighting and breaking things</div>
+<div class="paragraph">
+Every object and character has a strength and a defence, bytes 5 and 6 of its record. <a href="../asm/37233.html">DO_ATTACK</a> sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (<a href="../asm/37414.html">WOUNDS</a>) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows.
+</div>
+<div class="paragraph">
+Characters have sides (byte 4), and no one attacks their own -- except the player, who can turn on a friend, who is an enemy from then on (<a href="../asm/37194.html">SAME_SIDE</a>).
+</div>
+<div class="paragraph">
+Things break the same way (<a href="../asm/37613.html">DO_STRIKE</a>): the blow against the thing's defence, and then the weapon against the thing, so striking something hard can break the weapon too.
+</div>
+</div>
+<div><span id="chance"></span></div>
+<div class="box box-2">
+<div class="box-title">Chance</div>
+<div class="paragraph">
+<a href="../asm/40104.html">RANDOM</a> mixes its last result -- seeded from the R register at the start -- with bytes read through a pointer that steps through memory, and scales the result into a range. It is uneven: measured over 3000 calls, asking for 0 to 4 brings up 0 and 4 about half as often as the numbers between.
+</div>
+<div class="paragraph">
+Each new game makes its own choices (<a href="../asm/38829.html">NEW_GAME_CHOICES</a>): which road is shut, and which of Gollum's two riddles he will ask (<a href="../asm/51196.html">RIDDLES</a>). Characters wander at random, take a random number of orders, and every blow in a fight has a random part. That, and the characters moving on their own, is why no two games play alike.
+</div>
+</div>
+<div><span id="ending"></span></div>
+<div class="box box-1">
+<div class="box-title">Winning, dying and starting again</div>
+<div class="paragraph">
+The game is won at the end of a turn in which the valuable treasure is in the wooden chest (<a href="../asm/43478.html">CHECK_WON</a>). Dying (<a href="../asm/37074.html">PLAYER_DIES</a>) prints "you are dead.", shows the score and waits for a key.
+</div>
+<div class="paragraph">
+Either way the game starts again without reloading. At the very start <a href="../asm/27648.html">START</a> copies every object record and room record aside, to <a href="../asm/62464.html">WORLD_COPY</a>, and the variables and timers below the game; every new game (<a href="../asm/27648.html#27687">NEW_GAME</a>) copies them back. SAVE and LOAD write and read the same blocks, and the three bytes of Bard's script that the game rewrites are carried with them.
+</div>
+</div>
+<div><span id="pictures"></span></div>
+<div class="box box-2">
+<div class="box-title">Pictures</div>
+<div class="paragraph">
+Each picture is a program for <a href="../asm/32679.html">RUN_PICTURE</a>, found through the picture table at <a href="../asm/52224.html">PICTURE_TABLE</a>; each picture's own page here shows it being drawn, at the speed the game draws it. The stream starts with a border colour and the picture area's colours, then: move the pen, draw a line (two bytes: direction, length and a Bresenham step), flood-fill a region in a colour, or paint a path of attribute cells; $00 ends it.
+</div>
+<div class="paragraph">
+The flood fill (<a href="../asm/32881.html">FLOOD_FILL</a>) keeps its queue of seed points on the machine stack and tests every pixel from each side it can be reached from, which is why the pictures fill so slowly. Holding N at the title screen turns the pictures off (<a href="../asm/46848.html#46855">PICTURES_ON</a>), and in the dark the canvas is blacked out instead of drawn (<a href="../asm/33291.html">CLEAR_CANVAS</a>).
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>
