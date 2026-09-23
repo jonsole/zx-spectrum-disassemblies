@@ -117,6 +117,195 @@ def _render_picture(game, location: int, room_start: int, player_start: int,
     return image
 
 
+# The map: where each location goes on a grid, and how big things are drawn.
+# Up and down have no place on a flat map, so they borrow the diagonals a
+# staircase would be drawn on: up is north-east, down south-west.
+STEP = {1: (0, -1), 2: (0, 1), 3: (1, 0), 4: (-1, 0), 5: (1, -1), 6: (-1, -1),
+        7: (1, 1), 8: (-1, 1), 9: (1, -1), 10: (-1, 1)}
+CELL_W, CELL_H = 190, 118       # one grid cell
+THUMB_W, THUMB_H = 128, 64      # a picture, at half the canvas's size
+
+
+def map_layout(rooms: dict, first: int = 1) -> dict[int, tuple[int, int]]:
+    """A grid position for every location, found by walking out from `first`.
+
+    Each location reached goes one step from the place it was reached from,
+    in the direction of the exit -- north up, east right. The Hobbit's map is
+    not consistent enough for that always to be free (the goblins' gate sends
+    nearly every direction to one cavern), so a taken cell gives way to the
+    nearest free one. Anything the walk never reaches is laid out the same
+    way below the rest.
+    """
+    placed: dict[int, tuple[int, int]] = {}
+    taken: set[tuple[int, int]] = set()
+
+    def put(location: int, want: tuple[int, int]) -> None:
+        x0, y0 = want
+        for radius in range(0, 40):
+            ring = [(x0 + dx, y0 + dy) for dx in range(-radius, radius + 1)
+                    for dy in range(-radius, radius + 1)
+                    if max(abs(dx), abs(dy)) == radius]
+            ring.sort(key=lambda c: (abs(c[0] - x0) + abs(c[1] - y0), c[1], c[0]))
+            for cell in ring:
+                if cell not in taken:
+                    placed[location] = cell
+                    taken.add(cell)
+                    return
+
+    def walk(start: int, at: tuple[int, int]) -> None:
+        put(start, at)
+        queue = [start]
+        while queue:
+            here = queue.pop(0)
+            # Cardinal directions first: they are the ones worth keeping true.
+            for _, direction, _, there in sorted(rooms[here]["exits"], key=lambda e: e[1]):
+                if there and direction and there in rooms and there not in placed:
+                    dx, dy = STEP[direction]
+                    put(there, (placed[here][0] + dx, placed[here][1] + dy))
+                    queue.append(there)
+
+    walk(first, (0, 0))
+    for location in sorted(rooms):
+        if location not in placed:
+            bottom = max(y for _, y in placed.values()) + 2
+            walk(location, (0, bottom))
+    return tidy_layout(rooms, placed)
+
+
+def tidy_layout(rooms: dict, placed: dict[int, tuple[int, int]]) -> dict[int, tuple[int, int]]:
+    """Move places about until the map stops getting better.
+
+    The walk puts each place where the first exit it met says, and a
+    collision early on can leave a place a long way from its neighbours, with
+    long lines across the map to show for it. This looks at every place in
+    turn and tries it in each cell nearby -- or swapped with whatever is there
+    -- and keeps the change if the exits come out closer to their compass
+    directions and the lines shorter. A handful of passes is enough for it to
+    settle.
+    """
+    links = []
+    for here, room in rooms.items():
+        for _, direction, _, there in room["exits"]:
+            if direction and there and there != here and there in placed:
+                links.append((here, there, STEP[direction]))
+    touching: dict[int, list] = {}
+    for link in links:
+        touching.setdefault(link[0], []).append(link)
+        touching.setdefault(link[1], []).append(link)
+
+    def cost(link, where) -> float:
+        a, b, (dx, dy) = link
+        (ax, ay), (bx, by) = where[a], where[b]
+        # How far b is from where the exit says it should be, and how long
+        # the line is: the first keeps the compass true, the second keeps
+        # the map from sprawling.
+        miss = abs(bx - (ax + dx)) + abs(by - (ay + dy))
+        length = max(abs(bx - ax), abs(by - ay))
+        return 2.0 * miss + 1.0 * length
+
+    def local(location, where) -> float:
+        return sum(cost(link, where) for link in touching.get(location, []))
+
+    at = {cell: location for location, cell in placed.items()}
+    for _ in range(12):
+        improved = False
+        for location in sorted(placed):
+            x, y = placed[location]
+            for nx in range(x - 2, x + 3):
+                for ny in range(y - 2, y + 3):
+                    if (nx, ny) == (x, y):
+                        continue
+                    other = at.get((nx, ny))
+                    before = local(location, placed) + (local(other, placed) if other else 0)
+                    placed[location] = (nx, ny)
+                    if other:
+                        placed[other] = (x, y)
+                    after = local(location, placed) + (local(other, placed) if other else 0)
+                    if after < before - 1e-9:
+                        del at[(x, y)]
+                        at[(nx, ny)] = location
+                        if other:
+                            at[(x, y)] = other
+                        x, y = nx, ny
+                        improved = True
+                    else:
+                        placed[location] = (x, y)
+                        if other:
+                            placed[other] = (nx, ny)
+        if not improved:
+            break
+    return placed
+
+
+def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict) -> str:
+    """The map as inline SVG: a thumbnail or a named box per location, linked
+    to its entry, and a line per way between two places -- a head at each end
+    it can be taken towards, dashed where it goes through something."""
+    xs = [x for x, _ in placed.values()]
+    ys = [y for _, y in placed.values()]
+    left, top = min(xs), min(ys)
+    width = (max(xs) - left + 1) * CELL_W + 40
+    height = (max(ys) - top + 1) * CELL_H + 40
+    HASH = "&#35;"
+
+    def box(location: int) -> tuple[float, float]:
+        x, y = placed[location]
+        return (20 + (x - left) * CELL_W + (CELL_W - THUMB_W) / 2, 20 + (y - top) * CELL_H + 8)
+
+    def centre(location: int) -> tuple[float, float]:
+        px, py = box(location)
+        return px + THUMB_W / 2, py + THUMB_H / 2
+
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+           'style="background: white; font-family: sans-serif">',
+           '<defs><marker id="head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" '
+           f'markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="{HASH}444"/>'
+           '</marker></defs>']
+
+    ways: dict[tuple[int, int], dict] = {}
+    for here, room in rooms.items():
+        if here not in placed:
+            continue
+        for _, direction, via, there in room["exits"]:
+            if not direction or not there or there not in placed or there == here:
+                continue
+            way = ways.setdefault((min(here, there), max(here, there)), {"to": set(), "through": False})
+            way["to"].add(there)
+            way["through"] |= bool(via)
+    for (a, b), way in sorted(ways.items()):
+        (x1, y1), (x2, y2) = centre(a), centre(b)
+        dx, dy = x2 - x1, y2 - y1
+        # Stop each end at the edge of the box it meets.
+        fx = (THUMB_W / 2 + 2) / abs(dx) if dx else float("inf")
+        fy = (THUMB_H / 2 + 14) / abs(dy) if dy else float("inf")
+        f = min(fx, fy, 0.45)
+        heads = ""
+        if a in way["to"]:
+            heads += f' marker-start="url({HASH}head)"'
+        if b in way["to"]:
+            heads += f' marker-end="url({HASH}head)"'
+        dash = ' stroke-dasharray="6,4"' if way["through"] else ""
+        out.append(f'<line x1="{x1 + dx * f:.0f}" y1="{y1 + dy * f:.0f}" x2="{x2 - dx * f:.0f}" '
+                   f'y2="{y2 - dy * f:.0f}" stroke="{HASH}444" stroke-width="1.5"{dash}{heads}/>')
+
+    for location in sorted(placed):
+        px, py = box(location)
+        name = esc(room_name.get(location, "?"))
+        out.append(f'<a href="locations.html{HASH}loc{location}"><title>{location}: {name}</title>')
+        if location in pictures:
+            out.append(f'<image href="../{IMAGE_DIR}/{location:02d}.png" x="{px:.0f}" y="{py:.0f}" '
+                       f'width="{THUMB_W}" height="{THUMB_H}"/>')
+            out.append(f'<rect x="{px:.0f}" y="{py:.0f}" width="{THUMB_W}" height="{THUMB_H}" '
+                       f'fill="none" stroke="{HASH}222"/>')
+        else:
+            out.append(f'<rect x="{px:.0f}" y="{py:.0f}" width="{THUMB_W}" height="{THUMB_H}" '
+                       f'fill="{HASH}eef" stroke="{HASH}667"/>')
+        out.append(f'<text x="{px + THUMB_W / 2:.0f}" y="{py + THUMB_H + 13:.0f}" font-size="11" '
+                   f'text-anchor="middle">{location} {name}</text></a>')
+    out.append("</svg>")
+    return "\n".join(out)
+
+
 def build(html_dir: Path, out_ref: Path) -> None:
     """Render the pictures into html_dir and write the pages' ref file."""
     from hobbit_drive import Hobbit
@@ -333,7 +522,17 @@ def build(html_dir: Path, out_ref: Path) -> None:
                    f'<td>{own or "-"}</td></tr>')
     act.append("</table>")
 
-    sections = {"Locations": loc, "Objects": obj, "Characters": chars, "Actions": act}
+    # ------------------------------------------------------------ map
+    real_rooms = {k: r for k, r in rooms.items() if k}
+    placed = map_layout(real_rooms)
+    mapped = ['<p>Every location, placed by the compass direction of the exits between them '
+              '-- north up, east right, and up and down on the diagonals -- and moved aside '
+              "where the game's geography will not fit a grid. A line is a way between two "
+              'places, with a head at each end it can be taken towards; dashed, it goes '
+              'through something, a door or a river. Click a place for its entry.</p>',
+              '<div style="overflow: auto">',
+              map_svg(real_rooms, room_name, set(pictures), placed), '</div>']
+    sections = {"Map": mapped, "Locations": loc, "Objects": obj, "Characters": chars, "Actions": act}
     lines = ["; Generated by scripts/hobbit_pages.py -- the game's own content, not committed.", ""]
     for name, body in sections.items():
         lines += [f"[{name}]"] + body + [""]
