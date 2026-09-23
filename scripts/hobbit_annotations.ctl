@@ -280,3 +280,18 @@ D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed a
 b $C063 Every object and every character, by number
 D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
 D $C063 The records are not all the same length. What the code does with them is only partly worked out: $95DF tests bit 6 and bit 3 of (IX+$07), which is consistent with a flags byte at offset 7 of a record this table points at, but that has not been traced from here to there and is not asserted.
+
+@ $9BCA label=GET_OBJECT
+c $9BCA Find an object's record
+D $9BCA The object number in A goes to FIND_RECORD against OBJECT_INDEX, and the record's address comes back in IX. Twenty-one routines use it.
+R $9BCA I:A The object number
+R $9BCA O:IX The object's record
+
+@ $9B81 label=FIND_OBJECT_HANDLER
+c $9B81 Find an object's own handler for an action
+D $9B81 Skips the record's 16-byte head and the list whose length is byte 0 of it, and searches what follows with FIND_RECORD. That is the object record's grammar stated by the game itself: parsed this way, all 61 records end exactly where the next begins, and the last exactly where ACTION_TABLE starts.
+D $9B81 So an object can carry handlers of its own for particular actions, and this is how the game asks whether it does before falling back on the ordinary ones. A handler of $0000 in a record is not an address.
+R $9B81 I:A The action code
+R $9B81 I:IX The object's record
+R $9B81 O:IX The matching handler record, or the $FF that ended the list
+R $9B81 O:F NZ if the object has its own handler for this action
