@@ -1828,7 +1828,7 @@ D $BA80 Word references, picked by bits 1 to 3 of byte 0 of a room's record. Onl
 
 @ $965B label=DESCRIBE_LOCATION
 c $965B Print the opening message at HL and describe the location in A
-D $965B Its long description if it has one, or else its name; its picture, with a wait for a key once it is drawn; and then $A0C8, $A138 and $9F94, which are not yet worked out but are presumably the exits and what can be seen there.
+D $965B Its long description if it has one, or else its name; its picture, with a wait for a key once it is drawn; then the ways out through things (EXITS_THROUGH), the open ways out (VISIBLE_EXITS), and what is there to see (YOU_SEE).
 R $965B I:A The location
 R $965B I:HL The opening message
   $965B,1 B = the location
@@ -1837,8 +1837,8 @@ R $965B I:HL The opening message
   $966D,4 Its picture
   $9671,7 If a picture was drawn, wait for a key
   $9678,3 New line
-  $967B,4 Not yet worked out
-  $967F,7 Nor these
+  $967B,4 "to the east there is ..." for each way through something
+  $967F,7 "visible exits are:", and "you see :"
 
 @ $9686 label=DESCRIPTION_OR_NAME
 c $9686 Print the message at HL if there is one, or else the room's name
@@ -1850,7 +1850,7 @@ R $9686 I:IX The room's record
 
 @ $96A8 label=DESCRIBE_BRIEFLY
 c $96A8 Describe a location already visited
-D $96A8 What MOVE does on coming back to a place: just its name, then what DESCRIBE_LOCATION ends with -- no opening, no description, no picture, and not the routine at $A0C8.
+D $96A8 What MOVE does on coming back to a place: just its name, then the open ways out and what is there -- no opening, no description, no picture, and no doors.
 R $96A8 I:A The location
   $96A8,6 Its name
   $96AE,5 New line, and the end of DESCRIBE_LOCATION
@@ -1860,3 +1860,89 @@ c $9B02 Note where the player is, and whether it is too dark to see
 D $9B02 CHARACTERS_ACT starts with this. $B6F5 is the player's location and $980C is 1 in the dark, 0 in the light: in the dark the other characters are heard, not seen.
   $9B02,8 $B6F5 = where the player is
   $9B0A,11 $980C = 1 if too dark to see
+
+@ $A0AE label=EXITS_OF
+c $A0AE Point at a location's exits
+D $A0AE IX is left three bytes short of the first exit and BC = 3, so that ADD IX,BC steps to each in turn.
+R $A0AE I:A The location
+R $A0AE O:IX Its record + 7
+R $A0AE O:BC 3
+
+@ $A0BA label=DIRECTION_WORD
+c $A0BA The word for a direction
+R $A0BA I:A The direction, 1 to 10 (bit 7 ignored)
+R $A0BA O:DE Its word reference, from DIRECTION_WORDS
+@ $A210 label=DIRECTION_WORDS
+w $A210 The ten directions, as words
+D $A210 In the order of the direction codes, 1 to 10. DIRECTION_WORD indexes from $A20E, two bytes earlier, because there is no direction 0.
+  $A210,2 NORTH
+  $A212,2 SOUTH
+  $A214,2 EAST
+  $A216,2 WEST
+  $A218,2 NORTHEAST
+  $A21A,2 NORTHWEST
+  $A21C,2 SOUTHEAST
+  $A21E,2 SOUTHWEST
+  $A220,2 UP
+  $A222,2 DOWN
+
+@ $A0C8 label=EXITS_THROUGH
+c $A0C8 Say where each way out through something lies
+D $A0C8 For every exit of the location that goes through an object which can be seen: "to the east there is ...", or "above there is ..." and "below there is ..." for up and down, with the object's name. This is how doors appear in a description.
+R $A0C8 I:A The location
+  $A0CE,9 IY = the first exit
+  $A0D7,6 Not through anything: skip it
+  $A0DD,12 Through something that cannot be seen: skip it
+  $A0E9,7 Its name, for the message
+  $A0F0,6 The direction's word
+  $A0F6,14 Up is "above", down "below"
+  $A104,6 The rest are "to the ..."
+  $A10A,9 The word, then "there is ..."
+  $A113,10 Until the $FF after the last exit
+
+@ $A124 label=NEXT_OPEN_EXIT
+c $A124 Step to the next open way out
+D $A124 One that goes through nothing, and has not been wiped -- NEW_GAME_CHOICES leaves a shut road with a direction of 0.
+R $A124 I:IX The last exit, or EXITS_OF's pointer
+R $A124 O:IX The next open exit
+R $A124 O:F Z at the end
+
+@ $A138 label=VISIBLE_EXITS
+c $A138 "visible exits are:" and the open ways out
+D $A138 Nothing at all is printed when there are none.
+R $A138 I:A The location
+  $A13E,6 Is there an open way out at all?
+  $A146,6 "visible exits are:"
+  $A14C,14 Each one's direction
+  $A15A,3 New line
+
+@ $9F94 label=YOU_SEE
+c $9F94 "you see :" and what is there
+  $9F98,6 "you see :"
+  $9FA0,10 What lies loose where the actor is
+
+@ $9FAF label=LIST_HERE
+c $9FAF List what is in a place, or say "nothing"
+R $9FAF I:A The holder, or $FF for what lies loose
+R $9FAF I:B The location
+  $9FB3,7 List it, from an indent of 4
+  $9FBA,8 Nothing listed: "nothing"
+
+@ $9FC7 label=LIST_HELD
+c $9FC7 List what object A holds, or with A = $FF what lies loose in location B
+D $9FC7 Each thing is named and followed by a full stop, and then -- unless $A050 says otherwise -- whatever it holds is listed after it, two places further in: the indent is kept at $869F, and this calls itself. Left out: the actor itself, anything out of the actor's reach, and loose things that are in more than one place at once, which are the doors and other fixtures -- EXITS_THROUGH has already told of those.
+R $9FC7 I:A The holder, or $FF
+R $9FC7 I:B The location
+R $9FC7 I:D The indent
+R $9FC7 O:C How many were listed, added on
+  $9FC7,12 Indent by D, keeping the old indent
+  $9FD3,6 Walk every object
+  $9FD9,10 Next object held by A
+  $9FE3,27 Loose and in several places? Leave it out. Otherwise, is it in location B, first or second of its places?
+  $9FFE,13 Not the actor, at the top level
+  $A00B,8 Out of reach? Leave it out
+  $A013,11 Count it, and name it
+  $A01E,8 The actor itself: $A041
+  $A026,5 A full stop
+  $A02B,18 And what it holds, two further in
+  $A03D,4 On to the next
