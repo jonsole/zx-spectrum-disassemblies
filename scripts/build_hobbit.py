@@ -102,7 +102,8 @@ script and the annotations carry the decoder and at most a few words quoted to
 identify a structure, never the messages themselves. Prior work consulted for addresses, and credited rather than copied:
 pobtastic's SkoolKit disassembly at skoolkit.arcadegeek.co.uk/hobbit, the
 data-format notes at icemark.com/dataformats/hobbit, and a complete annotated
-SkoolKit disassembly of the v1.0 tape by an author it does not name, which
+SkoolKit disassembly of the v1.0 tape by bluespikey, posted to the Spectrum
+Computing forums (spectrumcomputing.co.uk/forums/viewtopic.php?t=16025), which
 carries no licence for its annotations and so is used the same way as the
 others: to know what exists and where to look, never as text to copy. It
 documents v1.0, which is 37,888 bytes against this one's 40,000, so its
