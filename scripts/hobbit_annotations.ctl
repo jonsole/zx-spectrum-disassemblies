@@ -626,6 +626,11 @@ B $795E,2,2
 @ $7C91 label=COPY_PHRASE
 c $7C91 Copy a noun and its adjectives out of the command frame
 D $7C91 Six bytes from the frame offset in C -- 8 for the first noun phrase's noun, 18 for the second's -- into a slot, and sets bit 0 of the flag byte in HL if anything was there. The code before it chooses which phrase goes to TARGET_NAME and which to INSTRUMENT_NAME, by whether the second phrase's prepositions are the ones the command expects: ATTACK THE TROLL WITH THE SWORD makes the troll the target and the sword the instrument.
+  $7C92,8 HL = the phrase in the frame, at offset A
+  $7C9A,5 Copy its noun and two adjectives to DE
+  $7C9F,7 Walk back over the six bytes just copied: were any of them set?
+  $7CA8,1 No: nothing was named here
+  $7CA9,2 Yes: set bit 0 of the flag byte
 
 @ $7CC9 label=CALL_IY
 c $7CC9 Call the routine IY points at
@@ -634,6 +639,11 @@ D $7CC9 JP (IY), so a caller can choose the search: TRY_TARGETS uses FIND_NAMED_
 @ $7CFC label=TRY_TARGETS
 c $7CFC Try each object that fits the target's name
 D $7CFC Finds the next object matching TARGET_NAME, makes it the target in $B6E8, and tries the command on it; if that did not take, it goes round again for the next. So PICK UP THE KEY where there are several keys tries them in turn.
+  $7CFC,9 Next object fitting the target's name; none left, and the command fails
+  $7D05,3 It is the target
+  $7D08,5 Note that a target was found
+  $7D0D,3 Try the command on it
+  $7D10,6 It did not take: try the next object that fits
 
 @ $9DD9 label=FIND_NAMED_OBJECT
 c $9DD9 Find the next object that fits a name
@@ -641,6 +651,16 @@ D $9DD9 Walks OBJECT_INDEX from IX, three bytes at a time with the iterator the 
 R $9DD9 I:HL The name to look for
 R $9DD9 I:IX Where in the index to carry on from
 R $9DD9 O:A The object number, or $FF when there are no more
+  $9DDD,7 IY = the actor; D = where the actor is
+  $9DE4,4 E = the mode: 0 only things, 1 only characters, 2 either
+  $9DE8,5 Next object in the index -- IY is its record -- or stop at the end
+  $9DED,5 Mode 2: take anything
+  $9DF2,12 A = 1 for a character (flags bit 6 set, bit 3 clear), else 0...
+  $9DFE,3 ...and pass it over if that is not the kind wanted
+  $9E01,14 Compare the typed name with the object's, at bytes 8-13 of its record
+  $9E0F,6 Asked not to check reach?
+  $9E15,8 Pass over anything out of the actor's reach
+  $9E1D,3 A = this object's number, or $FF from the end of the index
 
 @ $71F3 label=NAME_MATCHES
 c $71F3 Does a typed name fit an object's name?
@@ -648,10 +668,20 @@ D $71F3 The noun has to match; the adjectives need not be typed at all, and are 
 R $71F3 I:HL The typed name
 R $71F3 I:IY The object's name
 R $71F3 O:F Z if it fits
+  $71F7,5 The nouns must match, or it is not this object
+  $71FC,5 Note that the noun matched
+  $7201,12 Adjectives in the order typed? Then it fits, A = 0
+  $720D,6 Otherwise start again from the beginning of both names...
+  $7213,12 ...compare the first typed adjective with the object's second...
+  $721F,10 ...and the second typed adjective with the object's first: A = 1 if that fits
 
 @ $722E label=WORD_MATCHES
 c $722E Does a typed word fit a word of a name?
 D $722E A word that was not typed -- zero -- fits anything. Otherwise only the twelve-bit dictionary offset is compared, not the flag nibble above it. Both pointers move on two bytes either way.
+  $722F,5 Not typed at all? Then it fits anything
+  $7234,8 Same top half of the twelve-bit offset, ignoring the flag nibble...
+  $723C,5 ...and the same low byte
+  $7241,8 On to the next word of both names either way
 
 # --------------------------------------------------------------------------
 # What can be reached
@@ -663,12 +693,21 @@ D $9E34 The actor from ACTOR, then IN_REACH_OF. Called directly with the player 
 R $9E34 I:A The object's number
 R $9E34 I:IY Its record
 R $9E34 O:F NZ if it is within reach
+  $9E36,4 The acting character
 
 @ $9E40 label=IN_REACH_OF
 c $9E40 Is an object within reach of the character in IX?
 D $9E40 Nothing is within reach that has bit 7 of its flags clear. Otherwise it is if the character is inside it; or if the two are shut in the same container; or if neither is shut in anything and the object is in the character's location -- any of its locations, which is how a door is within reach from either side.
 R $9E40 I:IX The character's record
 R $9E40 I:IY The object's record
+  $9E40,5 Not there to be seen: never in reach
+  $9E4A,4 B = the object; C = where the character is
+  $9E4E,9 Is the character shut inside the object itself? Then it is in reach
+  $9E59,6 Shut inside something the object is not? Out of reach
+  $9E5F,3 Both shut in the same thing: in reach
+  $9E62,13 Both free: in reach if the character's location is any of the object's
+  $9E6F,3 Z: out of reach
+  $9E72,2 NZ: in reach
 
 @ $9E7A label=SHUT_IN
 c $9E7A What is this object shut inside?
@@ -676,3 +715,7 @@ D $9E7A Follows byte 1 of the object's record -- what holds it -- up through hol
 D $9E7A Byte 1 is watched as well as read: the map is held by Gandalf ($3E) on the tape and by the player (0) at the first prompt, the turn the game says Gandalf gives it to you; and the large key is held by the hideous troll, as the trolls' clearing says it is.
 R $9E7A I:IX The object's record
 R $9E7A O:A What it is shut in, or $FF
+  $9E7C,7 Held by nothing? Then it is not shut in anything: A = $FF
+  $9E83,7 Go up to the holder, keeping its number
+  $9E8A,7 Can the holder be seen into (flags $28)? Then keep climbing
+  $9E91,1 A = the first holder that cannot be seen into
