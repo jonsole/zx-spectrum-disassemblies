@@ -703,6 +703,18 @@ D $7585 Called by the main loop with $B6DC pointing into TOKENS; returns NZ to g
 
 @ $7960 label=OBEY
 c $7960 Carry out the parsed command, and let the world take its turn
+  $7960,8 From the first frame
+  $7968,8 A reply was just fitted into an unfinished command: clear that, and go on from the next frame
+  $7970,5 Work out this frame's command; nothing left, and the line is done
+  $7975,5 No more commands on this line
+  $797A,6 Check it; $7DF5 when it will not do
+  $7980,5 Really do it
+  $7985,3 Not yet worked out
+  $7988,3 Carry it out -- the player's MOVE was reached from here
+  $798B,3 Not yet worked out
+  $798E,6 Asked to go round the same frame again?
+  $7994,8 Count the frame off; none left, done
+  $799C,13 On to the next frame down, passing over ALL EXCEPT's exception frames
 
 # --------------------------------------------------------------------------
 # Parsing
