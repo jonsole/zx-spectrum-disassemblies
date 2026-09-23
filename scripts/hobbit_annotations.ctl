@@ -555,3 +555,65 @@ b $B9C8 The command being obeyed
 D $B9C8 Twenty-four bytes, and further commands in the same line are built in the frames below it, $B9B0 and down. Offset 0 is the verb, and bit 7 of its second byte marks a command with ALL; offset 2 an adverb or direction; offsets 4 and 14 two noun phrases of ten bytes each -- two prepositions, the noun, and two adjectives. Every word is stored as a two-byte reference, low byte first, articles are dropped altogether.
 D $B9C8 Watched rather than taken on trust. PUT THE SMALL CURIOUS KEY IN THE WOODEN CHEST leaves PUT, then KEY with SMALL and CURIOUS, then IN with CHEST and WOODEN. VICIOUSLY ATTACK THE TROLL WITH THE SWORD leaves ATTACK and VICIOUSLY, TROLL, and WITH and SWORD. And the first noun phrase of the first is byte for byte bytes 8 to 13 of the key's own object record: a noun phrase is written in exactly the form objects are named in, so finding what the player means is a straight comparison.
 B $B9C8,24,2
+
+# --------------------------------------------------------------------------
+# Deciding which object the player means
+# --------------------------------------------------------------------------
+#
+# Found by a read watchpoint on COMMAND_FRAME's first noun, which stopped in
+# COPY_PHRASE, and then read forward from there. NAME_MATCHES was then called
+# directly on the small curious key with different typed names.
+
+@ $793D label=PHRASES
+b $793D The target and instrument being looked for
+D $793D Zeros on the tape, so the generated listing called it unused; it is the parser's working space for the command in hand.
+B $793D,1,1
+  $793D,1 Target flags: bit 0, a target was named; bit 1, one has been found
+B $793E,1,1
+  $793E,1 The same for the instrument
+B $793F,3,3
+  $793F,3 Not yet worked out
+@ $7942 label=TARGET_NAME
+B $7942,6,2
+  $7942,6 The target as typed: noun, then two adjectives, in the form objects are named in
+@ $7948 label=INSTRUMENT_NAME
+B $7948,6,2
+  $7948,6 The instrument, the same way
+B $794E,2,2
+  $794E,2 A pointer the search starts from
+B $7950,10,10
+  $7950,10 Not yet worked out
+B $795A,4,2
+  $795A,4 Prepositions the command expects, which decide which noun phrase is which
+B $795E,2,2
+  $795E,2 Not yet worked out
+
+@ $7C91 label=COPY_PHRASE
+c $7C91 Copy a noun and its adjectives out of the command frame
+D $7C91 Six bytes from the frame offset in C -- 8 for the first noun phrase's noun, 18 for the second's -- into a slot, and sets bit 0 of the flag byte in HL if anything was there. The code before it chooses which phrase goes to TARGET_NAME and which to INSTRUMENT_NAME, by whether the second phrase's prepositions are the ones the command expects: ATTACK THE TROLL WITH THE SWORD makes the troll the target and the sword the instrument.
+
+@ $7CC9 label=CALL_IY
+c $7CC9 Call the routine IY points at
+D $7CC9 JP (IY), so a caller can choose the search: TRY_TARGETS uses FIND_NAMED_OBJECT.
+
+@ $7CFC label=TRY_TARGETS
+c $7CFC Try each object that fits the target's name
+D $7CFC Finds the next object matching TARGET_NAME, makes it the target in $B6E8, and tries the command on it; if that did not take, it goes round again for the next. So PICK UP THE KEY where there are several keys tries them in turn.
+
+@ $9DD9 label=FIND_NAMED_OBJECT
+c $9DD9 Find the next object that fits a name
+D $9DD9 Walks OBJECT_INDEX from IX, three bytes at a time with the iterator the exits use, which leaves each object's record in IY. An object is passed over if its name does not match (NAME_MATCHES against the record's bytes 8-13), if a mode in $B710 asks only for objects whose byte 7 has, or lacks, bit 6 set with bit 3 clear, or -- unless $B70F says otherwise -- if $9E34 finds it is not within the actor's reach.
+R $9DD9 I:HL The name to look for
+R $9DD9 I:IX Where in the index to carry on from
+R $9DD9 O:A The object number, or $FF when there are no more
+
+@ $71F3 label=NAME_MATCHES
+c $71F3 Does a typed name fit an object's name?
+D $71F3 The noun has to match; the adjectives need not be typed at all, and are accepted in either order -- it tries them as given, then swapped -- but one that does not belong rules the object out. Called directly on the small curious key: KEY, CURIOUS KEY, SMALL CURIOUS KEY and CURIOUS SMALL KEY all match; LARGE KEY, SMALL LARGE KEY and MAP do not.
+R $71F3 I:HL The typed name
+R $71F3 I:IY The object's name
+R $71F3 O:F Z if it fits
+
+@ $722E label=WORD_MATCHES
+c $722E Does a typed word fit a word of a name?
+D $722E A word that was not typed -- zero -- fits anything. Otherwise only the twelve-bit dictionary offset is compared, not the flag nibble above it. Both pointers move on two bytes either way.

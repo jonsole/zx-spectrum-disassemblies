@@ -1418,12 +1418,15 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
         # count mismatch a long way downstream. The pass needs the block
         # directives -- a block forced from data to code has no instruction
         # boundaries without them, and every comment inside it then looks
-        # misaligned -- so those are kept and everything else stripped.
+        # misaligned -- so those are kept and everything else stripped. The
+        # sub-block directives are kept too: they set the boundaries of a data
+        # block, and without them its comments look misaligned against the
+        # default eight-byte lines.
         structure = OUT_DIR / "hobbit-structure.ctl"
         structure.write_text(NEWLINE.join(
             " ".join(line.split(" ", 2)[:2])
             for line in ANNOTATIONS.read_text(encoding="utf-8").splitlines()
-            if re.match(r"^[bctwsi] \$[0-9A-F]{4}", line)), encoding="utf-8")
+            if re.match(r"^[bctwsiBCTWS] \$[0-9A-F]{4}", line)), encoding="utf-8")
         check_annotations(_capture(sna2skool.main,
                                   ["-H", "-c", str(ctl), "-c", str(dictionary_ctl),
                                    "-c", str(pictures_ctl), "-c", str(objects_ctl),
