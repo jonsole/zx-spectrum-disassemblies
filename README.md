@@ -29,8 +29,9 @@ The one exception is the `gh-pages` branch, which publishes The Hobbit's built
 HTML disassembly for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
-`scripts/build_hobbit.py --html` and copied there; nothing on `master` depends
-on it.
+`scripts/build_hobbit.py --html` and copied there by `scripts/publish_pages.py`
+(`--tape` to build first, `--dry-run` to see what would change); nothing on
+`master` depends on it. The landing page's source is `pages/index.html`.
 
 The same goes for `roms/48.rom`, which several builds need and which you supply
 yourself.
