@@ -1332,3 +1332,250 @@ D $6C00 Reached by PRINT USR 27648. It first copies the whole of the game's chan
   $6C27,4 A new game starts here
   $6C2B,20 Not yet worked out: zeroes two bytes found through picture 5's entry
   $6C3F,38 Copy the saved state back
+
+# --------------------------------------------------------------------------
+# The other characters: scripts
+# --------------------------------------------------------------------------
+
+@ $A9D6 label=CHECK_WON
+c $A9D6 Has the player won?
+D $A9D6 The first thing END_OF_TURN does. The game is won when the valuable treasure, object $23, is held by the wooden chest, object $25 -- byte 1 of the treasure's record. Then a cheering crowd of dwarves, hobbits and elves carries the player off into the sunset, and the game waits for a key and starts again, through the tail of PLAYER_DIES.
+  $A9D6,6 The treasure not in the chest? Play on
+  $A9DC,9 "a cheering crowd of dwarves, hobbits and elves appears..."; wait and start again
+
+@ $980E label=CHARACTERS_ACT
+c $980E Every other character takes its turn
+D $980E Walks CHARACTERS and runs each character's script until it has done something. Each instruction is an action the character tries, as if it had typed a sentence: the action code and its objects go into $B6E7-$B6E9 exactly as the parser puts them for the player, and $99C6 carries it out through the same ACTION_TABLE. So Thorin opens a door by the same code the player does.
+D $980E A step that is refused moves on to the next, or to a fallback of its own, and the script goes on; a step that succeeds ends the character's turn. Six refusals in a row end it too. What a character does is printed only when the player can see it.
+D $980E An order comes first. Whatever the player has told a character to do (see ORDERS) replaces its script's step for the turn, unless the step has bit 6 set, which makes it one that cannot be interrupted.
+  $980E,3 Not yet worked out
+  $9811,4 IY = the first character
+  $9815,4 No steps refused yet
+  $9819,8 $FF ends the table
+  $9821,5 An empty slot
+  $9826,13 The sentence is about this character: its number, its record, and its location in $B6F6
+  $9833,4 Printing off
+  $9837,16 Can the player see it (IN_REACH_OF, the other way round)?
+  $9847,33 Then print what it does -- unless $980C is 2; at 1, the first one is only heard, "you hear a noise.", and not seen
+  $9868,8 Held by something? Try to get out (CAPTIVE)
+  $9870,15 $B6F4 = 1 if it has an order waiting
+  $987F,6 HL = where its script has got to
+  $9885,7 Six steps refused: its turn is over
+  $988C,7 IX = the instruction
+  $9893,6 Opcodes 5 and up
+  $9899,38 An order, and this step may be interrupted (bit 6 clear)? Take the order and carry it out, and that is its turn
+  $98BF,12 Opcode 4: an action with no objects, or a jump; 0 to 3: an action with objects, or a routine
+  $98CB,18 $0E: go to the address that follows, and carry on
+  $98DD,15 $0C: switch to the script its table keys under the byte that follows
+  $98EC,9 $0F: switch to one of its scripts at random
+  $98F5,7 Never taken: A is at least 5 here
+  $98FC,5 Anything else: back to its first script, and its turn is over
+  $9901,8 On to the next 7-byte slot
+  $9909,15 Done: the sentence is about the player again, and printing on
+
+@ $9918 label=STEP_PAST
+c $9918 Move a character's script past this instruction
+D $9918 By DE bytes, and two more if the instruction has a fallback (bit 4).
+R $9918 I:HL The instruction
+R $9918 I:DE Its length without a fallback
+R $9918 I:IY The character's slot
+  $9918,1 Past the instruction
+  $9919,8 And its fallback, if it has one
+  $9921,7 Save the new place in the slot
+
+@ $9928 label=SCRIPT_DO
+c $9928 A script step: an action with objects, or a routine
+D $9928 Four bytes, then a 2-byte fallback if bit 4 is set. With bit 0 clear they are the action code and its two objects, tried as the character's own sentence. With bit 0 set, bytes 1 and 2 are the address of a routine instead: it is run once with printing off as a test, and only if it reports success by setting $B6FB is it run again for real.
+D $9928 A step that succeeds with bit 5 set takes the character out of the story: its slot is emptied and it never acts again.
+  $9928,3 Step past it
+  $992B,6 A routine?
+  $9931,18 The action and its two objects
+  $9943,7 Try it: done, or refused
+  $994A,29 The routine: run it quietly, and if it succeeded, again for real
+  $9967,13 Done. Bit 5: the character's part is over
+
+@ $9974 label=SCRIPT_BARE
+c $9974 A script step: an action with no objects, or a jump
+D $9974 Two bytes, then a 2-byte fallback if bit 4 is set. Byte 1 is an action code, tried with neither object -- RUN, say, which carries the character off in some direction. An action code of $FF does nothing and ends the character's turn: a pause, with the script going on at the next step next turn -- or, with a fallback, at the fallback, which makes it a jump. The warg's one script ends that way, a pause before going round again.
+D $9974 A refused step, of either kind, comes here at $99AA: count it, and go on at the fallback if there is one, or the next step if not.
+  $9974,6 Step past it
+  $997A,5 $FF: a pause or a jump
+  $9981,19 The action alone: done, or refused
+  $9994,22 Jump to the fallback, if there is one; either way that is the turn
+  $99AA,4 Refused: count it
+  $99AE,7 No fallback? On to the next step
+  $99B5,17 Otherwise on at the fallback
+
+@ $99C6 label=ACTOR_TRIES
+c $99C6 A character tries the action in $B6E7-$B6E9
+D $99C6 Checked by $7AF5 first, as the player's sentences are; then carried out by $950F, and the player is told of anyone who has just come into view -- "... enters." for the actor, "... appears." for the second object, through $9ACD. $99CE is the way in for an order the character was given, skipping the check.
+R $99C6 O:F NZ if it was done, Z if it was refused
+  $99C6,8 Refused by the check: Z
+  $99CE,7 $B6FE set? Straight to doing it
+  $99D5,16 Going through something, away from the player: straight to doing it
+  $99E5,77 Not yet worked out: two ways into $712B
+  $9A32,3 Do it
+  $9A35,12 The actor has come into the player's view? "... enters."
+  $9A41,19 The second object too? "... appears."
+  $9A54,2 Done: NZ
+
+@ $9ACD label=ANNOUNCE_ARRIVAL
+c $9ACD Tell the player an object has just come into view
+D $9ACD Prints the message at DE with the object's name if the object is now where the player is and was not before -- HL points at where it was.
+R $9ACD I:A The object
+R $9ACD I:HL Where it was
+R $9ACD I:DE The message
+
+@ $9A59 label=SCRIPT_RANDOM
+c $9A59 Opcode $0F: switch to one of a character's scripts at random
+D $9A59 A random number, limited by the lesser of the operand and slot byte 1 picks from the start of the character's script table; this is how Gandalf and the others wander without a fixed route. $9A68 picks entry E instead, and opcodes with no meaning of their own come in there with E = 0.
+  $9A59,11 The lesser of the operand and the character's own limit
+  $9A64,4 A random number within it
+  $9A68,7 No further than the character's own limit
+  $9A6F,21 The script its table has at that place
+
+@ $9A85 label=FIND_CHARACTER
+c $9A85 Find a character's slot
+R $9A85 I:A The character
+R $9A85 O:IY Its slot in CHARACTERS, or the $FF that ended it
+
+@ $9AA0 label=REACT
+c $9AA0 Switch a character to the script it keeps for an action
+D $9AA0 Looks the action up in the character's own script table with FIND_RECORD, and if it has a script for it, sends the character there. The script opcode $0C uses it, and so does $95DF: whenever an action is done to a character, it reacts. That is what the entries after the first few in each table are for -- Gandalf's and Thorin's have scripts for being given something ($1D), captured ($30) and attacked ($0F).
+R $9AA0 I:A The character
+R $9AA0 I:B The action
+  $9AA4,7 Not in CHARACTERS: nothing to do
+  $9AAB,17 Its script for this action, if it has one
+  $9ABC,12 Go there
+
+@ $95DF label=REACT_TO_ACTION
+c $95DF An action has been done to this object: if it is a character, it reacts
+D $95DF Only a character (flag bit 6), and only one without flag bit 3, which is not yet worked out.
+
+@ $9B16 label=CAPTIVE
+c $9B16 A character held by something tries to get out
+D $9B16 A character held by another character, or by something with flag bit 3, goes on with its script as usual. Held by something closed -- flag bit 5 clear, not to be seen into -- it can do nothing. Otherwise it tries action $37, CLIMB OUT OF, on what holds it.
+  $9B16,11 The holder is the object
+  $9B21,17 Held by a character, or by something with flag bit 3: carry on with the script
+  $9B32,7 Shut in: nothing this turn
+  $9B39,11 Try to climb out
+
+@ $7EFF label=FIND_ORDER
+c $7EFF Find an order waiting for the character in $B6EA
+R $7EFF O:HL Its slot in ORDERS
+R $7EFF O:F Z if there is one
+
+@ $7F10 label=HAS_ORDER
+c $7F10 Is there an order waiting for the character in $B6EA?
+R $7F10 O:F Z if there is one
+
+@ $7F1A label=TAKE_ORDER
+c $7F1A Take the order waiting for a character, and parse it
+D $7F1A Frees the slot, then parses the command kept in it the way the player's own commands are parsed, leaving the action and its objects in $B6E7-$B6E9 for ACTOR_TRIES.
+  $7F22,5 Free the slot
+
+@ $B738 label=ORDERS
+b $B738 What the player has told the other characters to do
+D $B738 Eight 25-byte slots, each the number of the character it is for followed by the command it was given, kept until the character's next turn. CHARACTERS_ACT carries out an order before the character's own script. START clears all 200 bytes.
+B $B738,200,25
+
+@ $9CA8 label=RANDOM
+c $9CA8 A random number, in a range set by A
+D $9CA8 From a pointer at $B712 that steps on by one each time it is used, reading whatever is there. How A limits the result is not yet worked out.
+@ $9C9F label=RANDOM_POSITIVE
+c $9C9F RANDOM, made positive
+
+@ $9F82 label=LOCATION_OF
+c $9F82 Where an object is, if it is in only one place
+R $9F82 I:A The object, or $FF
+R $9F82 O:A Its location; $FF if it is in several, or for $FF
+
+@ $CACB label=CHARACTERS
+b $CACB The characters' scripts: where each has got to
+D $CACB Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a slot not in use -- three are empty at the start, and a character whose part is over (see SCRIPT_DO) empties its own. Byte 1 is how many of its scripts SCRIPT_RANDOM may choose among. Bytes 2 and 3 are the instruction its script has got to; bytes 4 and 5 are its script table, a FIND_RECORD table whose entries keyed 0 are its ordinary scripts and whose others are its reactions (see REACT). Byte 6 is not yet worked out.
+D $CACB The scripts themselves are in $C82D-$CA7F. An instruction's low four bits are its opcode: 0 to 3 as SCRIPT_DO, 4 as SCRIPT_BARE, $0C, $0E and $0F as CHARACTERS_ACT says, and anything else sends the character back to its first script. Bit 4 means a 2-byte fallback follows, bit 5 that the character leaves the story when the step succeeds, and bit 6 that an order cannot interrupt it.
+B $CACB,7,7 Gandalf
+B $CAD2,7,7 Thorin
+B $CAD9,7,7 The wood elf
+B $CAE0,7,7 The vicious warg
+B $CAE7,7,7 Empty at the start
+B $CAEE,7,7 Elrond
+B $CAF5,7,7 Gollum
+B $CAFC,7,7 Empty at the start
+B $CB03,7,7 Empty at the start
+B $CB0A,7,7 The hideous troll
+B $CB11,7,7 The vicious troll
+B $CB18,7,7 The nasty goblin
+B $CB1F,7,7 The hideous goblin
+B $CB26,7,7 The vicious goblin
+B $CB2D,7,7 The horrible goblin
+B $CB34,7,7 The mean goblin
+B $CB3B,7,7 The disgusting goblin
+B $CB42,1,1 End of the characters
+
+@ $AB53 label=ACTION_PATTERNS
+b $AB53 The sentence each action code stands for
+D $AB53 Fifty-nine 8-byte patterns, ending at a zero word. The action code is the pattern's place in the list, counting from 1: $79B6 finds the one that matches the parsed sentence and works the code out from its address. Each is a verb, a particle and a preposition as word references, then two more bytes; for the ten directions the first word is the direction and the last is GO, so that NORTH and GO NORTH are the same action. The top bits of the references and the last two bytes of the others are flags, not yet worked out.
+D $AB53 So this is also the key to ACTION_TABLE and to every action code in the characters' scripts: $10 is OPEN, $13 TAKE, $1D GIVE TO, $24 RUN, $30 CAPTURE, $37 CLIMB OUT OF.
+B $AB53,472,8
+  $AB53,8 1 ($01): GO NORTH
+  $AB5B,8 2 ($02): GO SOUTH
+  $AB63,8 3 ($03): GO EAST
+  $AB6B,8 4 ($04): GO WEST
+  $AB73,8 5 ($05): GO NORTHEAST
+  $AB7B,8 6 ($06): GO NORTHWEST
+  $AB83,8 7 ($07): GO SOUTHEAST
+  $AB8B,8 8 ($08): GO SOUTHWEST
+  $AB93,8 9 ($09): GO UP
+  $AB9B,8 10 ($0A): GO DOWN
+  $ABA3,8 11 ($0B): STRIKE WITH
+  $ABAB,8 12 ($0C): CLOSE
+  $ABB3,8 13 ($0D): DROP
+  $ABBB,8 14 ($0E): DROP IN
+  $ABC3,8 15 ($0F): ATTACK WITH
+  $ABCB,8 16 ($10): OPEN
+  $ABD3,8 17 ($11): PUT IN
+  $ABDB,8 18 ($12): PUT ON
+  $ABE3,8 19 ($13): TAKE
+  $ABEB,8 20 ($14): TAKE OUT OF
+  $ABF3,8 21 ($15): TAKE FROM
+  $ABFB,8 22 ($16): TAKE OFF
+  $AC03,8 23 ($17): LOOK
+  $AC0B,8 24 ($18): LOOK THROUGH
+  $AC13,8 25 ($19): LOOK ACROSS
+  $AC1B,8 26 ($1A): INVENTORY
+  $AC23,8 27 ($1B): EAT
+  $AC2B,8 28 ($1C): EXAMINE
+  $AC33,8 29 ($1D): GIVE TO
+  $AC3B,8 30 ($1E): GO THROUGH
+  $AC43,8 31 ($1F): ENTER
+  $AC4B,8 32 ($20): GO INTO
+  $AC53,8 33 ($21): DRINK
+  $AC5B,8 34 ($22): EMPTY
+  $AC63,8 35 ($23): FILL WITH
+  $AC6B,8 36 ($24): RUN
+  $AC73,8 37 ($25): LOCK WITH
+  $AC7B,8 38 ($26): UNLOCK WITH
+  $AC83,8 39 ($27): FOLLOW
+  $AC8B,8 40 ($28): WEAR
+  $AC93,8 41 ($29): THROW
+  $AC9B,8 42 ($2A): THROW AT
+  $ACA3,8 43 ($2B): THROW ACROSS
+  $ACAB,8 44 ($2C): THROW THROUGH
+  $ACB3,8 45 ($2D): BURN
+  $ACBB,8 46 ($2E): TIE TO
+  $ACC3,8 47 ($2F): CUT
+  $ACCB,8 48 ($30): CAPTURE
+  $ACD3,8 49 ($31): PULL
+  $ACDB,8 50 ($32): SWIM
+  $ACE3,8 51 ($33): UNTIE
+  $ACEB,8 52 ($34): CLIMB
+  $ACF3,8 53 ($35): TALK TO
+  $ACFB,8 54 ($36): CLIMB INTO
+  $AD03,8 55 ($37): CLIMB OUT OF
+  $AD0B,8 56 ($38): JUMP ONTO
+  $AD13,8 57 ($39): DIG
+  $AD1B,8 58 ($3A): SHOOT
+  $AD23,8 59 ($3B): CARRY
+B $AD2B,2,2
+  $AD2B,2 End of the patterns

@@ -714,6 +714,11 @@ SPECIAL_COUNT = 13
 # warn with. Both routines are reached through $9B80's JP (HL).
 TIMERS = 0xCA84
 TIMER_SIZE = 7
+# The other characters' slots: 7 bytes each, ending at $FF, with where the
+# character's script has got to at bytes 2-3 and its table of scripts -- a
+# FIND_RECORD table -- at bytes 4-5. Seventeen of them.
+CHARACTERS = 0xCACB
+CHARACTER_SIZE = 7
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -887,6 +892,59 @@ def timer_handlers(memory) -> set[int]:
         entry += TIMER_SIZE
     seeds.discard(0)
     return seeds
+
+
+def script_routines(memory) -> set[int]:
+    """The routines the characters' scripts call, as code seeds.
+
+    A script step's low four bits are its opcode (see CHARACTERS_ACT): 0-3
+    take four bytes and 4 takes two, each with a 2-byte fallback address after
+    it when bit 4 is set; $0E is a jump to the address after it, $0C and $0F
+    switch to a script from the character's table, and anything else sends
+    it back to its first script -- so after any of those four the walk stops. Opcodes 1 and 3 name a routine in bytes 1 and 2, which SCRIPT_DO
+    runs through $9B80's JP (HL). Every script is walked from every place a
+    character can enter one -- where it is now, and each entry in its table --
+    following fallbacks and jumps, which is the same set of places the game
+    itself can reach.
+    """
+    def length(address):
+        op = memory[address]
+        fallback = 2 if op & 0x10 else 0
+        if op & 0x0F < 4:
+            return 4 + fallback
+        if op & 0x0F == 4:
+            return 2 + fallback
+        return 3 if op & 0x0F == 0x0E else 2
+
+    word = lambda a: memory[a] | (memory[a + 1] << 8)
+    pending, seen, routines = [], set(), set()
+    slot = CHARACTERS
+    while memory[slot] != 0xFF:
+        pending.append(word(slot + 2))
+        entry = word(slot + 4)
+        while memory[entry] != 0xFF:
+            pending.append(word(entry + 1))
+            entry += 3
+        slot += CHARACTER_SIZE
+    while pending:
+        address = pending.pop()
+        if address in seen:
+            continue
+        seen.add(address)
+        op = memory[address] & 0x0F
+        if op == 0x0E:
+            pending.append(word(address + 1))
+            continue
+        if op > 4:
+            # $0C and $0F switch scripts through the table, which is walked
+            # already; nothing after them, or after the rest, is reached.
+            continue
+        if op < 4 and op & 1:
+            routines.add(word(address + 1))
+        if memory[address] & 0x10 and op <= 4:
+            pending.append(word(address + length(address) - 2))
+        pending.append(address + length(address))
+    return routines
 
 
 def room_records(memory) -> dict[int, dict]:
@@ -1188,6 +1246,8 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # And the timers' routines, which END_OF_TURN runs through $9B80's
     # JP (HL) -- the wine wearing off among them, at $AB0B.
     dispatched |= timer_handlers(memory)
+    # And the routines the characters' scripts run, the same way.
+    dispatched |= script_routines(memory)
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call
