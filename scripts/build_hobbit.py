@@ -708,6 +708,12 @@ PARSER_CLASS_COUNT = 13
 # word, so its handler cannot be reached through the table and is not a seed.
 SPECIAL_WORDS = 0x8271
 SPECIAL_COUNT = 13
+# The timers END_OF_TURN counts down: 7-byte entries ending at $FF, each a
+# length, a count (0 when the timer is not running), the routine to run when
+# the count reaches 0, how many turns before that to warn, and the routine to
+# warn with. Both routines are reached through $9B80's JP (HL).
+TIMERS = 0xCA84
+TIMER_SIZE = 7
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -865,6 +871,22 @@ def control_handlers(memory) -> set[int]:
     """RUN_MESSAGE's control-code handlers, as code seeds."""
     return {memory[CONTROL_CODES + 2 * i] | (memory[CONTROL_CODES + 2 * i + 1] << 8)
             for i in range(CONTROL_COUNT)}
+
+
+def timer_handlers(memory) -> set[int]:
+    """The routines each timer runs when it fires or warns, as code seeds.
+
+    A warning routine is only one when the entry has a warning span; the
+    entries without one leave a zero there, which $9B6C skips.
+    """
+    seeds, entry = set(), TIMERS
+    while memory[entry] != 0xFF:
+        seeds.add(memory[entry + 2] | (memory[entry + 3] << 8))
+        if memory[entry + 4]:
+            seeds.add(memory[entry + 5] | (memory[entry + 6] << 8))
+        entry += TIMER_SIZE
+    seeds.discard(0)
+    return seeds
 
 
 def room_records(memory) -> dict[int, dict]:
@@ -1163,6 +1185,9 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     handlers = SPECIAL_WORDS + 2 * SPECIAL_COUNT
     dispatched |= {memory[handlers + 2 * i] | (memory[handlers + 2 * i + 1] << 8)
                    for i in range(1, SPECIAL_COUNT)}
+    # And the timers' routines, which END_OF_TURN runs through $9B80's
+    # JP (HL) -- the wine wearing off among them, at $AB0B.
+    dispatched |= timer_handlers(memory)
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call
@@ -1350,10 +1375,13 @@ def check_annotations(bare_skool: str) -> None:
                 f"  {ANNOTATIONS.name}:{number}: ${address:04X},"
                 f"{match.group(2)} ends mid-instruction"
                 + (f" -- try ,{suggestion - address}" if suggestion else ""))
+    # Fatal rather than a warning: a comment that ends mid-instruction makes
+    # sna2skool start a new instruction there, which reassembles to the wrong
+    # bytes, and the byte count mismatch that follows says nothing of which
+    # line did it -- nor is a log line easy to see in the middle of a build.
     if problems:
-        _log(f"{len(problems)} annotation(s) not lined up with an instruction:")
-        for problem in problems:
-            _log(problem)
+        sys.exit(f"error: {len(problems)} annotation(s) not lined up with an "
+                 f"instruction:" + NEWLINE + NEWLINE.join(problems))
 
 
 def declared_spans() -> list[tuple[int, int]]:

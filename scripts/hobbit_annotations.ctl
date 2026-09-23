@@ -1018,10 +1018,10 @@ B $B700,1,1
 
 @ $AAF9 label=WINE_DRUNK
 c $AAF9 The wine's own handler: the player drinks it
-D $AAF9 The wine carries this for action 0 in its record, so nothing branches to it and it showed as data; drinking the wine is what runs it. Only the player is affected. It also copies $CAB5 into $CAB6, which has not been worked out.
+D $AAF9 The wine carries this for action 0 in its record, so nothing branches to it and it showed as data; drinking the wine is what runs it. Only the player is affected. It also starts timer 7 in TIMERS, copying its length of five turns into its count, and when that runs out WINE_WEARS_OFF sobers the player up again.
   $AAF9,6 Only the player
   $AAFF,5 Drunk: from now on every S is followed by an H
-  $AB04,7 Not yet worked out
+  $AB04,7 Start timer 7: sober again in five turns
 
 @ $757A label=PHRASE
 b $757A The noun phrase being built
@@ -1152,3 +1152,183 @@ D $6FBA Letter for letter, over the shorter of the two -- which is what lets TOK
 R $6FBA O:F Z if they agree
   $6FBA,11 B = the shorter of the two lengths
   $6FC5,13 Compare that many letters
+
+# --------------------------------------------------------------------------
+# The end of a turn: timers
+# --------------------------------------------------------------------------
+
+@ $96B3 label=END_OF_TURN
+c $96B3 Let the other characters act, then count the timers down
+D $96B3 Calls $A9D6 and $980E -- the rest of the world's turn, not yet worked out -- and then walks TIMERS. A timer whose count is zero is not running. One that is running counts down by one a turn; on reaching zero it runs its routine, and in the turns before that, while the count is no more than its warning span, it runs its warning routine instead.
+D $96B3 Only one timer fires in a turn. A second one to reach zero in the same turn is held at a count of 1 and fires in the next, so two events never land on the player at once.
+  $96BA,6 The characters' turn, not yet worked out
+  $96C0,11 Nothing has fired yet this turn; printing on
+  $96CB,4 IY = the first timer
+  $96CF,7 $FF ends the table
+  $96D6,7 A count of zero: not running
+  $96DD,8 Count down, and go on to the warning test unless it reached zero
+  $96E5,10 Already had one fire this turn? Hold this one at 1 until the next
+  $96EF,4 Count one fired
+  $96F3,11 Run its routine through $9B6C
+  $96FE,7 No warning span: nothing to do
+  $9705,5 Is the count within the warning span?
+  $970A,9 Then run the warning routine
+  $9713,8 On to the next 7-byte timer
+  $971B,5 Printing on
+
+@ $9B6C label=RUN_ROUTINE
+c $9B6C Call the routine at HL, if there is one
+D $9B6C Keeps every register pair the caller has, IX and IY included, and does nothing for an address of zero.
+R $9B6C I:HL The routine, or 0
+  $9B73,5 HL not zero? Call it through $9B80
+
+@ $9B80 label=JUMP_HL
+c $9B80 Jump to HL
+D $9B80 The one-byte target that RUN_ROUTINE calls, so that a routine held in HL can be called and return.
+
+@ $CA84 label=TIMERS
+b $CA84 The timers END_OF_TURN counts down
+D $CA84 Ten 7-byte entries, ending at $FF: byte 0 is the timer's length in turns, and starting it is copying that into byte 1, the count -- WINE_DRUNK does exactly that for timer 7, and timer 9 restarts itself the same way. Bytes 2 and 3 are the routine to run when the count reaches zero. Byte 4 is how many turns before then to warn, and bytes 5 and 6 the routine to warn with. All of them are reached through $9B80's JP (HL).
+D $CA84 This table and what follows it, $BF bytes in all, are copied aside by START and copied back on every new game; SAVE and LOAD take the same $BF bytes.
+B $CA84,7,7 Timer 0, 2 turns: the barrel reaches the long lake (#R$A5FB)
+B $CA8B,7,7 Timer 1, 2 turns: the spider web changes (#R$AA5C)
+B $CA92,7,7 Timer 2, 5 turns: the web smothers anyone still in it (#R$AB10)
+B $CA99,7,7 Timer 3, 2 turns: the goblins' door shuts (#R$A4D9)
+B $CAA0,7,7 Timer 4, 2 turns: the deep bog, warning every turn (#R$A7AA)
+B $CAA7,7,7 Timer 5, 4 turns: the magic door opens a turn before it closes (#R$AAB3, #R$AAD5)
+B $CAAE,7,7 Timer 6, length 0 and never started: its routine is run by timer 5's warning instead (#R$AAE0)
+B $CAB5,7,7 Timer 7, 5 turns: the wine wears off (#R$AB0B)
+B $CABC,7,7 Timer 8, 4 turns: the eyes in the forest (#R$AB1F, #R$AB3A)
+B $CAC3,7,7 Timer 9, 5 turns: the hole in the mountain's side (#R$AA91, #R$AA74)
+B $CACA,1,1 End of the timers
+
+@ $AB0B label=WINE_WEARS_OFF
+c $AB0B Timer 7: the wine wears off
+D $AB0B Clears DRUNK, five turns after WINE_DRUNK set it and started this timer.
+  $AB0B,4 No longer drunk
+
+@ $A5FB label=BARREL_REACHES_LAKE
+c $A5FB Timer 0: the barrel is thrown up on the long lake
+D $A5FB Two turns after it is started, the barrel goes to location 34, the long lake, and anything in it goes with it -- the player too, who is told so and arrives there. Then it is emptied, with printing off, so that what spills is not reported; and the wine is put back into a barrel in location 32, the elvenking's cellar.
+  $A5FB,4 Only one timer fires in a turn
+  $A5FF,11 In the barrel ($13)? "you are thrown onto the bank of the long lake."
+  $A60A,5 The barrel is at location 34 now
+  $A60F,6 ... and so is everything in it
+  $A615,16 The barrel: at the lake; flag bit 5 (seen into) off, bit 2 on
+  $A625,14 Empty it with printing off
+  $A633,13 The wine: back in location 32, held by the barrel
+
+@ $AA5C label=WEB_CHANGES
+c $AA5C Timer 1: the spider web changes
+D $AA5C Clears bits 3 and 5 of the web's flags, doubles its byte 5, and gives it a different first adjective ($0623) in its name. Not yet seen in play.
+  $AA5C,16 Flags and byte 5
+  $AA6C,7 Its name
+
+@ $AB10 label=WEB_SMOTHERS
+c $AB10 Timer 2: the spider web smothers the player
+D $AB10 Only if the player is still at location 26, the spider threads place: "the spider web is slowly smothering you", and PLAYER_DIES.
+  $AB10,6 Not at location 26? Nothing happens
+  $AB16,9 Say so and die
+
+@ $A4D9 label=GOBLINS_DOOR_SHUTS
+c $A4D9 Timer 3: the goblins' door shuts
+D $A4D9 Clears bit 5 of the goblins' door's flags -- the bit that lets it be seen through, which a door has while it is open.
+
+@ $A7AA label=SINKING_IN_BOG
+c $A7AA Timer 4: sinking into the deep bog
+D $A7AA Timer 4's routine for both its warning and its end. Standing in location 29, the deep bog, stops the timer; either way "you are slowly sinking into the bog", and if the timer has stopped, whether by running out or by the player being in the bog, PLAYER_DIES.
+  $A7AA,11 In the bog? Stop the timer
+  $A7B5,6 "you are slowly sinking into the bog."
+  $A7BB,9 Stopped: dead
+
+@ $AAB3 label=MAGIC_DOOR_OPENS
+c $AAB3 Timer 5's warning: the magic door opens and an elf sweeps past
+D $AAB3 Sets bit 5 of the magic door's flags, reports it to a player in either of its rooms, and goes on to timer 6's routine.
+  $AAB3,5 Open
+  $AAB8,6 "the magic door opens."
+  $AABE,6 "an elf sweeps past."
+
+@ $AAC7 label=AT_MAGIC_DOOR
+c $AAC7 Print the message at HL if the player is by the magic door
+D $AAC7 That is, at location 30 or location 28, the two rooms the door is in.
+R $AAC7 I:HL A message
+
+@ $AAD5 label=MAGIC_DOOR_CLOSES
+c $AAD5 Timer 5: the magic door closes
+  $AAD5,5 Shut
+  $AADA,6 "the magic door closes."
+
+@ $AAE0 label=RING_CHECK
+c $AAE0 Timer 6's routine, run when the elf sweeps past
+D $AAE0 Does nothing unless the ring, object $10, is held by something. Then it looks up the holder and, if that is not visible (flag bit 7 clear), carries on at $A3BC with it as the actor -- which is not yet worked out.
+  $AAE0,10 Nobody has the ring: nothing to do
+  $AAEA,7 The holder is the actor
+  $AAF1,7 Not visible? Go on at $A3BC
+
+@ $AB1F label=EYES_WARNING
+c $AB1F Timer 8's warning: pale eyes in the forest
+D $AB1F "you see some pale bulbous eyes staring at you." Then, unless the player is where $B6F3 says or at the other of the forest road and the forest (locations 2 and 3), something drops and stings, fatally, as in EYES_STING. What sets $B6F3 is not yet traced.
+  $AB1F,6 "you see some pale bulbous eyes staring at you."
+  $AB25,9 At $B6F3's location: safe
+  $AB2E,10 A = 2, or 3 if $B6F3 is 2: safe there too
+  $AB38,2 Anywhere else: stung
+
+@ $AB3A label=EYES_STING
+c $AB3A Timer 8: stung in the forest
+D $AB3A A player still at location 2 or 3, the forest road or the forest, sees the eyes, is stung by something dropping from above, and dies.
+  $AB3A,10 Not at location 2 or 3? Nothing happens
+  $AB44,6 "you see some pale bulbous eyes staring at you."
+  $AB4A,9 "some thing drops from above and stings.", and dead
+
+@ $AA91 label=SIDE_DOOR_APPEARS
+c $AA91 Timer 9's warning: a hole appears in the mountain's side
+D $AA91 Makes the side door visible -- it is one of the two objects in the game that start without flag bit 7 -- and tells a player at location 42, the side door.
+  $AA91,5 The side door can be seen now
+  $AA96,9 At location 42? "there is a loud crack and a hole appears..."
+
+@ $AA74 label=SIDE_DOOR_VANISHES
+c $AA74 Timer 9: the hole vanishes again
+D $AA74 Unless the door has been opened (flag bit 5), the timer is started again and the door hidden, so the hole comes and goes every five turns until somebody opens it.
+  $AA74,6 Opened? Then it stays
+  $AA7A,6 Start the timer again
+  $AA80,5 Hidden
+  $AA85,12 At location 42? "the hole vanishes."
+
+@ $9BDD label=MOVE_CONTENTS
+c $9BDD Move everything inside an object to a location
+D $9BDD Everything held by the object in A, at any depth, goes to location B through MOVE_HELD. If the player was among it, the move is played out for them: MOVE's own step at $8E12 puts them there, with the sentence made about the player for the length of it, and $9B02 follows.
+R $9BDD I:A The object
+R $9BDD I:B The location
+  $9BDD,8 Say the player is not among it, and move it all
+  $9BE5,3 Not among it: done
+  $9BE9,6 Nowhere? Nothing more to do
+  $9BEF,18 The sentence is about the player for now
+  $9C01,10 Move the player there
+  $9C0B,8 Put the sentence back
+
+@ $9C17 label=MOVE_HELD
+c $9C17 Put everything held by object A in location B
+D $9C17 Recursively, so what is inside those goes too; if one of them is the player, $9BDC is cleared to say so.
+  $9C1F,10 Next object held by A
+  $9C29,3 Its location becomes B
+  $9C2C,10 The player? Note it
+  $9C36,3 And the same for what it holds
+
+@ $9D53 label=EMPTY_OUT
+c $9D53 Empty an object into whatever holds it
+D $9D53 Everything held by the object in A passes to the object's own holder, except liquids (flag bit 1): those are poured away -- nowhere, held by nothing, not visible -- with a message.
+R $9D53 I:A The object
+  $9D58,6 B = its holder
+  $9D62,10 Next object held by A
+  $9D6C,6 A liquid?
+  $9D72,25 Poured away
+  $9D8B,6 Anything else goes to the holder
+
+@ $6C00 label=START
+c $6C00 The game's entry point
+D $6C00 Reached by PRINT USR 27648. It first copies the whole of the game's changeable state aside -- the objects to $F400, the rooms straight after them, the variables at $B6EB and the TIMERS block to $5F00 -- and every new game at $6C27 copies it back, which is how dying and starting again restores the world as it was loaded.
+  $6C01,19 The objects and the rooms, to $F400 onwards
+  $6C14,19 The variables and the timers, to $5F00 onwards
+  $6C27,4 A new game starts here
+  $6C2B,20 Not yet worked out: zeroes two bytes found through picture 5's entry
+  $6C3F,38 Copy the saved state back
