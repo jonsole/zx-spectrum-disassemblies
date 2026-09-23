@@ -1204,7 +1204,7 @@ B $CA92,7,7 Timer 2, 5 turns: the web smothers anyone still in it (#R$AB10)
 B $CA99,7,7 Timer 3, 2 turns: the goblins' door shuts (#R$A4D9); started by GOBLINS_DOOR_OPENED
 B $CAA0,7,7 Timer 4, 2 turns: the deep bog, warning every turn (#R$A7AA)
 B $CAA7,7,7 Timer 5, 4 turns: the magic door opens a turn before it closes (#R$AAB3, #R$AAD5); started by MAGIC_DOOR_EXAMINED
-B $CAAE,7,7 Timer 6, length 0 and never started: its routine is run by timer 5's warning instead (#R$AAE0)
+B $CAAE,7,7 Timer 6: the ring slips off (#R$AAE0); started by WEAR_RING at 2 to 10 turns, and run early by timer 5's warning
 B $CAB5,7,7 Timer 7, 5 turns: the wine wears off (#R$AB0B)
 B $CABC,7,7 Timer 8, 4 turns: the eyes in the forest (#R$AB1F, #R$AB3A)
 B $CAC3,7,7 Timer 9, 5 turns: the hole in the mountain's side (#R$AA91, #R$AA74)
@@ -1267,11 +1267,11 @@ c $AAD5 Timer 5: the magic door closes
   $AADA,6 "the magic door closes."
 
 @ $AAE0 label=RING_CHECK
-c $AAE0 Timer 6's routine, run when the elf sweeps past
-D $AAE0 Does nothing unless the ring, object $10, is held by something. Then it looks up the holder and, if that is not visible (flag bit 7 clear), carries on at $A3BC with it as the actor -- which is not yet worked out.
+c $AAE0 Timer 6: the ring slips off
+D $AAE0 WEAR_RING starts this timer at a random 2 to 10 turns, so the ring's invisibility never lasts. When it runs out -- or when the magic door opens and the elf sweeps past, whose warning comes here too -- whoever has the ring and is invisible takes it off, through TAKE_OFF_RING.
   $AAE0,10 Nobody has the ring: nothing to do
   $AAEA,7 The holder is the actor
-  $AAF1,7 Not visible? Go on at $A3BC
+  $AAF1,7 Invisible? Then it comes off
 
 @ $AB1F label=EYES_WARNING
 c $AB1F Timer 8's warning: pale eyes in the forest
@@ -2550,3 +2550,61 @@ D $A55F Not what the actor is in already, and only what it can reach. If the act
   $A5B2,14 Too small: "the ... is too big."
   $A5C0,3 The test ends here
   $A5C3,6 In
+
+# --------------------------------------------------------------------------
+# Breaking things, looking through, and the ring
+# --------------------------------------------------------------------------
+
+@ $92ED label=DO_STRIKE
+c $92ED STRIKE WITH, carried by whatever can be broken
+D $92ED Not a liquid, not what is broken already ("the ... is broken."), and not what has no defence at all. The blow is the weapon's strength, the striker's and a random 0 to 21 together, against the thing's defence, byte 6: at least equal, and the thing breaks -- flag bit 3, "broken" in its name (BROKEN_OR_DEAD), its strength halved, and a thing that holds others in or on it spills them. Then the weapon itself is tried the same way against the thing's defence, and a weapon weaker than what it hit breaks too: striking the trap door with the sword can cost the sword.
+  $92ED,18 Not a liquid; broken already: say so
+  $92FF,7 Nothing with no defence
+  $9306,1 B = the weapon's strength, 0 with none
+  $9307,37 A weapon: one with strength, and one that can itself be struck
+  $932C,3 The test ends here
+  $932F,22 The blow, against its defence
+  $9345,27 Broken: named so, weaker, and spilling what it held
+  $9360,31 The weapon against the same defence...
+  $937F,26 ...and broken too if it was weaker
+  $9399,5 "the ... is broken."
+@ $A18C label=BROKEN_OR_DEAD
+c $A18C Rename an object BROKEN, or a character DEAD
+D $A18C The first adjective of its name becomes BROKEN, or DEAD for a character, and the second is dropped.
+R $A18C I:A The object
+@ $8EEC label=LOOK_THROUGH
+c $8EEC LOOK THROUGH, carried by doors and the like
+D $8EEC Not through something shut ("the ... is closed."). The place beyond is shown as if the actor were there for a moment -- "you see" and its description -- if it is lit, and "it is dark." if not. $8EF8, the rivers' LOOK ACROSS, is the same without the shut test. Nothing at all happens for an actor shut inside something (SHUT_IN_ACTOR).
+  $8EEC,12 Shut: "the ... is closed."
+  $8EF8,7 The actor shut in something: nothing
+  $8EFF,16 The way through it, and where it leads
+  $8F0F,3 The test ends here
+  $8F12,13 Dark there: "it is dark."
+  $8F1F,22 Show it, from there
+  $8F35,6 "it is dark."
+@ $8ED2 label=SHUT_IN_ACTOR
+c $8ED2 Is the character in A shut inside something?
+R $8ED2 I:A The character
+R $8ED2 O:F NZ if something shut holds it, at any depth
+@ $962B label=DESCRIBE_SEEN
+c $962B Describe a location, opening "you see"
+@ $94A4 label=THROW_THROUGH
+c $94A4 THROW THROUGH, carried by doors and the like
+D $94A4 The thrower must have it, the way through the object must exist and be open ("the ... is closed."); it lands in the place beyond, with all it holds. The trap door's record runs BARREL_THROWN after this.
+@ $9065 label=DO_DIG
+c $9065 DIG, carried by the sand
+D $9065 Digging the sand opens it, and shows what it hides -- the trap door; digging it again closes it.
+@ $A368 label=OPEN_CRACK
+c $A368 The crack's own OPEN: only from the dark stuffy passage, location 15
+@ $A390 label=WEAR_RING
+c $A390 WEAR, carried by the ring
+D $A390 The wearer is invisible -- flag bit 7 clear -- and a quarter as strong, the ring is out of sight too, and timer 6 is set to take it off again in 2 to 10 turns (see TIMERS).
+  $A393,20 Invisible, and weaker
+  $A3A7,10 The ring, out of sight on the wearer
+  $A3B1,11 Off again in 2 to 10 turns
+@ $A3BC label=TAKE_OFF_RING
+c $A3BC TAKE OFF, carried by the ring
+D $A3BC Not if it is not being worn ("you are not wearing the ..."). Visible again, four times as strong, and the timer stopped.
+  $A3C4,10 Not worn: refused
+  $A3CE,3 The test ends here
+  $A3D1,21 Seen again, and as strong as before; the timer stopped
