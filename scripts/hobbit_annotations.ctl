@@ -631,6 +631,12 @@ D $72C3 Also control code $0D, a new line, which is why that code has no handler
 @ $858B label=PRINT_CHAR
 c $858B Print one character
 D $858B Everything printed passes through here with the character in A -- which is what makes it a good place to stop to capture exactly what a message says.
+  $858B,4 $8576 can refuse to print anything at all
+  $8590,6 While a line is being typed, the echo goes another way
+  $8596,4 Print it
+  $859B,8 Drunk?
+  $85A3,8 Only after an S...
+  $85AB,7 ...print an H
 
 # --------------------------------------------------------------------------
 # Reading a command into tokens
@@ -785,6 +791,7 @@ D $7C91 Six bytes from the frame offset in C -- 8 for the first noun phrase's no
 @ $7CC9 label=CALL_IY
 c $7CC9 Call the routine IY points at
 D $7CC9 JP (IY), so a caller can choose the search: TRY_TARGETS uses FIND_NAMED_OBJECT.
+  $7CC9,2 Whatever routine IY points at
 
 @ $7CFC label=TRY_TARGETS
 c $7CFC Try each object that fits the target's name
@@ -903,3 +910,15 @@ B $8C23,40,10
 b $B71F The endings a word can be given
 D $B71F Eight slots of four characters, chosen by bits 5-7 of a word's third dictionary byte when PRINT_WORD inflects it: "s" for fifty verbs, "es" for six (GO, CROSS, PUSH, SLASH, SMASH, TORCH), "ies", "d", "ing", and one worth a second look -- a backspace then "ies", which is how CARRY prints as CARRIES: the backspace takes the Y back off. The last two slots are empty. EMPTY is given plain "ies", which would print EMPTYIES if it were ever inflected; that has not been checked.
 B $B71F,32,4
+
+@ $B700 label=DRUNK
+b $B700 Whether the player has drunk the wine
+D $B700 Cleared at the start of a game and set by WINE_DRUNK. While it is set, PRINT_CHAR follows every S with an H: after the wine, the Lonelands' description comes out as "a gloomy empty land with dreary hillsH ahead". Tried, not only read -- the wine was moved into Bag End, DRINK THE WINE answered "you drink some wine." and set this byte, and a message printed before and after shows the difference.
+B $B700,1,1
+
+@ $AAF9 label=WINE_DRUNK
+c $AAF9 The wine's own handler: the player drinks it
+D $AAF9 The wine carries this for action 0 in its record, so nothing branches to it and it showed as data; drinking the wine is what runs it. Only the player is affected. It also copies $CAB5 into $CAB6, which has not been worked out.
+  $AAF9,6 Only the player
+  $AAFF,5 Drunk: from now on every S is followed by an H
+  $AB04,7 Not yet worked out
