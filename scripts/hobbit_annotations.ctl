@@ -1510,7 +1510,7 @@ R $9F82 O:A Its location; $FF if it is in several, or for $FF
 
 @ $CACB label=CHARACTERS
 b $CACB The characters' scripts: where each has got to
-D $CACB Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a slot not in use -- three are empty at the start, and a character whose part is over (see SCRIPT_DO) empties its own. Byte 1 is how many of its scripts SCRIPT_RANDOM may choose among. Bytes 2 and 3 are the instruction its script has got to; bytes 4 and 5 are its script table, a FIND_RECORD table whose entries keyed 0 are its ordinary scripts and whose others are its reactions (see REACT). Byte 6 is not yet worked out.
+D $CACB Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a slot not in use -- three are empty at the start, and a character whose part is over (see SCRIPT_DO) empties its own. Byte 1 is how many of its scripts SCRIPT_RANDOM may choose among. Bytes 2 and 3 are the instruction its script has got to; bytes 4 and 5 are its script table, a FIND_RECORD table whose entries keyed 0 are its ordinary scripts and whose others are its reactions (see REACT). Byte 6 is how many of the player's orders it will take at once (see DO_TALK): Thorin 6, Gandalf and Elrond 5, Gollum 3, the wood elf and the trolls 1, and the warg and the goblins 0, never.
 D $CACB The scripts themselves are in $C82D-$CA7F. An instruction's low four bits are its opcode: 0 to 3 as SCRIPT_DO, 4 as SCRIPT_BARE, $0C, $0E and $0F as CHARACTERS_ACT says, and anything else sends the character back to its first script. Bit 4 means a 2-byte fallback follows, bit 5 that the character leaves the story when the step succeeds, and bit 6 that an order cannot interrupt it.
 B $CACB,7,7 Gandalf
 B $CAD2,7,7 Thorin
@@ -2074,3 +2074,67 @@ D $90EB "you are carrying." and a list of what the actor holds, or "nothing".
   $90EE,6 "you are carrying."
   $90F4,13 Nothing? "nothing"
   $9101,13 Otherwise the list
+
+@ $8FAD label=DO_RUN
+c $8FAD RUN: off in any direction that has a way out
+D $8FAD A random direction from 1 to 10, then the first from there on, going round, that the location has an exit in; then MOVE.
+@ $9F25 label=EXIT_VIA
+  $8FAD,9 A random direction, 1 to 10
+  $8FB6,17 Is there a way out that way? If not, the next, round from 10 to 1
+  $8FC7,6 Go
+c $9F25 Find the exit that goes through the first object
+D $9F25 FIND_EXIT's search with the field it matches patched: byte 1 of an exit, the object it goes through, here; byte 2, the destination, from EXIT_TO.
+R $9F25 O:IX The exit
+R $9F25 O:F Z if there is none
+@ $9F2D label=EXIT_TO
+c $9F2D Find the exit that leads to location A
+R $9F2D I:A The location
+R $9F2D O:IX The exit
+R $9F2D O:F Z if there is none
+@ $8F3B label=GO_THROUGH
+c $8F3B GO THROUGH, carried by doors and the like as their own handler
+D $8F3B The exit that goes through the object; refused if there is none, if it leads nowhere yet, or if the object will not let anyone through ($8E85). Otherwise it is a move in that exit's direction, into MOVE past its darkness and captivity checks. $8F3E is the way in for callers that have found the exit already.
+@ $8FCD label=DO_ENTER
+  $8F3B,3 The exit through it
+  $8F3E,13 None, or to nowhere yet: refused
+  $8F4B,13 Will it let the actor through?
+  $8F58,3 The test ends here
+  $8F5B,14 A move that way, with no object
+c $8FCD ENTER and GO INTO
+D $8FCD Looks for an exit whose destination is the number in $B6E8 and goes through it as GO_THROUGH does. How an object number comes to stand for a place here is not yet understood.
+@ $8FD6 label=DO_FOLLOW
+c $8FD6 FOLLOW
+D $8FD6 Only one step: the exit that leads to where the one followed is, if there is one, and through it. Already in the same place, or not next to it: "i cannot follow the ... from here."
+@ $8FF5 label=DO_THROW_AT
+  $8FD6,17 Already where the one followed is?
+  $8FE7,8 An exit that leads there: through it
+  $8FEF,6 "i cannot follow the ... from here."
+c $8FF5 THROW AT
+D $8FF5 Throwing something at a character is attacking the character with it, and at anything else striking it with it: the two objects are swapped and ATTACK WITH or STRIKE WITH is run (SWAPPED_OBJECTS). Done for real, the thrown thing lands, held by nothing, and the target reacts as to an attack.
+@ $9F4A label=SWAPPED_OBJECTS
+  $8FF5,3 Can it be lifted to throw?
+  $8FF8,20 At a character: ATTACK WITH; at a thing: STRIKE WITH
+  $900C,6 Run it, the objects swapped
+  $9012,11 Only a test: done
+  $901D,8 It lands, held by nothing
+  $9025,11 And the target reacts as to an attack
+c $9F4A Run the routine at HL with the first and second objects swapped
+D $9F4A Both the numbers in $B6E8-$B6E9 and the records in $B708-$B70A, all put back afterwards.
+R $9F4A I:HL The routine
+@ $9034 label=DO_TALK
+c $9034 TALK TO, and SAY TO
+D $9034 Decides how many of the sentences just said the character will take on as orders (ASSIGN_ORDERS): none if it is not a character; exactly one if it is Gollum waiting for his riddle's answer ($B6F9); otherwise a random number up to byte 6 of its CHARACTERS slot -- and if that comes out 0, "... says " no "". A character whose byte 6 is 0 never takes an order and does not say so.
+@ $7EBA label=ASSIGN_ORDERS
+  $9034,3 The test ends here
+  $9037,12 Not a character: no orders
+  $9043,7 Gollum waiting for an answer: one
+  $904A,7 Never takes orders: none
+  $9051,7 Otherwise a random number up to its limit
+  $9058,4 Give it that many
+  $905C,9 None: "... says " no "", and none
+c $7EBA Give A of the sentences just said to the character in $B6E8
+D $7EBA The sentences waiting in ORDERS -- $B737 of them, marked $FF -- are given to the character in turn, as many as A says, and the rest are thrown away.
+R $7EBA I:A How many to give
+  $7EBE,12 No more than there are; C = how many are left over
+  $7ECA,28 The next A waiting are the character's
+  $7EE6,20 The rest are thrown away
