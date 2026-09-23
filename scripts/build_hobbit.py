@@ -577,16 +577,22 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     spans = [(OBJECT_INDEX, index_end)]
     for record in records:
         n, start = record["number"], record["start"]
-        kind = "character" if n >= 0x3C else "object"
-        out.append(f"@ ${start:04X} label=OBJ{n:02X}")
-        out.append(f"b ${start:04X} Record for {kind} ${n:02X}")
-        out.append(f"D ${start:04X} A 16-byte head, a list of {record['listed']}, "
-                   f"then {len(record['handlers'])} handler(s) of its own, "
-                   f"ending at $FF.")
+        kind = ("the player" if n == 0 else
+                f"character ${n:02X}" if n >= 0x3C else f"object ${n:02X}")
+        places = [memory[start + 16 + i] for i in range(record["listed"])]
+        where = ", ".join(str(p) for p in places)
+        label = "PLAYER" if n == 0 else f"OBJ{n:02X}"
+        out.append(f"@ ${start:04X} label={label}")
+        out.append(f"b ${start:04X} Record for {kind}")
+        out.append(f"D ${start:04X} A 16-byte head, where it is -- "
+                   f"{'location' if len(places) == 1 else 'locations'} {where} "
+                   f"when the game starts -- and {len(record['handlers'])} "
+                   f"handler(s) of its own, ending at $FF.")
         out.append(f"B ${start:04X},16,8")
-        out.append(f"  ${start:04X},16 The head; byte 0 is the list's length")
+        out.append(f"  ${start:04X},16 The head; byte 0 is how many places it is in")
         out.append(f"B ${start + 16:04X},{record['listed']}")
-        out.append(f"  ${start + 16:04X},{record['listed']} The list")
+        out.append(f"  ${start + 16:04X},{record['listed']} "
+                   f"{'Its location' if len(places) == 1 else 'The locations it is in at once'}")
         for address, action, handler in record["handlers"]:
             what = ("nothing special" if handler == 0 else
                     f"#R${handler:04X}" if ENTRY <= handler < GAME_END else
@@ -719,12 +725,14 @@ def _session_script(commands: list[str], hold: float, gap: float, think: float,
                     settle: float):
     """(keys-held, seconds) steps: dismiss the title screen, then type.
 
-    `settle` is not padding. The game answers the title screen by drawing Bag
-    End and flood-filling it, and it does not look at the keyboard until that
-    finishes, so anything typed before then is thrown away. Measured: at a
-    2-second settle the first command is lost entirely (one LOOK finds 1 new
-    instruction), at 5 seconds it is still being lost, and at 8 it lands and
-    the same single LOOK finds 1392. Longer buys nothing.
+    `settle` is not padding, though the reason for it was first misread. The
+    opening picture takes about seven seconds to draw, during which nothing
+    reads the keyboard -- and then the game waits in WAIT_FOR_ANY_KEY, so the
+    first key after it is consumed as "carry on" rather than read as a letter.
+    Measured: at a 2-second settle the first command is lost entirely (one LOOK
+    finds 1 new instruction), at 5 still, and at 8 it lands and the same single
+    LOOK finds 1392. hobbit_drive.py does without the timing altogether, by
+    breakpoint; this keeps typing because typing is itself code worth mapping.
     """
     script = [([], settle), (["SPACE"], 0.2), ([], settle)]
     for command in commands:
@@ -1021,7 +1029,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     objects_ctl = OUT_DIR / "hobbit-objects.ctl"
     objects_text, objects_spans = object_blocks(game_memory(snapshot))
     objects_ctl.write_text(objects_text, encoding="utf-8")
-    _log(f"  {objects_text.count('label=OBJ')} object records, every one ending "
+    _log(f"  {objects_text.count('label=OBJ') + objects_text.count('label=PLAYER')} object records, every one ending "
          f"exactly where the next begins")
     _log(f"  {pictures_text.count('label=LOC')} location pictures, every one "
          f"parsed to its $00 by RUN_PICTURE's own grammar")

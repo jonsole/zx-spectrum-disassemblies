@@ -220,7 +220,7 @@ D $8B78 About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so wh
 
 @ $969A label=WAIT_FOR_ANY_KEY
 c $969A Wait until any key is pressed
-D $969A Polls the whole keyboard through port $FE and returns once something is held, setting the border white on the way out. This is what holds the game on the title screen, and what it drops into once the opening picture is finished.
+D $969A Polls the whole keyboard through port $FE and returns once something is held, setting the border white on the way out. The game drops into it once the opening picture is finished, before its first prompt -- and a key pressed there is taken as "carry on" and not as a letter, which is why the first letter of the first command typed after the picture always went missing. (The title screen does not use this: it waits in its own loop around $6C60.)
 
 # --------------------------------------------------------------------------
 # The second word list
@@ -279,7 +279,9 @@ D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed a
 @ $C063 label=OBJECT_INDEX
 b $C063 Every object and every character, by number
 D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
-D $C063 The records are not all the same length. What the code does with them is only partly worked out: $95DF tests bit 6 and bit 3 of (IX+$07), which is consistent with a flags byte at offset 7 of a record this table points at, but that has not been traced from here to there and is not asserted.
+D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
+D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
+D $C063 What the rest of the head means is open. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
 
 @ $9BCA label=GET_OBJECT
 c $9BCA Find an object's record
@@ -295,3 +297,17 @@ R $9B81 I:A The action code
 R $9B81 I:IX The object's record
 R $9B81 O:IX The matching handler record, or the $FF that ended the list
 R $9B81 O:F NZ if the object has its own handler for this action
+
+# --------------------------------------------------------------------------
+# Reading a command
+# --------------------------------------------------------------------------
+
+@ $6FF9 label=INPUT_LINE
+b $6FF9 The command line being read
+D $6FF9 What READ_LINE fills from the keyboard and the tokeniser reads, ended by a carriage return. The game also fills it itself: on the very first turn the main loop copies LOOK and a return in from $6FF4 and skips READ_LINE, which is how the opening description appears without anybody typing it. scripts/hobbit_drive.py uses the same way in.
+
+@ $6DD6 label=READ_LINE
+c $6DD6 Read a command from the keyboard
+D $6DD6 Prints the prompt, then takes keys into INPUT_LINE until a carriage return: letters, space, quote, comma and full stop are kept and echoed, backspace steps back, and anything else is ignored. The cursor lives only in registers -- HL walks the line and B counts the room left in it, 128 to start -- so there is no variable in memory that says how much has been typed.
+D $6DD6 That is what makes putting a whole command in from outside possible but not quite trivial: stop at $6DF3, just after HL and B are set, write the text into the line, move HL and B past it, and press ENTER. The reader then files the return after the text exactly as if the rest had been typed.
+R $6DD6 O:F NZ when a line has been read
