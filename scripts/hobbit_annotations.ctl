@@ -2138,3 +2138,81 @@ R $7EBA I:A How many to give
   $7EBE,12 No more than there are; C = how many are left over
   $7ECA,28 The next A waiting are the character's
   $7EE6,20 The rest are thrown away
+
+# --------------------------------------------------------------------------
+# The special words: printer, ALL and EXCEPT, IT, and the game's own commands
+# --------------------------------------------------------------------------
+
+@ $82A5 label=PRINTER_ON
+c $82A5 PRINT: copy the game's text to a ZX Printer, if there is one
+D $82A5 Bit 6 of port $FB is low when a ZX Printer is attached; only then is $B6F2 set. NOPRINT, at $82AF, clears it. Both go back to the parser for the next word at $82B3.
+  $82A5,6 No printer: nothing changes
+  $82AB,4 Copy to the printer from now on
+  $82AF,1 NOPRINT: stop
+  $82B3,7 On to the next word of the sentence
+@ $82BA label=WORD_EXCEPT
+c $82BA EXCEPT: only after ALL
+D $82BA ALL ... EXCEPT ... is kept as $B719 = 2, and the ALL bit set on the verb; EXCEPT on its own is an error, through $7929.
+@ $82D2 label=WORD_ALL
+c $82D2 ALL
+D $82D2 $B719 = 1, unless an EXCEPT has already made it 2.
+@ $82E2 label=WORD_IT
+c $82E2 IT: the last noun phrase again
+D $82E2 The noun phrase kept at $B6E0 from the last sentence is copied into PHRASE, as if it had been typed, and handed to the first or the second phrase's handler.
+@ $8391 label=DO_QUIT
+c $8391 QUIT: the score, then a new game on the next key
+@ $83A0 label=DO_HELP
+c $83A0 HELP: a hint for where the player is
+D $83A0 Eleven places have a hint of their own, in HELP_HINTS; anywhere else it is "YOU'RE DOING FINE.". Only the player gets help: a character told HELP just goes on to the next word.
+  $83A0,7 Not the player: ignore it
+  $83AA,21 The hint for this place, or the general one
+  $83BF,11 Print it
+@ $83CD label=HELP_HINTS
+b $83CD The places HELP has a hint for
+D $83CD A FIND_RECORD table of [location, message], eleven of them.
+B $83CD,33,3
+B $83EE,1,1 End of the table
+@ $83EF label=DO_SCORE
+c $83EF SCORE
+@ $83F5 label=SHOW_SCORE
+c $83F5 "you have mastered ... % of this adventure."
+D $83F5 The score at $B6F7 is kept in tenths of a per cent, so a full game is 1000, and it is printed with one decimal place: hundreds only if not zero, then tens, a point, and units. Reaching the lonelands scores 25 (VISIT_SCORES), which is the 2.5% a first death there reports.
+  $83F7,10 "you have mastered"
+  $8401,12 Hundreds, if any
+  $840D,9 Tens
+  $8416,5 A decimal point
+  $841B,6 Units
+  $8421,10 "% of this adventure."
+@ $842E label=DIGIT
+c $842E One decimal digit of HL
+D $842E The number of times DE goes into HL, as a character; HL is left with the remainder.
+R $842E I:HL The number
+R $842E I:DE The place value
+R $842E O:A The digit, '0' to '9'
+R $842E O:F Z if it is '0'
+@ $843A label=DO_PAUSE
+c $843A PAUSE: a green border until a key is pressed
+@ $84B9 label=NEW_KEYPRESS
+c $84B9 Wait for all keys up, then for one down
+@ $84B3 label=COPY_3
+c $84B3 Copy three bytes from HL to DE
+@ $84CC label=DO_SAVE
+c $84CC SAVE: four blocks to tape, then verified
+D $84CC Four headerless blocks through the ROM's SA-BYTES: the variables at $B6EB, the objects at $C11B, the timers and the characters at $CA84, and the rooms at $BA8A -- the same four START keeps a copy of. Then the tape is rewound and each block checked with the ROM's LD-BYTES in verify mode; an error says so and goes back to the game.
+D $84CC Three bytes of a character script at $C9E2, which the game rewrites as it runs ($A8CC), are carried in the first three of the variables block; DO_LOAD puts them back.
+  $84CF,9 The script bytes into the variables block
+  $84D8,11 "start TAPE then PRESS ANY key."
+  $84E3,3 Wait for the key
+  $84E6,48 Save the four blocks
+  $8516,9 "REWIND and PREPARE TAPE for VERIFICATION -- then hit ANY key."
+  $851F,52 Verify them
+@ $855A label=VERIFY_BLOCK
+c $855A Verify one block, or say the tape is bad
+D $855A "TAPE ERROR - hit ANY key to CONTINUE.", and the save gives up.
+@ $8451 label=DO_LOAD
+c $8451 LOAD: the four blocks SAVE wrote
+D $8451 A block that fails to load leaves the game half-loaded, so LOAD_BLOCK does not return to it: "TAPE ERROR - hit ANY key to RESTART PROGRAM.".
+  $8454,52 Load the four blocks
+  $8488,10 The script bytes back where they belong
+@ $8498 label=LOAD_BLOCK
+c $8498 Load one block, or start the game again
