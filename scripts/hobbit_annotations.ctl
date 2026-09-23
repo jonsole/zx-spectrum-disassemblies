@@ -153,21 +153,31 @@ R $8071 I:DE The seed point
 @ $80EE label=PIXEL_SET
 c $80EE Is the pixel at (D,E) set?
 D $80EE Returns NZ if it is. Two instructions around PIXEL_ADDRESS, and the fill's inner loop.
+  $80EF,4 Address and mask for (D,E), and test that bit on the screen
 
 @ $812B label=INC_Y
 c $812B Move the point up one, if it can
 D $812B y is 0-127, so bit 7 going high means it would leave the canvas: the move is undone and A returned with its low bit clear. Otherwise the low bit is set. The callers test that bit rather than the flags, which is why both exits go through the same tail.
+  $812B,5 Up one; did y pass 127?
+  $8130,5 Yes: undo it, and return A with bit 0 clear
+  $8135,5 No: return A with bit 0 set (DEC_Y shares this)
 
 @ $813A label=DEC_Y
 c $813A Move the point down one, if it can
 D $813A Same test and the same shared tail as INC_Y: DEC E to $FF also shows up in bit 7.
+  $813A,5 Down one; still 0-127?
+  $813F,1 No: undo it
 
 @ $8141 label=INC_X
 c $8141 Move the point right one, if it can
 D $8141 x is a whole byte, so the only edge is the wrap to zero.
+  $8141,2 Right one; fine unless it wrapped to 0
+  $8143,4 Wrapped: undo it, bit 0 of A clear
 
 @ $8148 label=DEC_X
 c $8148 Move the point left one, if it can
+  $8148,7 Left one; fine unless it wrapped to 255
+  $814F,1 Wrapped: undo it
 
 # --------------------------------------------------------------------------
 # Pictures: lines
@@ -190,20 +200,29 @@ R $8151 I:L Length in pixels
 # --------------------------------------------------------------------------
 #
 # The four routines the attribute painter walks with. Each moves HL one cell
-# and undoes the move if it would leave $5800-$5AFF, so a path that runs off
-# the edge of the screen stops there rather than writing into the picture.
+# and undoes the move if it would leave $5800-$59FF -- the picture's sixteen
+# rows, not the whole attribute area -- so a path cannot run on into the text
+# window below. Left and right only stop at the two ends, and otherwise run on
+# from one row into the next.
 
 @ $80F5 label=ATTR_UP
 c $80F5 Up one attribute row, if it can
+  $80F7,6 Up a row: 32 cells back
+  $80FD,6 Above $5800? Then undo it
 
 @ $8106 label=ATTR_DOWN
 c $8106 Down one attribute row, if it can
+  $8108,4 Down a row: 32 cells on
+  $810C,5 Still within the picture's rows? Then jump into the middle of the SBC below...
+  $8111,3 ...whose second byte, $52, is LD D,D: a one-byte no-op. Reached from the top it undoes the move; from the JR it is skipped
 
 @ $8117 label=ATTR_LEFT
 c $8117 Left one cell, if it can
+  $8118,7 Left one cell; undo it above $5800
 
 @ $8121 label=ATTR_RIGHT
 c $8121 Right one cell, if it can
+  $8122,7 Right one cell; undo it past the picture's rows
 
 # --------------------------------------------------------------------------
 # Input
@@ -226,6 +245,7 @@ E $8B93 Worth knowing when driving the game from a script: at uncapped emulation
 @ $8B78 label=DEBOUNCE_DELAY
 c $8B78 Busy-wait, 1000 times round
 D $8B78 About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so while the game sits at its prompt this is 88% of everything it does -- idle, not work, but it is also the reason a scan is too expensive to call from inside the drawing code as it stands.
+  $8B78,8 1000 times round a four-instruction loop: about 26000 T-states
 
 @ $969A label=WAIT_FOR_ANY_KEY
 c $969A Wait until any key is pressed
@@ -817,6 +837,11 @@ R $9E7A O:A What it is shut in, or $FF
 @ $90D2 label=PLAYER_DIES
 c $90D2 The player is dead: say so and start again
 D $90D2 Prints "you are dead." as a sentence about the player, calls $83F5, waits for any key and goes back into the start-up at $6C27. Reached, for one, from MOVE when the player falls in the dark once too often.
+  $90D2,4 The sentence is about the player
+  $90D6,6 "you are dead."
+  $90DC,3 Not yet worked out
+  $90DF,9 Wait for any key
+  $90E8,3 And start again
 
 @ $8B81 label=KEY_STATE
 b $8B81 The keyboard scan's working bytes
