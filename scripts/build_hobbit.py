@@ -668,6 +668,10 @@ COMMON_WORDS = 0xAD3D       # 32 two-byte word references, reached by $60-$7F
 MESSAGES = 0xAD7D
 CONTROL_CODES = 0x7295      # a handler per control code, $00-$16
 CONTROL_COUNT = 0x17
+# The two control codes that take a byte after them: $02 jumps by that signed
+# distance, and $0B runs a sub-message that far away. Their handlers read it
+# from (IX+1) and step past it; everything else is one byte.
+CODES_WITH_OPERAND = {0x02, 0x0B}
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -694,6 +698,8 @@ def message_elements(memory, address: int) -> tuple[list[int], int]:
                 return elements, address
         else:
             address += 1
+            if byte in CODES_WITH_OPERAND:
+                address += 1
             if byte < 0x14:
                 continue
             if byte < 0x20:
@@ -715,6 +721,9 @@ def message_text(memory, address: int) -> str:
             out.append(word_at(memory, reference) or "?")
             if (reference >> 12) == 3:
                 out[-1] += "."
+        elif byte in CODES_WITH_OPERAND:
+            distance = memory[at + 1] - (256 if memory[at + 1] > 127 else 0)
+            out.append(f"{{{'jump' if byte == 2 else 'sub-message'} {distance:+d}}}")
         elif byte < 0x20:
             out.append("" if byte >= 0x14 else f"{{{byte}}}")
         elif byte >= 0x60:

@@ -117,6 +117,48 @@ class Hobbit:
         self.ready()
 
 
+    def message(self, address: int, actor: int | None = None) -> str:
+        """What RUN_MESSAGE prints for the message at `address`, captured
+        character by character at PRINT_CHAR -- the game's own rendering, not a
+        decoder's guess at it. `actor` makes that object the one the message is
+        about, for the codes that print a name, IS or ARE, and HIS or YOUR.
+
+        Codes that print something the caller pushed first ($00, $01, $04,
+        $13) print whatever is on the stack, because nothing is pushed here.
+        """
+        from skoolkit.simutils import A, H, L, PC, SP, T
+
+        if actor is not None:
+            record = next(r["start"] for r in bh.object_records(self.memory)
+                          if r["number"] == actor)
+            self.memory[0xB70C], self.memory[0xB70D] = record & 0xFF, record >> 8
+            self.memory[0xB6EA] = actor
+        registers = self.sim.registers
+        stack = 0xBF00
+        self.memory[stack], self.memory[stack + 1] = RETURN_HERE & 0xFF, RETURN_HERE >> 8
+        registers[SP] = stack
+        registers[H], registers[L] = address >> 8, address & 0xFF
+        self.pc, text = RUN_MESSAGE, []
+        for _ in range(2000):
+            self.sim.trace(self.pc, PRINT_CHAR, 0, registers[T] + 5 * bh.TSTATES_PER_SECOND,
+                           False, None, None, None, None, None)
+            self.pc = registers[PC]
+            if self.pc != PRINT_CHAR:
+                break
+            char = registers[A]
+            text.append(chr(char) if 32 <= char < 127 else " " if char == 13 else "")
+            self.sim.trace(self.pc, RETURN_HERE, 1, 0, False, None, None, None, None, None)
+            self.pc = registers[PC]
+            if self.pc == RETURN_HERE:
+                break
+        return " ".join("".join(text).split())
+
+
+RUN_MESSAGE = 0x72DD        # the entry nearly every caller uses, HL = message
+PRINT_CHAR = 0x858B
+RETURN_HERE = 0x0010        # a sentinel return address; nothing in the game runs there
+
+
 if __name__ == "__main__":
     game = Hobbit()
     player = next(r for r in bh.object_records(game.memory) if r["number"] == 0)

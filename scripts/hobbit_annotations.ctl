@@ -374,4 +374,80 @@ R $72D3 I:HL The message
 
 @ $7295 label=CONTROL_CODES
 w $7295 A handler for each message control code, $00 to $16
-D $7295 Twenty-three handlers. Code $0D, a new line, is printed by the same routine as a literal character, and four codes share the one at $738B.
+D $7295 Twenty-three handlers. Code $0D, a new line, is printed by the same routine as a literal character, and four codes share the one at $738B -- which is the XOR A; RET that ends code $02's own handler. Codes $02 and $0B are the only ones that take a byte after them. The codes that print a name, IS or ARE, and HIS or YOUR are what let one message serve the whole cast: the same bytes print YOU ARE NOT CARRYING IT for the player and GANDALF IS NOT CARRYING IT for Gandalf.
+
+# The control-code handlers. What each one does was first learned from the v1.0
+# disassembly credited in build_hobbit.py, whose table lists the same codes;
+# the handlers here are v1.2's, read from its own CONTROL_CODES, and the ones
+# marked confirmed were run through RUN_MESSAGE with the output captured at
+# PRINT_CHAR. Codes that take a pushed parameter print whatever is on the stack
+# when called without one, which is itself consistent with that reading.
+
+@ $7367 label=MC_PUSHED_OBJECT
+c $7367 Message control code $00: print the object whose record the caller pushed
+
+@ $7376 label=MC_PUSHED_WORD
+c $7376 Message control code $01: print the word the caller pushed
+
+@ $737E label=MC_JUMP
+c $737E Message control code $02: jump within the message by the signed byte that follows
+D $737E Checked, not only read: confirmed by running location 66's description, which prints the west bank and skips the east.
+
+@ $738D label=MC_INSTRUMENT_NOUN
+c $738D Message control code $03: the noun of the instrument in the current command
+
+@ $7394 label=MC_PUSHED_WITH_ARTICLE
+c $7394 Message control code $04: the pushed word with a or the in front
+
+@ $738B label=MC_NOTHING
+c $738B Message control code $05, $0A, $0F and $12: do nothing
+
+@ $73A3 label=MC_ACTOR
+c $73A3 Message control code $06: the actor's name, or YOU
+D $73A3 Checked, not only read: confirmed by running a message with it as the player and as Gandalf.
+
+@ $73AF label=MC_TARGET
+c $73AF Message control code $07: the target, with its article
+
+@ $73BD label=MC_BACKSPACE
+c $73BD Message control code $08: a backspace, joining the next word to the last
+
+@ $73C2 label=MC_INSTRUMENT
+c $73C2 Message control code $09: the instrument, with its article
+
+@ $73E0 label=MC_SUBMESSAGE
+c $73E0 Message control code $0B: run the sub-message the signed byte that follows points at
+
+@ $73F9 label=MC_ACTOR_HIS
+c $73F9 Message control code $0C: HIS, or YOUR for the player
+D $73F9 Checked, not only read: confirmed the same way: YOUR for the player, HIS for anyone else.
+
+@ $7407 label=MC_TARGET_HIS
+c $7407 Message control code $0E: HIS or YOUR for the target
+
+@ $740C label=MC_ACTOR_IS
+c $740C Message control code $10: the actor's name and IS, or YOU ARE
+D $740C Checked, not only read: confirmed the same way: YOU ARE, GANDALF IS, THORIN IS, from one message.
+
+@ $7425 label=MC_TARGET_IS
+c $7425 Message control code $11: the same for the target
+
+@ $742D label=MC_PUSHED_IS
+c $742D Message control code $13: the same for a pushed object
+
+@ $7340 label=MC_END_LINE
+c $7340 Message control code $14: end the message with a new line
+
+@ $7344 label=MC_END_STOP
+c $7344 Message control code $15: end the message with a full stop and a new line
+
+@ $735B label=MC_END
+c $735B Message control code $16: end the message
+
+@ $72C3 label=PRINT_LITERAL
+c $72C3 Print a literal character from a message
+D $72C3 Also control code $0D, a new line, which is why that code has no handler of its own.
+
+@ $858B label=PRINT_CHAR
+c $858B Print one character
+D $858B Everything printed passes through here with the character in A -- which is what makes it a good place to stop to capture exactly what a message says.
