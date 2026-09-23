@@ -271,6 +271,26 @@ E $74BA The flags in the top nibble choose whether the word is inflected, and th
 E $74BA Measured rather than read off: PRINT_WORD was called directly with each of the sixteen flag values and the buffer read back, then $B6E8 and $B6EA were toggled by hand to test the dispatch. The word at $6AC1 comes out as "shatter" or "shatters" exactly as the rule above predicts in all six cases, the ones at $6AA4 and $67FE inflect the same way, and no word in the indexed list inflects at all -- none of them has that bit set, which fits, since the indexed list is what the parser matches against and nothing is ever printed from it.
 E $74BA $B6EA holds who the sentence is about, and zero means the player -- so the test really is subject agreement. Watched across real sentences: while the game narrates you it is zero and no verb inflects, and while it narrates anybody else it holds that character's identifier and the inflectable verbs take their -s. $B6E8 is a second participant, and flag $10 is how a word is made to agree with that one instead.
 E $74BA The identifiers are not a flag but a character number: $B6E8 is set to $FF at $79B6, loaded from tables at $7956 and $7942 elsewhere, and compared against list entries with CP (HL) at $7A73. One turn of narration walked $B6EA through a run of consecutive values while repeating the same verb, which is a group of characters being described one after another rather than anything to do with grammar.
+  $74BA,7 DE = the reference at HL
+  $74C1,5 Zero prints nothing
+  $74C9,1 C = the flag nibble, for later
+  $74CA,8 HL = the dictionary entry
+  $74D2,6 The letters go into the buffer at $74A6
+  $74D8,10 Each letter as lower-case ASCII, counted in B
+  $74E2,5 Bit 7 clear: more letters to come
+  $74E7,5 Bit 7 set after only two letters is part of the class, not the end
+  $74EC,13 After three, look again at the second byte's bit 7 before deciding
+  $74FA,7 Flag nibble $50: never inflect
+  $7501,4 $40: always inflect
+  $7505,13 $10 agrees with $B6E8, anything else with $B6EA: zero, no ending
+  $7512,5 The word itself has to allow an ending: bit 7 of its second byte
+  $7517,14 HL = the ending chosen by bits 5-7 of its third byte, in ENDINGS
+  $7525,11 Add up to four characters of it to the buffer
+  $7530,8 B = how many characters there are to print
+  $7538,16 A space before the word, when one is wanted
+  $7548,20 Start a new line first if the word would not fit on this one
+  $755D,10 Flag nibble $70 sets $B704 to 1
+  $7567,10 Print the buffer
 
 # --------------------------------------------------------------------------
 # Actions
@@ -460,6 +480,19 @@ D $72D3 Nearly everything the game says goes through here, as a compact bytecode
 D $72D3 Checked against the screen, not only read: location 4's description decodes to exactly the words the game printed on arriving there, and so does Bag End's. The v1.0 disassembly credited in build_hobbit.py describes the same bytecode, and pointed at where to look.
 D $72D3 The messages are stored end to end from $AD7D, straight after COMMON_WORDS, and a few are entered part-way through another: four at an element boundary, sharing its tail -- the last is the two banks of the black river, one description entered at two places -- and one on the second byte of the word that ends the message before, which it reads as a control code.
 R $72D3 I:HL The message
+  $72D3,10 Inside a quotation, clear $B6FA first
+  $72DD,11 Keep DE, IX and A to put back at the end
+  $72E8,9 Clear $B6FB unless $B6FA is set
+  $72F1,3 IX walks the message
+  $72F4,7 Bit 7 set: a word reference
+  $72FB,8 DE = the reference: flags and offset from the first byte, low byte from the second
+  $7303,14 Ending flags 3, 2 or 6: print it and end the message
+  $7311,7 Print it, and on to the next byte
+  $7318,9 $60 and up: one of the COMMON_WORDS
+  $7321,5 $20-$5F: print it as it is
+  $7326,14 Below $20: HL = its handler from CONTROL_CODES
+  $7334,4 $14 and up ends the message: jump to it
+  $7338,7 Below $14: call it; Z to carry on, NZ to print the word it left in DE
 
 @ $7295 label=CONTROL_CODES
 w $7295 A handler for each message control code, $00 to $16
@@ -536,6 +569,8 @@ c $735B Message control code $16: end the message
 @ $72C3 label=PRINT_LITERAL
 c $72C3 Print a literal character from a message
 D $72C3 Also control code $0D, a new line, which is why that code has no handler of its own.
+  $72C3,3 Print it
+  $72C6,7 A new line clears $B704
 
 @ $858B label=PRINT_CHAR
 c $858B Print one character
@@ -802,3 +837,8 @@ B $8BFB,40,10
 b $8C23 What each key gives with a shift held
 D $8C23 The same, plus the quote on P, full stop and comma on M and N, the @ that repeats the last command, and the $18 that clears the line.
 B $8C23,40,10
+
+@ $B71F label=ENDINGS
+b $B71F The endings a word can be given
+D $B71F Eight slots of four characters, chosen by bits 5-7 of a word's third dictionary byte when PRINT_WORD inflects it: "s" for fifty verbs, "es" for six (GO, CROSS, PUSH, SLASH, SMASH, TORCH), "ies", "d", "ing", and one worth a second look -- a backspace then "ies", which is how CARRY prints as CARRIES: the backspace takes the Y back off. The last two slots are empty. EMPTY is given plain "ies", which would print EMPTYIES if it were ever inflected; that has not been checked.
+B $B71F,32,4
