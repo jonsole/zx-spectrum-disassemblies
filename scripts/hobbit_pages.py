@@ -17,6 +17,7 @@ a PNG -- so what is shown is what the game draws, not a reimplementation of it.
 from __future__ import annotations
 
 import html
+import re
 import sys
 from pathlib import Path
 
@@ -494,6 +495,64 @@ def build(html_dir: Path, out_ref: Path) -> None:
                      f'<td>{memory[s + 6]}</td><td>{memory[s + 3]}</td><td>{slot_text}</td>'
                      f'<td>{orders}</td><td>{", ".join(reacts) or "-"}</td><td>{handlers_of(r)}</td></tr>')
     chars.append("</table>")
+
+    # The scripts themselves, table by table, in words. A script that runs on
+    # into another one with a name of its own says so and stops, rather than
+    # repeating it: Gandalf's five ordinary scripts are one list entered at
+    # five places.
+    program = bh.script_program(memory)
+    labels, steps = program["labels"], program["steps"]
+    # A walk stops where it runs into another of a table's own scripts --
+    # not at every label, since a fallback or a jump target is labelled too.
+    entry_points = {target for t in program["tables"].values() for _, _, target in t["entries"]}
+    # Routines the scripts call are named by the annotations.
+    routine_names = dict(re.findall(r"^@ \$([0-9A-F]{4}) label=(\S+)",
+                                    bh.ANNOTATIONS.read_text(encoding="utf-8"), re.M))
+    def link(a: int) -> str:
+        name = labels.get(a) or routine_names.get(f"{a:04X}") or f"${a:04X}"
+        return f"#R${a:04X}({name})"
+
+    def walk(start: int) -> list[str]:
+        out, at = [], start
+        for _ in range(60):
+            step = steps[at]
+            out.append(f"<li>{bh.describe_step(memory, program, step, link)}"
+                       + (f" -- if refused, {link(step['fallback'])}" if step["fallback"] else "")
+                       + "</li>")
+            if step["ends"]:
+                break
+            at += step["length"]
+            if at in entry_points and at != start:
+                out.append(f"<li><i>then on as {link(at)}</i></li>")
+                break
+        return out
+
+    chars.append('<h2 id="scripts">The scripts</h2>')
+    chars.append('<p>Each character works through a script a step at a time, each step an '
+                 'action it tries as if it had typed it (CHARACTERS_ACT, #R$980E). A step that '
+                 'names no object acts on whatever fits. "Switch to one of its first N scripts '
+                 'at random" is how a character wanders: its ordinary scripts are often one list '
+                 'entered at different places. The reactions are the scripts REACT (#R$9AA0) sends '
+                 'a character to when something is done to it.</p>')
+    tables = program["tables"]
+    for address in sorted(tables):
+        table = tables[address]
+        who = ", ".join(esc(names[n]) for n in table["owners"])
+        current = [s_["current"] for s_ in program["slots"] if s_["table"] == address]
+        chars.append(f'<h3 id="scripts{address:04X}">{who} -- #R${address:04X}({labels[address]})</h3>')
+        if current:
+            chars.append("<p>At the start: " + ", ".join(sorted({link(c) for c in current})) + "</p>")
+        for at, key, target in table["entries"]:
+            what = ("An ordinary script" if key == 0 else
+                    f"On {esc(_pattern_words(memory, key))}")
+            chars.append(f"<p><b>{what}</b>: {link(target)}</p><ol>")
+            chars += walk(target)
+            chars.append("</ol>")
+        for c in sorted(set(current)):
+            if all(c != target for _, _, target in table["entries"]):
+                chars.append(f"<p><b>Where it starts</b>: {link(c)}</p><ol>")
+                chars += walk(c)
+                chars.append("</ol>")
 
     # ------------------------------------------------------------ actions
     carriers: dict[int, list[int]] = {}

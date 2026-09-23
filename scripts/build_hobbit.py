@@ -414,6 +414,9 @@ PICTURE_TABLE = 0xCC00
 # The action table, keyed by the action code in $B6E7: codes 1-10 are the
 # directions, all handled by MOVE; the rest have handlers of their own.
 ACTION_TABLE = 0xC730
+# The sentence each action code stands for: 8-byte patterns, the code being
+# the pattern's place, counted from 1.
+ACTION_PATTERNS = 0xAB53
 # The object index: every object and every character, keyed by object number.
 OBJECT_INDEX = 0xC063
 
@@ -949,6 +952,315 @@ def script_routines(memory) -> set[int]:
             pending.append(word(address + length(address) - 2))
         pending.append(address + length(address))
     return routines
+
+
+# The characters' scripts, $C82D up to TIMERS: each character's script table
+# (a FIND_RECORD table of [key, script]), and the scripts, one step after
+# another. CHARACTERS_ACT and SCRIPT_DO/SCRIPT_BARE are what run them.
+SCRIPTS_START = 0xC82D
+SCRIPTS_END = TIMERS
+CHARACTER_COUNT = 17
+# The three slots empty at the start, and whose they become: the arrival
+# hooks write these characters' numbers in -- AT_BEORNS_HOUSE the butler,
+# AT_ELVENKINGS_CELLAR the dragon and Bard.
+EMPTY_SLOT_OWNERS = {0xCAE7: 0x42, 0xCAFC: 0x46, 0xCB03: 0x3C}
+# The script step BARD_TAKES_ORDER rewrites with the order Bard is given.
+BARD_ORDER_STEP = 0xC9E2
+
+
+def _label_word(text: str) -> str:
+    return re.sub(r"[^A-Z0-9]+", "_", text.upper()).strip("_")
+
+
+def pattern_sentence(memory, code: int) -> str:
+    """The sentence an action code stands for, from ACTION_PATTERNS."""
+    start = ACTION_PATTERNS - 8 + 8 * code
+    words = []
+    for k in (0, 2, 4):
+        reference = memory[start + k] | (memory[start + k + 1] << 8)
+        if reference & 0x0FFF:
+            words.append(word_at(memory, reference).upper())
+    if 1 <= code <= 10:
+        last = memory[start + 6] | (memory[start + 7] << 8)
+        words.insert(0, word_at(memory, last).upper())
+    return " ".join(words)
+
+
+def script_step(memory, address: int) -> dict:
+    """One step of a character's script, as CHARACTERS_ACT reads it.
+
+    The low four bits of its first byte are the opcode: 0-3 an action with
+    objects, or with bit 0 a routine (SCRIPT_DO); 4 an action with none, or a
+    pause for $FF (SCRIPT_BARE); $0C switch by key, $0E go to, $0F switch at
+    random; anything else back to the first script. Bit 4 adds a 2-byte
+    fallback, bit 5 ends the character's part on success, bit 6 keeps an
+    order from interrupting.
+    """
+    op = memory[address]
+    code = op & 0x0F
+    step = {"address": address, "op": op, "code": code, "fallback": None,
+            "target": None, "routine": None, "ends": False}
+    word = lambda a: memory[a] | (memory[a + 1] << 8)
+    if code < 4:
+        length = 4
+        if code & 1:
+            step["routine"] = word(address + 1)
+        else:
+            step["action"] = memory[address + 1]
+            step["objects"] = (memory[address + 2], memory[address + 3])
+    elif code == 4:
+        length = 2
+        step["action"] = memory[address + 1]
+    elif code == 0x0E:
+        length, step["target"], step["ends"] = 3, word(address + 1), True
+    elif code in (0x0C, 0x0F):
+        length, step["ends"] = 2, True
+        step["operand"] = memory[address + 1]
+    else:
+        length, step["ends"] = 1, True
+    if code <= 4 and op & 0x10:
+        step["fallback"] = word(address + length)
+        length += 2
+    step["length"] = length
+    return step
+
+
+def script_program(memory) -> dict:
+    """Every script table and every script step, with the labels they get.
+
+    Walked from every place a character can enter a script -- where each slot
+    has got to, and each table entry -- following jumps and fallbacks, which
+    is the set of places the game itself can reach. Every byte from
+    SCRIPTS_START to SCRIPTS_END must come out as part of a table or a step:
+    a gap or an overlap stops the build, since it would mean the grammar is
+    wrong.
+    """
+    word = lambda a: memory[a] | (memory[a + 1] << 8)
+    names = {r["number"]: name_of(memory, r["start"] + 8) for r in object_records(memory)}
+    slots = []
+    for i in range(CHARACTER_COUNT):
+        slot = CHARACTERS + CHARACTER_SIZE * i
+        who = memory[slot] or EMPTY_SLOT_OWNERS[slot]
+        slots.append({"address": slot, "character": who, "empty": not memory[slot],
+                      "limit": memory[slot + 1], "current": word(slot + 2),
+                      "table": word(slot + 4), "orders": memory[slot + 6]})
+
+    tables: dict[int, dict] = {}
+    for slot in slots:
+        table = tables.setdefault(slot["table"], {"owners": [], "entries": [], "end": None})
+        table["owners"].append(slot["character"])
+    for address, table in tables.items():
+        at = address
+        while memory[at] != 0xFF:
+            table["entries"].append((at, memory[at], word(at + 1)))
+            at += 3
+        table["end"] = at
+
+    steps: dict[int, dict] = {}
+    pending = [slot["current"] for slot in slots]
+    pending += [target for t in tables.values() for _, _, target in t["entries"]]
+    while pending:
+        address = pending.pop()
+        if address in steps:
+            continue
+        step = script_step(memory, address)
+        steps[address] = step
+        if step["target"] is not None:
+            pending.append(step["target"])
+        if step["fallback"] is not None:
+            pending.append(step["fallback"])
+        if not step["ends"]:
+            pending.append(address + step["length"])
+
+    covered: dict[int, int] = {}
+    def cover(start: int, length: int) -> None:
+        for a in range(start, start + length):
+            if a in covered:
+                sys.exit(f"error: script byte ${a:04X} is claimed twice "
+                         f"(${covered[a]:04X} and ${start:04X})")
+            covered[a] = start
+    for address, table in tables.items():
+        cover(address, table["end"] + 1 - address)
+    for address, step in steps.items():
+        cover(address, step["length"])
+    missing = [a for a in range(SCRIPTS_START, SCRIPTS_END) if a not in covered]
+    if missing:
+        sys.exit(f"error: {len(missing)} script byte(s) are neither a table nor a "
+                 f"step, from ${missing[0]:04X} -- the script grammar is wrong")
+
+    # Labels. A table is named after its first owner; an ordinary script
+    # after the table's owner and its place in it (A, B, ...); a reaction
+    # after the action it answers, and the owner too unless several
+    # characters share it; anything else a jump or a fallback leads to by its
+    # address. Letters, not numbers, after an underscore: skool2asm's own
+    # labels are NAME_0, NAME_1 and so on.
+    labels: dict[int, str] = {}
+    def owner(table) -> str:
+        return _label_word(names[table["owners"][0]])
+    shared = {}
+    for table in tables.values():
+        for _, key, target in table["entries"]:
+            shared.setdefault(target, set()).add(id(table))
+    for address, table in sorted(tables.items()):
+        labels[address] = owner(table) + "_SCRIPTS"
+    for address, table in sorted(tables.items()):
+        ordinary = 0
+        for _, key, target in table["entries"]:
+            if target in labels:
+                continue
+            if key == 0:
+                labels[target] = f"{owner(table)}_{chr(ord('A') + ordinary)}"
+                ordinary += 1
+            else:
+                action = _label_word(pattern_sentence(memory, key))
+                if len(shared[target]) == 1:
+                    name = f"{owner(table)}_ON_{action}"
+                else:
+                    # Shared: by a kind of character if they are all one
+                    # kind -- the goblins -- and otherwise by the action
+                    # alone; the address if even that is taken.
+                    sharers = {_label_word(names[o]).split("_")[-1]
+                               for t in tables.values() if id(t) in shared[target]
+                               for o in t["owners"]}
+                    name = (f"{sharers.pop()}S_ON_{action}" if len(sharers) == 1
+                            else f"ON_{action}")
+                if name in labels.values():
+                    name += f"_AT_{target:04X}"
+                labels[target] = name
+    for address, step in steps.items():
+        for target in (step["target"], step["fallback"]):
+            if target is not None and target not in labels:
+                labels[target] = f"SCRIPT_{target:04X}"
+    for slot in slots:
+        if slot["current"] not in labels:
+            labels[slot["current"]] = f"SCRIPT_{slot['current']:04X}"
+    return {"slots": slots, "tables": tables, "steps": steps, "labels": labels,
+            "names": names}
+
+
+def describe_step(memory, program: dict, step: dict, link) -> str:
+    """A step in words. `link(address)` renders a reference to a script or
+    a routine -- #R$ADDR in the control file, a hyperlink on the pages."""
+    names = program["names"]
+    def thing(number: int) -> str:
+        return "anything" if number == 0xFF else ("the player" if number == 0
+                                                 else names.get(number, f"${number:02X}"))
+    code = step["code"]
+    if code < 4 and step["routine"] is not None:
+        text = f"Call {link(step['routine'])}"
+    elif code < 4:
+        first, second = step["objects"]
+        text = pattern_sentence(memory, step["action"])
+        objects = [thing(n) for n in (first, second) if n != 0xFF]
+        if objects:
+            text += ": " + ", ".join(objects)
+    elif code == 4:
+        text = ("Pause: nothing this turn" if step["action"] == 0xFF
+                else pattern_sentence(memory, step["action"]))
+    elif code == 0x0E:
+        text = f"Go to {link(step['target'])}"
+    elif code == 0x0F:
+        text = f"Switch to one of its first {step['operand']} scripts at random"
+    elif code == 0x0C:
+        text = f"Switch to its script for {pattern_sentence(memory, step['operand'])}"
+    else:
+        text = "Back to its first script"
+    notes = []
+    if step["op"] & 0x40:
+        notes.append("an order cannot interrupt it")
+    if step["op"] & 0x20:
+        notes.append("then its part in the story is over")
+    if notes:
+        text += " (" + "; ".join(notes) + ")"
+    return text
+
+
+def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
+    """Control-file blocks for the script tables and every script step, and
+    for the CHARACTERS slots that point into them.
+
+    Every address in them -- a table's scripts, a step's fallback, a jump, a
+    routine a step calls, a slot's table and place -- is a DEFW, which
+    skool2asm turns into a label: so a script can be edited in the generated
+    source and reassembled, and the addresses follow it.
+    """
+    program = script_program(memory)
+    labels, names = program["labels"], program["names"]
+    tables, steps = program["tables"], program["steps"]
+    link = lambda address: f"#R${address:04X}"
+    out = ["; Generated by scripts/build_hobbit.py -- do not edit.", ""]
+
+    # Block starts: each table, and the scripts shared by several tables,
+    # which the game keeps together after the last table's own.
+    starts = sorted(tables)
+    shared = sorted(a for a, lab in labels.items() if lab.startswith("ON_"))
+    shared_start = min((a for a in shared if a > starts[-1]), default=None)
+    if shared_start is not None:
+        starts.append(shared_start)
+
+    items = [(a, "table") for a in tables] + [(a, "step") for a in steps]
+    for address, kind in sorted(items):
+        if address in starts:
+            if address == shared_start:
+                out.append(f"b ${address:04X} Scripts several characters share")
+                out.append(f"D ${address:04X} What they do when attacked, "
+                           f"captured or given something.")
+            else:
+                who = ", ".join(names[n] for n in tables[address]["owners"])
+                out.append(f"b ${address:04X} Scripts: {who}")
+                out.append(f"D ${address:04X} Its script table first -- key 0 for "
+                           f"an ordinary script, an action code for a reaction -- "
+                           f"then the scripts.")
+        if address in labels:
+            out.append(f"@ ${address:04X} label={labels[address]}")
+        if kind == "table":
+            table = tables[address]
+            for at, key, target in table["entries"]:
+                what = ("An ordinary script" if key == 0 else
+                        f"On {pattern_sentence(memory, key)}")
+                out.append(f"B ${at:04X},1,1")
+                out.append(f"  ${at:04X},1 {what}")
+                # No comment line for the word: one would turn it back into
+                # bytes. Its operand becomes the script's label anyway.
+                out.append(f"W ${at + 1:04X},2,2")
+            out.append(f"B ${table['end']:04X},1,1")
+            out.append(f"  ${table['end']:04X},1 End of the table")
+            continue
+        step = steps[address]
+        text = describe_step(memory, program, step, link)
+        if address == BARD_ORDER_STEP:
+            text += " -- rewritten by BARD_TAKES_ORDER with each order Bard is given"
+        code = step["code"]
+        if code < 4 and step["routine"] is not None:
+            out += [f"B ${address:04X},1,1", f"  ${address:04X},1 {text}",
+                    f"W ${address + 1:04X},2,2", f"B ${address + 3:04X},1,1",
+                    f"  ${address + 3:04X},1 Not used"]
+            body = 4
+        elif code == 0x0E:
+            out += [f"B ${address:04X},1,1", f"  ${address:04X},1 {text}",
+                    f"W ${address + 1:04X},2,2"]
+            body = 3
+        else:
+            body = step["length"] - (2 if step["fallback"] is not None else 0)
+            out += [f"B ${address:04X},{body},{body}", f"  ${address:04X},{body} {text}"]
+        if step["fallback"] is not None:
+            out.append(f"W ${address + body:04X},2,2 If it is refused: {link(step['fallback'])}")
+    out.append("")
+
+    # The slots, field by field, so that where each points is a label too.
+    for slot in program["slots"]:
+        a = slot["address"]
+        who = names[slot["character"]]
+        first = (f"Empty at the start: {who}'s, once an arrival hook writes it in"
+                 if slot["empty"] else who.capitalize())
+        out += [f"B ${a:04X},1,1", f"  ${a:04X},1 {first}",
+                f"B ${a + 1:04X},1,1",
+                f"  ${a + 1:04X},1 How many of its scripts it chooses among at random",
+                f"W ${a + 2:04X},2,2 Where its script has got to",
+                f"W ${a + 4:04X},2,2 Its script table",
+                f"B ${a + 6:04X},1,1", f"  ${a + 6:04X},1 How many orders it takes at once"]
+    out.append("")
+    return NEWLINE.join(out) + NEWLINE, [(SCRIPTS_START, SCRIPTS_END)]
 
 
 def room_records(memory) -> dict[int, dict]:
@@ -1518,12 +1830,15 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     objects_ctl = OUT_DIR / "hobbit-objects.ctl"
     objects_text, objects_spans = object_blocks(game_memory(snapshot))
     objects_ctl.write_text(objects_text, encoding="utf-8")
+    scripts_ctl = OUT_DIR / "hobbit-scripts.ctl"
+    scripts_text, scripts_spans = script_blocks(game_memory(snapshot))
+    scripts_ctl.write_text(scripts_text, encoding="utf-8")
     _log(f"  {objects_text.count('label=OBJ') + objects_text.count('label=PLAYER')} object records, every one ending "
          f"exactly where the next begins")
     _log(f"  {pictures_text.count('label=LOC')} location pictures, every one "
          f"parsed to its $00 by RUN_PICTURE's own grammar")
 
-    spans = (dictionary_spans + pictures_spans + objects_spans + rooms_spans
+    spans = (dictionary_spans + pictures_spans + objects_spans + rooms_spans + scripts_spans
              + messages_spans + declared_spans())
     kept = strip_spanned_blocks(auto_ctl, spans)
     if spans:
@@ -1538,7 +1853,8 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     # lets the code/data map be regenerated from scratch on every run without
     # throwing away the hand-written comments.
     ctls = ["-c", str(ctl), "-c", str(dictionary_ctl), "-c", str(pictures_ctl),
-            "-c", str(objects_ctl), "-c", str(rooms_ctl), "-c", str(messages_ctl)]
+            "-c", str(objects_ctl), "-c", str(rooms_ctl), "-c", str(messages_ctl),
+            "-c", str(scripts_ctl)]
     if ANNOTATIONS.exists():
         # Disassemble once without the annotations' prose first, purely to
         # learn where the instruction boundaries are, so a comment on the
@@ -1559,6 +1875,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
                                   ["-H", "-c", str(ctl), "-c", str(dictionary_ctl),
                                    "-c", str(pictures_ctl), "-c", str(objects_ctl),
                                    "-c", str(rooms_ctl), "-c", str(messages_ctl),
+                                   "-c", str(scripts_ctl),
                                    "-c", str(structure),
                                    str(snapshot)]))
         ctls += ["-c", str(ANNOTATIONS)]
