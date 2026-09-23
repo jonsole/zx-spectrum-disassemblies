@@ -148,7 +148,9 @@ class Hobbit:
             self.memory[0xB70C], self.memory[0xB70D] = record & 0xFF, record >> 8
             self.memory[0xB6EA] = actor
         registers = self.sim.registers
-        stack = 0xBF00
+        # Below the game's own stack, and clear of its data: a stack in the
+        # room records would have its pushes land on them.
+        stack = 0x5E80
         self.memory[stack], self.memory[stack + 1] = RETURN_HERE & 0xFF, RETURN_HERE >> 8
         registers[SP] = stack
         registers[H], registers[L] = address >> 8, address & 0xFF

@@ -1,0 +1,105 @@
+; Ref file for The Hobbit's HTML disassembly, used by scripts/build_hobbit.py
+; --html. Like scripts/hobbit_annotations.ctl this is source rather than
+; output: prose and addresses only, no game bytes, so it is committed.
+;
+; The four "The game" pages -- locations, objects, characters, actions -- are
+; laid out here, but their content is the game's own (room descriptions,
+; names, pictures), so scripts/hobbit_pages.py generates it on every build into
+; game_disassembly/hobbit/hobbit-pages.ref, which is not committed. Each page
+; here only #INCLUDEs its section from that file.
+;
+; A ref file has no multi-line values, so the prose pages are "box pages":
+; [Page:X] names a SectionPrefix, and each [X:anchor:Title] section becomes one
+; titled block on that page.
+
+[Game]
+Game=The Hobbit
+Copyright=&copy; 1982 Beam Software / Melbourne House
+Release=Disassembled from the v1.2 tape
+Created=Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> #VERSION, driven by <code>scripts/build_hobbit.py</code>.
+LinkOperands=CALL,DEFW,DJNZ,JP,JR
+
+[Index]
+MemoryMaps
+Game
+Reference
+
+[Index:Game:The game]
+Locations
+Objects
+Characters
+Actions
+
+[Index:Reference:Reference]
+Bugs
+Credits
+
+[Paths]
+Locations=reference/locations.html
+Objects=reference/objects.html
+Characters=reference/characters.html
+Actions=reference/actions.html
+Bugs=reference/bugs.html
+Credits=reference/credits.html
+
+[Titles]
+Locations=Locations
+Objects=Objects
+Characters=Characters
+Actions=Actions
+Bugs=Bugs
+Credits=Credits
+
+[PageHeaders]
+Locations=The locations, and their pictures
+Objects=The objects
+Characters=The characters
+Actions=The actions: every sentence the parser understands
+Bugs=Bugs
+Credits=Credits
+
+[Links]
+Locations=Locations
+Objects=Objects
+Characters=Characters
+Actions=Actions
+Bugs=Bugs
+Credits=Credits
+
+[Page:Locations]
+PageContent=#INCLUDE(Locations)
+
+[Page:Objects]
+PageContent=#INCLUDE(Objects)
+
+[Page:Characters]
+PageContent=#INCLUDE(Characters)
+
+[Page:Actions]
+PageContent=#INCLUDE(Actions)
+
+[Page:Bugs]
+SectionPrefix=Bug
+
+[Bug:jump:JUMP ONTO the barrel jumps into a message]
+The barrel's own JUMP ONTO handler, #R$AA27, refuses a jump from anywhere but directly above it. Where a way to the barrel exists but is not down, it does <code>JP NZ,$B301</code> -- and $B301 is the message "you cannot jump onto the ... from here", not code. It was surely meant to be <code>LD HL,$B301</code> and <code>JP</code> RUN_MESSAGE, as the line before it does. A quick test from the great halls beside the cellar did not reach it, because the parser will not name a barrel in another room; whether anything can reach it is not worked out.
+
+[Bug:fill:FILL looks as though it can never work]
+The barrel's FILL WITH, #R$8F69, fetches a fresh water and puts it in the barrel with the objects swapped, through PUT IN (#R$924F). But PUT IN begins with the last part of CAN_LIFT, which refuses a liquid -- and the water is a liquid. As read, then, filling the barrel is always refused. This has not been confirmed in play.
+
+[Bug:unreached:Code nothing reaches]
+Seven stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: special word slot 0's handler with the code before it (#R$82FD), an OPEN for the wood elf alone (#R$A536), a routine that would wipe an exit (#R$A70A), one that finds what an object holds (#R$A1AE), and three fragments (#R$78FB, #R$9030, #R$92E8). They are left as data here, with what they would do said beside them.
+
+[Page:Credits]
+SectionPrefix=Credit
+
+[Credit:prior:Prior work]
+This disassembly is re-derived from the v1.2 tape, but others went before it, and their work was consulted for where to look -- credited, not copied:
+<ul>
+<li><a href="https://github.com/pobtastic/hobbit">pobtastic's SkoolKit disassembly</a> of the same tape (<a href="https://pobtastic.github.io/hobbit/">browse it</a>), which named the save, load and printing routines first.</li>
+<li><a href="https://www.icemark.com/dataformats/hobbit/">Icemark's notes on the data formats</a>.</li>
+<li>A complete annotated SkoolKit disassembly of the v1.0 tape by an author it does not name. v1.0's addresses are not v1.2's, so it was used only to know what exists.</li>
+</ul>
+
+[Credit:tools:Tools]
+Built with <a href="https://skoolkit.ca">SkoolKit</a>: its simulator played the game to find the code, drew every location's picture for the locations page, and printed every message the pages quote.

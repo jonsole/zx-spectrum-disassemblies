@@ -1630,11 +1630,20 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
 def build_html(skool: Path, out: Path) -> None:
     from skoolkit import skool2html
 
+    import hobbit_pages
+
+    # The locations, objects, characters and actions pages carry the game's
+    # own text and pictures, so they are generated into the output here rather
+    # than kept with the committed ref file (see scripts/hobbit_pages.py).
+    pages = OUT_DIR / "hobbit-pages.ref"
+    hobbit_pages.build(out, pages)
+
     _log("Building HTML disassembly...")
     args = ["-d", str(out), "-t"]
+    args.append(str(skool))
     if REF.exists():
         args.append(str(REF))
-    args.append(str(skool))
+    args.append(str(pages))
     _capture(skool2html.main, args)
 
 

@@ -1,0 +1,343 @@
+"""The Hobbit's reference pages: locations, objects, characters and actions.
+
+scripts/hobbit.ref lays out the HTML disassembly's index and its prose pages,
+and is committed: it is addresses and prose. These four pages are different.
+They are the game's own content -- every room's name and description, every
+object's name, and a picture of each location that has one -- so, like the
+decoded messages in the .skool file, they are generated from the game on every
+build into game_disassembly/, which is gitignored, and never committed.
+
+Everything is read from the game rather than written down: the rooms from
+ROOM_POINTERS, the objects from OBJECT_INDEX, the characters from CHARACTERS,
+the actions from ACTION_PATTERNS and ACTION_TABLE. Text is printed by the game
+itself, captured at PRINT_CHAR (see Hobbit.message), and each picture is drawn
+by the game's own DRAW_LOCATION_PICTURE in SkoolKit's simulator, then saved as
+a PNG -- so what is shown is what the game draws, not a reimplementation of it.
+"""
+from __future__ import annotations
+
+import html
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import build_hobbit as bh
+
+DRAW_LOCATION_PICTURE = 0x7F78
+RETURN_HERE = 0x0010            # a return address nothing in the game runs at
+PICTURES_ON = 0xB707
+PAGE_DIR = "reference"          # where [Paths] in hobbit.ref puts the pages
+IMAGE_DIR = "images/locations"
+# Where to put the stack for a call made from outside. Not in the game's
+# data: the flood fill keeps its queue on the stack, and a stack at $BF00
+# pushed it into the room records below and broke the next picture. $5E80 is
+# below where the game's own stack runs (from $5EFF) and above the BASIC
+# loader, which the game has finished with.
+SCRATCH_STACK = 0x5E80
+
+# The Spectrum's colours, indexed by BRIGHT * 8 + the colour number: bit 1 of
+# the number is red, bit 2 green and bit 0 blue.
+PALETTE = [((level if c & 2 else 0), (level if c & 4 else 0), (level if c & 1 else 0))
+           for level in (0xD7, 0xFF) for c in range(8)]
+
+FLAG_NAMES = {7: "present", 6: "character", 5: "open", 3: "dead or broken",
+              2: "full", 1: "liquid", 0: "locked"}
+SIDES = {0x10: "the player's", 0x20: "the goblins'", 0x40: "the elves'"}
+PLACED = ["in", "on", "behind", "under", "tied to"]
+
+
+def esc(text: str) -> str:
+    """Text for a ref file section: HTML-escaped, and with nothing SkoolKit
+    would read as a macro."""
+    return html.escape(text).replace("#", "&#35;")
+
+
+def _pattern_words(memory, code: int) -> str:
+    start = 0xAB4B + 8 * code
+    words = []
+    for k in (0, 2, 4):
+        reference = memory[start + k] | (memory[start + k + 1] << 8)
+        if reference & 0x0FFF:
+            words.append(bh.word_at(memory, reference).upper())
+    if code <= 10:
+        last = memory[start + 6] | (memory[start + 7] << 8)
+        words.insert(0, bh.word_at(memory, last).upper())
+    return " ".join(words)
+
+
+def _object_names(memory, records) -> dict[int, str]:
+    return {r["number"]: bh.name_of(memory, r["start"] + 8) for r in records}
+
+
+def _render_picture(game, location: int, room_start: int, player_start: int,
+                    clean: list):
+    """Draw one location's picture with the game's own code and return it as
+    a PIL image, 256 x 128 -- the canvas CLEAR_CANVAS clears.
+
+    Each picture starts from the same clean machine, `clean`: drawing one
+    leaves enough behind -- the flood fill's queue on the stack among it --
+    that the next, drawn straight after, can fail to finish.
+    """
+    from PIL import Image
+    from skoolkit.simutils import A, PC, SP, T
+
+    memory, registers = game.memory, game.sim.registers
+    memory[:] = clean
+    saved = {a: memory[a] for a in (room_start, player_start + 16, PICTURES_ON)}
+    # The picture is drawn only if the player could see it: stand the player
+    # there, with the room lit, for the length of the call.
+    memory[room_start] |= 0x80
+    memory[player_start + 16] = location
+    memory[PICTURES_ON] = 1
+    stack = SCRATCH_STACK
+    memory[stack], memory[stack + 1] = RETURN_HERE & 0xFF, RETURN_HERE >> 8
+    registers[SP], registers[A] = stack, location
+    game.sim.trace(DRAW_LOCATION_PICTURE, RETURN_HERE, 0,
+                   registers[T] + 60 * bh.TSTATES_PER_SECOND,
+                   False, None, None, None, None, None)
+    reached = registers[PC] == RETURN_HERE
+    for address, value in saved.items():
+        memory[address] = value
+    if not reached:
+        raise RuntimeError(f"location {location}'s picture did not finish")
+
+    image = Image.new("RGB", (256, 128))
+    pixels = image.load()
+    for y in range(128):
+        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
+        for column in range(32):
+            attribute = memory[0x5800 + (y // 8) * 32 + column]
+            bright = 8 if attribute & 0x40 else 0
+            ink = PALETTE[bright + (attribute & 7)]
+            paper = PALETTE[bright + ((attribute >> 3) & 7)]
+            byte = memory[row + column]
+            for bit in range(8):
+                pixels[column * 8 + bit, y] = ink if byte & (0x80 >> bit) else paper
+    return image
+
+
+def build(html_dir: Path, out_ref: Path) -> None:
+    """Render the pictures into html_dir and write the pages' ref file."""
+    from hobbit_drive import Hobbit
+
+    bh._log("Building the reference pages (locations, objects, characters, actions)...")
+    game = Hobbit()
+    # The live machine, at its first prompt, is used only to print and to
+    # draw, each picture from this clean copy of it. Printing and drawing move
+    # things in it -- the action patterns were once found zeroed after a run
+    # of both.
+    clean = list(game.memory)
+    # Every table is read from the tape's own data instead, as it is before
+    # the game starts. By the first prompt the game has already moved on a
+    # turn: Gandalf's first script step gives the player the curious map, so
+    # the live machine would say the map starts with the player.
+    memory = list(bh.game_memory(bh.OUT_DIR / "hobbit.z80"))
+    records = bh.object_records(memory)
+    by_number = {r["number"]: r for r in records}
+    names = _object_names(memory, records)
+    rooms = bh.room_records(memory)
+    room_name = {k: bh.name_of(memory, r["start"] + 2) for k, r in rooms.items() if k}
+    player = by_number[0]["start"]
+
+    pictures = {key: stream for key, stream, _ in bh.keyed_table(memory, bh.PICTURE_TABLE)}
+    scores = {key: value for key, value, _ in bh.keyed_table(memory, 0x8D6E)}
+    hooks = {key: value for key, value, _ in bh.keyed_table(memory, 0xC78E)}
+    hints = {key: value for key, value, _ in bh.keyed_table(memory, 0x83CD)}
+    action_handlers = {key: value for key, value, _ in bh.keyed_table(memory, bh.ACTION_TABLE)}
+
+    # Where each object starts: in which places, or held by what.
+    starts_in: dict[int, list[int]] = {}
+    for r in records:
+        if r["number"] == 0:
+            continue
+        for i in range(memory[r["start"]]):
+            starts_in.setdefault(memory[r["start"] + 16 + i], []).append(r["number"])
+
+    image_dir = html_dir / "hobbit" / IMAGE_DIR
+    image_dir.mkdir(parents=True, exist_ok=True)
+
+    def loc_link(location: int) -> str:
+        if location == 0 or location not in room_name:
+            return "nowhere"
+        return f'<a href="locations.html&#35;loc{location}">{esc(room_name[location])}</a>'
+
+    def obj_link(number: int) -> str:
+        page = "characters" if number >= 0x3C else "objects"
+        return f'<a href="{page}.html&#35;obj{number}">{esc(names.get(number, "?"))}</a>'
+
+    # ------------------------------------------------------------ locations
+    loc = ['<div class="hobbit-list">',
+           f'<p>The {len(room_name)} places of the game, in the order of ROOM_POINTERS. '
+           f'{len(pictures)} have a picture, drawn here by the game\'s own '
+           'DRAW_LOCATION_PICTURE (#R$7F78); the rest show only text in the game too. '
+           'Each is named as the game names it, and described as it describes it on a '
+           'first visit.</p>', '<p>']
+    loc.append(" &middot; ".join(f'<a href="&#35;loc{k}">{k}</a>' for k in sorted(room_name)))
+    loc.append("</p>")
+    for location in sorted(room_name):
+        room = rooms[location]
+        start = room["start"]
+        described = memory[start + 8] | (memory[start + 9] << 8)
+        text = game.message(described) if described else ""
+        loc.append(f'<h3 id="loc{location}">{location}: {esc(room_name[location])}</h3>')
+        loc.append('<table class="hobbit-entry"><tr>')
+        if location in pictures:
+            image = _render_picture(game, location, start, player, clean)
+            image.resize((512, 256)).save(image_dir / f"{location:02d}.png")
+            loc.append(f'<td style="vertical-align: top; width: 520px">'
+                       f'<img src="../{IMAGE_DIR}/{location:02d}.png" width="512" height="256" '
+                       f'alt="{esc(room_name[location])}"/></td>')
+        loc.append('<td style="vertical-align: top">')
+        if text:
+            loc.append(f"<p><i>{esc(text)}</i></p>")
+        facts = [("Record", f"#R${start:04X}"),
+                 ("Light", "lit" if memory[start] & 0x80 else "dark"),
+                 ("Placed", ["outside", "inside", "in", "on", "at"][(memory[start] >> 1) & 7]
+                  if (memory[start] >> 1) & 7 < 5 else "?")]
+        if memory[start + 1] != 0xFF:
+            facts.append(("Capacity", str(memory[start + 1])))
+        exits = []
+        for _, direction, via, destination in room["exits"]:
+            if not direction:
+                continue
+            what = loc_link(destination) if destination else "nowhere yet"
+            through = f" (through {obj_link(via)})" if via else ""
+            exits.append(f"{bh.DIRECTIONS[direction]}: {what}{through}")
+        facts.append(("Exits", "<br/>".join(exits) or "none"))
+        here = starts_in.get(location, [])
+        things = [obj_link(n) for n in here if n < 0x3C]
+        people = [obj_link(n) for n in here if n >= 0x3C]
+        if things:
+            facts.append(("Objects", ", ".join(things)))
+        if people:
+            facts.append(("Characters", ", ".join(people)))
+        if location in scores:
+            facts.append(("First visit", f"{scores[location] / 10:.1f}% (VISIT_SCORES)"))
+        if location in hooks:
+            facts.append(("On arrival", f"#R${hooks[location]:04X}"))
+        if location in hints:
+            facts.append(("HELP", f"<i>{esc(game.message(hints[location]))}</i>"))
+        if location in pictures:
+            facts.append(("Picture", f"#R${pictures[location]:04X}"))
+        loc.append("<table>" + "".join(
+            f'<tr><td style="vertical-align: top; padding-right: 1em"><b>{k}</b></td><td>{v}</td></tr>'
+            for k, v in facts) + "</table>")
+        loc.append("</td></tr></table>")
+    loc.append("</div>")
+
+    # ------------------------------------------------------------ objects
+    def flags_of(value: int) -> str:
+        return ", ".join(name for bit, name in FLAG_NAMES.items() if value & (1 << bit)) or "none"
+
+    def handlers_of(r) -> str:
+        out, previous = [], None
+        for _, code, handler in r["handlers"]:
+            if not handler:
+                continue
+            action = _pattern_words(memory, code) if code else f"after {previous}"
+            out.append(f"{esc(action)}: #R${handler:04X}")
+            previous = _pattern_words(memory, code) if code else previous
+        return "<br/>".join(out) or "none"
+
+    def where_of(r) -> str:
+        holder = memory[r["start"] + 1]
+        places = [loc_link(memory[r["start"] + 16 + i]) for i in range(memory[r["start"]])]
+        text = ", ".join(places) or "nowhere"
+        if holder != 0xFF:
+            text += f", held by {obj_link(holder)}"
+        return text
+
+    def description_of(r) -> str:
+        pointer = memory[r["start"] + 14] | (memory[r["start"] + 15] << 8)
+        return f"<i>{esc(game.message(pointer))}</i>" if pointer else ""
+
+    obj = ['<p>Every object that is not a character, from OBJECT_INDEX (#R$C063). '
+           'Size and weight are bytes 2 and 3 of the record, strength and defence bytes 5 and 6 '
+           '(see DO_ATTACK, #R$9171); the flags are byte 7. Handlers are the object\'s own, '
+           'which DO_ACTION (#R$950F) asks before the ordinary one.</p>',
+           '<table class="hobbit-table"><tr><th>No.</th><th>Object</th><th>Starts</th>'
+           '<th>Size</th><th>Weight</th><th>Str</th><th>Def</th><th>Flags</th><th>Own handlers</th></tr>']
+    for r in sorted(records, key=lambda r: r["number"]):
+        n, s = r["number"], r["start"]
+        if n == 0 or n >= 0x3C:
+            continue
+        obj.append(f'<tr id="obj{n}"><td>${n:02X}</td><td>#R${s:04X}({esc(names[n])})'
+                   f'{"<br/>" + description_of(r) if description_of(r) else ""}</td>'
+                   f'<td>{where_of(r)}</td><td>{memory[s + 2]}</td><td>{memory[s + 3]}</td>'
+                   f'<td>{memory[s + 5]}</td><td>{memory[s + 6]}</td><td>{flags_of(memory[s + 7])}</td>'
+                   f'<td>{handlers_of(r)}</td></tr>')
+    obj.append("</table>")
+
+    # ------------------------------------------------------------ characters
+    # A slot's byte 0 is its character, or 0 while empty; the three empty at
+    # the start are the ones the arrival hooks fill.
+    slots = {}
+    for i in range(17):
+        slot = 0xCACB + 7 * i
+        if memory[slot]:
+            slots[memory[slot]] = slot
+    for slot, who in ((0xCAE7, 0x42), (0xCAFC, 0x46), (0xCB03, 0x3C)):
+        slots.setdefault(who, slot)
+    chars = ['<p>The player and the other characters. Each but the player runs a script '
+             'from a slot in CHARACTERS (#R$CACB), the orders it will take at once are byte 6 '
+             'of that slot (DO_TALK, #R$9034), and its reactions are the entries of its script '
+             'table keyed by an action (REACT, #R$9AA0). Carrying capacity is byte 3 of the '
+             'record.</p>',
+             '<table class="hobbit-table"><tr><th>No.</th><th>Character</th><th>Starts</th>'
+             '<th>Side</th><th>Str</th><th>Def</th><th>Carries</th><th>Script slot</th>'
+             '<th>Orders</th><th>Reacts to</th><th>Own handlers</th></tr>']
+    for r in sorted(records, key=lambda r: r["number"]):
+        n, s = r["number"], r["start"]
+        if n and n < 0x3C:
+            continue
+        side = ", ".join(v for k, v in SIDES.items() if memory[s + 4] & k) or "-"
+        slot = slots.get(n)
+        if slot is not None:
+            table = memory[slot + 4] | (memory[slot + 5] << 8)
+            reacts = [esc(_pattern_words(memory, key)) for key, _, _ in bh.keyed_table(memory, table) if key]
+            slot_text = f"#R${slot:04X}"
+            orders = str(memory[slot + 6])
+        else:
+            reacts, slot_text, orders = [], "-", "-"
+        chars.append(f'<tr id="obj{n}"><td>${n:02X}</td><td>#R${s:04X}({esc(names[n])})</td>'
+                     f'<td>{where_of(r)}</td><td>{side}</td><td>{memory[s + 5]}</td>'
+                     f'<td>{memory[s + 6]}</td><td>{memory[s + 3]}</td><td>{slot_text}</td>'
+                     f'<td>{orders}</td><td>{", ".join(reacts) or "-"}</td><td>{handlers_of(r)}</td></tr>')
+    chars.append("</table>")
+
+    # ------------------------------------------------------------ actions
+    carriers: dict[int, list[int]] = {}
+    for r in records:
+        for _, code, handler in r["handlers"]:
+            if code and handler:
+                carriers.setdefault(code, []).append(r["number"])
+    act = ['<p>The 59 sentences the parser understands, from ACTION_PATTERNS (#R$AB53): the '
+           'action code is the place in that table. The ordinary handler comes from '
+           'ACTION_TABLE (#R$C730); an action with none is only ever done by the objects '
+           'that carry a handler for it. "Needs light", "a place" and the rest are the '
+           'pattern\'s options (PATTERN_OPTIONS, #R$7B78).</p>',
+           '<table class="hobbit-table"><tr><th>Code</th><th>Sentence</th><th>Handler</th>'
+           '<th>Options</th><th>Objects with their own</th></tr>']
+    for code in range(1, 60):
+        a = 0xAB4B + 8 * code
+        b71e = (memory[a + 7] & 0xF0) | (memory[a + 5] >> 4)
+        b71d = (memory[a + 3] & 0xF0) | (memory[a + 1] >> 4)
+        options = [name for test, name in ((b71e & 0x40, "needs light"), (b71d & 0x80, "a place"),
+                                            (b71d & 0x10, "not narrated"), (b71d & 0x08, "first object"),
+                                            (b71d & 0x04, "second object")) if test]
+        handler = action_handlers.get(code)
+        own = ", ".join(obj_link(n) for n in sorted(set(carriers.get(code, []))))
+        act.append(f'<tr id="act{code}"><td>{code} (${code:02X})</td><td>{esc(_pattern_words(memory, code))}</td>'
+                   f'<td>{f"#R${handler:04X}" if handler else "-"}</td><td>{", ".join(options) or "-"}</td>'
+                   f'<td>{own or "-"}</td></tr>')
+    act.append("</table>")
+
+    sections = {"Locations": loc, "Objects": obj, "Characters": chars, "Actions": act}
+    lines = ["; Generated by scripts/hobbit_pages.py -- the game's own content, not committed.", ""]
+    for name, body in sections.items():
+        lines += [f"[{name}]"] + body + [""]
+    out_ref.write_text("\n".join(lines), encoding="utf-8")
+    bh._log(f"  {len(pictures)} pictures, {len(room_name)} locations, "
+            f"{sum(1 for r in records if 0 < r['number'] < 0x3C)} objects, "
+            f"{sum(1 for r in records if r['number'] >= 0x3C) + 1} characters, 59 actions")
