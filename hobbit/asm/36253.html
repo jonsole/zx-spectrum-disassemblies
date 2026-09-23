@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 8D9D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36206.html">8D6E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36253">Map</a></td>
+<td class="next">
+Next: <a href="36485.html">8E85</a>
+</td>
+</tr>
+</table>
+<div class="description">8D9D: Move a character one step</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Called for every character that moves, the player included, with the direction in $B6E7. Watched directly: a single turn in which the player only typed INVENTORY ran this 21 times for nine other characters, each wandering on its own -- which is The Hobbit's independent cast, seen from the inside.
+</div>
+<div class="paragraph">
+For the player -- told apart by $B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood, and the four diagonals will be among 4 to 8, but which is which has not been watched and is not asserted here.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36253"></span>8D9D</td>
+<td class="instruction">CALL <a href="38381.html">$95ED</a></td>
+<td class="comment-1" rowspan="6">In the dark, the direction asked for is thrown away for a random one from 1 to 10</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36256"></span>8DA0</td>
+<td class="instruction">JR NC,$8DAB</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36258"></span>8DA2</td>
+<td class="instruction">LD A,$09</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36260"></span>8DA4</td>
+<td class="instruction">CALL <a href="40095.html">$9C9F</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36263"></span>8DA7</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36264"></span>8DA8</td>
+<td class="instruction">LD ($B6E7),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="36267"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="36667.html">8F3B</a> and <a href="41677.html">A2CD</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36267"></span>8DAB</td>
+<td class="instruction">LD IY,($B70C)</td>
+<td class="comment-1" rowspan="4">Is the actor held by anything?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36271"></span>8DAF</td>
+<td class="instruction">LD A,(IY+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36274"></span>8DB2</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36276"></span>8DB4</td>
+<td class="instruction">JR Z,$8DC3</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36278"></span>8DB6</td>
+<td class="instruction">CALL <a href="39882.html">$9BCA</a></td>
+<td class="comment-1" rowspan="3">Held by a thing, not a character: cannot move</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36281"></span>8DB9</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36285"></span>8DBD</td>
+<td class="instruction">JR Z,$8DD9</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36287"></span>8DBF</td>
+<td class="instruction">LD (IY+$01),$FF</td>
+<td class="comment-1" rowspan="1">Held by a character: let go</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36291"></span>8DC3</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="4">The actor's size with everything it carries, for fitting through the way out</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36294"></span>8DC6</td>
+<td class="instruction">CALL <a href="40168.html">$9CE8</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36297"></span>8DC9</td>
+<td class="instruction">ADD A,(IY+$02)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36300"></span>8DCC</td>
+<td class="instruction">LD ($8D9C),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36303"></span>8DCF</td>
+<td class="instruction">LD A,($B6E7)</td>
+<td class="comment-1" rowspan="4">Is there an exit in that direction?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36306"></span>8DD2</td>
+<td class="instruction">CALL <a href="40712.html">$9F08</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36309"></span>8DD5</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36311"></span>8DD7</td>
+<td class="instruction">JR NZ,$8DFA</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36313"></span>8DD9</td>
+<td class="instruction">CALL <a href="38381.html">$95ED</a></td>
+<td class="comment-1" rowspan="2">No way through. In the light, the ordinary refusal</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36316"></span>8DDC</td>
+<td class="instruction">JP NC,<a href="40822.html">$9F76</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36319"></span>8DDF</td>
+<td class="instruction">CALL <a href="40260.html">$9D44</a></td>
+<td class="comment-1" rowspan="5">In the dark the player falls: halve byte 5 of the player's record...</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36322"></span>8DE2</td>
+<td class="instruction">LD IX,$C11B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36326"></span>8DE6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36327"></span>8DE7</td>
+<td class="instruction">LD HL,$AD7D</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36330"></span>8DEA</td>
+<td class="instruction">RR (IX+$05)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36334"></span>8DEE</td>
+<td class="instruction">JP NZ,<a href="29395.html#29405">$72DD</a></td>
+<td class="comment-1" rowspan="1">...and while anything is left, "but fall and hit your HEAD." -- six falls are survived</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36337"></span>8DF1</td>
+<td class="instruction">LD HL,$AD8A</td>
+<td class="comment-1" rowspan="3">The seventh empties it: "but fall and smash your skull.", and PLAYER_DIES</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36340"></span>8DF4</td>
+<td class="instruction">CALL <a href="29395.html#29405">$72DD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36343"></span>8DF7</td>
+<td class="instruction">JP <a href="37074.html">$90D2</a></td>
+</tr>
+<tr>
+<td class="address-2"><span id="36346"></span>8DFA</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="3">The exit leads to location 0: nowhere yet</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36349"></span>8DFD</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36350"></span>8DFE</td>
+<td class="instruction">JR Z,$8DD9</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36352"></span>8E00</td>
+<td class="instruction">LD ($8D9B),A</td>
+<td class="comment-1" rowspan="2">Keep the destination; A = the object the way goes through</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36355"></span>8E03</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36358"></span>8E06</td>
+<td class="instruction">CALL <a href="36485.html">$8E85</a></td>
+<td class="comment-1" rowspan="7">Can it be used (CAN_PASS)? 1 no, 2 too small, 3 no room there</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36361"></span>8E09</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36362"></span>8E0A</td>
+<td class="instruction">JR Z,$8DD9</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36364"></span>8E0C</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36365"></span>8E0D</td>
+<td class="instruction">JR Z,$8E6D</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36367"></span>8E0F</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36368"></span>8E10</td>
+<td class="instruction">JR Z,$8E72</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="36370"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="39901.html">9BDD</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36370"></span>8E12</td>
+<td class="instruction">CALL <a href="40260.html">$9D44</a></td>
+<td class="comment-1" rowspan="2">Move: the actor's location becomes the destination</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36373"></span>8E15</td>
+<td class="instruction">LD (IY+$10),B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36376"></span>8E18</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="2">And everything it holds goes too</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36379"></span>8E1B</td>
+<td class="instruction">CALL <a href="39901.html">$9BDD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36382"></span>8E1E</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="3">The rest is for the player only</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36385"></span>8E21</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36387"></span>8E23</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36388"></span>8E24</td>
+<td class="instruction">LD IX,$C78E</td>
+<td class="comment-1" rowspan="7">Run the place's arrival hook, if it has one (ARRIVAL_HOOKS)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36392"></span>8E28</td>
+<td class="instruction">LD A,($8D9B)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36395"></span>8E2B</td>
+<td class="instruction">CALL <a href="40381.html">$9DBD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36398"></span>8E2E</td>
+<td class="instruction">JR Z,$8E39</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36400"></span>8E30</td>
+<td class="instruction">LD L,(IX+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36403"></span>8E33</td>
+<td class="instruction">LD H,(IX+$02)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36406"></span>8E36</td>
+<td class="instruction">CALL <a href="39788.html">$9B6C</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="36409"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="51178.html">C7EA</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36409"></span>8E39</td>
+<td class="instruction">CALL <a href="38381.html">$95ED</a></td>
+<td class="comment-1" rowspan="2">In the dark, that is all</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36412"></span>8E3C</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36413"></span>8E3D</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="4">A = the destination</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36416"></span>8E40</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36417"></span>8E41</td>
+<td class="instruction">LD A,($8D9B)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36420"></span>8E44</td>
+<td class="instruction">JR NZ,$8E6A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36422"></span>8E46</td>
+<td class="instruction">LD HL,($8D99)</td>
+<td class="comment-1" rowspan="5">Been here before? On at $96A8. If not, mark the room visited (bit 6)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36425"></span>8E49</td>
+<td class="instruction">BIT 6,(HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36427"></span>8E4B</td>
+<td class="instruction">JP NZ,<a href="38568.html">$96A8</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36430"></span>8E4E</td>
+<td class="instruction">SET 6,(HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36432"></span>8E50</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36433"></span>8E51</td>
+<td class="instruction">LD IX,$8D6E</td>
+<td class="comment-1" rowspan="10">And score it (VISIT_SCORES)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36437"></span>8E55</td>
+<td class="instruction">CALL <a href="40381.html">$9DBD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36440"></span>8E58</td>
+<td class="instruction">JR Z,$8E69</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36442"></span>8E5A</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36443"></span>8E5B</td>
+<td class="instruction">LD E,(IX+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36446"></span>8E5E</td>
+<td class="instruction">LD D,(IX+$02)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36449"></span>8E61</td>
+<td class="instruction">LD HL,($B6F7)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36452"></span>8E64</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36453"></span>8E65</td>
+<td class="instruction">LD ($B6F7),HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="36456"></span>8E68</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36457"></span>8E69</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="2">Then $9630</td>
+</tr>
+<tr>
+<td class="address-2"><span id="36458"></span>8E6A</td>
+<td class="instruction">JP <a href="38448.html">$9630</a></td>
+</tr>
+<tr>
+<td class="address-2"><span id="36461"></span>8E6D</td>
+<td class="instruction">LD HL,$AE23</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36464"></span>8E70</td>
+<td class="instruction">JR $8E79</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-2"><span id="36466"></span>8E72</td>
+<td class="instruction">LD IX,($8D99)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36470"></span>8E76</td>
+<td class="instruction">LD HL,$AE2E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-2"><span id="36473"></span>8E79</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36474"></span>8E7A</td>
+<td class="instruction">LD L,(IX+$02)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36477"></span>8E7D</td>
+<td class="instruction">LD H,(IX+$03)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36480"></span>8E80</td>
+<td class="instruction">EX (SP),HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36481"></span>8E81</td>
+<td class="instruction">CALL <a href="29395.html#29405">$72DD</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="36484"></span>8E84</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36206.html">8D6E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36253">Map</a></td>
+<td class="next">
+Next: <a href="36485.html">8E85</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

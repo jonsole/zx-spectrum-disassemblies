@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 96B3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38568.html">96A8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38579">Map</a></td>
+<td class="next">
+Next: <a href="38696.html">9728</a>
+</td>
+</tr>
+</table>
+<div class="description">96B3: Let the other characters act, then count the timers down</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Calls $A9D6 and $980E -- the rest of the world's turn, not yet worked out -- and then walks TIMERS. A timer whose count is zero is not running. One that is running counts down by one a turn; on reaching zero it runs its routine, and in the turns before that, while the count is no more than its warning span, it runs its warning routine instead.
+</div>
+<div class="paragraph">
+Only one timer fires in a turn. A second one to reach zero in the same turn is held at a count of 1 and fires in the next, so two events never land on the player at once.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38579"></span>96B3</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38580"></span>96B4</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38582"></span>96B6</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38584"></span>96B8</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38585"></span>96B9</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38586"></span>96BA</td>
+<td class="instruction">CALL <a href="43478.html">$A9D6</a></td>
+<td class="comment-1" rowspan="2">The characters' turn, not yet worked out</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38589"></span>96BD</td>
+<td class="instruction">CALL <a href="38926.html">$980E</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38592"></span>96C0</td>
+<td class="instruction">SUB A</td>
+<td class="comment-1" rowspan="5">Nothing has fired yet this turn; printing on</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38593"></span>96C1</td>
+<td class="instruction">LD ($B6F0),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38596"></span>96C4</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38597"></span>96C5</td>
+<td class="instruction">LD ($B6FB),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38600"></span>96C8</td>
+<td class="instruction">LD ($B6FA),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38603"></span>96CB</td>
+<td class="instruction">LD IY,$CA84</td>
+<td class="comment-1" rowspan="1">IY = the first timer</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38607"></span>96CF</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">$FF ends the table</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38610"></span>96D2</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38612"></span>96D4</td>
+<td class="instruction">JR Z,$971B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38614"></span>96D6</td>
+<td class="instruction">LD A,(IY+$01)</td>
+<td class="comment-1" rowspan="3">A count of zero: not running</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38617"></span>96D9</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38619"></span>96DB</td>
+<td class="instruction">JR Z,$9713</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38621"></span>96DD</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="4">Count down, and go on to the warning test unless it reached zero</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38622"></span>96DE</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38625"></span>96E1</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38627"></span>96E3</td>
+<td class="instruction">JR NZ,$96FE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38629"></span>96E5</td>
+<td class="instruction">LD A,($B6F0)</td>
+<td class="comment-1" rowspan="4">Already had one fire this turn? Hold this one at 1 until the next</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38632"></span>96E8</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38634"></span>96EA</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38637"></span>96ED</td>
+<td class="instruction">JR Z,$96FE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38639"></span>96EF</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="2">Count one fired</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38640"></span>96F0</td>
+<td class="instruction">LD ($B6F0),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38643"></span>96F3</td>
+<td class="instruction">LD L,(IY+$02)</td>
+<td class="comment-1" rowspan="4">Run its routine through $9B6C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38646"></span>96F6</td>
+<td class="instruction">LD H,(IY+$03)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38649"></span>96F9</td>
+<td class="instruction">CALL <a href="39788.html">$9B6C</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38652"></span>96FC</td>
+<td class="instruction">JR $9713</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38654"></span>96FE</td>
+<td class="instruction">LD A,(IY+$04)</td>
+<td class="comment-1" rowspan="3">No warning span: nothing to do</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38657"></span>9701</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38659"></span>9703</td>
+<td class="instruction">JR Z,$9713</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38661"></span>9705</td>
+<td class="instruction">CP (IY+$01)</td>
+<td class="comment-1" rowspan="2">Is the count within the warning span?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38664"></span>9708</td>
+<td class="instruction">JR C,$9713</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38666"></span>970A</td>
+<td class="instruction">LD L,(IY+$05)</td>
+<td class="comment-1" rowspan="3">Then run the warning routine</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38669"></span>970D</td>
+<td class="instruction">LD H,(IY+$06)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38672"></span>9710</td>
+<td class="instruction">CALL <a href="39788.html">$9B6C</a></td>
+</tr>
+<tr>
+<td class="address-2"><span id="38675"></span>9713</td>
+<td class="instruction">LD DE,$0007</td>
+<td class="comment-1" rowspan="3">On to the next 7-byte timer</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38678"></span>9716</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38680"></span>9718</td>
+<td class="instruction">JP $96CF</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38683"></span>971B</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">Printing on</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38685"></span>971D</td>
+<td class="instruction">LD ($B702),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38688"></span>9720</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38689"></span>9721</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38690"></span>9722</td>
+<td class="instruction">POP IY</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38692"></span>9724</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38694"></span>9726</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38695"></span>9727</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38568.html">96A8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38579">Map</a></td>
+<td class="next">
+Next: <a href="38696.html">9728</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

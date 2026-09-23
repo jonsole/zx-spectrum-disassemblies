@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 9CA8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40095.html">9C9F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40104">Map</a></td>
+<td class="next">
+Next: <a href="40168.html">9CE8</a>
+</td>
+</tr>
+</table>
+<div class="description">9CA8: A random number from -A to A</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Mixes the last result, kept at $B70E and seeded from R by START, with the byte the pointer at $B712 has got to -- it steps on by one every call -- and one DE bytes past it, and draws again if that repeats the last result. The byte is then halved until it is no more than twice A, and A taken off.
+</div>
+<div class="paragraph">
+Measured over 3000 calls each, through RANDOM_POSITIVE: every value from 0 to A comes up, but not evenly -- for A = 4 the ends come up half as often as the middle, and for A = 9 the top three do.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The limit, 0 to 127</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The result, -A to A</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40104"></span>9CA8</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40106"></span>9CAA</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40107"></span>9CAB</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="5">B = twice the limit, or $FF if that overflows</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40108"></span>9CAC</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40110"></span>9CAE</td>
+<td class="instruction">JR NC,$9CB2</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40112"></span>9CB0</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40114"></span>9CB2</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40115"></span>9CB3</td>
+<td class="instruction">LD IX,$B712</td>
+<td class="comment-1" rowspan="4">Step the pointer on</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40119"></span>9CB7</td>
+<td class="instruction">INC (IX+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40122"></span>9CBA</td>
+<td class="instruction">JR NZ,$9CBF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40124"></span>9CBC</td>
+<td class="instruction">INC (IX+$00)</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40127"></span>9CBF</td>
+<td class="instruction">LD IX,($B712)</td>
+<td class="comment-1" rowspan="8">Mix two bytes from there into the last result</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40131"></span>9CC3</td>
+<td class="instruction">LD A,($B70E)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40134"></span>9CC6</td>
+<td class="instruction">ADC A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40137"></span>9CC9</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40139"></span>9CCB</td>
+<td class="instruction">XOR (IX+$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40142"></span>9CCE</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40143"></span>9CCF</td>
+<td class="instruction">LD HL,$B70E</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40146"></span>9CD2</td>
+<td class="instruction">CP (HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40147"></span>9CD3</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">The same as last time? Draw again; otherwise keep it</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40148"></span>9CD4</td>
+<td class="instruction">JR Z,$9CB3</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40150"></span>9CD6</td>
+<td class="instruction">LD ($B70E),A</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40153"></span>9CD9</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="5">Halve it until it is no more than B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40154"></span>9CDA</td>
+<td class="instruction">JR C,$9CE3</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40156"></span>9CDC</td>
+<td class="instruction">JR Z,$9CE3</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40158"></span>9CDE</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40160"></span>9CE0</td>
+<td class="instruction">JP $9CD9</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40163"></span>9CE3</td>
+<td class="instruction">SUB C</td>
+<td class="comment-1" rowspan="1">Take the limit off</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40164"></span>9CE4</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40165"></span>9CE5</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40167"></span>9CE7</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40095.html">9C9F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40104">Map</a></td>
+<td class="next">
+Next: <a href="40168.html">9CE8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

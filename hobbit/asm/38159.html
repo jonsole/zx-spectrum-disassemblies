@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 950F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38102.html">94D6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38159">Map</a></td>
+<td class="next">
+Next: <a href="38367.html">95DF</a>
+</td>
+</tr>
+</table>
+<div class="description">950F: Carry out the action in $B6E7-$B6E9, for whoever is acting</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The one place every action is done, the player's and every other character's alike. The action is refused outright if it makes no sense (SENSIBLE), and in the dark it can only be done to what the actor is carrying. Then the objects get the first say: an object can carry a handler of its own for an action (see FIND_OBJECT_HANDLER), and only if neither has one does ACTION_TABLE's ordinary handler run. For most actions the first object is asked; for the five in SECOND_FIRST -- DROP IN, PUT IN, PUT ON, TAKE OUT OF and THROW THROUGH -- the second object is asked first, since it is the container or the gap that decides.
+</div>
+<div class="paragraph">
+A handler is followed by any records after it keyed 0, which run too: the wine's record has the ordinary handler for DRINK followed by WINE_DRUNK under key 0, so drinking it does both. Last, each object that is a character reacts to what was done to it (REACT_TO_ACTION).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38159"></span>950F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38160"></span>9510</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38162"></span>9512</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38163"></span>9513</td>
+<td class="instruction">CALL <a href="39748.html">$9B44</a></td>
+<td class="comment-1" rowspan="2">Makes no sense? "i cannot do that."</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38166"></span>9516</td>
+<td class="instruction">JP Z,$95DA</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38169"></span>9519</td>
+<td class="instruction">CALL <a href="38381.html">$95ED</a></td>
+<td class="comment-1" rowspan="2">Can the actor see?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38172"></span>951C</td>
+<td class="instruction">JR NC,$9539</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38174"></span>951E</td>
+<td class="instruction">LD A,($B711)</td>
+<td class="comment-1" rowspan="8">In the dark, only what the actor carries -- and nothing at all while $B711 is set</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38177"></span>9521</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38178"></span>9522</td>
+<td class="instruction">JR NZ,$9531</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38180"></span>9524</td>
+<td class="instruction">CALL <a href="40056.html">$9C78</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38183"></span>9527</td>
+<td class="instruction">JR NC,$9531</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38185"></span>9529</td>
+<td class="instruction">LD A,($B6E9)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38188"></span>952C</td>
+<td class="instruction">CALL <a href="40056.html#40059">$9C7B</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38191"></span>952F</td>
+<td class="instruction">JR C,$9539</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38193"></span>9531</td>
+<td class="instruction">LD HL,$AFC4</td>
+<td class="comment-1" rowspan="3">"i see nothing here."</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38196"></span>9534</td>
+<td class="instruction">CALL <a href="29395.html#29405">$72DD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38199"></span>9537</td>
+<td class="instruction">JR $959B</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38201"></span>9539</td>
+<td class="instruction">LD A,($B6FE)</td>
+<td class="comment-1" rowspan="6">$B6FE set, or no object: the ordinary handler</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38204"></span>953C</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38206"></span>953E</td>
+<td class="instruction">JP Z,$95CC</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38209"></span>9541</td>
+<td class="instruction">LD A,($B6E8)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38212"></span>9544</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38214"></span>9546</td>
+<td class="instruction">JP Z,$95CC</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38217"></span>9549</td>
+<td class="instruction">CALL <a href="39882.html">$9BCA</a></td>
+<td class="comment-1" rowspan="5">The first object, in $B708: not being carried by somebody else</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38220"></span>954C</td>
+<td class="instruction">LD ($B708),IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38224"></span>9550</td>
+<td class="instruction">LD A,($B6E8)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38227"></span>9553</td>
+<td class="instruction">CALL <a href="38696.html">$9728</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38230"></span>9556</td>
+<td class="instruction">JR NZ,$959B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38232"></span>9558</td>
+<td class="instruction">LD A,($B6E9)</td>
+<td class="comment-1" rowspan="3">No second object: ask the first</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38235"></span>955B</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38237"></span>955D</td>
+<td class="instruction">JR Z,$957A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38239"></span>955F</td>
+<td class="instruction">LD A,($B6FF)</td>
+<td class="comment-1" rowspan="3">$B6FF set: the ordinary handler</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38242"></span>9562</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38244"></span>9564</td>
+<td class="instruction">JR Z,$95CC</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38246"></span>9566</td>
+<td class="instruction">LD A,($B6E9)</td>
+<td class="comment-1" rowspan="5">The second object, in $B70A: not being carried by somebody else</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38249"></span>9569</td>
+<td class="instruction">CALL <a href="39882.html">$9BCA</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38252"></span>956C</td>
+<td class="instruction">LD ($B70A),IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38256"></span>9570</td>
+<td class="instruction">CALL <a href="38696.html">$9728</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38259"></span>9573</td>
+<td class="instruction">JR NZ,$959B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38261"></span>9575</td>
+<td class="instruction">CALL <a href="41424.html">$A1D0</a></td>
+<td class="comment-1" rowspan="2">One of SECOND_FIRST? Ask the second object</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38264"></span>9578</td>
+<td class="instruction">JR Z,$957E</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38266"></span>957A</td>
+<td class="instruction">LD IX,($B708)</td>
+<td class="comment-1" rowspan="1">Otherwise the first</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38270"></span>957E</td>
+<td class="instruction">LD A,($B6E7)</td>
+<td class="comment-1" rowspan="3">Does it have a handler of its own for this? If not, the ordinary one</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38273"></span>9581</td>
+<td class="instruction">CALL <a href="39809.html">$9B81</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38276"></span>9584</td>
+<td class="instruction">JR NC,$95CC</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38278"></span>9586</td>
+<td class="instruction">LD L,(IX+$01)</td>
+<td class="comment-1" rowspan="9">Run the handler, and every record after it keyed 0</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38281"></span>9589</td>
+<td class="instruction">LD H,(IX+$02)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38284"></span>958C</td>
+<td class="instruction">CALL <a href="39788.html">$9B6C</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38287"></span>958F</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38289"></span>9591</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38291"></span>9593</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38293"></span>9595</td>
+<td class="instruction">SUB A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38294"></span>9596</td>
+<td class="instruction">CP (IX+$00)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38297"></span>9599</td>
+<td class="instruction">JR Z,$9586</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38299"></span>959B</td>
+<td class="instruction">LD A,($B6FA)</td>
+<td class="comment-1" rowspan="3">Done quietly, as a test? Then that is all</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38302"></span>959E</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38304"></span>95A0</td>
+<td class="instruction">JR NZ,$95C7</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38306"></span>95A2</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="5">Not yet worked out: for the player in the dark, a message at HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38309"></span>95A5</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38311"></span>95A7</td>
+<td class="instruction">JR NZ,$95AF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38313"></span>95A9</td>
+<td class="instruction">CALL <a href="38381.html">$95ED</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38316"></span>95AC</td>
+<td class="instruction">CALL C,<a href="29395.html#29405">$72DD</a></td>
+</tr>
+<tr>
+<td class="address-2"><span id="38319"></span>95AF</td>
+<td class="instruction">LD A,($B6E7)</td>
+<td class="comment-1" rowspan="8">Each object that is a character reacts</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38322"></span>95B2</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38323"></span>95B3</td>
+<td class="instruction">LD A,($B6E8)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38326"></span>95B6</td>
+<td class="instruction">LD IX,($B708)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38330"></span>95BA</td>
+<td class="instruction">CALL <a href="38367.html">$95DF</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38333"></span>95BD</td>
+<td class="instruction">LD A,($B6E9)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38336"></span>95C0</td>
+<td class="instruction">LD IX,($B70A)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38340"></span>95C4</td>
+<td class="instruction">CALL <a href="38367.html">$95DF</a></td>
+</tr>
+<tr>
+<td class="address-2"><span id="38343"></span>95C7</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38344"></span>95C8</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38346"></span>95CA</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38347"></span>95CB</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-2"><span id="38348"></span>95CC</td>
+<td class="instruction">LD A,($B6E7)</td>
+<td class="comment-1" rowspan="5">The ordinary handler, from ACTION_TABLE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38351"></span>95CF</td>
+<td class="instruction">LD IX,$C730</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38355"></span>95D3</td>
+<td class="instruction">CALL <a href="40381.html">$9DBD</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38358"></span>95D6</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38360"></span>95D8</td>
+<td class="instruction">JR NZ,$9586</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38362"></span>95DA</td>
+<td class="instruction">CALL <a href="29390.html">$72CE</a></td>
+<td class="comment-1" rowspan="2">"i cannot do that."</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38365"></span>95DD</td>
+<td class="instruction">JR $95C7</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38102.html">94D6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38159">Map</a></td>
+<td class="next">
+Next: <a href="38367.html">95DF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

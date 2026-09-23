@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 6F47</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="28464.html">6F30</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#28487">Map</a></td>
+<td class="next">
+Next: <a href="28602.html">6FBA</a>
+</td>
+</tr>
+</table>
+<div class="description">6F47: Look a typed word up in the dictionary</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Copies the word from the input line, turning each letter into its 5-bit code with AND $1F -- which works because 'A' is $41 and the codes were chosen to be the low five bits of the ASCII -- and stops at the first character below $40, so punctuation and spaces end a word without being tested for.
+</div>
+<div class="paragraph">
+Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there each call unpacks one candidate -- the tokeniser comes back in at $6F72 for the next -- and the bucket is over when an entry's initial letter stops matching the one typed, which is its only end marker.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28487"></span>6F47</td>
+<td class="instruction">LD DE,$707A</td>
+<td class="comment-1" rowspan="11">Copy the typed word as 5-bit codes to $707A, up to the first character below $40</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28490"></span>6F4A</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28492"></span>6F4C</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28493"></span>6F4D</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28495"></span>6F4F</td>
+<td class="instruction">JR C,$6F59</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28497"></span>6F51</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28499"></span>6F53</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28500"></span>6F54</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28501"></span>6F55</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28502"></span>6F56</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28503"></span>6F57</td>
+<td class="instruction">JR $6F4C</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28505"></span>6F59</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="2">Keep its length</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28506"></span>6F5A</td>
+<td class="instruction">LD ($708A),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28509"></span>6F5D</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="12">IX = the first word in the dictionary under its initial letter</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28510"></span>6F5E</td>
+<td class="instruction">LD HL,($707A)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28513"></span>6F61</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28515"></span>6F63</td>
+<td class="instruction">LD DE,$6000</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28518"></span>6F66</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28519"></span>6F67</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28520"></span>6F68</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28521"></span>6F69</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28522"></span>6F6A</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28523"></span>6F6B</td>
+<td class="instruction">LD IX,$6000</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28527"></span>6F6F</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28529"></span>6F71</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="28530"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="28311.html">6E97</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28530"></span>6F72</td>
+<td class="instruction">LD ($B717),IX</td>
+<td class="comment-1" rowspan="1">Remember which entry is being tried</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="28534"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="28311.html">6E97</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28534"></span>6F76</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">Has the bucket run out? Its initial letter no longer matches</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28537"></span>6F79</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28539"></span>6F7B</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28540"></span>6F7C</td>
+<td class="instruction">LD A,($707A)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28543"></span>6F7F</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28544"></span>6F80</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28545"></span>6F81</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="28546"></span>6F82</td>
+<td class="instruction">LD HL,$708B</td>
+<td class="comment-1" rowspan="19">Unpack this entry's letters to $708B, by PRINT_WORD's rule for where a word ends</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28549"></span>6F85</td>
+<td class="instruction">LD BC,$0000</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28552"></span>6F88</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28555"></span>6F8B</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28557"></span>6F8D</td>
+<td class="instruction">JR Z,$6F92</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28559"></span>6F8F</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28560"></span>6F90</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28561"></span>6F91</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28562"></span>6F92</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28564"></span>6F94</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28565"></span>6F95</td>
+<td class="instruction">BIT 7,(IX-$01)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28569"></span>6F99</td>
+<td class="instruction">JR Z,$6F88</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28571"></span>6F9B</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28572"></span>6F9C</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28574"></span>6F9E</td>
+<td class="instruction">JR Z,$6F88</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28576"></span>6FA0</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28578"></span>6FA2</td>
+<td class="instruction">JR NZ,$6FAA</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28580"></span>6FA4</td>
+<td class="instruction">BIT 7,(IX-$02)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28584"></span>6FA8</td>
+<td class="instruction">JR NZ,$6F88</td>
+</tr>
+<tr>
+<td class="address-2"><span id="28586"></span>6FAA</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">Keep the entry's length</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28587"></span>6FAB</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28588"></span>6FAC</td>
+<td class="instruction">LD ($709B),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28591"></span>6FAF</td>
+<td class="instruction">BIT 6,(IX-$01)</td>
+<td class="comment-1" rowspan="6">A synonym: step over its two-byte link to the next entry</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28595"></span>6FB3</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28596"></span>6FB4</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28598"></span>6FB6</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28600"></span>6FB8</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="28601"></span>6FB9</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+A linear scan, not a binary search -- which is the other half of why the list only has to be grouped by initial letter and can be loosely ordered within a group, as BLOW before BLOOD and HELP before HEART are.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="28464.html">6F30</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#28487">Map</a></td>
+<td class="next">
+Next: <a href="28602.html">6FBA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

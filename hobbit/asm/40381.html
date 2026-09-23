@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 9DBD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40343.html">9D97</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40381">Map</a></td>
+<td class="next">
+Next: <a href="40409.html">9DD9</a>
+</td>
+</tr>
+</table>
+<div class="description">9DBD: Find a record in a keyed table</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The game's general-purpose lookup. A table is a run of three-byte records -- a key, then a two-byte value -- ending at a key of $FF, and this walks it in order looking for the key in A. It is not sorted and does not need to be. Eleven routines use it: the picture table at $CC00 is one, the action table at $C730 another.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The key to find</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The table</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The matching record, or the $FF that ended the table</td>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">NZ if the key was found, Z if the table ran out</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40381"></span>9DBD</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">Work in the other register set, so the caller's BC, DE and HL survive</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40382"></span>9DBE</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="2">HL walks the table from IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40384"></span>9DC0</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40385"></span>9DC1</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="1">B = the key being looked for</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40386"></span>9DC2</td>
+<td class="instruction">LD E,$03</td>
+<td class="comment-1" rowspan="2">DE = 3, the size of a record</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40388"></span>9DC4</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40390"></span>9DC6</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">Found it? The key is tested before the end marker, so a key of $FF can never be found</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40391"></span>9DC7</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40392"></span>9DC8</td>
+<td class="instruction">JR Z,$9DD2</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40394"></span>9DCA</td>
+<td class="instruction">CP $FF</td>
+<td class="comment-1" rowspan="2">Run off the end?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40396"></span>9DCC</td>
+<td class="instruction">JR Z,$9DD2</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40398"></span>9DCE</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="2">On to the next record</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40399"></span>9DCF</td>
+<td class="instruction">JP $9DC6</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40402"></span>9DD2</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="2">IX = the record, or the $FF that ended the table</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40403"></span>9DD3</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40405"></span>9DD5</td>
+<td class="instruction">CP $FF</td>
+<td class="comment-1" rowspan="1">NZ if found; A is the key</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40407"></span>9DD7</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40408"></span>9DD8</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Done in the alternate register set, so the caller's BC, DE and HL survive it.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40343.html">9D97</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40381">Map</a></td>
+<td class="next">
+Next: <a href="40409.html">9DD9</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

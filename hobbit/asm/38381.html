@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 95ED</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38367.html">95DF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38381">Map</a></td>
+<td class="next">
+Next: <a href="38443.html">962B</a>
+</td>
+</tr>
+</table>
+<div class="description">95ED: Is it too dark for the player to see?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Characters are never in the dark: anyone but the player gets "no" at once. The player can see if inside something, or if the room is lit -- bit 7 of the first byte of its record. Otherwise only the short strong sword helps: it has to be with the player, and its flag byte at $C30C must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and carrying it lights every dark place.
+</div>
+<div class="paragraph">
+Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
+</div>
+<div class="paragraph">
+What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Carry set if the player cannot see</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38381"></span>95ED</td>
+<td class="instruction">LD A,($B6EA)</td>
+<td class="comment-1" rowspan="3">Characters can always see: only the player is ever in the dark</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38384"></span>95F0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38385"></span>95F1</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38386"></span>95F2</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38388"></span>95F4</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38389"></span>95F5</td>
+<td class="instruction">LD IX,$C11B</td>
+<td class="comment-1" rowspan="4">The player shut inside something can see</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38393"></span>95F9</td>
+<td class="instruction">CALL <a href="40570.html">$9E7A</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38396"></span>95FC</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38397"></span>95FD</td>
+<td class="instruction">JR NZ,$9608</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38399"></span>95FF</td>
+<td class="instruction">CALL <a href="40247.html">$9D37</a></td>
+<td class="comment-1" rowspan="3">So can a player in a lit room (bit 7 of its first byte)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38402"></span>9602</td>
+<td class="instruction">BIT 7,(IX+$00)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38406"></span>9606</td>
+<td class="instruction">JR NZ,$9624</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38408"></span>9608</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="6">Otherwise only by the sword, object $0E, if it is within reach...</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38410"></span>960A</td>
+<td class="instruction">LD A,$0E</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38412"></span>960C</td>
+<td class="instruction">LD IY,$C305</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38416"></span>9610</td>
+<td class="instruction">CALL <a href="40500.html">$9E34</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38419"></span>9613</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38421"></span>9615</td>
+<td class="instruction">JR Z,$9620</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38423"></span>9617</td>
+<td class="instruction">LD A,($C30C)</td>
+<td class="comment-1" rowspan="4">...and glowing: flags bit 2 set, bit 3 clear, bit 4 set, all in one test</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38426"></span>961A</td>
+<td class="instruction">XOR $F7</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38428"></span>961C</td>
+<td class="instruction">AND $1C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38430"></span>961E</td>
+<td class="instruction">JR Z,$9628</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38432"></span>9620</td>
+<td class="instruction">LD HL,$AE1F</td>
+<td class="comment-1" rowspan="2">Too dark: carry set, and HL = "it is dark."</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38435"></span>9623</td>
+<td class="instruction">SCF</td>
+</tr>
+<tr>
+<td class="address-2"><span id="38436"></span>9624</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38437"></span>9625</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="38439"></span>9627</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-2"><span id="38440"></span>9628</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="2">Can see: carry clear</td>
+</tr>
+<tr>
+<td class="address-1"><span id="38441"></span>9629</td>
+<td class="instruction">JR $9624</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38367.html">95DF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38381">Map</a></td>
+<td class="next">
+Next: <a href="38443.html">962B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 7249</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="29230.html">722E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29257">Map</a></td>
+<td class="next">
+Next: <a href="29323.html">728B</a>
+</td>
+</tr>
+</table>
+<div class="description">7249: Wait for a key, or type WAIT when none comes</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Counts down from $B714 while it scans the keyboard, and returns the first new key. If the count runs out first it does something rather nice: it clears the line, copies the four letters at $7291 -- WAIT -- into it, prints them, and returns a carriage return as though the player had pressed ENTER. So "time passes" is the game typing a command on your behalf, and the WAIT lines on screen that nobody typed are exactly that.
+</div>
+<div class="paragraph">
+The keyboard scan reports only changes. A driver that stops the game with ENTER held and presses it again at the next prompt is not heard, because the release was never seen; hobbit_drive.py lets it scan with nothing held first.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The key</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29257"></span>7249</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29258"></span>724A</td>
+<td class="instruction">LD HL,($B714)</td>
+<td class="comment-1" rowspan="8">Scan until a new key, or until the patience in $B714 runs out</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29261"></span>724D</td>
+<td class="instruction">CALL <a href="35731.html">$8B93</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29264"></span>7250</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29265"></span>7251</td>
+<td class="instruction">JR NZ,$7273</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29267"></span>7253</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29268"></span>7254</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29269"></span>7255</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29270"></span>7256</td>
+<td class="instruction">JR NZ,$724D</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29272"></span>7258</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">Out of patience: clear the line...</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29273"></span>7259</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29274"></span>725A</td>
+<td class="instruction">CALL <a href="28299.html">$6E8B</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29277"></span>725D</td>
+<td class="instruction">LD DE,$7291</td>
+<td class="comment-1" rowspan="8">...type WAIT into it, printing each letter as a player would...</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29280"></span>7260</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29282"></span>7262</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29283"></span>7263</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29284"></span>7264</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29285"></span>7265</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29286"></span>7266</td>
+<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29289"></span>7269</td>
+<td class="instruction">DJNZ $7262</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29291"></span>726B</td>
+<td class="instruction">EX (SP),HL</td>
+<td class="comment-1" rowspan="4">...and return as if ENTER had been pressed after it</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29292"></span>726C</td>
+<td class="instruction">LD B,$7C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29294"></span>726E</td>
+<td class="instruction">LD A,$0D</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29296"></span>7270</td>
+<td class="instruction">LD HL,$FE0C</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29299"></span>7273</td>
+<td class="instruction">PUSH AF</td>
+<td class="comment-1" rowspan="10">The next wait is what was left of this one plus 500, at most 3000; after a timeout it is 3000 again</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29300"></span>7274</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29301"></span>7275</td>
+<td class="instruction">LD DE,$01F4</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29304"></span>7278</td>
+<td class="instruction">ADC HL,DE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29306"></span>727A</td>
+<td class="instruction">LD DE,$0BB8</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29309"></span>727D</td>
+<td class="instruction">JR C,$7284</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29311"></span>727F</td>
+<td class="instruction">CALL <a href="29323.html">$728B</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29314"></span>7282</td>
+<td class="instruction">JR C,$7285</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29316"></span>7284</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="address-2"><span id="29317"></span>7285</td>
+<td class="instruction">LD ($B714),HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="29320"></span>7288</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29321"></span>7289</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="29322"></span>728A</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="29230.html">722E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29257">Map</a></td>
+<td class="next">
+Next: <a href="29323.html">728B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 8B93</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35713.html">8B81</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35731">Map</a></td>
+<td class="next">
+Next: <a href="35835.html">8BFB</a>
+</td>
+</tr>
+</table>
+<div class="description">8B93: Scan the whole keyboard, debounced</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reads all eight half-rows with BC = $FEFE and RLC B, building a key map at $8B8B and comparing it against the previous one so that only changes count. It calls DEBOUNCE_DELAY first, which is where nearly all of the game's idle time goes: about 7.4ms per scan.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35731"></span>8B93</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35732"></span>8B94</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35734"></span>8B96</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35735"></span>8B97</td>
+<td class="instruction">CALL <a href="35704.html">$8B78</a></td>
+<td class="comment-1" rowspan="1">Debounce: about 7.4ms</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35738"></span>8B9A</td>
+<td class="instruction">LD ($8B89),BC</td>
+<td class="comment-1" rowspan="4">No new key yet; HL = the keyboard as last seen, IX = the masks, BC = the first half-row</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35742"></span>8B9E</td>
+<td class="instruction">LD HL,$8B8B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35745"></span>8BA1</td>
+<td class="instruction">LD IX,$8B81</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35749"></span>8BA5</td>
+<td class="instruction">LD BC,$FEFE</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35752"></span>8BA8</td>
+<td class="instruction">IN A,(C)</td>
+<td class="comment-1" rowspan="3">Read a half-row, with the keys that do not count masked out</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35754"></span>8BAA</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35756"></span>8BAC</td>
+<td class="instruction">OR (IX+$00)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35759"></span>8BAF</td>
+<td class="instruction">PUSH AF</td>
+<td class="comment-1" rowspan="5">Any key down now that was up last time?</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35760"></span>8BB0</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35761"></span>8BB1</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35762"></span>8BB2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35763"></span>8BB3</td>
+<td class="instruction">JR Z,$8BBC</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35765"></span>8BB5</td>
+<td class="instruction">LD ($8B89),BC</td>
+<td class="comment-1" rowspan="2">Yes: remember which half-row and which bits</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35769"></span>8BB9</td>
+<td class="instruction">LD ($8B89),A</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35772"></span>8BBC</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="6">Remember this half-row for next time, and on to the next</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35773"></span>8BBD</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35774"></span>8BBE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35775"></span>8BBF</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35777"></span>8BC1</td>
+<td class="instruction">RLC B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35779"></span>8BC3</td>
+<td class="instruction">JR C,$8BA8</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35781"></span>8BC5</td>
+<td class="instruction">LD BC,($8B89)</td>
+<td class="comment-1" rowspan="4">No new key at all: A = 0</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35785"></span>8BC9</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35786"></span>8BCA</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35787"></span>8BCB</td>
+<td class="instruction">JR Z,$8BF6</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35789"></span>8BCD</td>
+<td class="instruction">LD A,$FB</td>
+<td class="comment-1" rowspan="9">Key number = half-row times five plus bit</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35791"></span>8BCF</td>
+<td class="instruction">ADD A,$05</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35793"></span>8BD1</td>
+<td class="instruction">RRC B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35795"></span>8BD3</td>
+<td class="instruction">JR C,$8BCF</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35797"></span>8BD5</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35798"></span>8BD6</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35799"></span>8BD7</td>
+<td class="instruction">RRC C</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35801"></span>8BD9</td>
+<td class="instruction">JR C,$8BD6</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35803"></span>8BDB</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35804"></span>8BDC</td>
+<td class="instruction">LD B,$00</td>
+<td class="comment-1" rowspan="12">Look it up in KEY_MAP, or KEY_MAP_SHIFTED if either shift is held</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35806"></span>8BDE</td>
+<td class="instruction">LD HL,$8BFB</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35809"></span>8BE1</td>
+<td class="instruction">LD A,$FE</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35811"></span>8BE3</td>
+<td class="instruction">IN A,($FE)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35813"></span>8BE5</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35815"></span>8BE7</td>
+<td class="instruction">JR Z,$8BF1</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35817"></span>8BE9</td>
+<td class="instruction">LD A,$7F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35819"></span>8BEB</td>
+<td class="instruction">IN A,($FE)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35821"></span>8BED</td>
+<td class="instruction">AND $02</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35823"></span>8BEF</td>
+<td class="instruction">JR NZ,$8BF4</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35825"></span>8BF1</td>
+<td class="instruction">LD HL,$8C23</td>
+</tr>
+<tr>
+<td class="address-2"><span id="35828"></span>8BF4</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="address-1"><span id="35829"></span>8BF5</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-2"><span id="35830"></span>8BF6</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35831"></span>8BF7</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35833"></span>8BF9</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="35834"></span>8BFA</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Worth knowing when driving the game from a script: at uncapped emulation speed a key press and release can straddle a scan and be missed entirely, and the game's own ENTER still gets through, so a command comes out as a bare WAIT. Type at realtime speed.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35713.html">8B81</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35731">Map</a></td>
+<td class="next">
+Next: <a href="35835.html">8BFB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

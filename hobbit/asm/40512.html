@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Routine at 9E40</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">The Hobbit</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40500.html">9E34</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40512">Map</a></td>
+<td class="next">
+Next: <a href="40570.html">9E7A</a>
+</td>
+</tr>
+</table>
+<div class="description">9E40: Is an object within reach of the character in IX?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Nothing is within reach that has bit 7 of its flags clear. Otherwise it is if the character is inside it; or if the two are shut in the same container; or if neither is shut in anything and the object is in the character's location -- any of its locations, which is how a door is within reach from either side.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The character's record</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The object's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40512"></span>9E40</td>
+<td class="instruction">BIT 7,(IY+$07)</td>
+<td class="comment-1" rowspan="2">Not there to be seen: never in reach</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40516"></span>9E44</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40517"></span>9E45</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40519"></span>9E47</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40521"></span>9E49</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40522"></span>9E4A</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="2">B = the object; C = where the character is</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40523"></span>9E4B</td>
+<td class="instruction">LD C,(IX+$10)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40526"></span>9E4E</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="5">Is the character shut inside the object itself? Then it is in reach</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40528"></span>9E50</td>
+<td class="instruction">CALL <a href="40570.html">$9E7A</a></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40531"></span>9E53</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40532"></span>9E54</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40533"></span>9E55</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40535"></span>9E57</td>
+<td class="instruction">JR Z,$9E72</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40537"></span>9E59</td>
+<td class="instruction">CALL <a href="40570.html">$9E7A</a></td>
+<td class="comment-1" rowspan="3">Shut inside something the object is not? Out of reach</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40540"></span>9E5C</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40541"></span>9E5D</td>
+<td class="instruction">JR NZ,$9E6F</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40543"></span>9E5F</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="2">Both shut in the same thing: in reach</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40544"></span>9E60</td>
+<td class="instruction">JR NZ,$9E72</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40546"></span>9E62</td>
+<td class="instruction">LD B,(IY+$00)</td>
+<td class="comment-1" rowspan="6">Both free: in reach if the character's location is any of the object's</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40549"></span>9E65</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40550"></span>9E66</td>
+<td class="instruction">CP (IY+$10)</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40553"></span>9E69</td>
+<td class="instruction">JR Z,$9E72</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40555"></span>9E6B</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40557"></span>9E6D</td>
+<td class="instruction">DJNZ $9E66</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40559"></span>9E6F</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Z: out of reach</td>
+</tr>
+<tr>
+<td class="address-1"><span id="40560"></span>9E70</td>
+<td class="instruction">JR $9E74</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40562"></span>9E72</td>
+<td class="instruction">OR $01</td>
+<td class="comment-1" rowspan="1">NZ: in reach</td>
+</tr>
+<tr>
+<td class="address-2"><span id="40564"></span>9E74</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40565"></span>9E75</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40567"></span>9E77</td>
+<td class="instruction">POP IY</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="address-1"><span id="40569"></span>9E79</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40500.html">9E34</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40512">Map</a></td>
+<td class="next">
+Next: <a href="40570.html">9E7A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>
