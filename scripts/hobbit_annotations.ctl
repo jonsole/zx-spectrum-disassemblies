@@ -1579,3 +1579,65 @@ B $AB53,472,8
   $AD23,8 59 ($3B): CARRY
 B $AD2B,2,2
   $AD2B,2 End of the patterns
+
+# --------------------------------------------------------------------------
+# Carrying an action out
+# --------------------------------------------------------------------------
+
+@ $950F label=DO_ACTION
+c $950F Carry out the action in $B6E7-$B6E9, for whoever is acting
+D $950F The one place every action is done, the player's and every other character's alike. The action is refused outright if it makes no sense (SENSIBLE), and in the dark it can only be done to what the actor is carrying. Then the objects get the first say: an object can carry a handler of its own for an action (see FIND_OBJECT_HANDLER), and only if neither has one does ACTION_TABLE's ordinary handler run. For most actions the first object is asked; for the five in SECOND_FIRST -- DROP IN, PUT IN, PUT ON, TAKE OUT OF and THROW THROUGH -- the second object is asked first, since it is the container or the gap that decides.
+D $950F A handler is followed by any records after it keyed 0, which run too: the wine's record has the ordinary handler for DRINK followed by WINE_DRUNK under key 0, so drinking it does both. Last, each object that is a character reacts to what was done to it (REACT_TO_ACTION).
+  $9513,6 Makes no sense? "i cannot do that."
+  $9519,5 Can the actor see?
+  $951E,19 In the dark, only what the actor carries -- and nothing at all while $B711 is set
+  $9531,8 "i see nothing here."
+  $9539,16 $B6FE set, or no object: the ordinary handler
+  $9549,15 The first object, in $B708: not being carried by somebody else
+  $9558,7 No second object: ask the first
+  $955F,7 $B6FF set: the ordinary handler
+  $9566,15 The second object, in $B70A: not being carried by somebody else
+  $9575,5 One of SECOND_FIRST? Ask the second object
+  $957A,4 Otherwise the first
+  $957E,8 Does it have a handler of its own for this? If not, the ordinary one
+  $9586,21 Run the handler, and every record after it keyed 0
+  $959B,7 Done quietly, as a test? Then that is all
+  $95A2,13 Not yet worked out: for the player in the dark, a message at HL
+  $95AF,24 Each object that is a character reacts
+  $95CC,14 The ordinary handler, from ACTION_TABLE
+  $95DA,5 "i cannot do that."
+
+@ $A1D0 label=IS_SECOND_FIRST
+c $A1D0 Is the action one where the second object is asked first?
+R $A1D0 O:F Z if the action in $B6E7 is in SECOND_FIRST
+@ $A20B label=SECOND_FIRST
+b $A20B The actions whose second object is asked first
+D $A20B DROP IN, PUT IN, PUT ON, TAKE OUT OF and THROW THROUGH (see ACTION_PATTERNS): in each the second object is what the first goes into, onto, out of or through.
+B $A20B,5,5
+
+@ $9B44 label=SENSIBLE
+c $9B44 Does the action make sense?
+D $9B44 No if the actor would be doing it to itself, as either object, or doing it to one object with itself; $B6FE and $B6FF waive the checks, and what sets them is not yet traced. An action with no object always makes sense.
+R $9B44 O:F Z if it makes no sense
+  $9B44,8 No object: fine
+  $9B4C,19 Unless $B6FE is set: not to itself, and not an object with itself
+  $9B5F,13 Unless $B6FF is set: the second object not itself either
+
+@ $9728 label=CARRIED_BY_ANOTHER
+c $9728 Is somebody else carrying this object?
+D $9728 Only asked for the player. If a character holds the object, the player is told so -- "the ... is carrying ...", with the two names -- and it cannot be acted on. Something the player has, however deep, and something held by a non-character, are fine.
+R $9728 I:A The object, or $FF
+R $9728 O:F NZ if another character has it
+  $9731,10 Only for the player
+  $973B,11 Held by nothing: fine
+  $9746,10 Held, at any depth, by the player: fine
+  $9750,16 Its holder a character, and $C122 bit 7 set?
+  $9760,22 Then "the ... is carrying ..."
+
+@ $9C78 label=ACTOR_HAS_FIRST
+c $9C78 Is the first object the actor's, or no object at all?
+D $9C78 $9C7B asks the same of the object in A, and $9C8A does the climbing: up through the holders until one is the actor or there are none.
+R $9C78 O:F C if so
+
+@ $72CE label=CANNOT_DO
+c $72CE "i cannot do that."
