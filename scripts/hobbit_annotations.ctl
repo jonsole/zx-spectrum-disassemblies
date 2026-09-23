@@ -733,6 +733,15 @@ c $76EC Parse a direction
 
 @ $7733 label=PARSE_VERB
 c $7733 Parse a verb
+  $7733,9 Not straight after AND -- E bit 3 is set for an ordinary command -- or inside a quotation: handle it as the verb
+  $773C,25 Straight after AND: the AND joined two commands. Go back to the checkpoint PARSE_AND saved at $7574 and end this command there, as THEN would -- so TAKE THE MAP AND DROP IT is two commands
+  $7755,8 A second verb without AND: NOT_ALLOWED_HERE, "what ?"
+  $775D,4 Already looked ahead for a direction?
+  $7761,6 Store it, and on to the next word
+  $7767,6 Look ahead, keeping the place...
+  $776D,9 ...past any adverbs...
+  $7776,12 ...for a direction. None: go back, and store just the verb
+  $7782,14 A direction: store the verb, and the direction at offset 2 -- RUN QUICKLY WEST
 
 @ $772F label=PARSE_GO
 c $772F Parse GO or RUN
@@ -740,6 +749,13 @@ c $772F Parse GO or RUN
 
 @ $77D1 label=PARSE_NOUN
 c $77D1 Parse a noun
+  $77D1,6 The noun into PHRASE
+  $77D9,7 In mode 2, after ALL EXCEPT...
+  $77E0,7 ...with no preposition...
+  $77E7,14 ...the noun goes into the frame below, cleared first if need be...
+  $77F5,10 ...as its first phrase, and that frame is marked with $40 in its verb's second byte
+  $77FF,3 Not yet worked out
+  $7802,7 File the phrase; on to the next word unless that failed
 
 @ $77C9 label=PARSE_ADJECTIVE
 c $77C9 Parse an adjective
@@ -748,6 +764,11 @@ c $77C9 Parse an adjective
 
 @ $77A2 label=PARSE_PREPOSITION
 c $77A2 Parse a preposition
+  $77A2,3 Into PHRASE
+  $77A5,7 Another preposition follows? Add that too
+  $77AC,13 An article: allowed once, then dropped
+  $77B9,8 An adjective or a noun: carry on building the phrase
+  $77C1,8 Anything else: put it back, and file the phrase without a noun
 
 @ $7790 label=PARSE_ARTICLE
 c $7790 Parse an article
@@ -950,9 +971,9 @@ D $AAF9 The wine carries this for action 0 in its record, so nothing branches to
 
 @ $757A label=PHRASE
 b $757A The noun phrase being built
-D $757A One byte not yet worked out, then ten bytes laid out as a noun phrase in the command frame is -- two prepositions, the noun, two adjectives, each a word reference low byte first -- which the class handlers fill as the words arrive.
+D $757A A count of prepositions, then ten bytes laid out as a noun phrase in the command frame is -- two prepositions, the noun, two adjectives, each a word reference low byte first -- which the class handlers fill as the words arrive.
 B $757A,1,1
-  $757A,1 Not yet worked out
+  $757A,1 How many prepositions it has so far: ADD_PREPOSITION refuses a third
 B $757B,4,2
   $757B,4 Two prepositions
 B $757F,2,2
@@ -997,3 +1018,25 @@ c $7809 Add the adjective in BC to PHRASE
   $7809,8 Is the first adjective slot free?
   $7811,7 Is the second? Neither: too many adjectives
   $7818,3 Store it, low byte first
+
+@ $7914 label=STORE_VERB
+c $7914 Store the verb in BC at the head of the frame
+D $7914 No second verb is allowed after it, and it goes in at offset 0 through STORE_WORD, which it runs straight into.
+  $7914,4 No second verb; offset 0
+
+@ $781C label=ADD_PREPOSITION
+c $781C Add the preposition in BC to PHRASE
+  $781C,10 Count it; a third preposition is an error
+  $7826,5 Into the first free preposition slot, as ADD_ADJECTIVE does adjectives
+
+@ $782B label=FILE_PHRASE
+c $782B Put PHRASE into the frame's first free noun phrase
+D $782B E's bit 6 says the first, at offset 4, is still empty, and bit 7 the second, at offset 14. A third phrase is an error.
+  $782B,4 The first phrase still empty? It goes there
+  $782F,9 Nor the second: one phrase too many
+  $7838,6 The second, at offset 14
+  $783E,14 Copy the ten bytes of PHRASE into the frame at that offset
+
+@ $7850 label=FILE_FIRST_PHRASE
+c $7850 Put PHRASE into the frame's first noun phrase
+  $7850,8 The first, at offset 4
