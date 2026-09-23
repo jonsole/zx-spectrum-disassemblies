@@ -47,54 +47,66 @@ That is what makes putting a whole command in from outside possible but not quit
 </td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE</td>
 <td class="address-2"><span id="28118"></span>6DD6</td>
 <td class="instruction">LD HL,$0BB8</td>
 <td class="comment-1" rowspan="2">Patience: GET_KEY waits this long before typing WAIT itself</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28121"></span>6DD9</td>
 <td class="instruction">LD ($B714),HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28124"></span>6DDC</td>
 <td class="instruction">LD A,$01</td>
 <td class="comment-1" rowspan="3">Flags read by the printing code while a line is being typed</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28126"></span>6DDE</td>
 <td class="instruction">LD ($B701),A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28129"></span>6DE1</td>
 <td class="instruction">LD ($B6FA),A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28132"></span>6DE4</td>
 <td class="instruction">LD A,$3E</td>
 <td class="comment-1" rowspan="4">The prompt: "&gt; "</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28134"></span>6DE6</td>
-<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+<td class="instruction">CALL <a href="34187.html">PRINT_CHAR</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28137"></span>6DE9</td>
 <td class="instruction">LD A,$20</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28139"></span>6DEB</td>
-<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+<td class="instruction">CALL <a href="34187.html">PRINT_CHAR</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28142"></span>6DEE</td>
 <td class="instruction">LD HL,$6FF9</td>
 <td class="comment-1" rowspan="2">HL = the start of INPUT_LINE, B = room for 128 characters</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28145"></span>6DF1</td>
 <td class="instruction">LD B,$80</td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_0</td>
 <td class="address-2"><span id="28147"></span>6DF3</td>
 <td class="instruction">LD C,$00</td>
 <td class="comment-1" rowspan="1">Nothing typed yet on this line</td>
@@ -104,197 +116,242 @@ That is what makes putting a whole command in from outside possible but not quit
 <span id="28149"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="28282.html">6E7A</a>.
+This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_1</td>
 <td class="address-2"><span id="28149"></span>6DF5</td>
-<td class="instruction">CALL <a href="29257.html">$7249</a></td>
+<td class="instruction">CALL <a href="29257.html">GET_KEY</a></td>
 <td class="comment-1" rowspan="1">Wait for a key</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28152"></span>6DF8</td>
 <td class="instruction">BIT 7,B</td>
 <td class="comment-1" rowspan="4">@ on an empty line: do the last command again</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28154"></span>6DFA</td>
-<td class="instruction">JR Z,$6E01</td>
+<td class="instruction">JR Z,<a href="28118.html#28161">READ_LINE_2</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28156"></span>6DFC</td>
 <td class="instruction">CP $40</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28158"></span>6DFE</td>
-<td class="instruction">JP Z,<a href="28282.html">$6E7A</a></td>
+<td class="instruction">JP Z,<a href="28282.html">REPEAT_LAST</a></td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_2</td>
 <td class="address-2"><span id="28161"></span>6E01</td>
 <td class="instruction">BIT 0,C</td>
 <td class="comment-1" rowspan="3">The first key of a line may be a one-key move (ONE_KEY_MOVES)</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28163"></span>6E03</td>
-<td class="instruction">CALL Z,<a href="28239.html">$6E4F</a></td>
+<td class="instruction">CALL Z,<a href="28239.html">ONE_KEY_MOVES</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28166"></span>6E06</td>
 <td class="instruction">LD C,$01</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28168"></span>6E08</td>
 <td class="instruction">CP $18</td>
 <td class="comment-1" rowspan="4">$18 clears the line and starts again</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28170"></span>6E0A</td>
-<td class="instruction">JR NZ,$6E11</td>
+<td class="instruction">JR NZ,<a href="28118.html#28177">READ_LINE_3</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28172"></span>6E0C</td>
-<td class="instruction">CALL <a href="28299.html">$6E8B</a></td>
+<td class="instruction">CALL <a href="28299.html">RUB_OUT_LINE</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28175"></span>6E0F</td>
-<td class="instruction">JR $6DF3</td>
+<td class="instruction">JR <a href="28118.html#28147">READ_LINE_0</a></td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_3</td>
 <td class="address-2"><span id="28177"></span>6E11</td>
 <td class="instruction">CP $08</td>
 <td class="comment-1" rowspan="9">Backspace, unless the line is empty: step back one</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28179"></span>6E13</td>
-<td class="instruction">JR NZ,$6E22</td>
+<td class="instruction">JR NZ,<a href="28118.html#28194">READ_LINE_4</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28181"></span>6E15</td>
 <td class="instruction">BIT 7,B</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28183"></span>6E17</td>
-<td class="instruction">JR NZ,$6DF5</td>
+<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28185"></span>6E19</td>
 <td class="instruction">LD A,$08</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28187"></span>6E1B</td>
-<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+<td class="instruction">CALL <a href="34187.html">PRINT_CHAR</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28190"></span>6E1E</td>
 <td class="instruction">INC B</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28191"></span>6E1F</td>
 <td class="instruction">DEC HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28192"></span>6E20</td>
-<td class="instruction">JR $6DF5</td>
+<td class="instruction">JR <a href="28118.html#28149">READ_LINE_1</a></td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_4</td>
 <td class="address-2"><span id="28194"></span>6E22</td>
 <td class="instruction">CP $40</td>
 <td class="comment-1" rowspan="12">Letters, quote, space, return, full stop and comma are kept; anything else is ignored</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28196"></span>6E24</td>
-<td class="instruction">JR NC,$6E3A</td>
+<td class="instruction">JR NC,<a href="28118.html#28218">READ_LINE_5</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28198"></span>6E26</td>
 <td class="instruction">CP $22</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28200"></span>6E28</td>
-<td class="instruction">JR Z,$6E3A</td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28202"></span>6E2A</td>
 <td class="instruction">CP $20</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28204"></span>6E2C</td>
-<td class="instruction">JR Z,$6E3A</td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28206"></span>6E2E</td>
 <td class="instruction">CP $0D</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28208"></span>6E30</td>
-<td class="instruction">JR Z,$6E3A</td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28210"></span>6E32</td>
 <td class="instruction">CP $2E</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28212"></span>6E34</td>
-<td class="instruction">JR Z,$6E3A</td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28214"></span>6E36</td>
 <td class="instruction">CP $2C</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28216"></span>6E38</td>
-<td class="instruction">JR NZ,$6DF5</td>
+<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_5</td>
 <td class="address-2"><span id="28218"></span>6E3A</td>
 <td class="instruction">LD ($B704),A</td>
 <td class="comment-1" rowspan="1">Remember the last key</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28221"></span>6E3D</td>
 <td class="instruction">DEC B</td>
 <td class="comment-1" rowspan="7">If there is room, echo it and put it in the line</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28222"></span>6E3E</td>
 <td class="instruction">INC B</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28223"></span>6E3F</td>
-<td class="instruction">JR Z,$6E47</td>
+<td class="instruction">JR Z,<a href="28118.html#28231">READ_LINE_6</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28225"></span>6E41</td>
-<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+<td class="instruction">CALL <a href="34187.html">PRINT_CHAR</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28228"></span>6E44</td>
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28229"></span>6E45</td>
 <td class="instruction">INC HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28230"></span>6E46</td>
 <td class="instruction">DEC B</td>
 </tr>
 <tr>
+<td class="asm-label">READ_LINE_6</td>
 <td class="address-2"><span id="28231"></span>6E47</td>
 <td class="instruction">CP $0D</td>
 <td class="comment-1" rowspan="4">Until return: then NZ, a line has been read</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28233"></span>6E49</td>
-<td class="instruction">JP NZ,$6DF5</td>
+<td class="instruction">JP NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28236"></span>6E4C</td>
 <td class="instruction">OR $01</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="28238"></span>6E4E</td>
 <td class="instruction">RET</td>
 </tr>

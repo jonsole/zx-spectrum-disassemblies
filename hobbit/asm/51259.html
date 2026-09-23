@@ -29,287 +29,539 @@ Next: <a href="51361.html">C8A1</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What horrible goblin, mean goblin, disgusting goblin does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">HORRIBLE_GOBLIN_SCRIPTS</td>
 <td class="address-1"><span id="51259"></span>C83B</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: HORRIBLE_GOBLIN_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51260"></span>C83C</td>
-<td class="instruction">DEFW $C895</td>
+<td class="instruction">DEFW <a href="51259.html#51349">HORRIBLE_GOBLIN_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51262"></span>C83E</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, GOBLINS_ON_ATTACK_WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51263"></span>C83F</td>
-<td class="instruction">DEFW $C89E</td>
+<td class="instruction">DEFW <a href="51259.html#51358">GOBLINS_ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51265"></span>C841</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51266"></span>
+<div class="comments">
+<div class="paragraph">
+NASTY_GOBLIN_A -- An ordinary script: OPEN: small insignificant crack, then on as SCRIPT_C846.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">NASTY_GOBLIN_A</td>
 <td class="address-1"><span id="51266"></span>C842</td>
 <td class="instruction">DEFB $02,$10,$06,$FF</td>
 <td class="comment-1" rowspan="1">OPEN: small insignificant crack</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51270"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C846 -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C846.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C846</td>
 <td class="address-1"><span id="51270"></span>C846</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51272"></span>C848</td>
-<td class="instruction">DEFW $C84D</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51277">C84D</a></td>
+<td class="instruction">DEFW <a href="51259.html#51277">SCRIPT_C84D</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51277">SCRIPT_C84D</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51274"></span>C84A</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51270">C846</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51270">SCRIPT_C846</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51275"></span>C84B</td>
-<td class="instruction">DEFW $C846</td>
+<td class="instruction">DEFW <a href="51259.html#51270">SCRIPT_C846</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51277"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C84D -- Where a jump or a refusal goes on: GO UP, then on as SCRIPT_C84F.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C84D</td>
 <td class="address-1"><span id="51277"></span>C84D</td>
 <td class="instruction">DEFB $04,$09</td>
 <td class="comment-1" rowspan="1">GO UP</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51279"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C84F -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C84F.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C84F</td>
 <td class="address-1"><span id="51279"></span>C84F</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51281"></span>C851</td>
-<td class="instruction">DEFW $C856</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51286">C856</a></td>
+<td class="instruction">DEFW <a href="51259.html#51286">SCRIPT_C856</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51286">SCRIPT_C856</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51283"></span>C853</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51279">C84F</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51279">SCRIPT_C84F</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51284"></span>C854</td>
-<td class="instruction">DEFW $C84F</td>
+<td class="instruction">DEFW <a href="51259.html#51279">SCRIPT_C84F</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51286"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C856 -- Where a jump or a refusal goes on: GO DOWN, then on as SCRIPT_C858.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C856</td>
 <td class="address-1"><span id="51286"></span>C856</td>
 <td class="instruction">DEFB $04,$0A</td>
 <td class="comment-1" rowspan="1">GO DOWN</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51288"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C858 -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C858.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C858</td>
 <td class="address-1"><span id="51288"></span>C858</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51290"></span>C85A</td>
-<td class="instruction">DEFW $C85F</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51295">C85F</a></td>
+<td class="instruction">DEFW <a href="51259.html#51295">SCRIPT_C85F</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51295">SCRIPT_C85F</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51292"></span>C85C</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51288">C858</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51288">SCRIPT_C858</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51293"></span>C85D</td>
-<td class="instruction">DEFW $C858</td>
+<td class="instruction">DEFW <a href="51259.html#51288">SCRIPT_C858</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51295"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C85F -- Where a jump or a refusal goes on: CLOSE: small insignificant crack, GO SOUTH, then on as SCRIPT_C865.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C85F</td>
 <td class="address-1"><span id="51295"></span>C85F</td>
 <td class="instruction">DEFB $02,$0C,$06,$FF</td>
 <td class="comment-1" rowspan="1">CLOSE: small insignificant crack</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51299"></span>C863</td>
 <td class="instruction">DEFB $04,$02</td>
 <td class="comment-1" rowspan="1">GO SOUTH</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51301"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C865 -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C865.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C865</td>
 <td class="address-1"><span id="51301"></span>C865</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51303"></span>C867</td>
-<td class="instruction">DEFW $C86C</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51308">C86C</a></td>
+<td class="instruction">DEFW <a href="51259.html#51308">SCRIPT_C86C</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51308">SCRIPT_C86C</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51305"></span>C869</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51301">C865</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51301">SCRIPT_C865</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51306"></span>C86A</td>
-<td class="instruction">DEFW $C865</td>
+<td class="instruction">DEFW <a href="51259.html#51301">SCRIPT_C865</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51308"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C86C -- Where a jump or a refusal goes on: GO NORTH, Go to NASTY_GOBLIN_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C86C</td>
 <td class="address-1"><span id="51308"></span>C86C</td>
 <td class="instruction">DEFB $04,$01</td>
 <td class="comment-1" rowspan="1">GO NORTH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51310"></span>C86E</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51266">C842</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51266">NASTY_GOBLIN_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51311"></span>C86F</td>
-<td class="instruction">DEFW $C842</td>
+<td class="instruction">DEFW <a href="51259.html#51266">NASTY_GOBLIN_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51313"></span>
+<div class="comments">
+<div class="paragraph">
+VICIOUS_GOBLIN_A -- An ordinary script: GO NORTHWEST, then on as SCRIPT_C873.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">VICIOUS_GOBLIN_A</td>
 <td class="address-1"><span id="51313"></span>C871</td>
 <td class="instruction">DEFB $04,$06</td>
 <td class="comment-1" rowspan="1">GO NORTHWEST</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51315"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C873 -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C873.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C873</td>
 <td class="address-1"><span id="51315"></span>C873</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51317"></span>C875</td>
-<td class="instruction">DEFW $C87A</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51322">C87A</a></td>
+<td class="instruction">DEFW <a href="51259.html#51322">SCRIPT_C87A</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51322">SCRIPT_C87A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51319"></span>C877</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51315">C873</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51315">SCRIPT_C873</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51320"></span>C878</td>
-<td class="instruction">DEFW $C873</td>
+<td class="instruction">DEFW <a href="51259.html#51315">SCRIPT_C873</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51322"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C87A -- Where a jump or a refusal goes on: GO NORTH, then on as SCRIPT_C87C.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C87A</td>
 <td class="address-1"><span id="51322"></span>C87A</td>
 <td class="instruction">DEFB $04,$01</td>
 <td class="comment-1" rowspan="1">GO NORTH</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51324"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C87C -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C87C.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C87C</td>
 <td class="address-1"><span id="51324"></span>C87C</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51326"></span>C87E</td>
-<td class="instruction">DEFW $C883</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51331">C883</a></td>
+<td class="instruction">DEFW <a href="51259.html#51331">SCRIPT_C883</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51331">SCRIPT_C883</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51328"></span>C880</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51324">C87C</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51324">SCRIPT_C87C</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51329"></span>C881</td>
-<td class="instruction">DEFW $C87C</td>
+<td class="instruction">DEFW <a href="51259.html#51324">SCRIPT_C87C</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51331"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C883 -- Where a jump or a refusal goes on: GO SOUTHWEST, then on as SCRIPT_C885.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C883</td>
 <td class="address-1"><span id="51331"></span>C883</td>
 <td class="instruction">DEFB $04,$08</td>
 <td class="comment-1" rowspan="1">GO SOUTHWEST</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51333"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C885 -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C885.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C885</td>
 <td class="address-1"><span id="51333"></span>C885</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51335"></span>C887</td>
-<td class="instruction">DEFW $C88C</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51340">C88C</a></td>
+<td class="instruction">DEFW <a href="51259.html#51340">SCRIPT_C88C</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51340">SCRIPT_C88C</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51337"></span>C889</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51333">C885</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51333">SCRIPT_C885</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51338"></span>C88A</td>
-<td class="instruction">DEFW $C885</td>
+<td class="instruction">DEFW <a href="51259.html#51333">SCRIPT_C885</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51340"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C88C -- Where a jump or a refusal goes on: GO UP, then on as SCRIPT_C88E.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C88C</td>
 <td class="address-1"><span id="51340"></span>C88C</td>
 <td class="instruction">DEFB $04,$09</td>
 <td class="comment-1" rowspan="1">GO UP</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51342"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C88E -- Where a jump or a refusal goes on: CAPTURE, Go to SCRIPT_C88E.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C88E</td>
 <td class="address-1"><span id="51342"></span>C88E</td>
 <td class="instruction">DEFB $14,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51344"></span>C890</td>
-<td class="instruction">DEFW $C871</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51313">C871</a></td>
+<td class="instruction">DEFW <a href="51259.html#51313">VICIOUS_GOBLIN_A</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51259.html#51313">VICIOUS_GOBLIN_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51346"></span>C892</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51342">C88E</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51342">SCRIPT_C88E</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51347"></span>C893</td>
-<td class="instruction">DEFW $C88E</td>
+<td class="instruction">DEFW <a href="51259.html#51342">SCRIPT_C88E</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51349"></span>
+<div class="comments">
+<div class="paragraph">
+HORRIBLE_GOBLIN_A -- An ordinary script: RUN, ATTACK WITH, CAPTURE, Go to HORRIBLE_GOBLIN_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HORRIBLE_GOBLIN_A</td>
 <td class="address-1"><span id="51349"></span>C895</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51351"></span>C897</td>
 <td class="instruction">DEFB $04,$0F</td>
 <td class="comment-1" rowspan="1">ATTACK WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51353"></span>C899</td>
 <td class="instruction">DEFB $04,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51355"></span>C89B</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51259.html#51349">C895</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51259.html#51349">HORRIBLE_GOBLIN_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51356"></span>C89C</td>
-<td class="instruction">DEFW $C895</td>
+<td class="instruction">DEFW <a href="51259.html#51349">HORRIBLE_GOBLIN_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51358"></span>
+<div class="comments">
+<div class="paragraph">
+GOBLINS_ON_ATTACK_WITH -- The reaction to ATTACK WITH: CAPTURE, Back to its first script.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GOBLINS_ON_ATTACK_WITH</td>
 <td class="address-1"><span id="51358"></span>C89E</td>
 <td class="instruction">DEFB $04,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51360"></span>C8A0</td>
 <td class="instruction">DEFB $07</td>
 <td class="comment-1" rowspan="1">Back to its first script</td>

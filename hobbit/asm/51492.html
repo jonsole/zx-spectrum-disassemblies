@@ -29,114 +29,181 @@ Next: <a href="51526.html">C946</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What vicious warg does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">VICIOUS_WARG_SCRIPTS</td>
 <td class="address-1"><span id="51492"></span>C924</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: VICIOUS_WARG_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51493"></span>C925</td>
-<td class="instruction">DEFW $C928</td>
+<td class="instruction">DEFW <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51495"></span>C927</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51496"></span>
+<div class="comments">
+<div class="paragraph">
+VICIOUS_WARG_A -- An ordinary script: ATTACK WITH, Go to VICIOUS_WARG_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">VICIOUS_WARG_A</td>
 <td class="address-1"><span id="51496"></span>C928</td>
 <td class="instruction">DEFB $14,$0F</td>
 <td class="comment-1" rowspan="1">ATTACK WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51498"></span>C92A</td>
-<td class="instruction">DEFW $C92F</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51503">C92F</a></td>
+<td class="instruction">DEFW <a href="51492.html#51503">SCRIPT_C92F</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51503">SCRIPT_C92F</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51500"></span>C92C</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">C928</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51501"></span>C92D</td>
-<td class="instruction">DEFW $C928</td>
+<td class="instruction">DEFW <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51503"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C92F -- Where a jump or a refusal goes on: FOLLOW, WARG_HOWLS, Go to VICIOUS_WARG_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C92F</td>
 <td class="address-1"><span id="51503"></span>C92F</td>
 <td class="instruction">DEFB $14,$27</td>
 <td class="comment-1" rowspan="1">FOLLOW</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51505"></span>C931</td>
-<td class="instruction">DEFW $C93A</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51514">C93A</a></td>
+<td class="instruction">DEFW <a href="51492.html#51514">SCRIPT_C93A</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51514">SCRIPT_C93A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51507"></span>C933</td>
 <td class="instruction">DEFB $03</td>
-<td class="comment-1" rowspan="1">Call <a href="42449.html">A5D1</a></td>
+<td class="comment-1" rowspan="1">Call <a href="42449.html">WARG_HOWLS</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51508"></span>C934</td>
-<td class="instruction">DEFW <a href="42449.html">$A5D1</a></td>
+<td class="instruction">DEFW <a href="42449.html">WARG_HOWLS</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51510"></span>C936</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51511"></span>C937</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">C928</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51512"></span>C938</td>
-<td class="instruction">DEFW $C928</td>
+<td class="instruction">DEFW <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51514"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C93A -- Where a jump or a refusal goes on: RUN, Go to VICIOUS_WARG_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C93A</td>
 <td class="address-1"><span id="51514"></span>C93A</td>
 <td class="instruction">DEFB $14,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51516"></span>C93C</td>
-<td class="instruction">DEFW $C941</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51521">C941</a></td>
+<td class="instruction">DEFW <a href="51492.html#51521">SCRIPT_C941</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51492.html#51521">SCRIPT_C941</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51518"></span>C93E</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">C928</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51519"></span>C93F</td>
-<td class="instruction">DEFW $C928</td>
+<td class="instruction">DEFW <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51521"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C941 -- Where a jump or a refusal goes on: Pause: nothing this turn, Go to VICIOUS_WARG_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C941</td>
 <td class="address-1"><span id="51521"></span>C941</td>
 <td class="instruction">DEFB $04,$FF</td>
 <td class="comment-1" rowspan="1">Pause: nothing this turn</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51523"></span>C943</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">C928</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51524"></span>C944</td>
-<td class="instruction">DEFW $C928</td>
+<td class="instruction">DEFW <a href="51492.html#51496">VICIOUS_WARG_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

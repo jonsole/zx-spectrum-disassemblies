@@ -29,84 +29,125 @@ Next: <a href="51696.html">C9F0</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What bard does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">BARD_SCRIPTS</td>
 <td class="address-1"><span id="51671"></span>C9D7</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: BARD_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51672"></span>C9D8</td>
-<td class="instruction">DEFW $C9DE</td>
+<td class="instruction">DEFW <a href="51671.html#51678">BARD_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51674"></span>C9DA</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, BARD_ON_ATTACK_WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51675"></span>C9DB</td>
-<td class="instruction">DEFW $C9E9</td>
+<td class="instruction">DEFW <a href="51671.html#51689">BARD_ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51677"></span>C9DD</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
-<td class="address-1"><span id="51678"></span>C9DE</td>
-<td class="instruction">DEFB $43</td>
-<td class="comment-1" rowspan="1">Call <a href="43179.html">A8AB</a> (an order cannot interrupt it)</td>
+<td class="routine-comment" colspan="5">
+<span id="51678"></span>
+<div class="comments">
+<div class="paragraph">
+BARD_A -- An ordinary script: BARD_TAKES_ORDER, TAKE: wooden chest, Go to BARD_A.
+</div>
+</div>
+</td>
 </tr>
 <tr>
+<td class="asm-label">BARD_A</td>
+<td class="address-1"><span id="51678"></span>C9DE</td>
+<td class="instruction">DEFB $43</td>
+<td class="comment-1" rowspan="1">Call <a href="43179.html">BARD_TAKES_ORDER</a> (an order cannot interrupt it)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51679"></span>C9DF</td>
-<td class="instruction">DEFW <a href="43179.html">$A8AB</a></td>
+<td class="instruction">DEFW <a href="43179.html">BARD_TAKES_ORDER</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51681"></span>C9E1</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51682"></span>C9E2</td>
 <td class="instruction">DEFB $42,$13,$25,$FF</td>
 <td class="comment-1" rowspan="1">TAKE: wooden chest (an order cannot interrupt it) -- rewritten by BARD_TAKES_ORDER with each order Bard is given</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51686"></span>C9E6</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51671.html#51678">C9DE</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51671.html#51678">BARD_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51687"></span>C9E7</td>
-<td class="instruction">DEFW $C9DE</td>
+<td class="instruction">DEFW <a href="51671.html#51678">BARD_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51689"></span>
+<div class="comments">
+<div class="paragraph">
+BARD_ON_ATTACK_WITH -- The reaction to ATTACK WITH: SHOOT, Go to BARD_ON_ATTACK_WITH.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BARD_ON_ATTACK_WITH</td>
 <td class="address-1"><span id="51689"></span>C9E9</td>
 <td class="instruction">DEFB $54,$3A</td>
 <td class="comment-1" rowspan="1">SHOOT (an order cannot interrupt it)</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51691"></span>C9EB</td>
-<td class="instruction">DEFW <a href="51806.html">$CA5E</a></td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51806.html">CA5E</a></td>
+<td class="instruction">DEFW <a href="51806.html">ON_ATTACK_WITH</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51806.html">ON_ATTACK_WITH</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51693"></span>C9ED</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51671.html#51689">C9E9</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51671.html#51689">BARD_ON_ATTACK_WITH</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51694"></span>C9EE</td>
-<td class="instruction">DEFW $C9E9</td>
+<td class="instruction">DEFW <a href="51671.html#51689">BARD_ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

@@ -29,32 +29,43 @@ Next: <a href="51259.html">C83B</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What vicious goblin does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">VICIOUS_GOBLIN_SCRIPTS</td>
 <td class="address-1"><span id="51252"></span>C834</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: VICIOUS_GOBLIN_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51253"></span>C835</td>
-<td class="instruction">DEFW <a href="51259.html#51313">$C871</a></td>
+<td class="instruction">DEFW <a href="51259.html#51313">VICIOUS_GOBLIN_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51255"></span>C837</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, GOBLINS_ON_ATTACK_WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51256"></span>C838</td>
-<td class="instruction">DEFW <a href="51259.html#51358">$C89E</a></td>
+<td class="instruction">DEFW <a href="51259.html#51358">GOBLINS_ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51258"></span>C83A</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>

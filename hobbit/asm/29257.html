@@ -47,158 +47,195 @@ The keyboard scan reports only changes. A driver that stops the game with ENTER 
 </td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY</td>
 <td class="address-2"><span id="29257"></span>7249</td>
 <td class="instruction">PUSH HL</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29258"></span>724A</td>
 <td class="instruction">LD HL,($B714)</td>
 <td class="comment-1" rowspan="8">Scan until a new key, or until the patience in $B714 runs out</td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY_0</td>
 <td class="address-2"><span id="29261"></span>724D</td>
-<td class="instruction">CALL <a href="35731.html">$8B93</a></td>
+<td class="instruction">CALL <a href="35731.html">SCAN_KEYBOARD</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29264"></span>7250</td>
 <td class="instruction">AND A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29265"></span>7251</td>
-<td class="instruction">JR NZ,$7273</td>
+<td class="instruction">JR NZ,<a href="29257.html#29299">GET_KEY_2</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29267"></span>7253</td>
 <td class="instruction">DEC HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29268"></span>7254</td>
 <td class="instruction">LD A,H</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29269"></span>7255</td>
 <td class="instruction">OR L</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29270"></span>7256</td>
-<td class="instruction">JR NZ,$724D</td>
+<td class="instruction">JR NZ,<a href="29257.html#29261">GET_KEY_0</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29272"></span>7258</td>
 <td class="instruction">POP HL</td>
 <td class="comment-1" rowspan="3">Out of patience: clear the line...</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29273"></span>7259</td>
 <td class="instruction">PUSH HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29274"></span>725A</td>
-<td class="instruction">CALL <a href="28299.html">$6E8B</a></td>
+<td class="instruction">CALL <a href="28299.html">RUB_OUT_LINE</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29277"></span>725D</td>
 <td class="instruction">LD DE,$7291</td>
 <td class="comment-1" rowspan="8">...type WAIT into it, printing each letter as a player would...</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29280"></span>7260</td>
 <td class="instruction">LD B,$04</td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY_1</td>
 <td class="address-2"><span id="29282"></span>7262</td>
 <td class="instruction">LD A,(DE)</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29283"></span>7263</td>
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29284"></span>7264</td>
 <td class="instruction">INC HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29285"></span>7265</td>
 <td class="instruction">INC DE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29286"></span>7266</td>
-<td class="instruction">CALL <a href="34187.html">$858B</a></td>
+<td class="instruction">CALL <a href="34187.html">PRINT_CHAR</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29289"></span>7269</td>
-<td class="instruction">DJNZ $7262</td>
+<td class="instruction">DJNZ <a href="29257.html#29282">GET_KEY_1</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29291"></span>726B</td>
 <td class="instruction">EX (SP),HL</td>
 <td class="comment-1" rowspan="4">...and return as if ENTER had been pressed after it</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29292"></span>726C</td>
 <td class="instruction">LD B,$7C</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29294"></span>726E</td>
 <td class="instruction">LD A,$0D</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29296"></span>7270</td>
 <td class="instruction">LD HL,$FE0C</td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY_2</td>
 <td class="address-2"><span id="29299"></span>7273</td>
 <td class="instruction">PUSH AF</td>
 <td class="comment-1" rowspan="10">The next wait is what was left of this one plus 500, at most 3000; after a timeout it is 3000 again</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29300"></span>7274</td>
 <td class="instruction">XOR A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29301"></span>7275</td>
 <td class="instruction">LD DE,$01F4</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29304"></span>7278</td>
 <td class="instruction">ADC HL,DE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29306"></span>727A</td>
 <td class="instruction">LD DE,$0BB8</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29309"></span>727D</td>
-<td class="instruction">JR C,$7284</td>
+<td class="instruction">JR C,<a href="29257.html#29316">GET_KEY_3</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29311"></span>727F</td>
-<td class="instruction">CALL <a href="29323.html">$728B</a></td>
+<td class="instruction">CALL <a href="29323.html">COMPARE_HL_DE</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29314"></span>7282</td>
-<td class="instruction">JR C,$7285</td>
+<td class="instruction">JR C,<a href="29257.html#29317">GET_KEY_4</a></td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY_3</td>
 <td class="address-2"><span id="29316"></span>7284</td>
 <td class="instruction">EX DE,HL</td>
 </tr>
 <tr>
+<td class="asm-label">GET_KEY_4</td>
 <td class="address-2"><span id="29317"></span>7285</td>
 <td class="instruction">LD ($B714),HL</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29320"></span>7288</td>
 <td class="instruction">POP AF</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29321"></span>7289</td>
 <td class="instruction">POP HL</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="29322"></span>728A</td>
 <td class="instruction">RET</td>
 <td class="comment-1" rowspan="1"></td>

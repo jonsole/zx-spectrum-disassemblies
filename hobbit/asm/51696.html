@@ -29,194 +29,307 @@ Next: <a href="51764.html">CA34</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What gollum does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">GOLLUM_SCRIPTS</td>
 <td class="address-1"><span id="51696"></span>C9F0</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GOLLUM_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51697"></span>C9F1</td>
-<td class="instruction">DEFW $C9F7</td>
+<td class="instruction">DEFW <a href="51696.html#51703">GOLLUM_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51699"></span>C9F3</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, GOLLUM_ON_ATTACK_WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51700"></span>C9F4</td>
-<td class="instruction">DEFW $CA2B</td>
+<td class="instruction">DEFW <a href="51696.html#51755">GOLLUM_ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51702"></span>C9F6</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
-<td class="address-1"><span id="51703"></span>C9F7</td>
-<td class="instruction">DEFB $13</td>
-<td class="comment-1" rowspan="1">Call <a href="43218.html">A8D2</a></td>
+<td class="routine-comment" colspan="5">
+<span id="51703"></span>
+<div class="comments">
+<div class="paragraph">
+GOLLUM_A -- An ordinary script: GOLLUM_ASKS, GOLLUM_HEARS_ANSWER, DROP: valuable golden ring, GO NORTH, then on as SCRIPT_CA09.
+</div>
+</div>
+</td>
 </tr>
 <tr>
+<td class="asm-label">GOLLUM_A</td>
+<td class="address-1"><span id="51703"></span>C9F7</td>
+<td class="instruction">DEFB $13</td>
+<td class="comment-1" rowspan="1">Call <a href="43218.html">GOLLUM_ASKS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51704"></span>C9F8</td>
-<td class="instruction">DEFW <a href="43218.html">$A8D2</a></td>
+<td class="instruction">DEFW <a href="43218.html">GOLLUM_ASKS</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51706"></span>C9FA</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51707"></span>C9FB</td>
-<td class="instruction">DEFW $CA10</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51728">CA10</a></td>
+<td class="instruction">DEFW <a href="51696.html#51728">SCRIPT_CA10</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51728">SCRIPT_CA10</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51709"></span>C9FD</td>
 <td class="instruction">DEFB $43</td>
-<td class="comment-1" rowspan="1">Call <a href="43254.html">A8F6</a> (an order cannot interrupt it)</td>
+<td class="comment-1" rowspan="1">Call <a href="43254.html">GOLLUM_HEARS_ANSWER</a> (an order cannot interrupt it)</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51710"></span>C9FE</td>
-<td class="instruction">DEFW <a href="43254.html">$A8F6</a></td>
+<td class="instruction">DEFW <a href="43254.html">GOLLUM_HEARS_ANSWER</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51712"></span>CA00</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51713"></span>CA01</td>
 <td class="instruction">DEFB $02,$0D,$10,$FF</td>
 <td class="comment-1" rowspan="1">DROP: valuable golden ring</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51717"></span>CA05</td>
 <td class="instruction">DEFB $14,$01</td>
 <td class="comment-1" rowspan="1">GO NORTH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51719"></span>CA07</td>
-<td class="instruction">DEFW $CA21</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51745">CA21</a></td>
+<td class="instruction">DEFW <a href="51696.html#51745">SCRIPT_CA21</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51745">SCRIPT_CA21</a></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51721"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_CA09 -- Where a jump or a refusal goes on: TAKE: valuable golden ring, Go to GOLLUM_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_CA09</td>
 <td class="address-1"><span id="51721"></span>CA09</td>
 <td class="instruction">DEFB $02,$13,$10,$FF</td>
 <td class="comment-1" rowspan="1">TAKE: valuable golden ring</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51725"></span>CA0D</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">C9F7</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">GOLLUM_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51726"></span>CA0E</td>
-<td class="instruction">DEFW $C9F7</td>
+<td class="instruction">DEFW <a href="51696.html#51703">GOLLUM_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51728"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_CA10 -- Where a jump or a refusal goes on: GO NORTH, then on as SCRIPT_CA14.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_CA10</td>
 <td class="address-1"><span id="51728"></span>CA10</td>
 <td class="instruction">DEFB $14,$01</td>
 <td class="comment-1" rowspan="1">GO NORTH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51730"></span>CA12</td>
-<td class="instruction">DEFW $CA26</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51750">CA26</a></td>
+<td class="instruction">DEFW <a href="51696.html#51750">SCRIPT_CA26</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51750">SCRIPT_CA26</a></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51732"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_CA14 -- Where a jump or a refusal goes on: GOLLUM_POCKETS, TAKE: valuable golden ring, Go to GOLLUM_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_CA14</td>
 <td class="address-1"><span id="51732"></span>CA14</td>
 <td class="instruction">DEFB $13</td>
-<td class="comment-1" rowspan="1">Call <a href="43302.html">A926</a></td>
+<td class="comment-1" rowspan="1">Call <a href="43302.html">GOLLUM_POCKETS</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51733"></span>CA15</td>
-<td class="instruction">DEFW <a href="43302.html">$A926</a></td>
+<td class="instruction">DEFW <a href="43302.html">GOLLUM_POCKETS</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51735"></span>CA17</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51736"></span>CA18</td>
-<td class="instruction">DEFW $C9F7</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51703">C9F7</a></td>
+<td class="instruction">DEFW <a href="51696.html#51703">GOLLUM_A</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51696.html#51703">GOLLUM_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51738"></span>CA1A</td>
 <td class="instruction">DEFB $02,$13,$10,$FF</td>
 <td class="comment-1" rowspan="1">TAKE: valuable golden ring</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51742"></span>CA1E</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">C9F7</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">GOLLUM_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51743"></span>CA1F</td>
-<td class="instruction">DEFW $C9F7</td>
+<td class="instruction">DEFW <a href="51696.html#51703">GOLLUM_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51745"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_CA21 -- Where a jump or a refusal goes on: GO SOUTHWEST, Go to SCRIPT_CA09.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_CA21</td>
 <td class="address-1"><span id="51745"></span>CA21</td>
 <td class="instruction">DEFB $04,$08</td>
 <td class="comment-1" rowspan="1">GO SOUTHWEST</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51747"></span>CA23</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51696.html#51721">CA09</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51696.html#51721">SCRIPT_CA09</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51748"></span>CA24</td>
-<td class="instruction">DEFW $CA09</td>
+<td class="instruction">DEFW <a href="51696.html#51721">SCRIPT_CA09</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51750"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_CA26 -- Where a jump or a refusal goes on: GO SOUTHWEST, Go to SCRIPT_CA14.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_CA26</td>
 <td class="address-1"><span id="51750"></span>CA26</td>
 <td class="instruction">DEFB $04,$08</td>
 <td class="comment-1" rowspan="1">GO SOUTHWEST</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51752"></span>CA28</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51696.html#51732">CA14</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51696.html#51732">SCRIPT_CA14</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51753"></span>CA29</td>
-<td class="instruction">DEFW $CA14</td>
+<td class="instruction">DEFW <a href="51696.html#51732">SCRIPT_CA14</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51755"></span>
+<div class="comments">
+<div class="paragraph">
+GOLLUM_ON_ATTACK_WITH -- The reaction to ATTACK WITH: WEAR: valuable golden ring, RUN, Go to GOLLUM_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GOLLUM_ON_ATTACK_WITH</td>
 <td class="address-1"><span id="51755"></span>CA2B</td>
 <td class="instruction">DEFB $02,$28,$10,$FF</td>
 <td class="comment-1" rowspan="1">WEAR: valuable golden ring</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51759"></span>CA2F</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51761"></span>CA31</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">C9F7</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51696.html#51703">GOLLUM_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51762"></span>CA32</td>
-<td class="instruction">DEFW $C9F7</td>
+<td class="instruction">DEFW <a href="51696.html#51703">GOLLUM_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

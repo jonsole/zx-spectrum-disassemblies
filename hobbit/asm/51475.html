@@ -29,64 +29,91 @@ Next: <a href="51492.html">C924</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What wood elf does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">WOOD_ELF_SCRIPTS</td>
 <td class="address-1"><span id="51475"></span>C913</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: WOOD_ELF_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51476"></span>C914</td>
-<td class="instruction">DEFW $C91D</td>
+<td class="instruction">DEFW <a href="51475.html#51485">WOOD_ELF_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51478"></span>C916</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, WOOD_ELF_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51479"></span>C917</td>
-<td class="instruction">DEFW $C91D</td>
+<td class="instruction">DEFW <a href="51475.html#51485">WOOD_ELF_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51481"></span>C919</td>
 <td class="instruction">DEFB $1D</td>
-<td class="comment-1" rowspan="1">On GIVE TO</td>
+<td class="comment-1" rowspan="1">Key $1D, GIVE TO: its reaction, ON_GIVE_TO</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51482"></span>C91A</td>
-<td class="instruction">DEFW <a href="51806.html#51839">$CA7F</a></td>
+<td class="instruction">DEFW <a href="51806.html#51839">ON_GIVE_TO</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51484"></span>C91C</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51485"></span>
+<div class="comments">
+<div class="paragraph">
+WOOD_ELF_A -- An ordinary script: CAPTURE, RUN, Go to WOOD_ELF_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">WOOD_ELF_A</td>
 <td class="address-1"><span id="51485"></span>C91D</td>
 <td class="instruction">DEFB $04,$30</td>
 <td class="comment-1" rowspan="1">CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51487"></span>C91F</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51489"></span>C921</td>
 <td class="instruction">DEFB $0E</td>
-<td class="comment-1" rowspan="1">Go to <a href="51475.html#51485">C91D</a></td>
+<td class="comment-1" rowspan="1">Go to <a href="51475.html#51485">WOOD_ELF_A</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51490"></span>C922</td>
-<td class="instruction">DEFW $C91D</td>
+<td class="instruction">DEFW <a href="51475.html#51485">WOOD_ELF_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

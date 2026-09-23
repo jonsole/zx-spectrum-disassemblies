@@ -29,192 +29,295 @@ Next: <a href="51426.html">C8E2</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Its script table first -- key 0 for an ordinary script, an action code for a reaction -- then the scripts.
+What gandalf does, turn by turn. CHARACTERS_ACT runs one step of a character's script each turn it can, and a step is an action the character tries as if it had typed it: RUN, TAKE, GIVE TO. A step that names nothing acts on whatever fits.
+</div>
+<div class="paragraph">
+First comes the script table: one entry per script, a key and the script's address. Key 0 is an ordinary script -- the ones a character wanders between, picked at random by a 'switch at random' step. Any other key is an action code, and that script is the character's reaction when that is done to it: attacked, given something, captured.
+</div>
+<div class="paragraph">
+Then the scripts, one step to a line. A step's first byte says what it is: its low four bits $00-$03 an action with objects (or, $01 and $03, a routine to call), $04 an action with none, $0E go to, $0F switch at random, $0C switch to a reaction. $10 added means an address follows, where the script goes on if the step is refused; $20 that the character's part is over once it works; $40 that an order from the player cannot interrupt it. So $14 is an action with no objects, with somewhere to go if it is refused. The Characters page has every script written out.
 </div>
 </div>
 </td>
 </tr>
 <tr>
+<td class="asm-label">GANDALF_SCRIPTS</td>
 <td class="address-1"><span id="51361"></span>C8A1</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GANDALF_A</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51362"></span>C8A2</td>
-<td class="instruction">DEFW $C8C2</td>
+<td class="instruction">DEFW <a href="51361.html#51394">GANDALF_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51364"></span>C8A4</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GANDALF_B</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51365"></span>C8A5</td>
-<td class="instruction">DEFW $C8D0</td>
+<td class="instruction">DEFW <a href="51361.html#51408">GANDALF_B</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51367"></span>C8A7</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GANDALF_C</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51368"></span>C8A8</td>
-<td class="instruction">DEFW $C8D4</td>
+<td class="instruction">DEFW <a href="51361.html#51412">GANDALF_C</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51370"></span>C8AA</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GANDALF_D</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51371"></span>C8AB</td>
-<td class="instruction">DEFW $C8DA</td>
+<td class="instruction">DEFW <a href="51361.html#51418">GANDALF_D</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51373"></span>C8AD</td>
 <td class="instruction">DEFB $00</td>
-<td class="comment-1" rowspan="1">An ordinary script</td>
+<td class="comment-1" rowspan="1">Key 0, an ordinary script: GANDALF_E</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51374"></span>C8AE</td>
-<td class="instruction">DEFW $C8DE</td>
+<td class="instruction">DEFW <a href="51361.html#51422">GANDALF_E</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51376"></span>C8B0</td>
 <td class="instruction">DEFB $1D</td>
-<td class="comment-1" rowspan="1">On GIVE TO</td>
+<td class="comment-1" rowspan="1">Key $1D, GIVE TO: its reaction, ON_GIVE_TO</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51377"></span>C8B1</td>
-<td class="instruction">DEFW <a href="51806.html#51839">$CA7F</a></td>
+<td class="instruction">DEFW <a href="51806.html#51839">ON_GIVE_TO</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51379"></span>C8B3</td>
 <td class="instruction">DEFB $30</td>
-<td class="comment-1" rowspan="1">On CAPTURE</td>
+<td class="comment-1" rowspan="1">Key $30, CAPTURE: its reaction, GANDALF_ON_CAPTURE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51380"></span>C8B4</td>
-<td class="instruction">DEFW <a href="51806.html#51827">$CA73</a></td>
+<td class="instruction">DEFW <a href="51806.html#51827">GANDALF_ON_CAPTURE</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51382"></span>C8B6</td>
 <td class="instruction">DEFB $0F</td>
-<td class="comment-1" rowspan="1">On ATTACK WITH</td>
+<td class="comment-1" rowspan="1">Key $0F, ATTACK WITH: its reaction, ON_ATTACK_WITH</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51383"></span>C8B7</td>
-<td class="instruction">DEFW <a href="51806.html">$CA5E</a></td>
+<td class="instruction">DEFW <a href="51806.html">ON_ATTACK_WITH</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51385"></span>C8B9</td>
 <td class="instruction">DEFB $FF</td>
 <td class="comment-1" rowspan="1">End of the table</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51386"></span>
+<div class="comments">
+<div class="paragraph">
+SCRIPT_C8BA -- Where the script starts: GIVE TO: curious map, the player, OPEN: round green door, then on as GANDALF_A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCRIPT_C8BA</td>
 <td class="address-1"><span id="51386"></span>C8BA</td>
 <td class="instruction">DEFB $02,$1D,$03,$00</td>
 <td class="comment-1" rowspan="1">GIVE TO: curious map, the player</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51390"></span>C8BE</td>
 <td class="instruction">DEFB $02,$10,$05,$FF</td>
 <td class="comment-1" rowspan="1">OPEN: round green door</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51394"></span>
+<div class="comments">
+<div class="paragraph">
+GANDALF_A -- An ordinary script: RUN, TAKE, GANDALF_WHATS_THIS, CLOSE, GIVE TO, then on as GANDALF_B.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GANDALF_A</td>
 <td class="address-1"><span id="51394"></span>C8C2</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51396"></span>C8C4</td>
 <td class="instruction">DEFB $14,$13</td>
 <td class="comment-1" rowspan="1">TAKE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51398"></span>C8C6</td>
-<td class="instruction">DEFW $C8D0</td>
-<td class="comment-1" rowspan="1">If it is refused: <a href="51361.html#51408">C8D0</a></td>
+<td class="instruction">DEFW <a href="51361.html#51408">GANDALF_B</a></td>
+<td class="comment-1" rowspan="1">If it is refused: <a href="51361.html#51408">GANDALF_B</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51400"></span>C8C8</td>
 <td class="instruction">DEFB $03</td>
-<td class="comment-1" rowspan="1">Call <a href="42229.html">A4F5</a></td>
+<td class="comment-1" rowspan="1">Call <a href="42229.html">GANDALF_WHATS_THIS</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51401"></span>C8C9</td>
-<td class="instruction">DEFW <a href="42229.html">$A4F5</a></td>
+<td class="instruction">DEFW <a href="42229.html">GANDALF_WHATS_THIS</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51403"></span>C8CB</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51404"></span>C8CC</td>
 <td class="instruction">DEFB $04,$0C</td>
 <td class="comment-1" rowspan="1">CLOSE</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51406"></span>C8CE</td>
 <td class="instruction">DEFB $04,$1D</td>
 <td class="comment-1" rowspan="1">GIVE TO</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51408"></span>
+<div class="comments">
+<div class="paragraph">
+GANDALF_B -- An ordinary script: RUN, DROP, then on as GANDALF_C.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GANDALF_B</td>
 <td class="address-1"><span id="51408"></span>C8D0</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51410"></span>C8D2</td>
 <td class="instruction">DEFB $04,$0D</td>
 <td class="comment-1" rowspan="1">DROP</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51412"></span>
+<div class="comments">
+<div class="paragraph">
+GANDALF_C -- An ordinary script: RUN, GANDALF_CHATTER, then on as GANDALF_D.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GANDALF_C</td>
 <td class="address-1"><span id="51412"></span>C8D4</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51414"></span>C8D6</td>
 <td class="instruction">DEFB $03</td>
-<td class="comment-1" rowspan="1">Call <a href="42238.html">A4FE</a></td>
+<td class="comment-1" rowspan="1">Call <a href="42238.html">GANDALF_CHATTER</a></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51415"></span>C8D7</td>
-<td class="instruction">DEFW <a href="42238.html">$A4FE</a></td>
+<td class="instruction">DEFW <a href="42238.html">GANDALF_CHATTER</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51417"></span>C8D9</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">Not used</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51418"></span>
+<div class="comments">
+<div class="paragraph">
+GANDALF_D -- An ordinary script: RUN, GIVE TO, then on as GANDALF_E.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GANDALF_D</td>
 <td class="address-1"><span id="51418"></span>C8DA</td>
 <td class="instruction">DEFB $04,$24</td>
 <td class="comment-1" rowspan="1">RUN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51420"></span>C8DC</td>
 <td class="instruction">DEFB $04,$1D</td>
 <td class="comment-1" rowspan="1">GIVE TO</td>
 </tr>
 <tr>
+<td class="routine-comment" colspan="5">
+<span id="51422"></span>
+<div class="comments">
+<div class="paragraph">
+GANDALF_E -- An ordinary script: OPEN, switch at random among its first 4.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GANDALF_E</td>
 <td class="address-1"><span id="51422"></span>C8DE</td>
 <td class="instruction">DEFB $04,$10</td>
 <td class="comment-1" rowspan="1">OPEN</td>
 </tr>
 <tr>
+<td class="asm-label"></td>
 <td class="address-1"><span id="51424"></span>C8E0</td>
 <td class="instruction">DEFB $0F,$04</td>
 <td class="comment-1" rowspan="1">Switch to one of its first 4 scripts at random</td>
