@@ -275,3 +275,8 @@ D $C730 Every handler address here is real code on the table's own evidence: the
 c $8D9D Move a character one step
 D $8D9D Called for every character that moves, the player included, with the direction in $B6E7. Watched directly: a single turn in which the player only typed INVENTORY ran this 21 times for nine other characters, each wandering on its own -- which is The Hobbit's independent cast, seen from the inside.
 D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood, and the four diagonals will be among 4 to 8, but which is which has not been watched and is not asserted here.
+
+@ $C063 label=OBJECT_INDEX
+b $C063 Every object and every character, by number
+D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
+D $C063 The records are not all the same length. What the code does with them is only partly worked out: $95DF tests bit 6 and bit 3 of (IX+$07), which is consistent with a flags byte at offset 7 of a record this table points at, but that has not been traced from here to there and is not asserted.

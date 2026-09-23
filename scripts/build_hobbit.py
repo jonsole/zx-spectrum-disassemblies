@@ -96,8 +96,14 @@ House, 1982). Same treatment as the other games here: built locally under
 game_disassembly/, gitignored, never committed. Nothing in this script exports
 the game's prose -- the messages and location descriptions stay in the game's
 own bytes. Prior work consulted for addresses, and credited rather than copied:
-pobtastic's SkoolKit disassembly at skoolkit.arcadegeek.co.uk/hobbit and the
-data-format notes at icemark.com/dataformats/hobbit.
+pobtastic's SkoolKit disassembly at skoolkit.arcadegeek.co.uk/hobbit, the
+data-format notes at icemark.com/dataformats/hobbit, and a complete annotated
+SkoolKit disassembly of the v1.0 tape by an author it does not name, which
+carries no licence for its annotations and so is used the same way as the
+others: to know what exists and where to look, never as text to copy. It
+documents v1.0, which is 37,888 bytes against this one's 40,000, so its
+addresses do not transfer and everything here is re-derived against v1.2
+anyway -- the two disagree about where almost everything lives.
 
 Requires `skoolkit` (pip install skoolkit) and sjasmplus -- this repo ships one
 at tools/sjasmplus/, which is used automatically.
@@ -393,6 +399,8 @@ PICTURE_TABLE = 0xCC00
 # The action table, keyed by the action code in $B6E7: codes 1-10 are the
 # directions, all handled by MOVE; the rest have handlers of their own.
 ACTION_TABLE = 0xC730
+# The object index: every object and every character, keyed by object number.
+OBJECT_INDEX = 0xC063
 
 
 def keyed_table(memory, base: int) -> list[tuple[int, int, int]]:
