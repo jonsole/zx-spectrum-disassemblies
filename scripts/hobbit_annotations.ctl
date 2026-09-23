@@ -281,7 +281,7 @@ b $C063 Every object and every character, by number
 D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
 D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
 D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
-D $C063 What the rest of the head means is open. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
+D $C063 Byte 1 of the head is what holds the object or has it inside, $FF for nothing: see SHUT_IN. What the rest of the head means is open. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
 
 @ $9BCA label=GET_OBJECT
 c $9BCA Find an object's record
@@ -617,3 +617,27 @@ R $71F3 O:F Z if it fits
 @ $722E label=WORD_MATCHES
 c $722E Does a typed word fit a word of a name?
 D $722E A word that was not typed -- zero -- fits anything. Otherwise only the twelve-bit dictionary offset is compared, not the flag nibble above it. Both pointers move on two bytes either way.
+
+# --------------------------------------------------------------------------
+# What can be reached
+# --------------------------------------------------------------------------
+
+@ $9E34 label=IN_REACH
+c $9E34 Is an object within the acting character's reach?
+D $9E34 The actor from ACTOR, then IN_REACH_OF. Called directly with the player at Bag End, it says yes to the wooden chest, the map the player holds, Gandalf, Thorin, and the round green door -- which is in Bag End and the Lonelands at once -- and no to the large key the troll is holding in the clearing, the heavy rock door, and the short strong sword, which is lying in the trolls' cave, where Bilbo finds Sting in the book.
+R $9E34 I:A The object's number
+R $9E34 I:IY Its record
+R $9E34 O:F NZ if it is within reach
+
+@ $9E40 label=IN_REACH_OF
+c $9E40 Is an object within reach of the character in IX?
+D $9E40 Nothing is within reach that has bit 7 of its flags clear. Otherwise it is if the character is inside it; or if the two are shut in the same container; or if neither is shut in anything and the object is in the character's location -- any of its locations, which is how a door is within reach from either side.
+R $9E40 I:IX The character's record
+R $9E40 I:IY The object's record
+
+@ $9E7A label=SHUT_IN
+c $9E7A What is this object shut inside?
+D $9E7A Follows byte 1 of the object's record -- what holds it -- up through holders whose flags have $28 set, which can be seen into, and returns the first that cannot, or $FF if it runs out. The player's own record has $28 set, so a thing the player carries is not shut in anything by being carried.
+D $9E7A Byte 1 is watched as well as read: the map is held by Gandalf ($3E) on the tape and by the player (0) at the first prompt, the turn the game says Gandalf gives it to you; and the large key is held by the hideous troll, as the trolls' clearing says it is.
+R $9E7A I:IX The object's record
+R $9E7A O:A What it is shut in, or $FF

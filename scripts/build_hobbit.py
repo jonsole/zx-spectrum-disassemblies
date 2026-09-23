@@ -600,12 +600,15 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         out.append(f"@ ${start:04X} label={label}")
         called = name_of(memory, start + 8)
         out.append(f"b ${start:04X} Record for {kind}: {called}")
-        out.append(f"D ${start:04X} A 16-byte head, where it is -- "
-                   f"{'location' if len(places) == 1 else 'locations'} {where} "
-                   f"when the game starts -- and {len(record['handlers'])} "
-                   f"handler(s) of its own, ending at $FF.")
+        holder = memory[start + 1]
+        held = ("" if holder == 0xFF else
+                " held by the player," if holder == 0 else
+                f" held by {name_of(memory, next(r['start'] for r in records if r['number'] == holder) + 8)},")
+        out.append(f"D ${start:04X} A 16-byte head, where it is when the game starts --{held} "
+                   f"{'location' if len(places) == 1 else 'locations'} {where} -- "
+                   f"and {len(record['handlers'])} handler(s) of its own, ending at $FF.")
         out.append(f"B ${start:04X},8,8")
-        out.append(f"  ${start:04X},8 Byte 0 is how many places it is in; byte 7 its flags")
+        out.append(f"  ${start:04X},8 Byte 0: how many places it is in; byte 1: what holds it, $FF for nothing; byte 7: its flags")
         out.append(f"B ${start + 8:04X},6,6")
         out.append(f"  ${start + 8:04X},6 Its name: noun, then adjectives")
         out.append(f"B ${start + 14:04X},2,2")
