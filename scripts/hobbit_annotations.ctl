@@ -2362,3 +2362,59 @@ D $93DA An object's own description, bytes 14 and 15 of its record, if it has on
   $93DA,3 The test ends here
   $93DD,17 Its own description, if it has one
   $93EE,22 Otherwise "you see" and its name
+
+@ $A16C label=SAY_STATE
+c $A16C "the ... is ...": an object and its state
+D $A16C The state word is picked by A from STATE_WORDS: bits 0-6 the pair, bit 7 which of the two. A kill says "the ... is dead.", CLIMB OUT OF something shut "the ... is closed.". $A172 is the way in with the name already in HL.
+R $A16C I:A The state
+R $A16C I:IX The object's record
+@ $A224 label=STATE_WORDS
+w $A224 The states of things, as words, in pairs
+D $A224 Eight words for bit 7 of the state clear, then the eight they pair with for it set: unlocked and locked, empty and full, broken, off and on, closed and open, dead and alive. The gaps are zero.
+  $A224,16 UNLOCKED, -, EMPTY, -, OFF, CLOSED, DEAD, -
+  $A234,16 LOCKED, -, FULL, BROKEN, ON, OPEN, ALIVE, -
+@ $A248 label=DO_TIE
+c $A248 TIE TO
+D $A248 Only with the rope. TIE ROPE TO X is made TIE X TO ROPE by swapping the objects (SWAPPED_OBJECTS). Not a liquid, not anything with something visible in it ("the ... is already tied."), and not a living character -- a dead one can be. The thing is then held by the rope; and the rope goes to the one who tied it if they have the thing, or could take it, and is left lying otherwise.
+  $A248,7 TIE ROPE TO X: swap them round
+  $A24F,8 Only to the rope
+  $A257,11 Not a liquid
+  $A262,11 Nothing in it already
+  $A26D,13 Not a living character
+  $A27A,3 The test ends here
+  $A27D,13 Tied: held by the rope
+  $A28A,24 Could the actor take it? A test of TAKE
+  $A2A2,7 Then the rope is the actor's...
+  $A2A9,5 ...otherwise it is left
+  $A2AE,6 The objects swapped round, and again
+@ $A2B4 label=DO_UNTIE
+c $A2B4 UNTIE
+D $A2B4 Only something tied to the rope ("the ... is not tied."); it goes to whoever has the rope.
+@ $A302 label=DO_BURN
+c $A302 BURN: only the dragon can, and it kills
+@ $977C label=KILL_TARGET
+c $977C Kill the first object
+@ $A3E6 label=DO_CAPTURE
+c $A3E6 CAPTURE
+D $A3E6 Only a character can be captured, and not by its own side. The wood elf and the butler take the captive to the elvenking's dark dungeon, location 31; anyone else -- the goblins -- to the goblins' dungeon, location 13. Already there, it is refused. The captive goes with everything it carries; a captured player is shown the new place, if it can be seen. ACTION_TABLE's key-0 record after this runs NOTE_LIGHT.
+  $A3E6,23 Not its own side
+  $A3FD,7 Only a character
+  $A404,15 The elves' dungeon, or the goblins'
+  $A413,7 Already there: refused
+  $A41A,3 The test ends here
+  $A41D,17 There now, held by nothing, with all it carries
+  $A42E,6 Not the player: done
+  $A434,9 The player is the subject again
+  $A43D,11 Show the player the dungeon, if it can be seen
+@ $A541 label=DO_CLIMB_OUT
+c $A541 CLIMB OUT OF
+D $A541 Only out of what holds the actor, and not if it is shut ("the ... is closed.").
+  $A541,13 Not in it: refused
+  $A54E,9 Shut: "the ... is closed."
+  $A557,3 The test ends here
+  $A55A,4 Out
+@ $A5CA label=IS_SHUT
+c $A5CA Is this thing shut?
+D $A5CA Flag bit 5 is being open to be seen into, and so to be got out of; Z if it is clear. A = 5, CLOSED, for SAY_STATE.
+R $A5CA I:IX The record
+R $A5CA O:F Z if shut
