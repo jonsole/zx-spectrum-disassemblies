@@ -1032,8 +1032,18 @@ def room_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         ways = ", ".join(DIRECTIONS[d] for _, d, _, _ in room["exits"]) or "none"
         out.append(f"D ${start:04X} A 10-byte head -- {lit}, named {name} -- "
                    f"then its exits: {ways}.")
-        out.append(f"B ${start:04X},2,2")
-        out.append(f"  ${start:04X},2 Flags ({lit}: bit 7), and a byte not yet understood")
+        # Byte 0: bit 7 lit, bit 6 visited (MOVE sets it), bits 1-3 the
+        # word for how the player is placed there (ROOM_PREPOSITIONS). Byte
+        # 1: how much it holds, against the sizes of what is in it (ROOM_LEFT
+        # and CAN_PASS); $FF for no limit, which is nearly every room.
+        room_capacity = memory[start + 1]
+        room_holds = ("holds any amount" if room_capacity == 0xFF
+                      else f"holds {room_capacity}")
+        out.append(f"B ${start:04X},1,1")
+        out.append(f"  ${start:04X},1 Flags: {lit} (bit 7), visited (bit 6), "
+                   f"and how the player is placed there (bits 1-3)")
+        out.append(f"B ${start + 1:04X},1,1")
+        out.append(f"  ${start + 1:04X},1 Capacity: {room_holds}")
         out.append(f"B ${start + 2:04X},6,6")
         out.append(f"  ${start + 2:04X},6 Its name: noun, then adjectives")
         out.append(f"B ${start + 8:04X},2,2")

@@ -355,7 +355,7 @@ D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed a
   $8DF1,9 The seventh empties it: "but fall and smash your skull.", and PLAYER_DIES
   $8DFA,6 The exit leads to location 0: nowhere yet
   $8E00,6 Keep the destination; A = the object the way goes through
-  $8E06,12 Can it be used? $8E85 answers 1 no, 2 and 3 other outcomes, else yes
+  $8E06,12 Can it be used (CAN_PASS)? 1 no, 2 too small, 3 no room there
   $8E12,6 Move: the actor's location becomes the destination
   $8E18,6 And everything it holds goes too
   $8E1E,6 The rest is for the player only
@@ -372,7 +372,7 @@ D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own rec
 D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
 D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
 D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Byte 4's low four bits say how things are placed with this object, as PLACED_WORD prints it: 0 in, 1 on, 2 behind (the curtain, which the wall is behind), 3 under (the trap door), 4 tied to (the rope). Its bits 4 to 6 are sides (see SAME_SIDE): 1 for the player, Gandalf, Thorin and Bard; 2 for Gollum and the goblins; 4 for the wood elf and the butler; 5 for Elrond, on two; bit 7 is on the window alone. Byte 5 is strength and byte 6 defence, what DO_ATTACK weighs, and both wear down with wounds -- and a fall in the dark halves the player's strength.
-D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bit 3 is dead, or broken: KILL sets it on a character, and a struck spider web has it until it is mended. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 0 is on four doors and not worked out. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
+D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bit 3 is dead, or broken: KILL sets it on a character, and a struck spider web has it until it is mended. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 5 is also a door's being open: OPEN sets it and CLOSE clears it, and CAN_PASS will not let anyone through a way whose object has neither it nor bit 3. Bit 0 is locked: LOCK sets it and UNLOCK clears it, and it is on four doors to start with.
 
 @ $9BCA label=GET_OBJECT
 c $9BCA Find an object's record
@@ -2418,3 +2418,72 @@ c $A5CA Is this thing shut?
 D $A5CA Flag bit 5 is being open to be seen into, and so to be got out of; Z if it is clear. A = 5, CLOSED, for SAY_STATE.
 R $A5CA I:IX The record
 R $A5CA O:F Z if shut
+
+# --------------------------------------------------------------------------
+# Doors, locks and ways through
+# --------------------------------------------------------------------------
+
+@ $8E85 label=CAN_PASS
+c $8E85 Can the actor go this way?
+D $8E85 A way through an object is shut unless the object is open (flag bit 5) or broken (bit 3), and the window, with bit 7 of its byte 4, will never let the player through at all. The actor, with all it carries ($8D9C), must fit the opening -- byte 2 of the object's record -- and then the room it goes into must have space for it: byte 1 of a room's record is how much it holds, and $FF, for nearly every room, is no limit.
+R $8E85 I:A The object the way goes through, or 0
+R $8E85 O:A 0 it can; 1 it is shut; 2 "the ... is too small for you to enter."; 3 "... is too full for you to enter."
+  $8E85,3 No object in the way: only the room to check
+  $8E88,10 Shut
+  $8E92,12 The window: never for the player
+  $8E9E,9 Too big for the opening
+  $8EA7,23 The room's capacity, less what is in it...
+  $8EBE,6 ...against the actor's size
+  $8EC4,2 It can
+  $8EC6,4 3: the room is full
+  $8ECA,4 2: too small
+  $8ECE,4 1: shut
+@ $9C41 label=ROOM_LEFT
+c $9C41 How much room is left in a location
+D $9C41 Byte 1 of its record, less the size of everything that is only there; 0 if it is over-full.
+R $9C41 I:A The location
+R $9C41 O:A The room left
+@ $A1F9 label=LOCK_STATE
+c $A1F9 Is the first object locked, or open?
+D $A1F9 NZ with A a SAY_STATE state for "locked" or "open"; $A204 asks only whether it is open.
+R $A1F9 O:F NZ if it is locked or open
+R $A1F9 O:A LOCKED or OPEN, for SAY_STATE
+@ $910E label=DO_OPEN
+c $910E OPEN, carried by doors and containers as their own handler
+D $910E Not if it is locked or open already ("the ... is locked.", "the ... is open."). Opening sets flag bit 5, and a container in one place with something visible inside shows what: "you see". $9117 is the way in for callers that only want it opened.
+  $910E,6 Locked, or open already: say which
+  $9114,3 The test ends here
+  $9117,4 Open
+  $911B,5 Not a container in one place: done
+  $9120,8 Nothing in it: done
+  $9128,7 Not yet worked out
+  $912F,9 "you see" and what is in it
+@ $9138 label=DO_CLOSE
+c $9138 CLOSE
+D $9138 Not if it is shut already ("the ... is closed."); otherwise flag bit 5 is cleared.
+@ $946D label=DO_LOCK
+c $946D LOCK WITH, once the right key is known
+D $946D Not if it is locked or open, and not with a broken key ("the ... is broken."). The same code unlocks, from $948D, by writing the one byte of its SET 0 or RES 0 at $948B.
+  $946D,6 Locked or open already: say which
+  $9473,5 SET 0: lock it
+  $9478,13 A broken key will not turn
+  $9485,3 The test ends here
+  $9488,4 Bit 0: locked, or not
+@ $948D label=DO_UNLOCK
+c $948D UNLOCK WITH, once the right key is known
+  $948D,13 Not locked: "the ... is unlocked."
+  $949A,6 Open: "the ... is open."
+  $94A0,4 RES 0: unlock it
+@ $A330 label=SIDE_DOOR_KEY
+c $A330 The mountains' side door takes the small curious key
+D $A330 Each lockable door carries its own LOCK WITH and UNLOCK WITH, naming the key that fits in B: the side door the small curious key (2), the red door the red key (15), the heavy rock door the large key (4). Another of those keys "does not fit this lock."; anything else cannot be done at all. The round green door and the trap door go straight to NO_KEY_FITS: nothing opens them with a key.
+@ $A334 label=RED_DOOR_KEY
+c $A334 The red door takes the red key
+@ $A338 label=ROCK_DOOR_KEY
+c $A338 The heavy rock door takes the large key
+  $A33A,17 The key that fits: LOCK or UNLOCK
+  $A34B,13 Another key: it does not fit. Anything else: cannot be done
+@ $A358 label=NO_KEY_FITS
+c $A358 "the ... does not fit this lock."
+@ $A35E label=SIDE_DOOR_UNLOCKED
+c $A35E After the side door is unlocked, it opens
