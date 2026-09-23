@@ -2851,3 +2851,63 @@ c $7AD8 Does the sentence still want a target found?
 D $7AD8 Only for a pattern with a first object (bit 2 of $B71D). Not yet worked out in full.
 @ $7AED label=TRY_IT
 c $7AED Do the action; Z if it did not work
+
+# --------------------------------------------------------------------------
+# Small helpers
+# --------------------------------------------------------------------------
+
+@ $9EC7 label=PRINT_RECORD_NAME
+c $9EC7 Print the name of the object whose record is at IY
+@ $7434 label=PRINT_NAME_AT
+c $7434 Print the object name whose six bytes are at HL
+@ $71D5 label=ROOM_NAME_AT
+c $71D5 HL = where location A's name is, in its record
+@ $71E2 label=OBJECT_NAME_AT
+c $71E2 HL = where object A's name is, in its record
+@ $7478 label=PRINT_NOUN
+c $7478 Print a noun, with its article in the one case PRINT_NAME leaves it out
+D $7478 PRINT_NAME prints the article itself, except when $B703 asks for the noun alone; then it is done here. The flag bits are taken off the reference first.
+R $7478 I:DE The noun's word reference
+@ $7488 label=PRINT_SUBJECT
+c $7488 Print who a sentence is about: object A, or "someone" for $FF
+D $7488 $FF is what the subject is when the player cannot see who did it.
+@ $7493 label=COMMON_WORD
+c $7493 A message's byte $60-$7F: one of the 32 COMMON_WORDS
+@ $7348 label=WORD_AND_END
+c $7348 Print a word, then end the sentence or the line as its flags say
+D $7348 One of RUN_MESSAGE's ways of ending: bit 6 of the reference's flags a new line only, bit 4 a full stop and a new line.
+@ $728B label=COMPARE_HL_DE
+c $728B Compare HL with DE: Z if equal
+@ $9BA9 label=NEXT_OBJECT_KEEP_A
+c $9BA9 The next object in the index, keeping A
+D $9BA9 NEXT_OBJECT ($9B93) with A saved: the loops that walk every object looking for those held by A all use it.
+@ $9F76 label=REFUSE
+c $9F76 The action cannot be done
+D $9F76 For real, the refusal is narrated ("... cannot ...", through NARRATE_ACTION); as a test, $B6FB is cleared: no, it would not work.
+@ $711A label=NARRATE_REFUSAL
+c $711A Narrate the action as refused, unless $B71B says not to
+@ $A164 label=SAY_STATE_OF
+c $A164 SAY_STATE for the object whose record is at IY
+@ $9D50 label=EMPTY_FIRST
+c $9D50 EMPTY_OUT the first object
+@ $82AF label=WORD_NOPRINT
+c $82AF NOPRINT: stop copying the text to the printer
+@ $82F7 label=IT_PHRASE
+c $82F7 Hand IT's phrase to the first phrase's handler or the second's, as E says
+@ $8576 label=PRINT_GATE
+c $8576 May anything be printed? Z if not
+D $8576 Printing happens only while both $B6FA (for real, not a test) and $B702 (printing on) are set.
+@ $8583 label=NEW_LINE
+c $8583 A carriage return, through PRINT_CHAR
+@ $9246 label=ONE_PLACE
+c $9246 Is the first object in only one place? Z if so
+@ $9C8A label=HELD_BY_ACTOR
+c $9C8A Climb from object A through its holders: carry if one is the one at (HL)
+D $9C8A The climb ACTOR_HAS_FIRST does.
+@ $9CE8 label=SIZE_HELD
+c $9CE8 The sizes of what object A holds directly, added up (ADD_UP_HELD)
+@ $9CED label=WEIGHT_HELD
+c $9CED The weights of everything in object A, at any depth, added up (ADD_UP_HELD)
+@ $9E25 label=ACTOR_IN_REACH
+c $9E25 IN_REACH_OF, the other way round
+D $9E25 IX and IY are swapped for the call and back again: CHARACTERS_ACT asks whether the player, at IY, can see the character at IX.
