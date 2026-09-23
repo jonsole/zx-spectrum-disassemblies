@@ -23,52 +23,73 @@ Next: <a href="49845.html">C2B5</a>
 </td>
 </tr>
 </table>
-<div class="description">C28D: Record for object $0A: goblins back door</div>
+<div class="description">C28D: Goblins back door (object $0A)</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-A 16-byte head, where it is when the game starts -- locations 19, 20 -- and 7 handler(s) of its own, ending at $FF.
+Goblins back door: object $0A. It starts in inside goblins gate and outside goblins gate. It is present. It has its own handling for CLOSE, GO THROUGH, LOOK THROUGH, OPEN, STRIKE WITH, THROW THROUGH.
+</div>
+<div class="paragraph">
+A record is a 16-byte head -- where it is, what holds it, its size, weight, strength and defence, its flags, its name and its description -- then the places it is in, then its own handlers, ending at $FF. OBJECT_INDEX describes each field.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">OBJ0A</td>
+<td class="asm-label">GOBLINS_BACK_DOOR</td>
 <td class="address-1"><span id="49805"></span>C28D</td>
 <td class="instruction">DEFB $02</td>
-<td class="comment-1" rowspan="1">How many places it is in</td>
+<td class="comment-1" rowspan="1">In 2 places</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49806"></span>C28E</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">What holds it or has it inside; $FF for nothing</td>
+<td class="comment-1" rowspan="1">Held by nothing</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49807"></span>C28F</td>
-<td class="instruction">DEFB $40,$FF</td>
-<td class="comment-1" rowspan="1">Its size, then its weight; for a character the weight byte is the most it can carry</td>
+<td class="instruction">DEFB $40</td>
+<td class="comment-1" rowspan="1">Size 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49808"></span>C290</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Weight 255: too heavy for anyone to lift</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49809"></span>C291</td>
-<td class="instruction">DEFB $00,$50,$50</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Things are in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49810"></span>C292</td>
+<td class="instruction">DEFB $50</td>
+<td class="comment-1" rowspan="1">Strength 80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49811"></span>C293</td>
+<td class="instruction">DEFB $50</td>
+<td class="comment-1" rowspan="1">Defence 80</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49812"></span>C294</td>
 <td class="instruction">DEFB $80</td>
-<td class="comment-1" rowspan="1">Flags: see OBJECT_INDEX</td>
+<td class="comment-1" rowspan="1">Flags: present</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49813"></span>C295</td>
 <td class="instruction">DEFB $C0,$01,$E8,$02,$7C,$00</td>
-<td class="comment-1" rowspan="1">Its name: noun, then adjectives</td>
+<td class="comment-1" rowspan="1">Its name: DOOR, then GOBLINS, BACK</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -80,55 +101,97 @@ A 16-byte head, where it is when the game starts -- locations 19, 20 -- and 7 ha
 <td class="asm-label"></td>
 <td class="address-1"><span id="49821"></span>C29D</td>
 <td class="instruction">DEFB $13,$14</td>
-<td class="comment-1" rowspan="1">The locations it is in at once</td>
+<td class="comment-1" rowspan="1">In locations 19, inside goblins gate; 20, outside goblins gate</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49823"></span>C29F</td>
-<td class="instruction">DEFB $10,$0E,$91</td>
-<td class="comment-1" rowspan="1">Action 16: <a href="37134.html">DO_OPEN</a></td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">On OPEN (action $10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49824"></span>C2A0</td>
+<td class="instruction">DEFW <a href="37134.html">DO_OPEN</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49826"></span>C2A2</td>
-<td class="instruction">DEFB $0C,$38,$91</td>
-<td class="comment-1" rowspan="1">Action 12: <a href="37176.html">DO_CLOSE</a></td>
+<td class="instruction">DEFB $0C</td>
+<td class="comment-1" rowspan="1">On CLOSE (action $0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49827"></span>C2A3</td>
+<td class="instruction">DEFW <a href="37176.html">DO_CLOSE</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49829"></span>C2A5</td>
-<td class="instruction">DEFB $0B,$ED,$92</td>
-<td class="comment-1" rowspan="1">Action 11: <a href="37613.html">DO_STRIKE</a></td>
+<td class="instruction">DEFB $0B</td>
+<td class="comment-1" rowspan="1">On STRIKE WITH (action $0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49830"></span>C2A6</td>
+<td class="instruction">DEFW <a href="37613.html">DO_STRIKE</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49832"></span>C2A8</td>
-<td class="instruction">DEFB $18,$EC,$8E</td>
-<td class="comment-1" rowspan="1">Action 24: <a href="36588.html">LOOK_THROUGH</a></td>
+<td class="instruction">DEFB $18</td>
+<td class="comment-1" rowspan="1">On LOOK THROUGH (action $18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49833"></span>C2A9</td>
+<td class="instruction">DEFW <a href="36588.html">LOOK_THROUGH</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49835"></span>C2AB</td>
-<td class="instruction">DEFB $1E,$3B,$8F</td>
-<td class="comment-1" rowspan="1">Action 30: <a href="36667.html">GO_THROUGH</a></td>
+<td class="instruction">DEFB $1E</td>
+<td class="comment-1" rowspan="1">On GO THROUGH (action $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49836"></span>C2AC</td>
+<td class="instruction">DEFW <a href="36667.html">GO_THROUGH</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49838"></span>C2AE</td>
-<td class="instruction">DEFB $2C,$A4,$94</td>
-<td class="comment-1" rowspan="1">Action 44: <a href="38052.html">THROW_THROUGH</a></td>
+<td class="instruction">DEFB $2C</td>
+<td class="comment-1" rowspan="1">On THROW THROUGH (action $2C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49839"></span>C2AF</td>
+<td class="instruction">DEFW <a href="38052.html">THROW_THROUGH</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49841"></span>C2B1</td>
-<td class="instruction">DEFB $0B,$ED,$92</td>
-<td class="comment-1" rowspan="1">Action 11: <a href="37613.html">DO_STRIKE</a></td>
+<td class="instruction">DEFB $0B</td>
+<td class="comment-1" rowspan="1">On STRIKE WITH (action $0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49842"></span>C2B2</td>
+<td class="instruction">DEFW <a href="37613.html">DO_STRIKE</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49844"></span>C2B4</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">End of this object's handlers</td>
+<td class="comment-1" rowspan="1">End of its handlers</td>
 </tr>
 </table>
 <table class="asm-navigation">

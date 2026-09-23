@@ -23,52 +23,73 @@ Next: <a href="50559.html">C57F</a>
 </td>
 </tr>
 </table>
-<div class="description">C567: Record for object $1F: goblins cache</div>
+<div class="description">C567: Goblins cache (object $1F)</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-A 16-byte head, where it is when the game starts -- held by trap door, location 13 -- and 2 handler(s) of its own, ending at $FF.
+Goblins cache: object $1F. It starts in goblins dungeon, held by trap door. It is present, open, or can be seen into. It has its own handling for PUT IN, TAKE OUT OF.
+</div>
+<div class="paragraph">
+A record is a 16-byte head -- where it is, what holds it, its size, weight, strength and defence, its flags, its name and its description -- then the places it is in, then its own handlers, ending at $FF. OBJECT_INDEX describes each field.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">OBJ1F</td>
+<td class="asm-label">GOBLINS_CACHE</td>
 <td class="address-1"><span id="50535"></span>C567</td>
 <td class="instruction">DEFB $01</td>
-<td class="comment-1" rowspan="1">How many places it is in</td>
+<td class="comment-1" rowspan="1">In 1 place</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50536"></span>C568</td>
 <td class="instruction">DEFB $1E</td>
-<td class="comment-1" rowspan="1">What holds it or has it inside; $FF for nothing</td>
+<td class="comment-1" rowspan="1">Held by trap door (<a href="50508.html">TRAP_DOOR</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50537"></span>C569</td>
-<td class="instruction">DEFB $FF,$FF</td>
-<td class="comment-1" rowspan="1">Its size, then its weight; for a character the weight byte is the most it can carry</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Size 255: nothing can hold it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50538"></span>C56A</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Weight 255: too heavy for anyone to lift</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50539"></span>C56B</td>
-<td class="instruction">DEFB $00,$00,$00</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Things are in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50540"></span>C56C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Strength 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50541"></span>C56D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Defence 0</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50542"></span>C56E</td>
 <td class="instruction">DEFB $A0</td>
-<td class="comment-1" rowspan="1">Flags: see OBJECT_INDEX</td>
+<td class="comment-1" rowspan="1">Flags: present, open, or can be seen into</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50543"></span>C56F</td>
 <td class="instruction">DEFB $E2,$00,$E8,$02,$00,$00</td>
-<td class="comment-1" rowspan="1">Its name: noun, then adjectives</td>
+<td class="comment-1" rowspan="1">Its name: CACHE, then GOBLINS</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -80,25 +101,37 @@ A 16-byte head, where it is when the game starts -- held by trap door, location 
 <td class="asm-label"></td>
 <td class="address-1"><span id="50551"></span>C577</td>
 <td class="instruction">DEFB $0D</td>
-<td class="comment-1" rowspan="1">Its location</td>
+<td class="comment-1" rowspan="1">In location 13, goblins dungeon</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50552"></span>C578</td>
-<td class="instruction">DEFB $11,$4F,$92</td>
-<td class="comment-1" rowspan="1">Action 17: <a href="37455.html">DO_PUT_IN</a></td>
+<td class="instruction">DEFB $11</td>
+<td class="comment-1" rowspan="1">On PUT IN (action $11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50553"></span>C579</td>
+<td class="instruction">DEFW <a href="37455.html">DO_PUT_IN</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50555"></span>C57B</td>
-<td class="instruction">DEFB $14,$E0,$8C</td>
-<td class="comment-1" rowspan="1">Action 20: <a href="36064.html">DO_TAKE_OUT</a></td>
+<td class="instruction">DEFB $14</td>
+<td class="comment-1" rowspan="1">On TAKE OUT OF (action $14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50556"></span>C57C</td>
+<td class="instruction">DEFW <a href="36064.html">DO_TAKE_OUT</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50558"></span>C57E</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">End of this object's handlers</td>
+<td class="comment-1" rowspan="1">End of its handlers</td>
 </tr>
 </table>
 <table class="asm-navigation">

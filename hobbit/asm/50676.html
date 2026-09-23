@@ -23,52 +23,73 @@ Next: <a href="50715.html">C61B</a>
 </td>
 </tr>
 </table>
-<div class="description">C5F4: Record for object $25: wooden chest</div>
+<div class="description">C5F4: Wooden chest (object $25)</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-A 16-byte head, where it is when the game starts -- location 1 -- and 7 handler(s) of its own, ending at $FF.
+Wooden chest: object $25. It starts in tunnel like hall. It is present. It has its own handling for CLIMB INTO, CLOSE, DROP IN, OPEN, PUT IN, STRIKE WITH, TAKE OUT OF.
+</div>
+<div class="paragraph">
+A record is a 16-byte head -- where it is, what holds it, its size, weight, strength and defence, its flags, its name and its description -- then the places it is in, then its own handlers, ending at $FF. OBJECT_INDEX describes each field.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">OBJ25</td>
+<td class="asm-label">WOODEN_CHEST</td>
 <td class="address-1"><span id="50676"></span>C5F4</td>
 <td class="instruction">DEFB $01</td>
-<td class="comment-1" rowspan="1">How many places it is in</td>
+<td class="comment-1" rowspan="1">In 1 place</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50677"></span>C5F5</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">What holds it or has it inside; $FF for nothing</td>
+<td class="comment-1" rowspan="1">Held by nothing</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50678"></span>C5F6</td>
-<td class="instruction">DEFB $40,$FF</td>
-<td class="comment-1" rowspan="1">Its size, then its weight; for a character the weight byte is the most it can carry</td>
+<td class="instruction">DEFB $40</td>
+<td class="comment-1" rowspan="1">Size 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50679"></span>C5F7</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Weight 255: too heavy for anyone to lift</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50680"></span>C5F8</td>
-<td class="instruction">DEFB $00,$00,$00</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Things are in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50681"></span>C5F9</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Strength 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50682"></span>C5FA</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Defence 0</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50683"></span>C5FB</td>
 <td class="instruction">DEFB $80</td>
-<td class="comment-1" rowspan="1">Flags: see OBJECT_INDEX</td>
+<td class="comment-1" rowspan="1">Flags: present</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50684"></span>C5FC</td>
 <td class="instruction">DEFB $22,$01,$A2,$07,$00,$00</td>
-<td class="comment-1" rowspan="1">Its name: noun, then adjectives</td>
+<td class="comment-1" rowspan="1">Its name: CHEST, then WOODEN</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -80,55 +101,97 @@ A 16-byte head, where it is when the game starts -- location 1 -- and 7 handler(
 <td class="asm-label"></td>
 <td class="address-1"><span id="50692"></span>C604</td>
 <td class="instruction">DEFB $01</td>
-<td class="comment-1" rowspan="1">Its location</td>
+<td class="comment-1" rowspan="1">In location 1, tunnel like hall</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50693"></span>C605</td>
-<td class="instruction">DEFB $10,$0E,$91</td>
-<td class="comment-1" rowspan="1">Action 16: <a href="37134.html">DO_OPEN</a></td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">On OPEN (action $10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50694"></span>C606</td>
+<td class="instruction">DEFW <a href="37134.html">DO_OPEN</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50696"></span>C608</td>
-<td class="instruction">DEFB $0C,$38,$91</td>
-<td class="comment-1" rowspan="1">Action 12: <a href="37176.html">DO_CLOSE</a></td>
+<td class="instruction">DEFB $0C</td>
+<td class="comment-1" rowspan="1">On CLOSE (action $0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50697"></span>C609</td>
+<td class="instruction">DEFW <a href="37176.html">DO_CLOSE</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50699"></span>C60B</td>
-<td class="instruction">DEFB $11,$4F,$92</td>
-<td class="comment-1" rowspan="1">Action 17: <a href="37455.html">DO_PUT_IN</a></td>
+<td class="instruction">DEFB $11</td>
+<td class="comment-1" rowspan="1">On PUT IN (action $11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50700"></span>C60C</td>
+<td class="instruction">DEFW <a href="37455.html">DO_PUT_IN</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50702"></span>C60E</td>
-<td class="instruction">DEFB $0E,$4F,$92</td>
-<td class="comment-1" rowspan="1">Action 14: <a href="37455.html">DO_PUT_IN</a></td>
+<td class="instruction">DEFB $0E</td>
+<td class="comment-1" rowspan="1">On DROP IN (action $0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50703"></span>C60F</td>
+<td class="instruction">DEFW <a href="37455.html">DO_PUT_IN</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50705"></span>C611</td>
-<td class="instruction">DEFB $14,$E0,$8C</td>
-<td class="comment-1" rowspan="1">Action 20: <a href="36064.html">DO_TAKE_OUT</a></td>
+<td class="instruction">DEFB $14</td>
+<td class="comment-1" rowspan="1">On TAKE OUT OF (action $14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50706"></span>C612</td>
+<td class="instruction">DEFW <a href="36064.html">DO_TAKE_OUT</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50708"></span>C614</td>
-<td class="instruction">DEFB $0B,$ED,$92</td>
-<td class="comment-1" rowspan="1">Action 11: <a href="37613.html">DO_STRIKE</a></td>
+<td class="instruction">DEFB $0B</td>
+<td class="comment-1" rowspan="1">On STRIKE WITH (action $0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50709"></span>C615</td>
+<td class="instruction">DEFW <a href="37613.html">DO_STRIKE</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50711"></span>C617</td>
-<td class="instruction">DEFB $36,$5F,$A5</td>
-<td class="comment-1" rowspan="1">Action 54: <a href="42335.html">DO_CLIMB_INTO</a></td>
+<td class="instruction">DEFB $36</td>
+<td class="comment-1" rowspan="1">On CLIMB INTO (action $36)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50712"></span>C618</td>
+<td class="instruction">DEFW <a href="42335.html">DO_CLIMB_INTO</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="50714"></span>C61A</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">End of this object's handlers</td>
+<td class="comment-1" rowspan="1">End of its handlers</td>
 </tr>
 </table>
 <table class="asm-navigation">

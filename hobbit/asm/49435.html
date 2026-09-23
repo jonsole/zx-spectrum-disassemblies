@@ -23,13 +23,16 @@ Next: <a href="49459.html">C133</a>
 </td>
 </tr>
 </table>
-<div class="description">C11B: Record for the player: you</div>
+<div class="description">C11B: You (the player)</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-A 16-byte head, where it is when the game starts -- location 1 -- and 2 handler(s) of its own, ending at $FF.
+You: the player. It starts in tunnel like hall. It is present, a character, open, or can be seen into. It has its own handling for EAT.
+</div>
+<div class="paragraph">
+A record is a 16-byte head -- where it is, what holds it, its size, weight, strength and defence, its flags, its name and its description -- then the places it is in, then its own handlers, ending at $FF. OBJECT_INDEX describes each field.
 </div>
 </div>
 </td>
@@ -38,37 +41,55 @@ A 16-byte head, where it is when the game starts -- location 1 -- and 2 handler(
 <td class="asm-label">PLAYER</td>
 <td class="address-1"><span id="49435"></span>C11B</td>
 <td class="instruction">DEFB $01</td>
-<td class="comment-1" rowspan="1">How many places it is in</td>
+<td class="comment-1" rowspan="1">In 1 place</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49436"></span>C11C</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">What holds it or has it inside; $FF for nothing</td>
+<td class="comment-1" rowspan="1">Held by nothing</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49437"></span>C11D</td>
-<td class="instruction">DEFB $10,$40</td>
-<td class="comment-1" rowspan="1">Its size, then its weight; for a character the weight byte is the most it can carry</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Size 16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49438"></span>C11E</td>
+<td class="instruction">DEFB $40</td>
+<td class="comment-1" rowspan="1">Carries up to 64</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49439"></span>C11F</td>
-<td class="instruction">DEFB $10,$40,$40</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Things are in it; on the player's side</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49440"></span>C120</td>
+<td class="instruction">DEFB $40</td>
+<td class="comment-1" rowspan="1">Strength 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49441"></span>C121</td>
+<td class="instruction">DEFB $40</td>
+<td class="comment-1" rowspan="1">Defence 64</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49442"></span>C122</td>
 <td class="instruction">DEFB $E0</td>
-<td class="comment-1" rowspan="1">Flags: see OBJECT_INDEX</td>
+<td class="comment-1" rowspan="1">Flags: present, a character, open, or can be seen into</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49443"></span>C123</td>
 <td class="instruction">DEFB $A8,$87,$00,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Its name: noun, then adjectives</td>
+<td class="comment-1" rowspan="1">Its name: YOU, then no adjectives</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -80,25 +101,37 @@ A 16-byte head, where it is when the game starts -- location 1 -- and 2 handler(
 <td class="asm-label"></td>
 <td class="address-1"><span id="49451"></span>C12B</td>
 <td class="instruction">DEFB $01</td>
-<td class="comment-1" rowspan="1">Its location</td>
+<td class="comment-1" rowspan="1">In location 1, tunnel like hall</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49452"></span>C12C</td>
-<td class="instruction">DEFB $1B,$B5,$92</td>
-<td class="comment-1" rowspan="1">Action 27: <a href="37557.html">DO_EAT</a></td>
+<td class="instruction">DEFB $1B</td>
+<td class="comment-1" rowspan="1">On EAT (action $1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49453"></span>C12D</td>
+<td class="instruction">DEFW <a href="37557.html">DO_EAT</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49455"></span>C12F</td>
-<td class="instruction">DEFB $00,$D2,$90</td>
-<td class="comment-1" rowspan="1">Action 0: <a href="37074.html">PLAYER_DIES</a></td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Key 0: after EAT, as well</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49456"></span>C130</td>
+<td class="instruction">DEFW <a href="37074.html">PLAYER_DIES</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="49458"></span>C132</td>
 <td class="instruction">DEFB $FF</td>
-<td class="comment-1" rowspan="1">End of this object's handlers</td>
+<td class="comment-1" rowspan="1">End of its handlers</td>
 </tr>
 </table>
 <table class="asm-navigation">
