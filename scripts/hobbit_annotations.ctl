@@ -3021,3 +3021,8 @@ c $7E78 Push the pattern's particle and preposition, for a reply
 D $7E78 Each only if the pattern's flags say it is there; the tests are JR Z or JR NZ, as $7E78 and $7E7C write them into the code at $7E92 and $7EA1.
 @ $7EA8 label=UNKNOWN_VERB
 c $7EA8 "i do not know the verb "..."" 
+
+@ $7903 label=COPY_FRAME_WORD
+c $7903 Copy a single word from frame IX to frame IY, at offset DE (COPY_FRAME_PHRASE with C = 2)
+@ $7E7C label=PUSH_PATTERN_WORDS_NZ
+c $7E7C PUSH_PATTERN_WORDS, with its tests the other way round (JR NZ)
