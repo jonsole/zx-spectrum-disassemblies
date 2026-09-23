@@ -371,8 +371,8 @@ b $C063 Every object and every character, by number
 D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own records. The keys come in two runs: $00 to $2B without a gap, then $3C to $4C. The second run is the characters -- every one of the nine seen wandering in a single turn had its number here, and $B6EA, which says who a sentence is about, holds numbers from that same run. So a character is an object with a number in the upper block, not a separate kind of thing.
 D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
 D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
-D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Byte 4's low four bits say how things are placed with this object, as PLACED_WORD prints it: 0 in, 1 on, 2 behind (the curtain, which the wall is behind), 3 under (the trap door), 4 tied to (the rope). Its high four bits are set only on characters and the window, and group them -- 1 for the player, Gandalf, Thorin and Bard; 2 for Gollum and the goblins; 4 for the wood elf and the butler; 5 for Elrond; 8 for the window -- which reads like a kind or a side, but what tests it is not yet found. Bytes 5 and 6 are still open.
-D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 0 is on four doors and not worked out. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
+D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Byte 4's low four bits say how things are placed with this object, as PLACED_WORD prints it: 0 in, 1 on, 2 behind (the curtain, which the wall is behind), 3 under (the trap door), 4 tied to (the rope). Its bits 4 to 6 are sides (see SAME_SIDE): 1 for the player, Gandalf, Thorin and Bard; 2 for Gollum and the goblins; 4 for the wood elf and the butler; 5 for Elrond, on two; bit 7 is on the window alone. Byte 5 is strength and byte 6 defence, what DO_ATTACK weighs, and both wear down with wounds -- and a fall in the dark halves the player's strength.
+D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bit 3 is dead, or broken: KILL sets it on a character, and a struck spider web has it until it is mended. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 0 is on four doors and not worked out. The door's record does not change at all when it is opened and closed, so being open is not stored here -- most likely on the room's exit, which is in the room records, not yet decoded. $95DF tests bit 6 and bit 3 of (IX+$07), consistent with a flags byte at offset 7, but not traced from here and not asserted.
 
 @ $9BCA label=GET_OBJECT
 c $9BCA Find an object's record
@@ -2287,3 +2287,78 @@ R $87C9 O:C The pixel within it
 @ $8B22 label=LINE_TO_PRINTER
 c $8B22 Copy the newest line of the story to the ZX Printer
 D $8B22 Only while PRINT is on. The eight pixel rows of character row 17 go out through port $FB a pixel at a time, as the ROM's COPY does; a printer that stops, or is not there, ends it.
+
+# --------------------------------------------------------------------------
+# Fighting
+# --------------------------------------------------------------------------
+
+@ $9171 label=DO_ATTACK
+c $9171 ATTACK WITH, and STRIKE WITH through THROW AT
+D $9171 The attacker's strength, byte 5 of its record, plus the weapon's if there is one -- bare hands are a FIST -- against the target's defence, byte 6, each with a random -10 to +10 (JOSTLE). A blow no stronger than the defence is wasted: "but the effort is wasted. his defense is too strong.". One more than 16 stronger kills: "with one well placed blow you cleave his skull." and KILL. Anything between picks a message from WOUNDS by how much stronger it was, and wears the target's strength and defence down by it.
+D $9171 Only something in one place can be a weapon: "you cannot kill with the ...". And no one attacks their own side (SAME_SIDE).
+  $9171,3 Not against its own side
+  $9174,23 The weapon's name, or FIST, for the messages
+  $918B,7 B = the attacker's strength
+  $9192,6 No weapon: that is all
+  $9198,14 A weapon in more than one place: "you cannot kill with the ..."
+  $91A6,9 Otherwise its strength is added, at most 255
+  $91AF,5 A random share of it
+  $91B4,3 The test ends here
+  $91B7,10 A random share of the target's defence
+  $91C1,7 No stronger: "but the effort is wasted..."
+  $91C8,10 More than 16 stronger?
+  $91D2,18 Otherwise a wound: the message for how much stronger...
+  $91E4,23 ...and the target's strength and defence worn down by it
+  $91FB,3 Print the wound
+  $91FE,21 A kill: "...you cleave his skull.", dead, and it is said
+@ $914A label=SAME_SIDE
+c $914A Are attacker and target on the same side?
+D $914A Bits 4 to 6 of byte 4 of each record are the sides; sharing one ends the handler that called this with $B6FB clear -- it would not work. The player alone can turn on a friend: attacked by the player, a character on the player's side (bit 4) is taken off it first, so the attack goes ahead and it is an enemy from then on.
+  $914A,20 The player attacking a friend: no longer a friend
+  $915E,19 Sharing a side? Then no: out of the caller, would not work
+@ $9213 label=JOSTLE
+c $9213 A plus a random -10 to +10, kept to 0-255
+@ $9226 label=WOUNDS
+w $9226 What a wound is said to be, by how much stronger the blow was
+D $9226 The messages the fight picks between, from a stagger to a stunning hit; the stronger the blow, the further down the table.
+@ $977F label=KILL
+c $977F Kill the character in A
+D $977F The player's death is PLAYER_DIES. Anyone else is marked dead (flag bit 3), drops everything it holds (EMPTY_OUT), and gives up its slot in CHARACTERS, so its script never runs again.
+  $977F,4 The player: PLAYER_DIES
+  $9789,7 Dead
+  $9790,3 Everything it held drops
+  $9793,13 Its script is over
+  $97A0,7 Not yet worked out
+
+@ $9076 label=DO_SHOOT
+c $9076 SHOOT
+D $9076 Only with the bow in hand ("you are not carrying the bow."), and not at one's own side. Bard never misses. Anyone else shooting at the dragon always misses -- only Bard can kill it -- and at anything else misses about a third of the time: "the arrow misses the ... by a wide margin.". A hit, "the arrow hits the ...", kills a living character (KILL) and strikes anything else as STRIKE WITH would; the arrow is spent, held by nothing, unless it was what was shot at.
+  $9076,11 Not carrying the bow: refused
+  $9081,6 Not its own side; the test ends here
+  $9087,5 It is an attack
+  $908C,7 Bard: a hit
+  $9093,11 At the dragon: a miss
+  $909E,10 Otherwise a miss one time in three
+  $90A8,15 The arrow is spent
+  $90B7,6 "the arrow hits the ..."
+  $90BD,10 Not a living character: struck, as STRIKE WITH
+  $90C7,11 Killed
+@ $A1C8 label=IS_ALIVE
+c $A1C8 Is this a character, and alive?
+D $A1C8 Flag bit 6 set, a character, and bit 3 clear, not dead.
+R $A1C8 I:IX The record
+R $A1C8 O:F Z if so
+@ $939E label=DO_GIVE
+c $939E GIVE TO
+D $939E The giver must be carrying it, and the one given it must be able to carry it too ("you are carrying too much."). Then it is theirs, and in their place, with everything inside it.
+  $939E,13 Not carrying it: refused
+  $93AB,25 More than the other can carry: refused
+  $93C4,3 The test ends here
+  $93C7,12 Theirs now, and where they are
+  $93D3,7 With all it holds
+@ $93DA label=DO_EXAMINE
+c $93DA EXAMINE
+D $93DA An object's own description, bytes 14 and 15 of its record, if it has one; otherwise "you see" and its name. Some objects carry their own EXAMINE instead -- the curious map's is ELROND_READS_MAP, the magic door's MAGIC_DOOR_EXAMINED.
+  $93DA,3 The test ends here
+  $93DD,17 Its own description, if it has one
+  $93EE,22 Otherwise "you see" and its name
