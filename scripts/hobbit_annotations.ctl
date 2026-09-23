@@ -250,7 +250,7 @@ E $67AB So the two lists divide by direction, not by content: the indexed one is
 @ $6F47 label=MATCH_WORD
 c $6F47 Look a typed word up in the dictionary
 D $6F47 Copies the word from the input line, turning each letter into its 5-bit code with AND $1F -- which works because 'A' is $41 and the codes were chosen to be the low five bits of the ASCII -- and stops at the first character below $40, so punctuation and spaces end a word without being tested for.
-D $6F47 Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there it walks entries one at a time and gives up when an entry's initial letter stops matching the one typed, which is the bucket's only end marker.
+D $6F47 Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there each call unpacks one candidate -- the tokeniser comes back in at $6F72 for the next -- and the bucket is over when an entry's initial letter stops matching the one typed, which is its only end marker.
 E $6F47 A linear scan, not a binary search -- which is the other half of why the list only has to be grouped by initial letter and can be loosely ordered within a group, as BLOW before BLOOD and HELP before HEART are.
   $6F47,18 Copy the typed word as 5-bit codes to $707A, up to the first character below $40
   $6F59,4 Keep its length
