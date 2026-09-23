@@ -2955,3 +2955,29 @@ c $7892 FRAME_BELOW with the frames in IX and IY swapped round
 @ $78FF label=COPY_FRAME_PHRASE
 c $78FF Copy a ten-byte noun phrase from frame IX to frame IY, at offset DE
 D $78FF $7903, the way in with C = 2, copies a single word instead.
+
+# --------------------------------------------------------------------------
+# From a parsed sentence to an action
+# --------------------------------------------------------------------------
+
+@ $7B9E label=MATCH_PATTERN
+c $7B9E Find the action pattern a sentence fits
+D $7B9E Four words are gathered from the frame at IY into a probe at $7958 -- the verb with its ALL bit set aside at $7952, then a particle and a preposition from the two noun phrases (PICK_WORD) -- and ACTION_PATTERNS is searched with NAME_MATCHES for one that fits, so word order within the probe does not matter. A match goes on to ASSIGN_PHRASES. With none the verb does nothing: "you ... . time passes..." -- except in an order, which goes back to the parser at $798B instead.
+R $7B9E I:IY The sentence's frame
+R $7B9E O:IX The pattern
+R $7B9E O:F NZ if one was found
+@ $7CAC label=PICK_WORD
+c $7CAC Take the next word of a noun phrase that is not empty
+R $7CAC I:IY The frame
+R $7CAC I:E The offset of the word in it
+R $7CAC I:HL Where to put it
+R $7CAC I:B How many words may still be taken
+@ $7C23 label=ASSIGN_PHRASES
+c $7C23 Decide which noun phrase is the target and which the instrument
+D $7C23 The pattern's preposition is compared with the frame's two phrases' prepositions, and with bit 5 of the pattern's flags decides which of the two phrases -- at +4 or +14 in the frame -- is the target: PUT THE KEY IN THE BOX and PUT IN THE BOX THE KEY come out the same. The phrases go to TARGET_NAME and INSTRUMENT_NAME, and the target's name is also kept at $B6E0 for IT.
+@ $7B63 label=NAME_OF_NUMBER
+c $7B63 Copy the name of object (or, with A set, location) B to DE
+D $7B63 How a character's action, which comes as object numbers, gets names in TARGET_NAME and INSTRUMENT_NAME like a typed sentence's. $FF copies nothing.
+@ $7ACC label=SEARCH_START
+c $7ACC IX = where a search of the objects starts, for the mode in A's low bits
+D $7ACC Mode 0 starts at the object index itself, anything else three bytes before it; not worked out further.
