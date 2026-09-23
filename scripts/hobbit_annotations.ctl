@@ -1053,6 +1053,7 @@ D $7864 All 24 bytes, and the verb of the frame below it, so that one reads as e
 
 @ $70E2 label=CLEAR_BYTES
 c $70E2 Zero B bytes from HL
+  $70E2,5 Zero, B times over
 
 @ $7918 label=STORE_WORD
 c $7918 Store the word in BC in the frame at offset L
