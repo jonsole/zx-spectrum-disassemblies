@@ -2809,3 +2809,45 @@ D $7B78 Four flags, from PATTERN_FLAGS. $B711: the action needs light at all -- 
   $7B80,9 $B70F
   $7B89,10 $B6FE: the first object is a place
   $7B93,10 $B6FF: the second is
+
+# --------------------------------------------------------------------------
+# Matching a sentence's names to objects
+# --------------------------------------------------------------------------
+
+@ $7A14 label=MATCH_AND_TRY
+c $7A14 Try the objects that fit the sentence's names until the action works
+D $7A14 For a pattern with objects, the target and the instrument are each only names until something fits them. This goes through the objects that fit the target's name (NEXT_TARGET) and, for each, those that fit the instrument's (NEXT_INSTRUMENT), trying the action on each pair, and stops at the first that works. How many fitted is counted at $793F-$7941, and the first of each is kept at $7956-$7957, so that when only one thing fitted it is that one the refusal is about. The exact order of the fall-backs is not worked out in full.
+R $7A14 O:F Z if nothing worked
+@ $7AA1 label=START_TARGETS
+  $7A14,5 The next target that fits
+  $7A19,21 None left: if only one ever fitted, it is the one; try it with the instruments
+  $7A2E,4 Count it
+  $7A32,11 Wants an instrument? Try each with it
+  $7A3D,19 Did not work: keep the first, count, and go on
+  $7A50,5 No instrument wanted: just try it
+  $7A55,30 The instruments in turn, keeping the first
+c $7AA1 Start the search for the target from the beginning
+D $7AA1 From the first object, or, when the target is a place ($B6FE), from the first exit (FIRST_EXIT); kept at $794E. $7AA6 is the way in that does it whatever $B71C says.
+@ $7ABA label=START_INSTRUMENTS
+c $7ABA Start the search for the instrument from the beginning
+D $7ABA The same for the second object, kept at $7950.
+@ $7CCB label=NEXT_TARGET
+c $7CCB Try the next object that fits the target's name
+D $7CCB TRY_TARGETS with FIND_NAMED_OBJECT as its finder, in the mode bits 2-3 of $B71E give ($B710) -- which kinds of object will do -- or with ROOM_BY_NAME when the target is a place.
+R $7CCB O:F NZ if one was found and tried
+@ $7D17 label=NEXT_INSTRUMENT
+  $7CCD,10 Where the search had got to; a place?
+  $7CD7,19 An object: FIND_NAMED_OBJECT, in the pattern's mode
+  $7CEA,7 Keep the place
+  $7CF1,11 A place: ROOM_BY_NAME
+c $7D17 Try the next object that fits the instrument's name
+D $7D17 The same for the second object, the mode from bits 0-1 of $B71E; $B70F is set from the pattern on the way out.
+@ $7AD8 label=WANTS_TARGET
+  $7D17,16 Where the search had got to; a place?
+  $7D27,17 An object, in the pattern's mode
+  $7D38,17 Keep the place; $B70F from the pattern
+  $7D49,11 A place
+c $7AD8 Does the sentence still want a target found?
+D $7AD8 Only for a pattern with a first object (bit 2 of $B71D). Not yet worked out in full.
+@ $7AED label=TRY_IT
+c $7AED Do the action; Z if it did not work
