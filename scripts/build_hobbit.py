@@ -719,6 +719,10 @@ TIMER_SIZE = 7
 # FIND_RECORD table -- at bytes 4-5. Seventeen of them.
 CHARACTERS = 0xCACB
 CHARACTER_SIZE = 7
+# MOVE's FIND_RECORD table of routines to run when the player arrives in a
+# location, keyed by the location: they start the bog's and the web's timers,
+# and bring characters into the story.
+ARRIVAL_HOOKS = 0xC78E
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -1248,6 +1252,8 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     dispatched |= timer_handlers(memory)
     # And the routines the characters' scripts run, the same way.
     dispatched |= script_routines(memory)
+    # And the arrival hooks, which MOVE runs through RUN_ROUTINE too.
+    dispatched |= {hook for _, hook, _ in keyed_table(memory, ARRIVAL_HOOKS)}
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call

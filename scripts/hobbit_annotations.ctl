@@ -357,6 +357,14 @@ D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed a
   $8E00,6 Keep the destination; A = the object the way goes through
   $8E06,12 Can it be used? $8E85 answers 1 no, 2 and 3 other outcomes, else yes
   $8E12,6 Move: the actor's location becomes the destination
+  $8E18,6 And everything it holds goes too
+  $8E1E,6 The rest is for the player only
+  $8E24,21 Run the place's arrival hook, if it has one (ARRIVAL_HOOKS)
+  $8E39,4 In the dark, that is all
+  $8E3D,9 A = the destination
+  $8E46,11 Been here before? On at $96A8. If not, mark the room visited (bit 6)
+  $8E51,24 And score it (VISIT_SCORES)
+  $8E69,4 Then $9630
 
 @ $C063 label=OBJECT_INDEX
 b $C063 Every object and every character, by number
@@ -1641,3 +1649,112 @@ R $9C78 O:F C if so
 
 @ $72CE label=CANNOT_DO
 c $72CE "i cannot do that."
+
+# --------------------------------------------------------------------------
+# Arriving somewhere
+# --------------------------------------------------------------------------
+
+@ $C78E label=ARRIVAL_HOOKS
+b $C78E What happens when the player arrives in certain places
+D $C78E A FIND_RECORD table keyed by location, of routines MOVE runs when the player gets there. Most start one of TIMERS, which is how a place can be deadly only after a few turns in it.
+B $C78E,3,3 Location 22, Beorn's house: #R$C7A4
+B $C791,3,3 Location 26, the spider threads place: #R$C7B2
+B $C794,3,3 Location 29, the deep bog: #R$C7B9
+B $C797,3,3 Location 33, the forest river: #R$C7EA
+B $C79A,3,3 Location 2, the forest road: #R$C7DD
+B $C79D,3,3 Location 3, the forest: #R$C7DD
+B $C7A0,3,3 Location 32, the elvenking's cellar: #R$C7C0
+B $C7A3,1,1 End of the table
+
+@ $C7A4 label=AT_BEORNS_HOUSE
+c $C7A4 Arriving at Beorn's house: the butler joins in
+D $C7A4 Unless the butler has flag bit 3 -- the bit that also keeps a character from reacting, and looks like being dead -- it is given the empty CHARACTERS slot at $CAE7 and made visible.
+
+@ $C7B2 label=AT_SPIDER_THREADS
+c $C7B2 Arriving at the spider threads place: start timer 2
+D $C7B2 Five turns later WEB_SMOTHERS kills a player still there.
+
+@ $C7B9 label=AT_DEEP_BOG
+c $C7B9 Arriving in the deep bog: start timer 4
+D $C7B9 SINKING_IN_BOG does the rest.
+
+@ $C7C0 label=AT_ELVENKINGS_CELLAR
+c $C7C0 Arriving in the elvenking's cellar
+D $C7C0 Starts timer 9, the hole in the mountain's side, at three turns rather than its usual five; and brings the dragon and Bard into the story, each unless it has flag bit 3, by giving them the empty CHARACTERS slots at $CB03 and $CAFC.
+
+@ $C7DD label=IN_THE_FOREST
+c $C7DD Arriving on the forest road or in the forest: the eyes
+D $C7DD Keeps the place the player came into the forest by in $B6F3 -- the one EYES_WARNING counts as safe -- and starts timer 8.
+
+@ $C7EA label=AT_FOREST_RIVER
+c $C7EA Arriving at the forest river
+D $C7EA Out of the barrel, the player is swept against the portcullis and dies: "you are swept forcefully against the portcullis." In it, nothing happens here.
+
+@ $8D6E label=VISIT_SCORES
+b $8D6E The score for reaching each place
+D $8D6E A FIND_RECORD table keyed by location, of the points MOVE adds to the score at $B6F7 the first time the player gets there -- the first time being told by bit 6 of byte 0 of the room's record, which MOVE sets. Fourteen places, 750 points between them, 200 of those for the lower halls.
+B $8D6E,42,3
+B $8D98,1,1 End of the table
+
+# --------------------------------------------------------------------------
+# What changes from game to game: a closed road and Gollum's riddle
+# --------------------------------------------------------------------------
+
+@ $97AD label=NEW_GAME_CHOICES
+c $97AD Make the choices that differ from one game to the next
+D $97AD Called by START for every new game. One of HIDDEN_ROADS is picked at random and its exit wiped from the room, so a different way is shut each time until Elrond reads the curious map (ELROND_READS_MAP); and one of RIDDLES is picked for Gollum.
+  $97AD,10 The player acts; the map not yet read ($B6F1); no riddle asked yet ($B6F9)
+  $97B7,6 The player's record
+  $97BD,18 IY = one of HIDDEN_ROADS at random
+  $97CF,4 Kept in the operand of ELROND_READS_MAP's LD IY
+  $97D3,13 Wipe that exit: all three bytes zero, so no direction matches it
+  $97E0,19 And one of RIDDLES at random, in $B6EE
+
+@ $C7FC label=RIDDLES
+b $C7FC Gollum's riddles
+D $C7FC Four entries, each the answer as a word reference and then the riddle as a message. There are only two riddles, each in the table twice.
+B $C7FC,4,4 NIGHT: "it cannot be seen, cannot be felt, cannot be heard, cannot be smelt..."
+B $C800,4,4 MAN: "which is the animal that has four feet in the morning, two at midday and three in the evening ?"
+B $C804,4,4 NIGHT again
+B $C808,4,4 MAN again
+B $C80C,2,2 Not yet worked out
+
+@ $C80E label=HIDDEN_ROADS
+b $C80E The ways one of which is shut at the start of each game
+D $C80E Six bytes each: the location, the address of one of its exits in the room records, and that exit's three bytes -- direction, the object it goes through, and destination -- kept here so that ELROND_READS_MAP can put them back. NEW_GAME_CHOICES picks one with RANDOM_POSITIVE given 4, so whether the last can be chosen depends on RANDOM's range, which is not yet worked out.
+B $C80E,6,6 Beorn's house, north to the great river
+B $C814,6,6 The forest gate, east to the bewitched gloomy place
+B $C81A,6,6 The treeless opening, west to outside the goblins' gate
+B $C820,6,6 The long lake, east to lake town
+B $C826,6,6 The misty mountain, east to the narrow place
+B $C82C,1,1 End of the table
+
+@ $A7C4 label=ELROND_READS_MAP
+c $A7C4 The curious map's own EXAMINE: Elrond reads it
+D $A7C4 Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut -- unless $B6F1 says it has been done -- and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at $A7CF, which NEW_GAME_CHOICES writes.
+  $A7C4,8 Not Elrond: the ordinary EXAMINE
+  $A7CC,3 Not yet worked out
+  $A7CF,10 IY = the road that was shut; HL = its exit in the room record
+  $A7D9,7 Already put back? Just say the way
+  $A7E0,11 Put the exit back
+  $A7EB,4 IY = the road again
+  $A7EF,12 The destination's name, from its room record, on the stack
+  $A7FB,12 And the location's
+  $A807,6 And the direction's word
+  $A80D,7 "go ... from the ... to get to the ..."
+
+@ $A8D2 label=GOLLUM_ASKS
+c $A8D2 Gollum asks the player his riddle
+D $A8D2 One of Gollum's script routines. Only where the player is, and only if the player can be seen: the riddle NEW_GAME_CHOICES chose is said, and $B6F9 set so that the answer is expected.
+  $A8D2,8 Gollum not where the player is? Nothing
+  $A8DA,6 The player not to be seen? Nothing
+  $A8E0,16 Ask the riddle
+  $A8F0,5 An answer is expected
+
+@ $A8F6 label=GOLLUM_HEARS_ANSWER
+c $A8F6 Gollum hears the answer to his riddle
+D $A8F6 The answer has to be given to Gollum as an order -- said to him, in the ORDERS slot he takes his turn from. It is right if the answer's word reference appears anywhere in it; with no answer, or a wrong one, "someone strangles you from behind." and PLAYER_DIES.
+  $A8F6,7 No longer expecting an answer
+  $A8FD,5 Nothing said to him: strangled
+  $A902,19 Look through what was said for the answer word
+  $A915,17 "someone strangles you from behind.", and dead
