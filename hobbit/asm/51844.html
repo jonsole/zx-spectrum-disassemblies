@@ -29,7 +29,7 @@ Next: <a href="51915.html">CACB</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Ten 7-byte entries, ending at $FF: byte 0 is the timer's length in turns, and starting it is copying that into byte 1, the count -- WINE_DRUNK does exactly that for timer 7, and timer 9 restarts itself the same way. Bytes 2 and 3 are the routine to run when the count reaches zero. Byte 4 is how many turns before then to warn, and bytes 5 and 6 the routine to warn with. All of them are reached through $9B80's JP (HL).
+Ten 7-byte entries, ending at $FF: byte 0 is the timer's length in turns, and starting it is copying that into byte 1, the count -- WINE_DRUNK does exactly that for timer 7, and timer 9 restarts itself the same way. Bytes 2 and 3 are the routine to run when the count reaches zero. Byte 4 is how many turns before then to warn, and bytes 5 and 6 the routine to warn with. All of them are reached through <a href="39808.html">JUMP_HL</a>'s JP (HL).
 </div>
 <div class="paragraph">
 This table and what follows it, $BF bytes in all, are copied aside by START and copied back on every new game; SAVE and LOAD take the same $BF bytes.
@@ -38,64 +38,404 @@ This table and what follows it, $BF bytes in all, are copied aside by START and 
 </td>
 </tr>
 <tr>
-<td class="asm-label">TIMERS</td>
+<td class="routine-comment" colspan="5">
+<span id="51844"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 0, 2 turns: the barrel reaches the long lake (<a href="42491.html">BARREL_REACHES_LAKE</a>); started by BARREL_THROWN
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER0</td>
 <td class="address-1"><span id="51844"></span>CA84</td>
-<td class="instruction">DEFB $02,$00,$FB,$A5,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 0, 2 turns: the barrel reaches the long lake (<a href="42491.html">BARREL_REACHES_LAKE</a>); started by BARREL_THROWN</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER0_COUNT</td>
+<td class="address-1"><span id="51845"></span>CA85</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51846"></span>CA86</td>
+<td class="instruction">DEFW <a href="42491.html">BARREL_REACHES_LAKE</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51848"></span>CA88</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51849"></span>CA89</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51851"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 1, 2 turns: the broken web is mended (<a href="43612.html">WEB_CHANGES</a>); started by WEB_BROKEN
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER1</td>
 <td class="address-1"><span id="51851"></span>CA8B</td>
-<td class="instruction">DEFB $02,$00,$5C,$AA,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 1, 2 turns: the broken web is mended (<a href="43612.html">WEB_CHANGES</a>); started by WEB_BROKEN</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER1_COUNT</td>
+<td class="address-1"><span id="51852"></span>CA8C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51853"></span>CA8D</td>
+<td class="instruction">DEFW <a href="43612.html">WEB_CHANGES</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51855"></span>CA8F</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51856"></span>CA90</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51858"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 2, 5 turns: the web smothers anyone still in it (<a href="43792.html">WEB_SMOTHERS</a>)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER2</td>
 <td class="address-1"><span id="51858"></span>CA92</td>
-<td class="instruction">DEFB $05,$00,$10,$AB,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 2, 5 turns: the web smothers anyone still in it (<a href="43792.html">WEB_SMOTHERS</a>)</td>
+<td class="instruction">DEFB $05</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER2_COUNT</td>
+<td class="address-1"><span id="51859"></span>CA93</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51860"></span>CA94</td>
+<td class="instruction">DEFW <a href="43792.html">WEB_SMOTHERS</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51862"></span>CA96</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51863"></span>CA97</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51865"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 3, 2 turns: the goblins' door shuts (<a href="42201.html">GOBLINS_DOOR_SHUTS</a>); started by GOBLINS_DOOR_OPENED
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER3</td>
 <td class="address-1"><span id="51865"></span>CA99</td>
-<td class="instruction">DEFB $02,$00,$D9,$A4,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 3, 2 turns: the goblins' door shuts (<a href="42201.html">GOBLINS_DOOR_SHUTS</a>); started by GOBLINS_DOOR_OPENED</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER3_COUNT</td>
+<td class="address-1"><span id="51866"></span>CA9A</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51867"></span>CA9B</td>
+<td class="instruction">DEFW <a href="42201.html">GOBLINS_DOOR_SHUTS</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51869"></span>CA9D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51870"></span>CA9E</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51872"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 4, 2 turns: the deep bog, warning every turn (<a href="42922.html">SINKING_IN_BOG</a>)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER4</td>
 <td class="address-1"><span id="51872"></span>CAA0</td>
-<td class="instruction">DEFB $02,$00,$AA,$A7,$02,$AA,$A7</td>
-<td class="comment-1" rowspan="1">Timer 4, 2 turns: the deep bog, warning every turn (<a href="42922.html">SINKING_IN_BOG</a>)</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER4_COUNT</td>
+<td class="address-1"><span id="51873"></span>CAA1</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51874"></span>CAA2</td>
+<td class="instruction">DEFW <a href="42922.html">SINKING_IN_BOG</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51876"></span>CAA4</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51877"></span>CAA5</td>
+<td class="instruction">DEFW <a href="42922.html">SINKING_IN_BOG</a></td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51879"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 5, 4 turns: the magic door opens a turn before it closes (<a href="43699.html">MAGIC_DOOR_OPENS</a>, <a href="43733.html">MAGIC_DOOR_CLOSES</a>); started by MAGIC_DOOR_EXAMINED
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER5</td>
 <td class="address-1"><span id="51879"></span>CAA7</td>
-<td class="instruction">DEFB $04,$00,$D5,$AA,$01,$B3,$AA</td>
-<td class="comment-1" rowspan="1">Timer 5, 4 turns: the magic door opens a turn before it closes (<a href="43699.html">MAGIC_DOOR_OPENS</a>, <a href="43733.html">MAGIC_DOOR_CLOSES</a>); started by MAGIC_DOOR_EXAMINED</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER5_COUNT</td>
+<td class="address-1"><span id="51880"></span>CAA8</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51881"></span>CAA9</td>
+<td class="instruction">DEFW <a href="43733.html">MAGIC_DOOR_CLOSES</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51883"></span>CAAB</td>
+<td class="instruction">DEFB $01</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51884"></span>CAAC</td>
+<td class="instruction">DEFW <a href="43699.html">MAGIC_DOOR_OPENS</a></td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51886"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 6: the ring slips off (<a href="43744.html">RING_CHECK</a>); started by WEAR_RING at 2 to 10 turns, and run early by timer 5's warning
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER6</td>
 <td class="address-1"><span id="51886"></span>CAAE</td>
-<td class="instruction">DEFB $00,$00,$E0,$AA,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 6: the ring slips off (<a href="43744.html">RING_CHECK</a>); started by WEAR_RING at 2 to 10 turns, and run early by timer 5's warning</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER6_COUNT</td>
+<td class="address-1"><span id="51887"></span>CAAF</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51888"></span>CAB0</td>
+<td class="instruction">DEFW <a href="43744.html">RING_CHECK</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51890"></span>CAB2</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51891"></span>CAB3</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51893"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 7, 5 turns: the wine wears off (<a href="43787.html">WINE_WEARS_OFF</a>)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER7</td>
 <td class="address-1"><span id="51893"></span>CAB5</td>
-<td class="instruction">DEFB $05,$00,$0B,$AB,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Timer 7, 5 turns: the wine wears off (<a href="43787.html">WINE_WEARS_OFF</a>)</td>
+<td class="instruction">DEFB $05</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER7_COUNT</td>
+<td class="address-1"><span id="51894"></span>CAB6</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51895"></span>CAB7</td>
+<td class="instruction">DEFW <a href="43787.html">WINE_WEARS_OFF</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51897"></span>CAB9</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51898"></span>CABA</td>
+<td class="instruction">DEFW $0000</td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51900"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 8, 4 turns: the eyes in the forest (<a href="43807.html">EYES_WARNING</a>, <a href="43834.html">EYES_STING</a>)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER8</td>
 <td class="address-1"><span id="51900"></span>CABC</td>
-<td class="instruction">DEFB $04,$00,$3A,$AB,$03,$1F,$AB</td>
-<td class="comment-1" rowspan="1">Timer 8, 4 turns: the eyes in the forest (<a href="43807.html">EYES_WARNING</a>, <a href="43834.html">EYES_STING</a>)</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER8_COUNT</td>
+<td class="address-1"><span id="51901"></span>CABD</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
+<td class="address-1"><span id="51902"></span>CABE</td>
+<td class="instruction">DEFW <a href="43834.html">EYES_STING</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51904"></span>CAC0</td>
+<td class="instruction">DEFB $03</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51905"></span>CAC1</td>
+<td class="instruction">DEFW <a href="43807.html">EYES_WARNING</a></td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51907"></span>
+<div class="comments">
+<div class="paragraph">
+Timer 9, 5 turns: the hole in the mountain's side (<a href="43665.html">SIDE_DOOR_APPEARS</a>, <a href="43636.html">SIDE_DOOR_VANISHES</a>)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER9</td>
 <td class="address-1"><span id="51907"></span>CAC3</td>
-<td class="instruction">DEFB $05,$00,$74,$AA,$01,$91,$AA</td>
-<td class="comment-1" rowspan="1">Timer 9, 5 turns: the hole in the mountain's side (<a href="43665.html">SIDE_DOOR_APPEARS</a>, <a href="43636.html">SIDE_DOOR_VANISHES</a>)</td>
+<td class="instruction">DEFB $05</td>
+<td class="comment-1" rowspan="1">Its length in turns</td>
+</tr>
+<tr>
+<td class="asm-label">TIMER9_COUNT</td>
+<td class="address-1"><span id="51908"></span>CAC4</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its count: 0 when it is not running</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51909"></span>CAC5</td>
+<td class="instruction">DEFW <a href="43636.html">SIDE_DOOR_VANISHES</a></td>
+<td class="comment-1" rowspan="1">The routine when the count reaches zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51911"></span>CAC7</td>
+<td class="instruction">DEFB $01</td>
+<td class="comment-1" rowspan="1">How many turns before then to warn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51912"></span>CAC8</td>
+<td class="instruction">DEFW <a href="43665.html">SIDE_DOOR_APPEARS</a></td>
+<td class="comment-1" rowspan="1">The routine to warn with</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

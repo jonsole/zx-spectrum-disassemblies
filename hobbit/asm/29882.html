@@ -29,10 +29,10 @@ Next: <a href="30068.html">7574</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Takes a 2-byte word reference and writes the letters to a buffer at $74A6 -- which the disassembly shows as a data block and a message, because it holds whatever was last expanded into it rather than anything the game was built with.
+Takes a 2-byte word reference and writes the letters to a buffer at <a href="29862.html">WORD_BUFFER</a> -- which the disassembly shows as a data block and a message, because it holds whatever was last expanded into it rather than anything the game was built with.
 </div>
 <div class="paragraph">
-The reference: the low 12 bits are an offset from $6000 to the entry, and the top 4 bits are flags the tail of the routine acts on. Zero means print nothing. The letters come back out as lowercase ASCII by adding $60 to each 5-bit code.
+The reference: the low 12 bits are an offset from <a href="24576.html">WORD_INDEX</a> to the entry, and the top 4 bits are flags the tail of the routine acts on. Zero means print nothing. The letters come back out as lowercase ASCII by adding $60 to each 5-bit code.
 </div>
 <div class="paragraph">
 The loop is where the game states the format's awkward rule itself. It stops on a byte with bit 7 set, except that if only two letters have been emitted it carries on regardless -- because the top bits of the first two bytes are the word's part of speech, so bit 7 there is not a terminator. At exactly three letters it goes back and re-tests the second byte's bit 7 before deciding. A decoder that simply stops at the first bit 7 splits ATTACK into AT and TACK.
@@ -44,7 +44,7 @@ The loop is where the game states the format's awkward rule itself. It stops on 
 </tr>
 <tr>
 <td class="register">HL</td>
-<td class="register-desc">The word reference to read, or use the entry at $74C2 with it already in DE</td>
+<td class="register-desc">The word reference to read, or use the entry at <a href="29882.html#29889">PRINT_WORD_DE</a> with it already in DE</td>
 </tr>
 </table>
 </td>
@@ -91,7 +91,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 </td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_0</td>
+<td class="asm-label">PRINT_WORD_DE</td>
 <td class="address-2"><span id="29889"></span>74C1</td>
 <td class="instruction">LD A,D</td>
 <td class="comment-1" rowspan="4">Zero prints nothing</td>
@@ -154,7 +154,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29902"></span>74CE</td>
-<td class="instruction">LD HL,$6000</td>
+<td class="instruction">LD HL,<a href="24576.html">WORD_INDEX</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -164,8 +164,8 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29906"></span>74D2</td>
-<td class="instruction">LD DE,$74A6</td>
-<td class="comment-1" rowspan="3">The letters go into the buffer at $74A6</td>
+<td class="instruction">LD DE,<a href="29862.html">WORD_BUFFER</a></td>
+<td class="comment-1" rowspan="3">The letters go into the buffer at <a href="29862.html">WORD_BUFFER</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -178,7 +178,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="instruction">LD B,$00</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_1</td>
+<td class="asm-label">PRINT_WORD_0</td>
 <td class="address-2"><span id="29912"></span>74D8</td>
 <td class="instruction">LD A,(HL)</td>
 <td class="comment-1" rowspan="7">Each letter as lower-case ASCII, counted in B</td>
@@ -191,7 +191,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29915"></span>74DB</td>
-<td class="instruction">JR Z,<a href="29882.html#29945">PRINT_WORD_2</a></td>
+<td class="instruction">JR Z,<a href="29882.html#29945">PRINT_WORD_1</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -227,7 +227,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29925"></span>74E5</td>
-<td class="instruction">JR Z,<a href="29882.html#29912">PRINT_WORD_1</a></td>
+<td class="instruction">JR Z,<a href="29882.html#29912">PRINT_WORD_0</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -243,7 +243,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29930"></span>74EA</td>
-<td class="instruction">JR Z,<a href="29882.html#29912">PRINT_WORD_1</a></td>
+<td class="instruction">JR Z,<a href="29882.html#29912">PRINT_WORD_0</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -254,7 +254,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29934"></span>74EE</td>
-<td class="instruction">JR NZ,<a href="29882.html#29945">PRINT_WORD_2</a></td>
+<td class="instruction">JR NZ,<a href="29882.html#29945">PRINT_WORD_1</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -289,10 +289,10 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29943"></span>74F7</td>
-<td class="instruction">JR NZ,<a href="29882.html#29912">PRINT_WORD_1</a></td>
+<td class="instruction">JR NZ,<a href="29882.html#29912">PRINT_WORD_0</a></td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_2</td>
+<td class="asm-label">PRINT_WORD_1</td>
 <td class="address-2"><span id="29945"></span>74F9</td>
 <td class="instruction">POP HL</td>
 <td class="comment-1" rowspan="1"></td>
@@ -316,7 +316,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29951"></span>74FF</td>
-<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_6</a></td>
+<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_5</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -327,41 +327,41 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29955"></span>7503</td>
-<td class="instruction">JR Z,<a href="29882.html#29970">PRINT_WORD_4</a></td>
+<td class="instruction">JR Z,<a href="29882.html#29970">PRINT_WORD_3</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29957"></span>7505</td>
 <td class="instruction">CP $10</td>
-<td class="comment-1" rowspan="6">$10 agrees with $B6E8, anything else with $B6EA: zero, no ending</td>
+<td class="comment-1" rowspan="6">$10 agrees with <a href="46810.html#46824">TARGET</a>, anything else with <a href="46810.html#46826">ACTING</a>: zero, no ending</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29959"></span>7507</td>
-<td class="instruction">LD A,($B6E8)</td>
+<td class="instruction">LD A,(<a href="46810.html#46824">TARGET</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29962"></span>750A</td>
-<td class="instruction">JR Z,<a href="29882.html#29967">PRINT_WORD_3</a></td>
+<td class="instruction">JR Z,<a href="29882.html#29967">PRINT_WORD_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29964"></span>750C</td>
-<td class="instruction">LD A,($B6EA)</td>
+<td class="instruction">LD A,(<a href="46810.html#46826">ACTING</a>)</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_3</td>
+<td class="asm-label">PRINT_WORD_2</td>
 <td class="address-2"><span id="29967"></span>750F</td>
 <td class="instruction">AND A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29968"></span>7510</td>
-<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_6</a></td>
+<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_5</a></td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_4</td>
+<td class="asm-label">PRINT_WORD_3</td>
 <td class="address-2"><span id="29970"></span>7512</td>
 <td class="instruction">INC HL</td>
 <td class="comment-1" rowspan="3">The word itself has to allow an ending: bit 7 of its second byte</td>
@@ -374,7 +374,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29973"></span>7515</td>
-<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_6</a></td>
+<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_5</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -420,7 +420,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29985"></span>7521</td>
-<td class="instruction">LD BC,$B71F</td>
+<td class="instruction">LD BC,<a href="46879.html">ENDINGS</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -434,7 +434,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="comment-1" rowspan="8">Add up to four characters of it to the buffer</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_5</td>
+<td class="asm-label">PRINT_WORD_4</td>
 <td class="address-2"><span id="29991"></span>7527</td>
 <td class="instruction">LD A,(HL)</td>
 </tr>
@@ -446,7 +446,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29993"></span>7529</td>
-<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_6</a></td>
+<td class="instruction">JR Z,<a href="29882.html#30000">PRINT_WORD_5</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -466,12 +466,12 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="29998"></span>752E</td>
-<td class="instruction">DJNZ <a href="29882.html#29991">PRINT_WORD_5</a></td>
+<td class="instruction">DJNZ <a href="29882.html#29991">PRINT_WORD_4</a></td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_6</td>
+<td class="asm-label">PRINT_WORD_5</td>
 <td class="address-2"><span id="30000"></span>7530</td>
-<td class="instruction">LD HL,$74A6</td>
+<td class="instruction">LD HL,<a href="29862.html">WORD_BUFFER</a></td>
 <td class="comment-1" rowspan="5">B = how many characters there are to print</td>
 </tr>
 <tr>
@@ -497,7 +497,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30008"></span>7538</td>
-<td class="instruction">LD A,($B701)</td>
+<td class="instruction">LD A,(<a href="46848.html#46849">INPUT_STYLE</a>)</td>
 <td class="comment-1" rowspan="8">A space before the word, when one is wanted</td>
 </tr>
 <tr>
@@ -513,12 +513,12 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30013"></span>753D</td>
-<td class="instruction">JR NZ,<a href="29882.html#30019">PRINT_WORD_7</a></td>
+<td class="instruction">JR NZ,<a href="29882.html#30019">PRINT_WORD_6</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30015"></span>753F</td>
-<td class="instruction">LD A,($86A0)</td>
+<td class="instruction">LD A,(<a href="34459.html#34464">MID_LINE</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -526,7 +526,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="instruction">AND A</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_7</td>
+<td class="asm-label">PRINT_WORD_6</td>
 <td class="address-2"><span id="30019"></span>7543</td>
 <td class="instruction">LD A,$20</td>
 </tr>
@@ -544,22 +544,22 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30025"></span>7549</td>
-<td class="instruction">LD A,($85B3)</td>
+<td class="instruction">LD A,(<a href="34227.html">INPUT_COLUMNS</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30028"></span>754C</td>
-<td class="instruction">JR NZ,<a href="29882.html#30033">PRINT_WORD_8</a></td>
+<td class="instruction">JR NZ,<a href="29882.html#30033">PRINT_WORD_7</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30030"></span>754E</td>
-<td class="instruction">LD A,($869B)</td>
+<td class="instruction">LD A,(<a href="34459.html">STORY_COLUMNS</a>)</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_8</td>
+<td class="asm-label">PRINT_WORD_7</td>
 <td class="address-2"><span id="30033"></span>7551</td>
-<td class="instruction">LD HL,$B704</td>
+<td class="instruction">LD HL,<a href="46848.html#46852">CAPITAL_NEXT</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -569,7 +569,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30037"></span>7555</td>
-<td class="instruction">JR NC,<a href="29882.html#30044">PRINT_WORD_9</a></td>
+<td class="instruction">JR NC,<a href="29882.html#30044">PRINT_WORD_8</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -587,7 +587,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_9</td>
+<td class="asm-label">PRINT_WORD_8</td>
 <td class="address-2"><span id="30044"></span>755C</td>
 <td class="instruction">POP DE</td>
 <td class="comment-1" rowspan="1"></td>
@@ -596,7 +596,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="asm-label"></td>
 <td class="address-1"><span id="30045"></span>755D</td>
 <td class="instruction">LD A,D</td>
-<td class="comment-1" rowspan="6">Flag nibble $70 sets $B704 to 1</td>
+<td class="comment-1" rowspan="6">Flag nibble $70 sets <a href="46848.html#46852">CAPITAL_NEXT</a> to 1</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -616,7 +616,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30052"></span>7564</td>
-<td class="instruction">JR NZ,<a href="29882.html#30055">PRINT_WORD_10</a></td>
+<td class="instruction">JR NZ,<a href="29882.html#30055">PRINT_WORD_9</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -624,13 +624,13 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_10</td>
+<td class="asm-label">PRINT_WORD_9</td>
 <td class="address-2"><span id="30055"></span>7567</td>
-<td class="instruction">LD HL,$74A6</td>
+<td class="instruction">LD HL,<a href="29862.html">WORD_BUFFER</a></td>
 <td class="comment-1" rowspan="5">Print the buffer</td>
 </tr>
 <tr>
-<td class="asm-label">PRINT_WORD_11</td>
+<td class="asm-label">PRINT_WORD_10</td>
 <td class="address-2"><span id="30058"></span>756A</td>
 <td class="instruction">LD A,(HL)</td>
 </tr>
@@ -647,7 +647,7 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30063"></span>756F</td>
-<td class="instruction">DJNZ <a href="29882.html#30058">PRINT_WORD_11</a></td>
+<td class="instruction">DJNZ <a href="29882.html#30058">PRINT_WORD_10</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -671,16 +671,16 @@ This entry point is used by the routines at <a href="28971.html">NARRATE_ACTION<
 <td class="routine-comment" colspan="5">
 <div class="comments">
 <div class="paragraph">
-The flags in the top nibble choose whether the word is inflected, and the whole of it is: $40 always adds the suffix, $50 never does, $10 adds it when $B6E8 is non-zero, and every other value adds it when $B6EA is non-zero. Either way the word itself has the final say -- the suffix is only added if bit 7 of its second byte is set, which is what marks an entry as one that can take it.
+The flags in the top nibble choose whether the word is inflected, and the whole of it is: $40 always adds the suffix, $50 never does, $10 adds it when <a href="46810.html#46824">TARGET</a> is non-zero, and every other value adds it when <a href="46810.html#46826">ACTING</a> is non-zero. Either way the word itself has the final say -- the suffix is only added if bit 7 of its second byte is set, which is what marks an entry as one that can take it.
 </div>
 <div class="paragraph">
-Measured rather than read off: PRINT_WORD was called directly with each of the sixteen flag values and the buffer read back, then $B6E8 and $B6EA were toggled by hand to test the dispatch. The word at $6AC1 comes out as "shatter" or "shatters" exactly as the rule above predicts in all six cases, the ones at $6AA4 and $67FE inflect the same way, and no word in the indexed list inflects at all -- none of them has that bit set, which fits, since the indexed list is what the parser matches against and nothing is ever printed from it.
+Measured rather than read off: PRINT_WORD was called directly with each of the sixteen flag values and the buffer read back, then <a href="46810.html#46824">TARGET</a> and <a href="46810.html#46826">ACTING</a> were toggled by hand to test the dispatch. The word at <a href="26539.html#27329">WORD_SHATTER</a> comes out as "shatter" or "shatters" exactly as the rule above predicts in all six cases, the ones at <a href="26539.html#27300">WORD_RECOVER</a> and <a href="26539.html#26622">WORD_ARRIVES</a> inflect the same way, and no word in the indexed list inflects at all -- none of them has that bit set, which fits, since the indexed list is what the parser matches against and nothing is ever printed from it.
 </div>
 <div class="paragraph">
-$B6EA holds who the sentence is about, and zero means the player -- so the test really is subject agreement. Watched across real sentences: while the game narrates you it is zero and no verb inflects, and while it narrates anybody else it holds that character's identifier and the inflectable verbs take their -s. $B6E8 is a second participant, and flag $10 is how a word is made to agree with that one instead.
+<a href="46810.html#46826">ACTING</a> holds who the sentence is about, and zero means the player -- so the test really is subject agreement. Watched across real sentences: while the game narrates you it is zero and no verb inflects, and while it narrates anybody else it holds that character's identifier and the inflectable verbs take their -s. <a href="46810.html#46824">TARGET</a> is a second participant, and flag $10 is how a word is made to agree with that one instead.
 </div>
 <div class="paragraph">
-The identifiers are not a flag but a character number: $B6E8 is set to $FF at $79B6, loaded from tables at $7956 and $7942 elsewhere, and compared against list entries with CP (HL) at $7A73. One turn of narration walked $B6EA through a run of consecutive values while repeating the same verb, which is a group of characters being described one after another rather than anything to do with grammar.
+The identifiers are not a flag but a character number: <a href="46810.html#46824">TARGET</a> is set to $FF at <a href="31158.html">PARSE_ACTION</a>, loaded from tables at <a href="31037.html#31062">FIRST_TARGET_FAILED</a> and <a href="31037.html#31042">TARGET_NAME</a> elsewhere, and compared against list entries with CP (HL) at <a href="31347.html">EXCEPTED</a>. One turn of narration walked <a href="46810.html#46826">ACTING</a> through a run of consecutive values while repeating the same verb, which is a group of characters being described one after another rather than anything to do with grammar.
 </div>
 </div>
 </td>

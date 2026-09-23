@@ -41,16 +41,28 @@ Zeros on the tape, so the generated listing called it unused; it is the parser's
 <td class="comment-1" rowspan="1">Target flags: bit 0, a target was named; bit 1, one has been found</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">INSTRUMENT_STATE</td>
 <td class="address-1"><span id="31038"></span>793E</td>
 <td class="instruction">DEFB $00</td>
 <td class="comment-1" rowspan="1">The same for the instrument</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">TARGETS_FOUND</td>
 <td class="address-1"><span id="31039"></span>793F</td>
-<td class="instruction">DEFB $00,$00,$00</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many objects have fitted the target's name</td>
+</tr>
+<tr>
+<td class="asm-label">TARGETS_FAILED</td>
+<td class="address-1"><span id="31040"></span>7940</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many of them were tried and did not work: if only one, the refusal is about that one</td>
+</tr>
+<tr>
+<td class="asm-label">INSTRUMENTS_FAILED</td>
+<td class="address-1"><span id="31041"></span>7941</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The same for the instrument</td>
 </tr>
 <tr>
 <td class="asm-label">TARGET_NAME</td>
@@ -65,33 +77,76 @@ Zeros on the tape, so the generated listing called it unused; it is the parser's
 <td class="comment-1" rowspan="1">The instrument, the same way</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">TARGET_SEARCH</td>
 <td class="address-1"><span id="31054"></span>794E</td>
 <td class="instruction">DEFB $00,$00</td>
-<td class="comment-1" rowspan="1">A pointer the search starts from</td>
+<td class="comment-1" rowspan="1">Where the search for the target has got to: an object, or an exit when it is a place</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">INSTRUMENT_SEARCH</td>
 <td class="address-1"><span id="31056"></span>7950</td>
-<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
-<td class="comment-1" rowspan="2">Not yet worked out</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The same for the instrument</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">ALL_BIT</td>
+<td class="address-1"><span id="31058"></span>7952</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The verb's ALL bit, bit 7, which MATCH_PATTERN sets aside</td>
+</tr>
+<tr>
+<td class="asm-label">WITH_ALL</td>
+<td class="address-1"><span id="31059"></span>7953</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 with ALL: MATCH_AND_TRY gives up on an object after one try rather than trying the next</td>
+</tr>
+<tr>
+<td class="asm-label">TARGET_PHRASE_AT</td>
+<td class="address-1"><span id="31060"></span>7954</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Where the target's noun is in the frame: 8 for the first phrase, 18 for the second</td>
+</tr>
+<tr>
+<td class="asm-label">INSTRUMENT_PHRASE_AT</td>
+<td class="address-1"><span id="31061"></span>7955</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">And the instrument's</td>
+</tr>
+<tr>
+<td class="asm-label">FIRST_TARGET_FAILED</td>
+<td class="address-1"><span id="31062"></span>7956</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The first target that was tried and did not work</td>
+</tr>
+<tr>
+<td class="asm-label">FIRST_INSTRUMENT_FAILED</td>
+<td class="address-1"><span id="31063"></span>7957</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The same for the instrument</td>
+</tr>
+<tr>
+<td class="asm-label">PROBE_VERB</td>
 <td class="address-1"><span id="31064"></span>7958</td>
 <td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The probe MATCH_PATTERN looks for among ACTION_PATTERNS: the verb, without its ALL bit...</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">PROBE_WORD1</td>
 <td class="address-1"><span id="31066"></span>795A</td>
-<td class="instruction">DEFB $00,$00,$00,$00</td>
-<td class="comment-1" rowspan="1">Prepositions the command expects, which decide which noun phrase is which</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">...then a particle and a preposition, picked from the frame's noun phrases by PICK_WORD...</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">PROBE_WORD2</td>
+<td class="address-1"><span id="31068"></span>795C</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">...one to a word; ASSIGN_PHRASES swaps the two when the pattern wants them the other way round</td>
+</tr>
+<tr>
+<td class="asm-label">PATTERN</td>
 <td class="address-1"><span id="31070"></span>795E</td>
 <td class="instruction">DEFB $00,$00</td>
-<td class="comment-1" rowspan="1">Not yet worked out</td>
+<td class="comment-1" rowspan="1">The pattern found, in ACTION_PATTERNS</td>
 </tr>
 </table>
 <table class="asm-navigation">

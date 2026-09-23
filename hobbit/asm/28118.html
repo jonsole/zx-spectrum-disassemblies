@@ -32,7 +32,7 @@ Next: <a href="28239.html">6E4F</a>
 Prints the prompt, then takes keys into INPUT_LINE until a carriage return: letters, space, quote, comma and full stop are kept and echoed, backspace steps back, and anything else is ignored. The cursor lives only in registers -- HL walks the line and B counts the room left in it, 128 to start -- so there is no variable in memory that says how much has been typed.
 </div>
 <div class="paragraph">
-That is what makes putting a whole command in from outside possible but not quite trivial: stop at $6DF3, just after HL and B are set, write the text into the line, move HL and B past it, and press ENTER. The reader then files the return after the text exactly as if the rest had been typed.
+That is what makes putting a whole command in from outside possible but not quite trivial: stop at <a href="28118.html#28147">READ_LINE_0</a>, just after HL and B are set, write the text into the line, move HL and B past it, and press ENTER. The reader then files the return after the text exactly as if the rest had been typed.
 </div>
 </div>
 <table class="output">
@@ -55,7 +55,7 @@ That is what makes putting a whole command in from outside possible but not quit
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28121"></span>6DD9</td>
-<td class="instruction">LD ($B714),HL</td>
+<td class="instruction">LD (<a href="46860.html#46868">PATIENCE</a>),HL</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -66,12 +66,12 @@ That is what makes putting a whole command in from outside possible but not quit
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28126"></span>6DDE</td>
-<td class="instruction">LD ($B701),A</td>
+<td class="instruction">LD (<a href="46848.html#46849">INPUT_STYLE</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28129"></span>6DE1</td>
-<td class="instruction">LD ($B6FA),A</td>
+<td class="instruction">LD (<a href="46810.html#46842">DOING_IT</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -97,7 +97,7 @@ That is what makes putting a whole command in from outside possible but not quit
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28142"></span>6DEE</td>
-<td class="instruction">LD HL,$6FF9</td>
+<td class="instruction">LD HL,<a href="28665.html">INPUT_LINE</a></td>
 <td class="comment-1" rowspan="2">HL = the start of INPUT_LINE, B = room for 128 characters</td>
 </tr>
 <tr>
@@ -122,7 +122,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 </td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_1</td>
+<td class="asm-label">READ_LINE_KEY</td>
 <td class="address-2"><span id="28149"></span>6DF5</td>
 <td class="instruction">CALL <a href="29257.html">GET_KEY</a></td>
 <td class="comment-1" rowspan="1">Wait for a key</td>
@@ -136,7 +136,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28154"></span>6DFA</td>
-<td class="instruction">JR Z,<a href="28118.html#28161">READ_LINE_2</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28161">READ_LINE_1</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -149,7 +149,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <td class="instruction">JP Z,<a href="28282.html">REPEAT_LAST</a></td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_2</td>
+<td class="asm-label">READ_LINE_1</td>
 <td class="address-2"><span id="28161"></span>6E01</td>
 <td class="instruction">BIT 0,C</td>
 <td class="comment-1" rowspan="3">The first key of a line may be a one-key move (ONE_KEY_MOVES)</td>
@@ -173,7 +173,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28170"></span>6E0A</td>
-<td class="instruction">JR NZ,<a href="28118.html#28177">READ_LINE_3</a></td>
+<td class="instruction">JR NZ,<a href="28118.html#28177">READ_LINE_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -186,7 +186,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <td class="instruction">JR <a href="28118.html#28147">READ_LINE_0</a></td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_3</td>
+<td class="asm-label">READ_LINE_2</td>
 <td class="address-2"><span id="28177"></span>6E11</td>
 <td class="instruction">CP $08</td>
 <td class="comment-1" rowspan="9">Backspace, unless the line is empty: step back one</td>
@@ -194,7 +194,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28179"></span>6E13</td>
-<td class="instruction">JR NZ,<a href="28118.html#28194">READ_LINE_4</a></td>
+<td class="instruction">JR NZ,<a href="28118.html#28194">READ_LINE_3</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -204,7 +204,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28183"></span>6E17</td>
-<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
+<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_KEY</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -229,10 +229,10 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28192"></span>6E20</td>
-<td class="instruction">JR <a href="28118.html#28149">READ_LINE_1</a></td>
+<td class="instruction">JR <a href="28118.html#28149">READ_LINE_KEY</a></td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_4</td>
+<td class="asm-label">READ_LINE_3</td>
 <td class="address-2"><span id="28194"></span>6E22</td>
 <td class="instruction">CP $40</td>
 <td class="comment-1" rowspan="12">Letters, quote, space, return, full stop and comma are kept; anything else is ignored</td>
@@ -240,7 +240,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28196"></span>6E24</td>
-<td class="instruction">JR NC,<a href="28118.html#28218">READ_LINE_5</a></td>
+<td class="instruction">JR NC,<a href="28118.html#28218">READ_LINE_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -250,7 +250,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28200"></span>6E28</td>
-<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -260,7 +260,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28204"></span>6E2C</td>
-<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -270,7 +270,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28208"></span>6E30</td>
-<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -280,7 +280,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28212"></span>6E34</td>
-<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_5</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28218">READ_LINE_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -290,12 +290,12 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28216"></span>6E38</td>
-<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
+<td class="instruction">JR NZ,<a href="28118.html#28149">READ_LINE_KEY</a></td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_5</td>
+<td class="asm-label">READ_LINE_4</td>
 <td class="address-2"><span id="28218"></span>6E3A</td>
-<td class="instruction">LD ($B704),A</td>
+<td class="instruction">LD (<a href="46848.html#46852">CAPITAL_NEXT</a>),A</td>
 <td class="comment-1" rowspan="1">Remember the last key</td>
 </tr>
 <tr>
@@ -312,7 +312,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28223"></span>6E3F</td>
-<td class="instruction">JR Z,<a href="28118.html#28231">READ_LINE_6</a></td>
+<td class="instruction">JR Z,<a href="28118.html#28231">READ_LINE_5</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -335,7 +335,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <td class="instruction">DEC B</td>
 </tr>
 <tr>
-<td class="asm-label">READ_LINE_6</td>
+<td class="asm-label">READ_LINE_5</td>
 <td class="address-2"><span id="28231"></span>6E47</td>
 <td class="instruction">CP $0D</td>
 <td class="comment-1" rowspan="4">Until return: then NZ, a line has been read</td>
@@ -343,7 +343,7 @@ This entry point is used by the routine at <a href="28282.html">REPEAT_LAST</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28233"></span>6E49</td>
-<td class="instruction">JP NZ,<a href="28118.html#28149">READ_LINE_1</a></td>
+<td class="instruction">JP NZ,<a href="28118.html#28149">READ_LINE_KEY</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>

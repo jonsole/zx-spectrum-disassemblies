@@ -43,12 +43,12 @@ Used by the routines at <a href="30475.html">PARSE_AND</a> and <a href="30515.ht
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30204"></span>75FC</td>
-<td class="instruction">JR Z,<a href="30202.html#30228">PARSE_THEN_1</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30228">END_COMMAND</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30206"></span>75FE</td>
-<td class="instruction">LD A,($B706)</td>
+<td class="instruction">LD A,(<a href="46848.html#46854">COMMAND_FRAMES</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -58,12 +58,12 @@ Used by the routines at <a href="30475.html">PARSE_AND</a> and <a href="30515.ht
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30210"></span>7602</td>
-<td class="instruction">JR NZ,<a href="30202.html#30228">PARSE_THEN_1</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30228">END_COMMAND</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30212"></span>7604</td>
-<td class="instruction">LD A,($B6DE)</td>
+<td class="instruction">LD A,(<a href="46810.html#46814">LAST_CLASS</a>)</td>
 <td class="comment-1" rowspan="5">...an empty line: nothing to do</td>
 </tr>
 <tr>
@@ -108,10 +108,10 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 </td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_1</td>
+<td class="asm-label">END_COMMAND</td>
 <td class="address-2"><span id="30228"></span>7614</td>
-<td class="instruction">LD A,($B719)</td>
-<td class="comment-1" rowspan="4">$B719 = 1 means ALL: set bit 7 of the verb's second byte</td>
+<td class="instruction">LD A,(<a href="46860.html#46873">ALL_EXCEPT</a>)</td>
+<td class="comment-1" rowspan="4"><a href="46860.html#46873">ALL_EXCEPT</a> = 1 means ALL: set bit 7 of the verb's second byte</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -121,7 +121,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30232"></span>7618</td>
-<td class="instruction">JR NZ,<a href="30202.html#30238">PARSE_THEN_2</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30238">PARSE_THEN_1</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -129,9 +129,9 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">SET 7,(IY+$01)</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_2</td>
+<td class="asm-label">PARSE_THEN_1</td>
 <td class="address-2"><span id="30238"></span>761E</td>
-<td class="instruction">LD HL,$B706</td>
+<td class="instruction">LD HL,<a href="46848.html#46854">COMMAND_FRAMES</a></td>
 <td class="comment-1" rowspan="7">Count the frame, except for the AND in ALL EXCEPT</td>
 </tr>
 <tr>
@@ -147,7 +147,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30243"></span>7623</td>
-<td class="instruction">JR NZ,<a href="30202.html#30249">PARSE_THEN_3</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30249">PARSE_THEN_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -157,17 +157,17 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30247"></span>7627</td>
-<td class="instruction">JR Z,<a href="30202.html#30250">PARSE_THEN_4</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30250">PARSE_THEN_3</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_3</td>
+<td class="asm-label">PARSE_THEN_2</td>
 <td class="address-2"><span id="30249"></span>7629</td>
 <td class="instruction">INC (HL)</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_4</td>
+<td class="asm-label">PARSE_THEN_3</td>
 <td class="address-2"><span id="30250"></span>762A</td>
-<td class="instruction">CALL <a href="30866.html#30867">FRAME_BELOW_SWAP_0</a></td>
+<td class="instruction">CALL <a href="30866.html#30867">FRAME_BELOW_THEN_SWAP</a></td>
 <td class="comment-1" rowspan="3">On to the next frame; if an AND ended this one, keep going: TAKE THE MAP AND THE KEY</td>
 </tr>
 <tr>
@@ -178,12 +178,12 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30255"></span>762F</td>
-<td class="instruction">JP Z,<a href="30085.html#30112">PARSE_COMMAND_0</a></td>
+<td class="instruction">JP Z,<a href="30085.html#30112">PARSE_NEXT_COMMAND</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30258"></span>7632</td>
-<td class="instruction">LD A,($B71A)</td>
+<td class="instruction">LD A,(<a href="46860.html#46874">QUESTION_WAITING</a>)</td>
 <td class="comment-1" rowspan="3">Finishing a command that was left unfinished?</td>
 </tr>
 <tr>
@@ -194,7 +194,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30262"></span>7636</td>
-<td class="instruction">JR Z,<a href="30202.html#30338">PARSE_THEN_11</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30338">PARSE_THEN_10</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -215,7 +215,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30268"></span>763C</td>
-<td class="instruction">LD HL,$B9C8</td>
+<td class="instruction">LD HL,<a href="47560.html">COMMAND_FRAME</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -230,7 +230,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30274"></span>7642</td>
-<td class="instruction">LD IY,$B9B0</td>
+<td class="instruction">LD IY,<a href="47104.html#47536">NEXT_FRAME</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -245,12 +245,12 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30284"></span>764C</td>
-<td class="instruction">LD DE,$B9B8</td>
+<td class="instruction">LD DE,<a href="47104.html#47544">$B9B8</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30287"></span>764F</td>
-<td class="instruction">JR Z,<a href="30202.html#30312">PARSE_THEN_6</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30312">PARSE_THEN_5</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -265,7 +265,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30293"></span>7655</td>
-<td class="instruction">JR NZ,<a href="30202.html#30303">PARSE_THEN_5</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30303">PARSE_THEN_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -290,10 +290,10 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30301"></span>765D</td>
-<td class="instruction">JR Z,<a href="30202.html#30312">PARSE_THEN_6</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30312">PARSE_THEN_5</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_5</td>
+<td class="asm-label">PARSE_THEN_4</td>
 <td class="address-2"><span id="30303"></span>765F</td>
 <td class="instruction">LD A,(IY+$12)</td>
 <td class="comment-1" rowspan="4">...or its second noun...</td>
@@ -309,14 +309,14 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">LD DE,$B9C2</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_6</td>
+<td class="asm-label">PARSE_THEN_5</td>
 <td class="address-2"><span id="30312"></span>7668</td>
 <td class="instruction">POP IY</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30314"></span>766A</td>
-<td class="instruction">JR NZ,<a href="30202.html#30337">PARSE_THEN_10</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30337">PARSE_THEN_9</a></td>
 <td class="comment-1" rowspan="18">...and copy the new words into whichever of the old noun and adjectives are empty</td>
 </tr>
 <tr>
@@ -330,7 +330,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">LD B,$03</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_7</td>
+<td class="asm-label">PARSE_THEN_6</td>
 <td class="address-2"><span id="30319"></span>766F</td>
 <td class="instruction">LD A,(HL)</td>
 </tr>
@@ -352,7 +352,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30323"></span>7673</td>
-<td class="instruction">JR NZ,<a href="30202.html#30327">PARSE_THEN_8</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30327">PARSE_THEN_7</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -365,7 +365,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_8</td>
+<td class="asm-label">PARSE_THEN_7</td>
 <td class="address-2"><span id="30327"></span>7677</td>
 <td class="instruction">INC HL</td>
 </tr>
@@ -377,7 +377,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30329"></span>7679</td>
-<td class="instruction">JR NZ,<a href="30202.html#30333">PARSE_THEN_9</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30333">PARSE_THEN_8</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -390,7 +390,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">LD (HL),A</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_9</td>
+<td class="asm-label">PARSE_THEN_8</td>
 <td class="address-2"><span id="30333"></span>767D</td>
 <td class="instruction">INC HL</td>
 </tr>
@@ -402,16 +402,16 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30335"></span>767F</td>
-<td class="instruction">DJNZ <a href="30202.html#30319">PARSE_THEN_7</a></td>
+<td class="instruction">DJNZ <a href="30202.html#30319">PARSE_THEN_6</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_10</td>
+<td class="asm-label">PARSE_THEN_9</td>
 <td class="address-2"><span id="30337"></span>7681</td>
 <td class="instruction">POP DE</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_11</td>
+<td class="asm-label">PARSE_THEN_10</td>
 <td class="address-2"><span id="30338"></span>7682</td>
 <td class="instruction">PUSH IY</td>
 <td class="comment-1" rowspan="15">Every frame with no verb takes the verb of the frame before</td>
@@ -419,12 +419,12 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30340"></span>7684</td>
-<td class="instruction">LD IY,$B9E0</td>
+<td class="instruction">LD IY,<a href="47584.html">ROOM_POINTERS</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30344"></span>7688</td>
-<td class="instruction">LD A,($B706)</td>
+<td class="instruction">LD A,(<a href="46848.html#46854">COMMAND_FRAMES</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -442,7 +442,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">CALL <a href="30866.html">FRAME_BELOW_SWAP</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_12</td>
+<td class="asm-label">PARSE_THEN_11</td>
 <td class="address-2"><span id="30352"></span>7690</td>
 <td class="instruction">LD A,B</td>
 </tr>
@@ -454,7 +454,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30354"></span>7692</td>
-<td class="instruction">JR Z,<a href="30202.html#30372">PARSE_THEN_13</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30372">PARSE_THEN_12</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -484,10 +484,10 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30370"></span>76A2</td>
-<td class="instruction">JR <a href="30202.html#30352">PARSE_THEN_12</a></td>
+<td class="instruction">JR <a href="30202.html#30352">PARSE_THEN_11</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_13</td>
+<td class="asm-label">PARSE_THEN_12</td>
 <td class="address-2"><span id="30372"></span>76A4</td>
 <td class="instruction">POP BC</td>
 <td class="comment-1" rowspan="24">And a frame with the same verb but no second phrase borrows the one before's: PUT THE MAP AND THE KEY IN THE CHEST</td>
@@ -508,7 +508,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <td class="instruction">CALL <a href="30860.html">FRAME_SWAP_DOWN</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_14</td>
+<td class="asm-label">PARSE_THEN_13</td>
 <td class="address-2"><span id="30380"></span>76AC</td>
 <td class="instruction">LD A,B</td>
 </tr>
@@ -520,7 +520,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30382"></span>76AE</td>
-<td class="instruction">JP Z,<a href="30202.html#30430">PARSE_THEN_15</a></td>
+<td class="instruction">JP Z,<a href="30202.html#30430">PARSE_THEN_14</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -540,7 +540,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30394"></span>76BA</td>
-<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_14</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_13</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -555,7 +555,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30402"></span>76C2</td>
-<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_14</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_13</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -570,7 +570,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30410"></span>76CA</td>
-<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_14</a></td>
+<td class="instruction">JR NZ,<a href="30202.html#30380">PARSE_THEN_13</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -585,7 +585,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30418"></span>76D2</td>
-<td class="instruction">JR Z,<a href="30202.html#30380">PARSE_THEN_14</a></td>
+<td class="instruction">JR Z,<a href="30202.html#30380">PARSE_THEN_13</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -600,15 +600,15 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30424"></span>76D8</td>
-<td class="instruction">CALL <a href="30903.html#30954">COPY_VERB_ON_0</a></td>
+<td class="instruction">CALL <a href="30903.html#30954">COPY_VERB_PHRASE</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30427"></span>76DB</td>
-<td class="instruction">JP <a href="30202.html#30380">PARSE_THEN_14</a></td>
+<td class="instruction">JP <a href="30202.html#30380">PARSE_THEN_13</a></td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_THEN_15</td>
+<td class="asm-label">PARSE_THEN_14</td>
 <td class="address-2"><span id="30430"></span>76DE</td>
 <td class="instruction">POP IY</td>
 <td class="comment-1" rowspan="4">Nothing more on the line: done</td>
@@ -616,7 +616,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30432"></span>76E0</td>
-<td class="instruction">LD A,($B705)</td>
+<td class="instruction">LD A,(<a href="46848.html#46853">MORE_COMMANDS</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -642,7 +642,7 @@ This entry point is used by the routine at <a href="30085.html">PARSE_COMMAND</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30441"></span>76E9</td>
-<td class="instruction">JP <a href="30085.html#30112">PARSE_COMMAND_0</a></td>
+<td class="instruction">JP <a href="30085.html#30112">PARSE_NEXT_COMMAND</a></td>
 </tr>
 </table>
 <table class="asm-navigation">

@@ -32,7 +32,7 @@ Next: <a href="28602.html">6FBA</a>
 Copies the word from the input line, turning each letter into its 5-bit code with AND $1F -- which works because 'A' is $41 and the codes were chosen to be the low five bits of the ASCII -- and stops at the first character below $40, so punctuation and spaces end a word without being tested for.
 </div>
 <div class="paragraph">
-Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there each call unpacks one candidate -- the tokeniser comes back in at $6F72 for the next -- and the bucket is over when an entry's initial letter stops matching the one typed, which is its only end marker.
+Then the index: the first letter doubled and added to <a href="24576.html">WORD_INDEX</a> gives the bucket's offset, and that added to <a href="24576.html">WORD_INDEX</a> again gives the first entry. From there each call unpacks one candidate -- the tokeniser comes back in at <a href="28487.html#28530">TRY_ENTRY</a> for the next -- and the bucket is over when an entry's initial letter stops matching the one typed, which is its only end marker.
 </div>
 </div>
 </td>
@@ -40,8 +40,8 @@ Then the index: the first letter doubled and added to $6000 gives the bucket's o
 <tr>
 <td class="asm-label">MATCH_WORD</td>
 <td class="address-2"><span id="28487"></span>6F47</td>
-<td class="instruction">LD DE,$707A</td>
-<td class="comment-1" rowspan="11">Copy the typed word as 5-bit codes to $707A, up to the first character below $40</td>
+<td class="instruction">LD DE,<a href="28793.html#28794">TYPED_LETTERS</a></td>
+<td class="comment-1" rowspan="11">Copy the typed word as 5-bit codes to <a href="28793.html#28794">TYPED_LETTERS</a>, up to the first character below $40</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -102,7 +102,7 @@ Then the index: the first letter doubled and added to $6000 gives the bucket's o
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28506"></span>6F5A</td>
-<td class="instruction">LD ($708A),A</td>
+<td class="instruction">LD (<a href="28793.html#28810">TYPED_LENGTH</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -113,7 +113,7 @@ Then the index: the first letter doubled and added to $6000 gives the bucket's o
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28510"></span>6F5E</td>
-<td class="instruction">LD HL,($707A)</td>
+<td class="instruction">LD HL,(<a href="28793.html#28794">TYPED_LETTERS</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -123,7 +123,7 @@ Then the index: the first letter doubled and added to $6000 gives the bucket's o
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28515"></span>6F63</td>
-<td class="instruction">LD DE,$6000</td>
+<td class="instruction">LD DE,<a href="24576.html">WORD_INDEX</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -153,7 +153,7 @@ Then the index: the first letter doubled and added to $6000 gives the bucket's o
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28523"></span>6F6B</td>
-<td class="instruction">LD IX,$6000</td>
+<td class="instruction">LD IX,<a href="24576.html">WORD_INDEX</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -176,9 +176,9 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 </td>
 </tr>
 <tr>
-<td class="asm-label">MATCH_WORD_2</td>
+<td class="asm-label">TRY_ENTRY</td>
 <td class="address-2"><span id="28530"></span>6F72</td>
-<td class="instruction">LD ($B717),IX</td>
+<td class="instruction">LD (<a href="46860.html#46871">DICTIONARY_ENTRY</a>),IX</td>
 <td class="comment-1" rowspan="1">Remember which entry is being tried</td>
 </tr>
 <tr>
@@ -192,7 +192,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 </td>
 </tr>
 <tr>
-<td class="asm-label">MATCH_WORD_3</td>
+<td class="asm-label">TRY_SAME_ENTRY</td>
 <td class="address-2"><span id="28534"></span>6F76</td>
 <td class="instruction">LD A,(IX+$00)</td>
 <td class="comment-1" rowspan="6">Has the bucket run out? Its initial letter no longer matches</td>
@@ -210,7 +210,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28540"></span>6F7C</td>
-<td class="instruction">LD A,($707A)</td>
+<td class="instruction">LD A,(<a href="28793.html#28794">TYPED_LETTERS</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -231,8 +231,8 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28546"></span>6F82</td>
-<td class="instruction">LD HL,$708B</td>
-<td class="comment-1" rowspan="19">Unpack this entry's letters to $708B, by PRINT_WORD's rule for where a word ends</td>
+<td class="instruction">LD HL,<a href="28793.html#28811">ENTRY_LETTERS</a></td>
+<td class="comment-1" rowspan="19">Unpack this entry's letters to <a href="28793.html#28811">ENTRY_LETTERS</a>, by PRINT_WORD's rule for where a word ends</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -240,7 +240,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <td class="instruction">LD BC,$0000</td>
 </tr>
 <tr>
-<td class="asm-label">MATCH_WORD_4</td>
+<td class="asm-label">MATCH_WORD_2</td>
 <td class="address-2"><span id="28552"></span>6F88</td>
 <td class="instruction">LD A,(IX+$00)</td>
 </tr>
@@ -252,7 +252,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28557"></span>6F8D</td>
-<td class="instruction">JR Z,<a href="28487.html#28562">MATCH_WORD_5</a></td>
+<td class="instruction">JR Z,<a href="28487.html#28562">MATCH_WORD_3</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -270,7 +270,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <td class="instruction">INC B</td>
 </tr>
 <tr>
-<td class="asm-label">MATCH_WORD_5</td>
+<td class="asm-label">MATCH_WORD_3</td>
 <td class="address-2"><span id="28562"></span>6F92</td>
 <td class="instruction">INC IX</td>
 </tr>
@@ -287,7 +287,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28569"></span>6F99</td>
-<td class="instruction">JR Z,<a href="28487.html#28552">MATCH_WORD_4</a></td>
+<td class="instruction">JR Z,<a href="28487.html#28552">MATCH_WORD_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -302,7 +302,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28574"></span>6F9E</td>
-<td class="instruction">JR Z,<a href="28487.html#28552">MATCH_WORD_4</a></td>
+<td class="instruction">JR Z,<a href="28487.html#28552">MATCH_WORD_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -312,7 +312,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28578"></span>6FA2</td>
-<td class="instruction">JR NZ,<a href="28487.html#28586">MATCH_WORD_6</a></td>
+<td class="instruction">JR NZ,<a href="28487.html#28586">MATCH_WORD_4</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -322,10 +322,10 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28584"></span>6FA8</td>
-<td class="instruction">JR NZ,<a href="28487.html#28552">MATCH_WORD_4</a></td>
+<td class="instruction">JR NZ,<a href="28487.html#28552">MATCH_WORD_2</a></td>
 </tr>
 <tr>
-<td class="asm-label">MATCH_WORD_6</td>
+<td class="asm-label">MATCH_WORD_4</td>
 <td class="address-2"><span id="28586"></span>6FAA</td>
 <td class="instruction">POP HL</td>
 <td class="comment-1" rowspan="3">Keep the entry's length</td>
@@ -338,7 +338,7 @@ This entry point is used by the routine at <a href="28311.html">TOKENISE</a>.
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="28588"></span>6FAC</td>
-<td class="instruction">LD ($709B),A</td>
+<td class="instruction">LD (<a href="28793.html#28827">ENTRY_LENGTH</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

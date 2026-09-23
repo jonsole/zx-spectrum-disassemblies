@@ -29,7 +29,7 @@ Next: <a href="30162.html">75D2</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back for another line. A line of several commands -- joined by THEN, or by a full stop -- is taken one command at a time, the main loop coming back here while $B705 says there is more.
+Called by the main loop with <a href="46810.html#46812">TOKEN_POINTER</a> pointing into TOKENS; returns NZ to go back for another line. A line of several commands -- joined by THEN, or by a full stop -- is taken one command at a time, the main loop coming back here while <a href="46848.html#46853">MORE_COMMANDS</a> says there is more.
 </div>
 </div>
 </td>
@@ -37,7 +37,7 @@ Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back f
 <tr>
 <td class="asm-label">PARSE_COMMAND</td>
 <td class="address-2"><span id="30085"></span>7585</td>
-<td class="instruction">LD IY,$B9C8</td>
+<td class="instruction">LD IY,<a href="47560.html">COMMAND_FRAME</a></td>
 <td class="comment-1" rowspan="3">Start at the first frame, outside any quotation</td>
 </tr>
 <tr>
@@ -48,18 +48,18 @@ Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back f
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30090"></span>758A</td>
-<td class="instruction">LD ($B71B),A</td>
+<td class="instruction">LD (<a href="46860.html#46875">IS_ORDER</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30093"></span>758D</td>
-<td class="instruction">CALL <a href="30808.html#30815">NEW_SENTENCE_FRAME_0</a></td>
+<td class="instruction">CALL <a href="30808.html#30815">CLEAR_ALL_EXCEPT</a></td>
 <td class="comment-1" rowspan="2">Not yet worked out</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30096"></span>7590</td>
-<td class="instruction">LD ($B706),A</td>
+<td class="instruction">LD (<a href="46848.html#46854">COMMAND_FRAMES</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -70,7 +70,7 @@ Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back f
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30101"></span>7595</td>
-<td class="instruction">LD A,($B71A)</td>
+<td class="instruction">LD A,(<a href="46860.html#46874">QUESTION_WAITING</a>)</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -85,7 +85,7 @@ Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back f
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30107"></span>759B</td>
-<td class="instruction">JP NZ,<a href="30202.html#30228">PARSE_THEN_1</a></td>
+<td class="instruction">JP NZ,<a href="30202.html#30228">END_COMMAND</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -104,7 +104,7 @@ This entry point is used by the routines at <a href="30202.html">PARSE_THEN</a> 
 </td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_COMMAND_0</td>
+<td class="asm-label">PARSE_NEXT_COMMAND</td>
 <td class="address-2"><span id="30112"></span>75A0</td>
 <td class="instruction">XOR A</td>
 <td class="comment-1" rowspan="5">E says what may come next: bit 1 a verb, bit 2 an adverb, bit 4 an article, and more</td>
@@ -112,7 +112,7 @@ This entry point is used by the routines at <a href="30202.html">PARSE_THEN</a> 
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30113"></span>75A1</td>
-<td class="instruction">LD ($757A),A</td>
+<td class="instruction">LD (<a href="30074.html">PHRASE</a>),A</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -132,7 +132,7 @@ This entry point is used by the routines at <a href="30202.html">PARSE_THEN</a> 
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30120"></span>75A8</td>
-<td class="instruction">LD A,($B719)</td>
+<td class="instruction">LD A,(<a href="46860.html#46873">ALL_EXCEPT</a>)</td>
 <td class="comment-1" rowspan="4">In one case a verb may not start here</td>
 </tr>
 <tr>
@@ -143,7 +143,7 @@ This entry point is used by the routines at <a href="30202.html">PARSE_THEN</a> 
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30125"></span>75AD</td>
-<td class="instruction">JR NZ,<a href="30085.html#30129">PARSE_COMMAND_1</a></td>
+<td class="instruction">JR NZ,<a href="30085.html#30129">PARSE_COMMAND_0</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -151,7 +151,7 @@ This entry point is used by the routines at <a href="30202.html">PARSE_THEN</a> 
 <td class="instruction">RES 1,E</td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_COMMAND_1</td>
+<td class="asm-label">PARSE_COMMAND_0</td>
 <td class="address-2"><span id="30129"></span>75B1</td>
 <td class="instruction">CALL <a href="30820.html">CLEAR_FRAME</a></td>
 <td class="comment-1" rowspan="1">Clear this frame</td>
@@ -167,9 +167,9 @@ This entry point is used by the routines at <a href="30450.html">PARSE_ADVERB</a
 </td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_COMMAND_2</td>
+<td class="asm-label">NEW_NOUN_PHRASE</td>
 <td class="address-2"><span id="30132"></span>75B4</td>
-<td class="instruction">LD HL,$757B</td>
+<td class="instruction">LD HL,<a href="30074.html#30075">PHRASE_PREPOSITIONS</a></td>
 <td class="comment-1" rowspan="4">Start a new noun phrase, and allow an article</td>
 </tr>
 <tr>
@@ -198,13 +198,13 @@ This entry point is used by the routine at <a href="30608.html">PARSE_ARTICLE</a
 </td>
 </tr>
 <tr>
-<td class="asm-label">PARSE_COMMAND_3</td>
+<td class="asm-label">PARSE_NEXT_WORD</td>
 <td class="address-2"><span id="30142"></span>75BE</td>
 <td class="instruction">CALL <a href="30835.html">NEXT_TOKEN</a></td>
 <td class="comment-1" rowspan="1">Next token: its class in D</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">CLASS_DISPATCH</td>
 <td class="address-1"><span id="30145"></span>75C1</td>
 <td class="instruction">PUSH DE</td>
 <td class="comment-1" rowspan="14">Go to the handler for its class, from PARSER_CLASSES</td>
@@ -237,7 +237,7 @@ This entry point is used by the routine at <a href="30608.html">PARSE_ARTICLE</a
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="30152"></span>75C8</td>
-<td class="instruction">LD HL,$75D2</td>
+<td class="instruction">LD HL,<a href="30162.html">PARSER_CLASSES</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
