@@ -2692,3 +2692,61 @@ c $AAA2 After the side door is closed: locked, hidden, and the hole's timer star
   $AAA2,3 Only if it really happened
   $AAA5,5 The hole comes again in six turns
   $AAAA,9 Locked and hidden, and "the hole vanishes." where seen
+
+# --------------------------------------------------------------------------
+# The characters' own routines, called from their scripts
+# --------------------------------------------------------------------------
+
+@ $A1E3 label=SAYS
+c $A1E3 The actor says the message at HL: ... says " ... "
+D $A1E3 The words in quotes, capitalised, after the actor's name and "says".
+R $A1E3 I:HL The message
+@ $97F4 label=NARRATE_LINE
+c $97F4 The message at HL as a sentence of the story, with a full stop and a new line
+R $97F4 I:HL The message
+@ $A4DF label=GIVEN_SOMETHING
+c $A4DF Given something: "thank you", mostly
+D $A4DF Gandalf, Thorin, Elrond, the wood elf and the butler all keep this for GIVE TO: mostly "thank you", sometimes "what do you expect me to do with this ?".
+@ $A4F5 label=GANDALF_WHATS_THIS
+c $A4F5 Gandalf: "what's this ?"
+@ $A4FE label=GANDALF_CHATTER
+c $A4FE Gandalf: "you are doing a great job", "hurry up" or "hello", at random
+@ $A51C label=THORIN_THRAINS_KEY
+c $A51C Thorin: "this was thrains key"
+@ $A525 label=ELROND_HELLO
+c $A525 Elrond, where the player is: "hello"
+@ $A5D1 label=WARG_HOWLS
+c $A5D1 The warg, where the player is: "the vicious warg runs around you and howls"
+@ $A640 label=THORIN_WHERES_THIEF
+c $A640 Thorin, where the player is but cannot be seen: "where's the thief ?"
+D $A640 That is, while the player wears the ring.
+@ $A657 label=THORIN_CHATTER
+c $A657 Thorin, at random: waits, sings about gold, or says "hurry up" or "get us out of this one, thief !"
+D $A657 Quite often -- four of the nine values RANDOM_POSITIVE gives here -- nothing at all.
+@ $A698 label=DRAGON_FOLLOWS
+c $A698 The dragon follows the player through its mountain
+D $A698 In the front gate, the lower halls or on the lonely mountain (locations 39, 41 and 44), the dragon goes to wherever the player is, and "... enters.".
+@ $A6C2 label=DRAGON_THREATENS
+c $A6C2 The dragon, where the player is: "prepare to die"
+D $A6C2 "well thief your cunning has failed you this time. prepare to die " -- or, to a player it cannot see, "i may not be able to see you thief but i can still burn you...".
+@ $A6DC label=DRAGON_HUNTS
+c $A6DC Once the treasure is gone from its hall, the dragon hunts the player
+D $A6DC While the treasure is still in the lower halls, nothing. Once it is not, wherever the player is in the open -- a lit place -- four times in five "in the distance you see the shape of a monstrous dragon flying after you.", and otherwise "the dragon descends and in a terrific spout of flames burns you to a crisp." and PLAYER_DIES.
+@ $A8AB label=BARD_TAKES_ORDER
+c $A8AB Bard: an order given to him becomes a step of his own script
+D $A8AB The order is taken and parsed, and its action and objects are written into the script step at $C9E2 -- with opcode $42, an action that an order cannot interrupt -- so that Bard goes on trying it, turn after turn, until it works. Those are the three script bytes that DO_SAVE carries in the variables block.
+@ $A926 label=GOLLUM_POCKETS
+c $A926 Gollum, where the player is: "what has it got in its pockets ?"
+D $A926 Or, depending on who has the ring, "my birthday present -- how did we lose it. my precious"; the exact choice is not yet worked out.
+@ $A9E5 label=ELROND_GIVES_LUNCH
+c $A9E5 Elrond, where the player is: he gives the player lunch
+D $A9E5 The lunch, if it is nowhere or Elrond has it, is made his and then given to the player, through DO_GIVE -- so it can be refused if the player is carrying too much.
+@ $A9BD label=TROLLS_TALK
+c $A9BD The trolls, once the player comes to their clearing: their lines
+D $A9BD Fails, and so is tried again every turn, until the player is in location 5; then the hideous troll and the vicious troll each say their line and the script moves on.
+@ $A94E label=TROLLS_EAT
+c $A94E The trolls, the four turns after: eat the player, if still there
+D $A94E The troll eats the player (EAT, $1B) where they are both, and PLAYER_DIES. Anywhere else it fails, and the script pauses a turn.
+@ $A971 label=TROLLS_TURN_TO_STONE
+c $A971 Dawn: the trolls turn to stone
+D $A971 Both trolls are killed and hidden, drop what they held -- the large key among it -- the clearing gets its daytime description and is marked unvisited, and its picture is patched to show them as stone.
