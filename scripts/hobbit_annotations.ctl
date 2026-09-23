@@ -311,3 +311,37 @@ c $6DD6 Read a command from the keyboard
 D $6DD6 Prints the prompt, then takes keys into INPUT_LINE until a carriage return: letters, space, quote, comma and full stop are kept and echoed, backspace steps back, and anything else is ignored. The cursor lives only in registers -- HL walks the line and B counts the room left in it, 128 to start -- so there is no variable in memory that says how much has been typed.
 D $6DD6 That is what makes putting a whole command in from outside possible but not quite trivial: stop at $6DF3, just after HL and B are set, write the text into the line, move HL and B past it, and press ENTER. The reader then files the return after the text exactly as if the rest had been typed.
 R $6DD6 O:F NZ when a line has been read
+
+# --------------------------------------------------------------------------
+# Rooms and exits
+# --------------------------------------------------------------------------
+
+@ $9BB1 label=GET_ROOM
+c $9BB1 Find a location's record
+D $9BB1 Anything from $50 up is not a location and gets zero back; otherwise the record's address is read straight out of ROOM_POINTERS, two bytes per location. Unlike objects there is no search: locations are numbered densely, so a table indexed by number is cheaper than FIND_RECORD.
+R $9BB1 I:A The location
+R $9BB1 O:IX Its record
+
+@ $9D37 label=ACTOR_ROOM
+c $9D37 The record of the room the current actor is in
+D $9D37 $B70C points at the object record of whoever is acting this turn -- the player or any other character -- and its location is at +$10, so the same code moves everybody.
+R $9D37 O:IX The room record
+
+@ $9E95 label=FIRST_EXIT
+c $9E95 Point IX just before the actor's room's first exit
+D $9E95 The room's record, plus 7: three short of the exits, because NEXT_EXIT steps three before it looks.
+
+@ $9B93 label=NEXT_EXIT
+c $9B93 Step to the next three-byte entry
+D $9B93 Adds 3 to IX and returns Z at the $FF that ends a list. Shared with other lists of three-byte entries, which is why it also loads IY from bytes 1 and 2 -- for an exit those are the object it goes through and the destination, not an address.
+
+@ $9F08 label=FIND_EXIT
+c $9F08 Find the actor's room's exit in a direction
+D $9F08 Walks the exits for one whose direction matches and whose destination is not zero, and returns with IX on it. Watched as well as read: rewinding from the moment the player's location changed on EAST out of Bag End to where this returned found IX at $BAA1, the direction 3, and the record 03 05 04 -- east, through the round green door, to location 4.
+R $9F08 I:A The direction, 1-10
+R $9F08 O:IX The exit
+R $9F08 O:F NZ if there is one
+
+@ $B70C label=ACTOR
+b $B70C Whose turn it is
+D $B70C The address of the acting character's object record. MOVE, ACTOR_ROOM and the rest read the actor through here rather than assuming the player, which is why one MOVE serves the whole cast.
