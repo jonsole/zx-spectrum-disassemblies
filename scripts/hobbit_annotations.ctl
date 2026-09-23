@@ -554,6 +554,7 @@ c $7394 Message control code $04: the pushed word with a or the in front
 
 @ $738B label=MC_NOTHING
 c $738B Message control code $05, $0A, $0F and $12: do nothing
+  $738B,2 Z: carry on with the message
 
 @ $73A3 label=MC_ACTOR
 c $73A3 Message control code $06: the actor's name, or YOU
@@ -670,6 +671,16 @@ D $709C Two bytes each, up to the end-of-line token $C0. Cleared before each lin
 @ $7585 label=PARSE_COMMAND
 c $7585 Parse one command from the tokens
 D $7585 Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back for another line. A line of several commands -- joined by THEN, or by a full stop -- is taken one command at a time, the main loop coming back here while $B705 says there is more.
+  $7585,8 Start at the first frame, outside any quotation
+  $758D,6 Not yet worked out
+  $7593,11 Was the last command left unfinished -- after 'which key?', say? Then fit these words into it
+  $759E,2 A fresh command
+  $75A0,8 E says what may come next: bit 1 a verb, bit 2 an adverb, bit 4 an article, and more
+  $75A8,9 In one case a verb may not start here
+  $75B1,3 Clear this frame
+  $75B4,10 Start a new noun phrase, and allow an article
+  $75BE,3 Next token: its class in D
+  $75C1,17 Go to the handler for its class, from PARSER_CLASSES
 
 @ $7960 label=OBEY
 c $7960 Carry out the parsed command, and let the world take its turn
@@ -704,30 +715,43 @@ W $75D2,26,2
 
 @ $76F2 label=PARSE_ADVERB
 c $76F2 Parse an adverb
+  $76F2,5 Not where an adverb can go: NOT_ALLOWED_HERE
+  $76F7,10 Not yet worked out
+  $7701,2 Only one
+  $7703,5 Store it at offset 2 of the frame
+  $7708,3 And on to the next word
 
 @ $7795 label=PARSE_IN
 c $7795 Parse IN or INTO
+  $7795,11 At the start of a command, straight after AND, IN is a verb
+  $77A0,2 Otherwise it is a preposition
 
 @ $76EC label=PARSE_DIRECTION
 c $76EC Parse a direction
+  $76EC,4 Where a verb could start, a direction is the verb: NORTHEAST on its own
+  $76F0,2 Anywhere else it goes where an adverb would, as after GO
 
 @ $7733 label=PARSE_VERB
 c $7733 Parse a verb
 
 @ $772F label=PARSE_GO
 c $772F Parse GO or RUN
+  $772F,2 GO or RUN...
 
 @ $77D1 label=PARSE_NOUN
 c $77D1 Parse a noun
 
 @ $77C9 label=PARSE_ADJECTIVE
 c $77C9 Parse an adjective
+  $77C9,3 Put it in the phrase
+  $77CC,5 And go on to see what follows it
 
 @ $77A2 label=PARSE_PREPOSITION
 c $77A2 Parse a preposition
 
 @ $7790 label=PARSE_ARTICLE
 c $7790 Parse an article
+  $7790,5 An article: noted, not stored -- no second one allowed -- and on to the next word
 
 @ $8251 label=PARSE_SPECIAL
 c $8251 Parse a quantifier, pronoun or game command
@@ -740,6 +764,7 @@ c $75FA Parse THEN or a full stop
 
 @ $75F6 label=PARSE_END
 c $75F6 Parse the end of the line
+  $75F6,4 The end of the line: no more commands in it. On as for THEN
 
 @ $B9C8 label=COMMAND_FRAME
 b $B9C8 The command being obeyed
@@ -922,3 +947,53 @@ D $AAF9 The wine carries this for action 0 in its record, so nothing branches to
   $AAF9,6 Only the player
   $AAFF,5 Drunk: from now on every S is followed by an H
   $AB04,7 Not yet worked out
+
+@ $757A label=PHRASE
+b $757A The noun phrase being built
+D $757A One byte not yet worked out, then ten bytes laid out as a noun phrase in the command frame is -- two prepositions, the noun, two adjectives, each a word reference low byte first -- which the class handlers fill as the words arrive.
+B $757A,1,1
+  $757A,1 Not yet worked out
+B $757B,4,2
+  $757B,4 Two prepositions
+B $757F,2,2
+  $757F,2 The noun
+B $7581,4,2
+  $7581,4 Two adjectives: ADD_ADJECTIVE takes the first free one and refuses a third
+
+@ $7873 label=NEXT_TOKEN
+c $7873 Take the next token
+D $7873 From the pointer in $B6DC, which it moves on. The previous position is kept in $B6DA, which is what the main loop echoes back when a word is not known, and the previous class in $B6DE, which PARSE_IN looks at.
+R $7873 O:D The class, in the top nibble
+R $7873 O:BC The word: B the top of its offset, C the low byte
+  $7873,6 Keep where this token is, for the echo of an unknown word
+  $7879,4 Keep the class of the last token
+  $787D,8 B = the top of the word's offset, D = the class
+  $7885,6 C = the low byte; move the pointer on
+
+@ $7864 label=CLEAR_FRAME
+c $7864 Clear the frame at IY
+D $7864 All 24 bytes, and the verb of the frame below it, so that one reads as empty.
+  $7864,8 Clear the 24 bytes
+  $786C,6 And the verb of the frame below
+
+@ $70E2 label=CLEAR_BYTES
+c $70E2 Zero B bytes from HL
+
+@ $7918 label=STORE_WORD
+c $7918 Store the word in BC in the frame at offset L
+D $7918 Low byte first -- which is why the frames and object names hold their words little-endian while tokens hold them the other way round.
+  $7918,7 HL = the frame plus L
+  $791F,3 The word, low byte first
+
+@ $7929 label=NOT_ALLOWED_HERE
+c $7929 A word that is not allowed where it came
+D $7929 Inside a quotation it is simply passed over, so orders given to other characters are more forgiving. Otherwise the game says "what ?" and the command is abandoned.
+  $7929,6 Inside a quotation: ignore the word and carry on
+  $792F,11 Otherwise "what ?"
+  $793A,3 NZ: the command is abandoned
+
+@ $7809 label=ADD_ADJECTIVE
+c $7809 Add the adjective in BC to PHRASE
+  $7809,8 Is the first adjective slot free?
+  $7811,7 Is the second? Neither: too many adjectives
+  $7818,3 Store it, low byte first
