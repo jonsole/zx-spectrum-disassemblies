@@ -1198,12 +1198,12 @@ D $9B80 The one-byte target that RUN_ROUTINE calls, so that a routine held in HL
 b $CA84 The timers END_OF_TURN counts down
 D $CA84 Ten 7-byte entries, ending at $FF: byte 0 is the timer's length in turns, and starting it is copying that into byte 1, the count -- WINE_DRUNK does exactly that for timer 7, and timer 9 restarts itself the same way. Bytes 2 and 3 are the routine to run when the count reaches zero. Byte 4 is how many turns before then to warn, and bytes 5 and 6 the routine to warn with. All of them are reached through $9B80's JP (HL).
 D $CA84 This table and what follows it, $BF bytes in all, are copied aside by START and copied back on every new game; SAVE and LOAD take the same $BF bytes.
-B $CA84,7,7 Timer 0, 2 turns: the barrel reaches the long lake (#R$A5FB)
-B $CA8B,7,7 Timer 1, 2 turns: the spider web changes (#R$AA5C)
+B $CA84,7,7 Timer 0, 2 turns: the barrel reaches the long lake (#R$A5FB); started by BARREL_THROWN
+B $CA8B,7,7 Timer 1, 2 turns: the broken web is mended (#R$AA5C); started by WEB_BROKEN
 B $CA92,7,7 Timer 2, 5 turns: the web smothers anyone still in it (#R$AB10)
-B $CA99,7,7 Timer 3, 2 turns: the goblins' door shuts (#R$A4D9)
+B $CA99,7,7 Timer 3, 2 turns: the goblins' door shuts (#R$A4D9); started by GOBLINS_DOOR_OPENED
 B $CAA0,7,7 Timer 4, 2 turns: the deep bog, warning every turn (#R$A7AA)
-B $CAA7,7,7 Timer 5, 4 turns: the magic door opens a turn before it closes (#R$AAB3, #R$AAD5)
+B $CAA7,7,7 Timer 5, 4 turns: the magic door opens a turn before it closes (#R$AAB3, #R$AAD5); started by MAGIC_DOOR_EXAMINED
 B $CAAE,7,7 Timer 6, length 0 and never started: its routine is run by timer 5's warning instead (#R$AAE0)
 B $CAB5,7,7 Timer 7, 5 turns: the wine wears off (#R$AB0B)
 B $CABC,7,7 Timer 8, 4 turns: the eyes in the forest (#R$AB1F, #R$AB3A)
@@ -1227,8 +1227,8 @@ D $A5FB Two turns after it is started, the barrel goes to location 34, the long 
   $A633,13 The wine: back in location 32, held by the barrel
 
 @ $AA5C label=WEB_CHANGES
-c $AA5C Timer 1: the spider web changes
-D $AA5C Clears bits 3 and 5 of the web's flags, doubles its byte 5, and gives it a different first adjective ($0623) in its name. Not yet seen in play.
+c $AA5C Timer 1: the broken web is mended
+D $AA5C Two turns after WEB_BROKEN: clears the web's flag bits 3 (broken) and 5 (can be seen through), doubles its byte 5, and gives it back SPIDER as the adjective in its name. Not yet seen in play.
   $AA5C,16 Flags and byte 5
   $AA6C,7 Its name
 
@@ -1768,3 +1768,37 @@ D $A8F6 The answer has to be given to Gollum as an order -- said to him, in the 
   $A8FD,5 Nothing said to him: strangled
   $A902,19 Look through what was said for the answer word
   $A915,17 "someone strangles you from behind.", and dead
+
+# --------------------------------------------------------------------------
+# What starts the timers
+# --------------------------------------------------------------------------
+
+@ $A377 label=WEB_BROKEN
+c $A377 After the spider web is struck: the spiders start mending it
+D $A377 The web's record has this under key 0 straight after its handler for action 11, STRIKE WITH, so it runs whenever that does (see DO_ACTION). If the blow left the web broken -- flag bit 3 -- it can now be seen through (bit 5), "some spiders start mending the broken web.", and timer 1 is started: two turns later the web is whole again.
+  $A377,9 Not broken: nothing
+  $A380,4 It can be seen through now
+  $A384,6 Start timer 1
+  $A38A,6 "some spiders start mending the broken web."
+
+@ $A4C0 label=GOBLINS_DOOR_OPENED
+c $A4C0 The goblins' door's own OPEN
+D $A4C0 Only from location 16, the big goblins' cavern, where it is opened as any door is (through $910E); then timer 3 shuts it again two turns later. From its other side, the goblins' dungeon, it will not open.
+  $A4C0,12 Not in the cavern: refused
+  $A4CC,6 Open it
+  $A4D2,6 Start timer 3
+
+@ $A5E2 label=BARREL_THROWN
+c $A5E2 After something is thrown through the trap door
+D $A5E2 The large trap door's record has this under key 0 after its handler for action 44, THROW THROUGH. If what went through was the barrel, and it has landed in location 33, the forest river, timer 0 is set going: two turns later BARREL_REACHES_LAKE takes it, and anyone inside, on to the long lake.
+  $A5E2,6 Not the barrel: nothing
+  $A5E8,3 Not yet worked out
+  $A5EB,10 Not in the forest river: nothing
+  $A5F5,5 Start timer 0 at two turns
+
+@ $A71E label=MAGIC_DOOR_EXAMINED
+c $A71E The magic door's own EXAMINE
+D $A71E Anyone who can be seen -- flag bit 7 -- sees "nothing special here." Anyone who cannot, sets timer 5 going: "the magic door warns of elves approaching.", and three turns later it opens for an elf to sweep past (MAGIC_DOOR_OPENS).
+  $A721,14 Visible? "you see nothing special here."
+  $A72F,6 Start timer 5
+  $A735,6 "the magic door warns of elves approaching."
