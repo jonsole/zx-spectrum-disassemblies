@@ -265,6 +265,15 @@ R $9DBD I:IX The table
 R $9DBD O:IX The matching record, or the $FF that ended the table
 R $9DBD O:F NZ if the key was found, Z if the table ran out
 E $9DBD Done in the alternate register set, so the caller's BC, DE and HL survive it.
+  $9DBD,1 Work in the other register set, so the caller's BC, DE and HL survive
+  $9DBE,3 HL walks the table from IX
+  $9DC1,1 B = the key being looked for
+  $9DC2,4 DE = 3, the size of a record
+  $9DC6,4 Found it? The key is tested before the end marker, so a key of $FF can never be found
+  $9DCA,4 Run off the end?
+  $9DCE,4 On to the next record
+  $9DD2,3 IX = the record, or the $FF that ended the table
+  $9DD5,2 NZ if found; A is the key
 
 @ $C730 label=ACTION_TABLE
 b $C730 What to do for each action code
@@ -289,6 +298,8 @@ c $9BCA Find an object's record
 D $9BCA The object number in A goes to FIND_RECORD against OBJECT_INDEX, and the record's address comes back in IX. Twenty-one routines use it.
 R $9BCA I:A The object number
 R $9BCA O:IX The object's record
+  $9BCA,7 Find the object's entry in OBJECT_INDEX
+  $9BD1,11 Swap the entry's pointer into IX, keeping HL
 
 @ $9B81 label=FIND_OBJECT_HANDLER
 c $9B81 Find an object's own handler for an action
@@ -298,6 +309,10 @@ R $9B81 I:A The action code
 R $9B81 I:IX The object's record
 R $9B81 O:IX The matching handler record, or the $FF that ended the list
 R $9B81 O:F NZ if the object has its own handler for this action
+  $9B82,1 Keep the action code
+  $9B83,6 Skip the 16-byte head and the list of locations, whose length is byte 0
+  $9B89,5 IX = the start of the object's own handlers
+  $9B8E,3 Look for this action among them
 
 # --------------------------------------------------------------------------
 # Reading a command
@@ -322,19 +337,33 @@ c $9BB1 Find a location's record
 D $9BB1 Anything from $50 up is not a location and gets zero back; otherwise the record's address is read straight out of ROOM_POINTERS, two bytes per location. Unlike objects there is no search: locations are numbered densely, so a table indexed by number is cheaper than FIND_RECORD.
 R $9BB1 I:A The location
 R $9BB1 O:IX Its record
+  $9BB1,6 $50 and above is not a location: return zero
+  $9BB7,5 DE = ROOM_POINTERS, keeping HL
+  $9BBC,5 HL = ROOM_POINTERS + 2 x location
+  $9BC1,3 DE = the pointer there
+  $9BC4,3 IX = the room's record
 
 @ $9D37 label=ACTOR_ROOM
 c $9D37 The record of the room the current actor is in
 D $9D37 $B70C points at the object record of whoever is acting this turn -- the player or any other character -- and its location is at +$10, so the same code moves everybody.
 R $9D37 O:IX The room record
+  $9D38,4 IX = the acting character's object record
+  $9D3C,3 A = where that character is
+  $9D3F,3 IX = that room's record
 
 @ $9E95 label=FIRST_EXIT
 c $9E95 Point IX just before the actor's room's first exit
 D $9E95 The room's record, plus 7: three short of the exits, because NEXT_EXIT steps three before it looks.
+  $9E96,3 IX = the actor's room
+  $9E99,5 Plus 7: three short of the exits at +10, since NEXT_EXIT adds 3 before it looks
 
 @ $9B93 label=NEXT_EXIT
 c $9B93 Step to the next three-byte entry
 D $9B93 Adds 3 to IX and returns Z at the $FF that ends a list. Shared with other lists of three-byte entries, which is why it also loads IY from bytes 1 and 2 -- for an exit those are the object it goes through and the destination, not an address.
+  $9B93,1 Keep the caller's BC, DE and HL
+  $9B94,5 On three bytes to the next entry
+  $9B99,9 IY = bytes 1 and 2 of it, which for an object index entry is the record's address
+  $9BA2,5 Z if this is the $FF that ends the list
 
 @ $9F08 label=FIND_EXIT
 c $9F08 Find the actor's room's exit in a direction
@@ -342,6 +371,11 @@ D $9F08 Walks the exits for one whose direction matches and whose destination is
 R $9F08 I:A The direction, 1-10
 R $9F08 O:IX The exit
 R $9F08 O:F NZ if there is one
+  $9F0B,1 B = the direction wanted
+  $9F0C,3 IX just before the actor's room's first exit
+  $9F0F,5 Next exit, or give up at the end of the list
+  $9F14,6 An exit leading to location 0 goes nowhere yet: pass over it
+  $9F1A,7 Not the direction wanted: keep looking
 
 @ $B70C label=ACTOR
 b $B70C Whose turn it is
