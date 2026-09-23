@@ -661,8 +661,27 @@ D $7291 Four letters, WAIT, and no terminator: GET_KEY copies exactly four.
 @ $6E97 label=TOKENISE
 c $6E97 Turn the next word of INPUT_LINE into a token
 D $6E97 A token is two bytes: the word's class in the top nibble -- bits 5-6 of its first two dictionary bytes, read together -- and its twelve-bit dictionary offset below that. A synonym comes out as the word it stands for, so GET SWORD is TAKE SWORD by the time anything reads it. $C0 ends the line; $D0 is a word not in the dictionary, and the main loop prints the complaint and never calls the parser.
+D $6E97 A typed word may be shortened or, within limits, lengthened. A candidate is taken if the two agree over the shorter length and the typed word is the shorter -- an abbreviation; if the typed word is the longer, only when the entry has at least four letters and no later candidate fits too. Tried: EXAM gives EXAMINE, INV gives INVENTORY, SWORDS gives SWORD, INT gives INTO because IN is too short to stretch, and EXAMINING is not a word at all, since its seventh letter disagrees.
 D $6E97 Watched on real sentences: VICIOUSLY ATTACK THE TROLL WITH THE SWORD comes out as adverb, verb, article, noun, preposition, article, noun, end; TAKE THE MAP AND THE KEY puts AND in class $A; and a closing quote gets a full stop token inserted before it by the main loop, so what is said to a character ends as a sentence.
 R $6E97 O:BC The token
+  $6E98,7 Skip spaces
+  $6E9F,3 Remember where the word starts, for the echo of an unknown one
+  $6EA2,4 The end of the line: $C0
+  $6EA6,5 A full stop, comma or quote is a token by itself
+  $6EAB,5 Start on the dictionary bucket for its first letter; none, and it is unknown
+  $6EB0,6 Does this candidate agree with what was typed?
+  $6EB6,6 No: try the next in the bucket, until it runs out
+  $6EBC,4 Not in the dictionary: $D0
+  $6EC0,10 The typed word no longer than the entry: an abbreviation, take it
+  $6ECA,4 Longer, and the entry under four letters: not this one
+  $6ECE,16 Longer, and the entry four or more: take it unless the next candidate agrees too
+  $6EDE,5 No word: end of line, or unknown, or punctuation
+  $6EE3,6 B = class and top of the offset, C the low byte; A = the class
+  $6EEB,16 Walk to the end of the chosen entry...
+  $6EFB,14 ...by PRINT_WORD's rule for where a word ends
+  $6F09,17 A synonym: its link, turned into an address, replaces it
+  $6F1A,12 The class: bits 5-6 of the first byte above bits 5-6 of the second
+  $6F26,10 And the entry's offset from $6000
 
 @ $709C label=TOKENS
 b $709C The tokens of the line being obeyed
@@ -1105,3 +1124,18 @@ D $78B7 Keeping its own ALL bit. In some cases it also moves the frame's own phr
 @ $789F label=FRAME_BELOW
 c $789F Step IY down one frame
   $78A0,5 24 bytes down
+
+@ $6F30 label=PUNCTUATION_TOKEN
+c $6F30 A full stop, comma or quote is a token by itself
+D $6F30 And each takes the class of a word: a full stop $B0, the same as THEN, and a comma $A0, the same as AND -- so TAKE THE MAP. GO EAST and TAKE THE MAP, THE KEY parse exactly as their spelled-out forms. A quote is $90. Returns Z if it was one of the three.
+  $6F30,6 Full stop: $B0, as THEN
+  $6F36,6 Comma: $A0, as AND
+  $6F3C,5 Quote: $90; anything else is not punctuation
+  $6F41,6 Step past it; A = the class, and no word
+
+@ $6FBA label=LETTERS_AGREE
+c $6FBA Does the typed word agree with the candidate?
+D $6FBA Letter for letter, over the shorter of the two -- which is what lets TOKENISE take a typed word as an abbreviation.
+R $6FBA O:F Z if they agree
+  $6FBA,11 B = the shorter of the two lengths
+  $6FC5,13 Compare that many letters
