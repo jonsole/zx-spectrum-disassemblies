@@ -1488,10 +1488,20 @@ D $B738 Eight 25-byte slots, each the number of the character it is for followed
 B $B738,200,25
 
 @ $9CA8 label=RANDOM
-c $9CA8 A random number, in a range set by A
-D $9CA8 From a pointer at $B712 that steps on by one each time it is used, reading whatever is there. How A limits the result is not yet worked out.
+c $9CA8 A random number from -A to A
+D $9CA8 Mixes the last result, kept at $B70E and seeded from R by START, with the byte the pointer at $B712 has got to -- it steps on by one every call -- and one DE bytes past it, and draws again if that repeats the last result. The byte is then halved until it is no more than twice A, and A taken off.
+D $9CA8 Measured over 3000 calls each, through RANDOM_POSITIVE: every value from 0 to A comes up, but not evenly -- for A = 4 the ends come up half as often as the middle, and for A = 9 the top three do.
+R $9CA8 I:A The limit, 0 to 127
+R $9CA8 O:A The result, -A to A
+  $9CAB,8 B = twice the limit, or $FF if that overflows
+  $9CB3,12 Step the pointer on
+  $9CBF,20 Mix two bytes from there into the last result
+  $9CD3,6 The same as last time? Draw again; otherwise keep it
+  $9CD9,10 Halve it until it is no more than B
+  $9CE3,1 Take the limit off
 @ $9C9F label=RANDOM_POSITIVE
-c $9C9F RANDOM, made positive
+c $9C9F A random number from 0 to A
+D $9C9F RANDOM, with the sign dropped.
 
 @ $9F82 label=LOCATION_OF
 c $9F82 Where an object is, if it is in only one place
@@ -1712,7 +1722,7 @@ D $97AD Called by START for every new game. One of HIDDEN_ROADS is picked at ran
 
 @ $C7FC label=RIDDLES
 b $C7FC Gollum's riddles
-D $C7FC Four entries, each the answer as a word reference and then the riddle as a message. There are only two riddles, each in the table twice.
+D $C7FC Four entries, each the answer as a word reference and then the riddle as a message. There are only two riddles, each in the table twice; NEW_GAME_CHOICES picks among all four with RANDOM_POSITIVE given 3, which comes up with the four about equally, so the two riddles are even.
 B $C7FC,4,4 NIGHT: "it cannot be seen, cannot be felt, cannot be heard, cannot be smelt..."
 B $C800,4,4 MAN: "which is the animal that has four feet in the morning, two at midday and three in the evening ?"
 B $C804,4,4 NIGHT again
@@ -1721,7 +1731,7 @@ B $C80C,2,2 Not yet worked out
 
 @ $C80E label=HIDDEN_ROADS
 b $C80E The ways one of which is shut at the start of each game
-D $C80E Six bytes each: the location, the address of one of its exits in the room records, and that exit's three bytes -- direction, the object it goes through, and destination -- kept here so that ELROND_READS_MAP can put them back. NEW_GAME_CHOICES picks one with RANDOM_POSITIVE given 4, so whether the last can be chosen depends on RANDOM's range, which is not yet worked out.
+D $C80E Six bytes each: the location, the address of one of its exits in the room records, and that exit's three bytes -- direction, the object it goes through, and destination -- kept here so that ELROND_READS_MAP can put them back. NEW_GAME_CHOICES picks one with RANDOM_POSITIVE given 4, so any of the five can be shut, the first and last half as often as the other three.
 B $C80E,6,6 Beorn's house, north to the great river
 B $C814,6,6 The forest gate, east to the bewitched gloomy place
 B $C81A,6,6 The treeless opening, west to outside the goblins' gate
