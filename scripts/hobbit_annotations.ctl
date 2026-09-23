@@ -2101,7 +2101,7 @@ D $8F3B The exit that goes through the object; refused if there is none, if it l
   $8F58,3 The test ends here
   $8F5B,14 A move that way, with no object
 c $8FCD ENTER and GO INTO
-D $8FCD Looks for an exit whose destination is the number in $B6E8 and goes through it as GO_THROUGH does. How an object number comes to stand for a place here is not yet understood.
+D $8FCD Looks for an exit whose destination is the number in $B6E8 and goes through it as GO_THROUGH does. For these two actions that number is a place, not an object: the parser, at $7DFE, tries a noun against the names of the rooms this one's exits lead to (ROOM_BY_NAME) before it tries the objects, so ENTER THE CAVE names the cave.
 @ $8FD6 label=DO_FOLLOW
 c $8FD6 FOLLOW
 D $8FD6 Only one step: the exit that leads to where the one followed is, if there is one, and through it. Already in the same place, or not next to it: "i cannot follow the ... from here."
@@ -2750,3 +2750,54 @@ D $A94E The troll eats the player (EAT, $1B) where they are both, and PLAYER_DIE
 @ $A971 label=TROLLS_TURN_TO_STONE
 c $A971 Dawn: the trolls turn to stone
 D $A971 Both trolls are killed and hidden, drop what they held -- the large key among it -- the clearing gets its daytime description and is marked unvisited, and its picture is patched to show them as stone.
+
+# --------------------------------------------------------------------------
+# Names, articles, and what things hold
+# --------------------------------------------------------------------------
+
+@ $9ED6 label=PRINT_NAME
+c $9ED6 Print an object's name, with its article
+D $9ED6 The article (ARTICLE), then the adjectives in the order stored, then the noun. With $B703 set, the noun alone.
+R $9ED6 I:IY The name's six bytes: noun, then two adjectives
+  $9ED8,7 The noun only?
+  $9EDF,9 The article, for the noun
+  $9EE8,18 The adjectives
+  $9EFA,11 The noun, if there is one
+@ $743F label=ARTICLE
+c $743F Print the article a noun takes
+D $743F The top bits of the noun's word reference choose it. Bit 7 marks a proper name, which takes none and is capitalised instead -- except YOU, the word at $07A8, which is left in lower case. Otherwise bits 4 to 6 pick from ARTICLES: THE, A, AN or SOME -- or, in the input window or while an action is being narrated, THE for everything but SOME.
+R $743F I:DE The noun's word reference
+  $743F,4 A proper name?
+  $7443,12 YOU: no capital
+  $744F,6 Otherwise the next letter is a capital
+  $7455,16 THE, A, AN or SOME -- or THE throughout when narrating
+  $7465,19 Print the one its bits choose
+@ $AD2D label=ARTICLES
+w $AD2D The articles, as word references
+D $AD2D Two sets of four, picked by the top bits of a noun's word reference (ARTICLE): the first for ordinary text, the second for the input window and for narration, which says THE where the first would say A or AN.
+  $AD2D,8 THE, A, AN, SOME
+  $AD35,8 THE, THE, THE, SOME
+@ $9EA0 label=ROOM_BY_NAME
+c $9EA0 Which of the places the exits lead to has this name?
+D $9EA0 How ENTER and GO INTO name a place: each exit's destination is looked up and its name matched against the phrase with NAME_MATCHES.
+R $9EA0 I:IX The exits, as FIRST_EXIT leaves them
+R $9EA0 O:A The location, or $FF
+@ $9D00 label=ADD_UP_HELD
+c $9D00 Add up the sizes or the weights of what object A holds
+D $9D00 With B set, the sizes of what it holds directly (SIZE_HELD, $9CE8); with B clear, the weights of everything in it at any depth (WEIGHT_HELD, $9CED). The sum is kept in C, and goes to $FF on overflow.
+R $9D00 I:A The holder
+R $9D00 I:B 1 for sizes, 0 for weights
+R $9D00 O:C The sum
+@ $94D6 label=HANDLED
+c $94D6 Is there anything that handles this action?
+D $94D6 $B6FB = 1 if so: an ordinary handler in ACTION_TABLE, one of the SECOND_FIRST actions, or a handler of the first object's own; 0 if not, or if the action makes no sense (SENSIBLE).
+@ $A050 label=CONTENTS_INTRO
+c $A050 Introduce what an object holds, for LIST_HELD
+D $A050 Only for something that can be seen into and holds anything visible: a character's is "... is carrying", a thing's the phrase for how things sit with it (PLACED_WORD), its name, and "is" or "are" there. Otherwise a new line, and carry set, so LIST_HELD goes no deeper.
+R $A050 I:A The object
+R $A050 O:F Carry set if there is nothing to list
+@ $6FD3 label=CLEAR_SCREEN
+c $6FD3 Clear the screen: white border, black on white
+@ $7F60 label=CANCEL_ORDERS
+c $7F60 Throw away any orders waiting for character A
+D $7F60 KILL does this, so that the dead do not act on what they were told.
