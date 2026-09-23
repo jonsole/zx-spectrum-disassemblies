@@ -607,11 +607,23 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         out.append(f"D ${start:04X} A 16-byte head, where it is when the game starts --{held} "
                    f"{'location' if len(places) == 1 else 'locations'} {where} -- "
                    f"and {len(record['handlers'])} handler(s) of its own, ending at $FF.")
-        out.append(f"B ${start:04X},8,8")
-        out.append(f"  ${start:04X},8 Byte 0: how many places it is in; byte 1: what holds it, $FF for nothing; byte 7: its flags")
+        out.append(f"B ${start:04X},1,1")
+        out.append(f"  ${start:04X},1 How many places it is in")
+        out.append(f"B ${start + 1:04X},1,1")
+        out.append(f"  ${start + 1:04X},1 What holds it or has it inside; $FF for nothing")
+        out.append(f"B ${start + 2:04X},2,2")
+        out.append(f"  ${start + 2:04X},2 Its size, then its weight; for a character the "
+                   f"weight byte is the most it can carry")
+        out.append(f"B ${start + 4:04X},3,3")
+        out.append(f"  ${start + 4:04X},3 Not yet worked out")
+        out.append(f"B ${start + 7:04X},1,1")
+        out.append(f"  ${start + 7:04X},1 Flags: see OBJECT_INDEX")
         out.append(f"B ${start + 8:04X},6,6")
         out.append(f"  ${start + 8:04X},6 Its name: noun, then adjectives")
+        described = memory[start + 14] | (memory[start + 15] << 8)
         out.append(f"B ${start + 14:04X},2,2")
+        out.append(f"  ${start + 14:04X},2 " + (f"Its own description, the message at ${described:04X}"
+                   if described else "No description of its own"))
         out.append(f"B ${start + 16:04X},{record['listed']}")
         out.append(f"  ${start + 16:04X},{record['listed']} "
                    f"{'Its location' if len(places) == 1 else 'The locations it is in at once'}")
