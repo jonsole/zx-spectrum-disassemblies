@@ -372,7 +372,7 @@ D $C063 A FIND_RECORD table of 61 objects, whose values are the objects' own rec
 D $C063 Object 0 is the player: $B6EA, which is zero when a sentence is about you, holds object numbers, and object 0's location is where the player is.
 D $C063 A record is a 16-byte head, then the locations the object is in -- byte 0 of the head says how many -- then its own action handlers (see FIND_OBJECT_HANDLER). Watched rather than inferred: over several turns the one byte that changes in any character's record is the first of those locations, as it wanders; and when the player walked east out of Bag End and back, object 0's location went 1, 4, 1, matching at every step the location whose picture DRAW_LOCATION_PICTURE looked up. Most things are in one place; the ones in several are fixtures between rooms. Object 5 is in locations 1 and 4 -- exactly the two rooms that walk went between, so it is the round green door.
 D $C063 The head, as far as it is known. Byte 1 is what holds the object or has it inside, $FF for nothing: see SHUT_IN. Byte 2 is its size and byte 3 its weight, and for a character byte 3 is the most it can carry: the routine at $8CF1 compares a thing's weight and load with the actor's byte 3 and fails with "is too heavy to lift", the one at $93AB with "you are carrying too much", and the one at $A596 compares the actor's size with the room in the thing at byte 2 and fails with "you are too big". Doors, walls and fixtures are $FF in both. Bytes 14 and 15, where not zero, are the object's own description: the map's says there seem to be symbols on it that you cannot read, printed through RUN_MESSAGE. Byte 4's low four bits say how things are placed with this object, as PLACED_WORD prints it: 0 in, 1 on, 2 behind (the curtain, which the wall is behind), 3 under (the trap door), 4 tied to (the rope). Its bits 4 to 6 are sides (see SAME_SIDE): 1 for the player, Gandalf, Thorin and Bard; 2 for Gollum and the goblins; 4 for the wood elf and the butler; 5 for Elrond, on two; bit 7 is on the window alone. Byte 5 is strength and byte 6 defence, what DO_ATTACK weighs, and both wear down with wounds -- and a fall in the dark halves the player's strength.
-D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bit 3 is dead, or broken: KILL sets it on a character, and a struck spider web has it until it is mended. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 5 is also a door's being open: OPEN sets it and CLOSE clears it, and CAN_PASS will not let anyone through a way whose object has neither it nor bit 3. Bit 0 is locked: LOCK sets it and UNLOCK clears it, and it is on four doors to start with.
+D $C063 Byte 7, the flags. Bit 7: there, to be seen and reached -- IN_REACH wants it, and the only two objects without it are the mountains' side door, which is secret, and the butler. Bit 6: a character -- set on all twelve and on nothing else, and what FIND_NAMED_OBJECT's mode picks on. Bit 5: can be seen into, which SHUT_IN climbs through; the characters have it, and the goblins' cache and the wooden boat. Bit 1: a liquid -- exactly the wine and the four waters, and the rivers. Bit 2, on a container, is full: DRINK and EMPTY clear it, and FILL will not fill what has it. Bit 3 is dead, or broken: KILL sets it on a character, and a struck spider web has it until it is mended. Bits 2, 3 and 4 are what TOO_DARK reads on the sword; the torch has the same flags. Bit 5 is also a door's being open: OPEN sets it and CLOSE clears it, and CAN_PASS will not let anyone through a way whose object has neither it nor bit 3. Bit 0 is locked: LOCK sets it and UNLOCK clears it, and it is on four doors to start with.
 
 @ $9BCA label=GET_OBJECT
 c $9BCA Find an object's record
@@ -2487,3 +2487,66 @@ c $A338 The heavy rock door takes the large key
 c $A358 "the ... does not fit this lock."
 @ $A35E label=SIDE_DOOR_UNLOCKED
 c $A35E After the side door is unlocked, it opens
+
+# --------------------------------------------------------------------------
+# Containers, food and water
+# --------------------------------------------------------------------------
+
+@ $8CE0 label=DO_TAKE_OUT
+c $8CE0 TAKE OUT OF, carried by the containers
+D $8CE0 The thing must be in the container, at any depth ("the ... is not in the ..."); then it is taken as TAKE takes anything, from the lifting check on.
+@ $924F label=DO_PUT_IN
+c $924F PUT IN and DROP IN, carried by the containers
+D $924F What goes in must be something in one place, and not a liquid -- the last part of CAN_LIFT -- and not the container itself. The container must be open -- except to PUT something ON it -- and have room: its size, byte 2, less what is in it, more than the thing's size ("the ... is too full."). Then it is in the container, and where the container is.
+  $924F,3 Something that can be put anywhere
+  $9252,9 Not into itself
+  $925B,17 Shut, unless it is PUT ON: "the ... is closed."
+  $926C,27 Room for it? "the ... is too full."
+  $9287,3 The test ends here
+  $928A,13 In it, and where it is
+  $9297,5 "the ... is closed."
+@ $9428 label=INTO_THE_RIVER
+c $9428 PUT IN or DROP IN a river: swept away
+D $9428 A river is in two places, and whatever goes in comes out at the other, downstream: "and it gets swept away.". If that was the player, carried off in something, and the river leads nowhere, it is death.
+@ $8F69 label=DO_FILL
+c $8F69 FILL WITH, carried by the barrel
+D $8F69 Filling from a river's water fetches a fresh water of the same kind (objects $15 and $16, kept nowhere for this), which is what goes in; then it is PUT IN with the objects swapped. A container already full says so. As read, the liquid would then be refused by the last part of CAN_LIFT, which DO_PUT_IN begins with, so that FILL can never succeed; that has not been tried in play.
+  $8F69,15 From a river's water? A fresh one
+  $8F78,11 Only with a liquid
+  $8F83,9 Full already: "the ... is full."
+  $8F8C,6 Put it in, the objects swapped
+  $8F92,27 The fresh water, held by nothing
+@ $929C label=DO_DRINK
+c $929C DRINK
+D $929C A drink from a container leaves it no longer full and gives one point of strength; anything else is eaten, as EAT.
+@ $92B5 label=DO_EAT
+c $92B5 EAT
+D $92B5 Ten points of strength, and the thing is gone from everywhere. Strength reaching 128 kills the eater: "his foul gluttony has killed the ...". That is the end the trolls come to when they eat the player, whose own record has PLAYER_DIES after EAT.
+  $92BA,14 Stronger, unless it is too much
+  $92C8,20 The thing is nowhere
+  $92DC,12 Too much: dead of gluttony
+@ $9404 label=DO_EMPTY
+c $9404 EMPTY, carried by the barrel
+D $9404 Not if it is shut ("the ... is closed.") or has nothing in it ("the ... is empty."); otherwise EMPTY_OUT, and it is no longer full.
+@ $A244 label=DRINK_WATER
+c $A244 The water's own DRINK: nothing happens, and it works
+@ $A328 label=DRINK_BLACK_WATER
+c $A328 The black water's own DRINK: asleep, and dead
+D $A328 "... fall asleep." and the drinker is killed through the end of SWIM_BLACK_RIVER.
+@ $A310 label=SWIM_BLACK_RIVER
+c $A310 SWIM, in the fast black river: asleep, and dead
+D $A310 "as soon as you touch the river you fall asleep and gently float away.", "time passes..." for the player, and KILL. The drinking of its water ends the same way, from $A316.
+@ $A2CD label=SWIM_RIVER
+c $A2CD SWIM, in the fast river
+D $A2CD Across, if the river's exit leads anywhere: the river is opened for the moment it takes MOVE to go that way through it, and shut again. Leading nowhere, it works and nothing happens.
+@ $A55F label=DO_CLIMB_INTO
+c $A55F CLIMB INTO, carried by the barrel, the boat and the chest
+D $A55F Not what the actor is in already, and only what it can reach. If the actor is carrying it, it is put down first. It must be open, and big enough for the actor and all it carries, unless its size is $FF ("the ... is too big.").
+  $A55F,13 Already in it: refused
+  $A56C,10 Out of reach: refused
+  $A576,32 Carrying it? Put it down first
+  $A596,18 The actor's size, with its load
+  $A5A8,10 Shut: "the ... is closed."
+  $A5B2,14 Too small: "the ... is too big."
+  $A5C0,3 The test ends here
+  $A5C3,6 In
