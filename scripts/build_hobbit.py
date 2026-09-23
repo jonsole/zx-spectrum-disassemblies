@@ -93,9 +93,11 @@ the disassembly was made from, byte for byte, before any .sna is written.
 
 The game and everything built from it is copyrighted (Beam Software / Melbourne
 House, 1982). Same treatment as the other games here: built locally under
-game_disassembly/, gitignored, never committed. Nothing in this script exports
-the game's prose -- the messages and location descriptions stay in the game's
-own bytes. Prior work consulted for addresses, and credited rather than copied:
+game_disassembly/, gitignored, never committed. That output now includes the
+game's text: the messages are decoded so that each one's words can be shown
+beside its bytes, and like the bytes that stays in the local build. This
+script and the annotations carry the decoder and at most a few words quoted to
+identify a structure, never the messages themselves. Prior work consulted for addresses, and credited rather than copied:
 pobtastic's SkoolKit disassembly at skoolkit.arcadegeek.co.uk/hobbit, the
 data-format notes at icemark.com/dataformats/hobbit, and a complete annotated
 SkoolKit disassembly of the v1.0 tape by an author it does not name, which
@@ -660,6 +662,166 @@ def name_of(memory, start: int) -> str:
     return " ".join(w for w in adjectives + [noun] if w)
 
 
+# Messages: RUN_MESSAGE's bytecode, stored end to end from just after the
+# common-word table, and the two tables it needs.
+COMMON_WORDS = 0xAD3D       # 32 two-byte word references, reached by $60-$7F
+MESSAGES = 0xAD7D
+CONTROL_CODES = 0x7295      # a handler per control code, $00-$16
+CONTROL_COUNT = 0x17
+# Messages entered part-way through, with how the entry fits. Three begin at
+# an element boundary of another message, so the two share a tail; one begins
+# on the second byte of the word that ends the message before it, reading
+# that byte as a control code -- one byte doing two jobs, as at $8113.
+# The fourth tail is the last room description: location 67, "the east bank
+# of a black river", is the end of location 66's description of the other bank.
+MESSAGE_TAILS = {0xADA9: "a tail", 0xB018: "a tail", 0xB143: "a tail",
+                 0xB6CF: "a tail", 0xAFB5: "an overlap"}
+
+
+def message_elements(memory, address: int) -> tuple[list[int], int]:
+    """The elements of one message and the address after it, by RUN_MESSAGE's
+    own tests: bit 7 starts a two-byte word reference, and flags 2, 3 or 6 in
+    its top nibble end the message; below $20 is a control code, and $14 or
+    above ends it; $60-$7F is a common word, and the rest a literal character.
+    """
+    elements = []
+    while True:
+        elements.append(address)
+        byte = memory[address]
+        if byte & 0x80:
+            address += 2
+            if ((byte & 0x7F) >> 4) in (2, 3, 6):
+                return elements, address
+        else:
+            address += 1
+            if byte < 0x14:
+                continue
+            if byte < 0x20:
+                return elements, address
+
+
+def message_text(memory, address: int) -> str:
+    """A message as the game would print it, near enough to read beside it.
+
+    Control codes, which print things chosen at run time -- a character's name,
+    HIS or YOUR -- show as {n}. Endings the flags would add are not applied.
+    """
+    elements, _ = message_elements(memory, address)
+    out = []
+    for at in elements:
+        byte = memory[at]
+        if byte & 0x80:
+            reference = ((byte & 0x7F) << 8) | memory[at + 1]
+            out.append(word_at(memory, reference) or "?")
+            if (reference >> 12) == 3:
+                out[-1] += "."
+        elif byte < 0x20:
+            out.append("" if byte >= 0x14 else f"{{{byte}}}")
+        elif byte >= 0x60:
+            slot = COMMON_WORDS + 2 * (byte - 0x60)
+            out.append(word_at(memory, memory[slot] | (memory[slot + 1] << 8)) or "?")
+        else:
+            out.append(chr(byte))
+    return " ".join(w for w in out if w)
+
+
+def message_starts(memory) -> list[int]:
+    """Every stored message, walked end to end.
+
+    The walk stops after the message holding the last room description, which
+    is the last thing anything points at; what follows is zeros and then the
+    game's variables.
+    """
+    last = max(memory[r["start"] + 8] | (memory[r["start"] + 9] << 8)
+               for n, r in room_records(memory).items() if n)
+    starts, address = [], MESSAGES
+    while address <= last:
+        starts.append(address)
+        _, address = message_elements(memory, address)
+    return starts
+
+
+def check_messages(memory, starts: list[int], pointers: set[int]) -> None:
+    """Every message pointer must land on a message, or on a known way into one."""
+    known = set(starts)
+    end = message_elements(memory, starts[-1])[1]
+    for pointer in sorted(pointers):
+        if not MESSAGES <= pointer < end or pointer in known:
+            continue
+        if pointer not in MESSAGE_TAILS:
+            sys.exit(f"error: a message pointer to ${pointer:04X} lands inside "
+                     f"a message and is not a known tail or overlap")
+    _log(f"  {len(starts)} messages end to end from ${MESSAGES:04X}; all "
+         f"{len(pointers)} pointers to them land on a start or a known way in")
+
+
+def message_pointers(memory, code_starts: set[int]) -> set[int]:
+    """Messages named from outside: room descriptions, and LD HL,msg shortly
+    before a call or jump into RUN_MESSAGE, found by decoding the code map's
+    own instructions rather than by reading a listing back."""
+    import codemap
+
+    pointers = {memory[r["start"] + 8] | (memory[r["start"] + 9] << 8)
+                for n, r in room_records(memory).items() if n}
+    pointers.discard(0)
+    entries = {0x72D3, 0x72DD, 0x72CE}
+    for start in code_starts:
+        if memory[start] != 0x21:                # LD HL,nn
+            continue
+        target = memory[start + 1] | (memory[start + 2] << 8)
+        if not MESSAGES <= target < ROOM_POINTERS:
+            continue
+        address = start + 3
+        for _ in range(3):
+            instruction = codemap.decode(memory, address)
+            if entries & set(instruction.targets):
+                pointers.add(target)
+                break
+            address += instruction.length
+    return pointers
+
+
+def message_blocks(memory, pointers: set[int]) -> tuple[str, list[tuple[int, int]]]:
+    """Control-file blocks for the common words, the control codes and every
+    message, each titled with its own text."""
+    starts = message_starts(memory)
+    check_messages(memory, starts, pointers)
+    out = ["; Generated by scripts/build_hobbit.py -- do not edit.", "",
+           f"@ ${COMMON_WORDS:04X} label=COMMON_WORDS",
+           f"b ${COMMON_WORDS:04X} The 32 commonest words in messages",
+           f"D ${COMMON_WORDS:04X} A message byte from $60 to $7F stands for one "
+           f"of these, which is how the small glue words cost a byte each.",
+           f"W ${COMMON_WORDS:04X},64,2"]
+    for i in range(32):
+        slot = COMMON_WORDS + 2 * i
+        out.append(f"  ${slot:04X},2 ${0x60 + i:02X}: "
+                   f"{word_at(memory, memory[slot] | (memory[slot + 1] << 8))}")
+    out.append("")
+    spans = [(COMMON_WORDS, MESSAGES)]
+    starts_set = set(starts)
+    for i, start in enumerate(starts):
+        _, end = message_elements(memory, start)
+        text = message_text(memory, start)
+        entered = [p for p in MESSAGE_TAILS if start < p < end]
+        label = f"MSG_{start:04X}"
+        out.append(f"@ ${start:04X} label={label}")
+        out.append(f"b ${start:04X} Message: {text[:60]}")
+        out.append(f"D ${start:04X} {text}")
+        for p in entered:
+            out.append(f"D ${start:04X} Also entered at ${p:04X} ({MESSAGE_TAILS[p]}): "
+                       f"{message_text(memory, p)}")
+        out.append(f"B ${start:04X},{end - start}")
+        out.append("")
+        spans.append((start, end))
+    return NEWLINE.join(out) + NEWLINE, spans
+
+
+def control_handlers(memory) -> set[int]:
+    """RUN_MESSAGE's control-code handlers, as code seeds."""
+    return {memory[CONTROL_CODES + 2 * i] | (memory[CONTROL_CODES + 2 * i + 1] << 8)
+            for i in range(CONTROL_COUNT)}
+
+
 def room_records(memory) -> dict[int, dict]:
     """Every location's record: a 10-byte head, then [direction, via,
     destination] exits ending at $FF, as $9E95 and $9B93 walk them.
@@ -944,6 +1106,9 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # three-byte format, reached through FIND_OBJECT_HANDLER rather than
     # through a branch, and more than half of them reached by the playthrough.
     dispatched |= object_handlers(memory)
+    # And RUN_MESSAGE's control codes: a handler per code in CONTROL_CODES, and
+    # fifteen of the twenty-three reached in play.
+    dispatched |= control_handlers(memory)
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call
@@ -1184,6 +1349,11 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     pictures_ctl = OUT_DIR / "hobbit-pictures.ctl"
     pictures_text, pictures_spans = picture_blocks(game_memory(snapshot))
     pictures_ctl.write_text(pictures_text, encoding="utf-8")
+    messages_ctl = OUT_DIR / "hobbit-messages.ctl"
+    code_starts = {a for a, flag in enumerate(code_map.read_bytes()) if flag}
+    messages_text, messages_spans = message_blocks(
+        game_memory(snapshot), message_pointers(game_memory(snapshot), code_starts))
+    messages_ctl.write_text(messages_text, encoding="utf-8")
     rooms_ctl = OUT_DIR / "hobbit-rooms.ctl"
     rooms_text, rooms_spans = room_blocks(game_memory(snapshot))
     rooms_ctl.write_text(rooms_text, encoding="utf-8")
@@ -1196,7 +1366,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
          f"parsed to its $00 by RUN_PICTURE's own grammar")
 
     spans = (dictionary_spans + pictures_spans + objects_spans + rooms_spans
-             + declared_spans())
+             + messages_spans + declared_spans())
     kept = strip_spanned_blocks(auto_ctl, spans)
     if spans:
         dropped = auto_ctl.count(NEWLINE) - kept.count(NEWLINE)
@@ -1210,7 +1380,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     # lets the code/data map be regenerated from scratch on every run without
     # throwing away the hand-written comments.
     ctls = ["-c", str(ctl), "-c", str(dictionary_ctl), "-c", str(pictures_ctl),
-            "-c", str(objects_ctl), "-c", str(rooms_ctl)]
+            "-c", str(objects_ctl), "-c", str(rooms_ctl), "-c", str(messages_ctl)]
     if ANNOTATIONS.exists():
         # Disassemble once without the annotations' prose first, purely to
         # learn where the instruction boundaries are, so a comment on the
@@ -1227,7 +1397,8 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
         check_annotations(_capture(sna2skool.main,
                                   ["-H", "-c", str(ctl), "-c", str(dictionary_ctl),
                                    "-c", str(pictures_ctl), "-c", str(objects_ctl),
-                                   "-c", str(rooms_ctl), "-c", str(structure),
+                                   "-c", str(rooms_ctl), "-c", str(messages_ctl),
+                                   "-c", str(structure),
                                    str(snapshot)]))
         ctls += ["-c", str(ANNOTATIONS)]
     else:

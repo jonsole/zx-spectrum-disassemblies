@@ -360,3 +360,18 @@ D $95ED Characters are never in the dark: anyone but the player gets "no" at onc
 D $95ED Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
 D $95ED What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
 R $95ED O:F Carry set if the player cannot see
+
+# --------------------------------------------------------------------------
+# Messages
+# --------------------------------------------------------------------------
+
+@ $72D3 label=RUN_MESSAGE
+c $72D3 Print a message
+D $72D3 Nearly everything the game says goes through here, as a compact bytecode rather than text. A byte with bit 7 set starts a two-byte word reference, high byte first: twelve bits of offset into the dictionary and a flag nibble, of which 2, 3 and 6 end the message. A byte from $60 to $7F is one of the COMMON_WORDS; from $20 to $5F, a literal character; below $20, a control code, dispatched through CONTROL_CODES -- below $14 as a subroutine that returns to the message, from $14 up as the end of it.
+D $72D3 Checked against the screen, not only read: location 4's description decodes to exactly the words the game printed on arriving there, and so does Bag End's. The v1.0 disassembly credited in build_hobbit.py describes the same bytecode, and pointed at where to look.
+D $72D3 The messages are stored end to end from $AD7D, straight after COMMON_WORDS, and a few are entered part-way through another: four at an element boundary, sharing its tail -- the last is the two banks of the black river, one description entered at two places -- and one on the second byte of the word that ends the message before, which it reads as a control code.
+R $72D3 I:HL The message
+
+@ $7295 label=CONTROL_CODES
+w $7295 A handler for each message control code, $00 to $16
+D $7295 Twenty-three handlers. Code $0D, a new line, is printed by the same routine as a literal character, and four codes share the one at $738B.
