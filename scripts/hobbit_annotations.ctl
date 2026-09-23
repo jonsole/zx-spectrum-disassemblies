@@ -415,7 +415,7 @@ R $6DD6 O:F NZ when a line has been read
   $6DF3,2 Nothing typed yet on this line
   $6DF5,3 Wait for a key
   $6DF8,9 @ on an empty line: do the last command again
-  $6E01,7 The first key of a line calls $6E4F first
+  $6E01,7 The first key of a line may be a one-key move (ONE_KEY_MOVES)
   $6E08,9 $18 clears the line and starts again
   $6E11,17 Backspace, unless the line is empty: step back one
   $6E22,24 Letters, quote, space, return, full stop and comma are kept; anything else is ignored
@@ -1006,7 +1006,7 @@ B $8B8B,8,8
 
 @ $8BFB label=KEY_MAP
 b $8BFB What each key gives
-D $8BFB Forty characters, one per key, indexed by half-row times five plus the key's bit: capital letters, SPACE, ENTER and a backspace on 0; the rest of the number row gives nothing.
+D $8BFB Forty characters, one per key, indexed by half-row times five plus the key's bit: capital letters, SPACE, ENTER and a backspace on 0; and on 5, 6, 7 and 8, the cursor keys, the codes ONE_KEY_MOVES turns into moves. The rest of the number row gives nothing.
 B $8BFB,40,10
 
 @ $8C23 label=KEY_MAP_SHIFTED
@@ -2911,3 +2911,47 @@ c $9CED The weights of everything in object A, at any depth, added up (ADD_UP_HE
 @ $9E25 label=ACTOR_IN_REACH
 c $9E25 IN_REACH_OF, the other way round
 D $9E25 IX and IY are swapped for the call and back again: CHARACTERS_ACT asks whether the player, at IY, can see the character at IX.
+
+# --------------------------------------------------------------------------
+# Reading the line: the special keys
+# --------------------------------------------------------------------------
+
+@ $6E4F label=ONE_KEY_MOVES
+c $6E4F The cursor keys, pressed first on a line, are whole moves
+D $6E4F On an empty line, 7 is N, 6 is S, 8 is E and 5 -- or 0 -- is W: the letter and a carriage return go straight into the line, so a single key moves the player. Later in the line the same code from 0 or 5 is a backspace.
+R $6E4F I:A The key
+R $6E4F O:F NZ if it was one, with the line finished
+@ $6E7A label=REPEAT_LAST
+  $6E4F,15 Which way? Anything else is an ordinary key
+  $6E5E,16 N: the letter and a carriage return, echoed
+  $6E6E,12 S, E and W
+c $6E7A @ on an empty line: the last command again
+D $6E7A Returns Z, no new line, so the old line in INPUT_LINE is run again; unless $B71A says otherwise, when the key is ignored.
+@ $6E8B label=RUB_OUT_LINE
+c $6E8B Backspace to the start of the line
+D $6E8B What the key that gives $18 does.
+
+# --------------------------------------------------------------------------
+# The parser's frames and phrases
+# --------------------------------------------------------------------------
+
+@ $75EC label=IN_ORDER_ONLY
+c $75EC Z if the sentence being parsed is an order said to someone ($B71B = 1)
+@ $75F1 label=PARSING_ORDER
+c $75F1 NZ if the sentence being parsed is an order said to someone
+@ $7924 label=ORDERS_ONLY
+c $7924 Allowed only in an order; otherwise NOT_ALLOWED_HERE
+@ $79A9 label=CLEAR_PHRASES
+c $79A9 Clear PHRASES for a new sentence
+@ $78A5 label=FRAME_ABOVE_EMPTY
+c $78A5 IX = the first frame down from IY with its first phrase in use
+D $78A5 Frames are 24 bytes apart below COMMAND_FRAME; bit 6 of a frame's second byte marks its first phrase empty.
+@ $7858 label=NEW_SENTENCE_FRAME
+c $7858 Move on to a new frame, and forget ALL and EXCEPT
+@ $788C label=FRAME_SWAP_DOWN
+c $788C FRAME_ABOVE_EMPTY with the frames in IX and IY swapped round
+@ $7892 label=FRAME_BELOW_SWAP
+c $7892 FRAME_BELOW with the frames in IX and IY swapped round
+@ $78FF label=COPY_FRAME_PHRASE
+c $78FF Copy a ten-byte noun phrase from frame IX to frame IY, at offset DE
+D $78FF $7903, the way in with C = 2, copies a single word instead.
