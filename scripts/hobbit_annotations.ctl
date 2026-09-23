@@ -482,3 +482,76 @@ D $7585 Called by the main loop with $B6DC pointing into TOKENS; returns NZ to g
 
 @ $7960 label=OBEY
 c $7960 Carry out the parsed command, and let the world take its turn
+
+# --------------------------------------------------------------------------
+# Parsing
+# --------------------------------------------------------------------------
+#
+# The shape of the parser -- a state machine dispatching on each token's class,
+# filling 24-byte command frames -- was learned from the v1.0 disassembly
+# credited in build_hobbit.py. The addresses below are v1.2's own, and the
+# frame layout was confirmed by stopping at OBEY after real sentences.
+
+; span $75D2,26
+@ $75D2 label=PARSER_CLASSES
+w $75D2 Where the parser goes for each class of word
+D $75D2 One handler per token class, indexed by the class nibble shifted right three places at $75C2 and reached through JP (HL) -- so following branches never finds them, and they are code seeds. Twelve of the thirteen were reached in play. There is no entry for class $D: an unknown word never gets this far.
+W $75D2,26,2
+  $75D2,2 Class $0: an adverb
+  $75D4,2 Class $1: IN or INTO
+  $75D6,2 Class $2: a direction
+  $75D8,2 Class $3: a verb
+  $75DA,2 Class $4: GO or RUN
+  $75DC,2 Class $5: a noun
+  $75DE,2 Class $6: an adjective
+  $75E0,2 Class $7: a preposition
+  $75E2,2 Class $8: an article
+  $75E4,2 Class $9: a quantifier, pronoun or game command
+  $75E6,2 Class $A: AND
+  $75E8,2 Class $B: THEN or a full stop
+  $75EA,2 Class $C: the end of the line
+
+@ $76F2 label=PARSE_ADVERB
+c $76F2 Parse an adverb
+
+@ $7795 label=PARSE_IN
+c $7795 Parse IN or INTO
+
+@ $76EC label=PARSE_DIRECTION
+c $76EC Parse a direction
+
+@ $7733 label=PARSE_VERB
+c $7733 Parse a verb
+
+@ $772F label=PARSE_GO
+c $772F Parse GO or RUN
+
+@ $77D1 label=PARSE_NOUN
+c $77D1 Parse a noun
+
+@ $77C9 label=PARSE_ADJECTIVE
+c $77C9 Parse an adjective
+
+@ $77A2 label=PARSE_PREPOSITION
+c $77A2 Parse a preposition
+
+@ $7790 label=PARSE_ARTICLE
+c $7790 Parse an article
+
+@ $8251 label=PARSE_SPECIAL
+c $8251 Parse a quantifier, pronoun or game command
+
+@ $770B label=PARSE_AND
+c $770B Parse AND
+
+@ $75FA label=PARSE_THEN
+c $75FA Parse THEN or a full stop
+
+@ $75F6 label=PARSE_END
+c $75F6 Parse the end of the line
+
+@ $B9C8 label=COMMAND_FRAME
+b $B9C8 The command being obeyed
+D $B9C8 Twenty-four bytes, and further commands in the same line are built in the frames below it, $B9B0 and down. Offset 0 is the verb, and bit 7 of its second byte marks a command with ALL; offset 2 an adverb or direction; offsets 4 and 14 two noun phrases of ten bytes each -- two prepositions, the noun, and two adjectives. Every word is stored as a two-byte reference, low byte first, articles are dropped altogether.
+D $B9C8 Watched rather than taken on trust. PUT THE SMALL CURIOUS KEY IN THE WOODEN CHEST leaves PUT, then KEY with SMALL and CURIOUS, then IN with CHEST and WOODEN. VICIOUSLY ATTACK THE TROLL WITH THE SWORD leaves ATTACK and VICIOUSLY, TROLL, and WITH and SWORD. And the first noun phrase of the first is byte for byte bytes 8 to 13 of the key's own object record: a noun phrase is written in exactly the form objects are named in, so finding what the player means is a straight comparison.
+B $B9C8,24,2

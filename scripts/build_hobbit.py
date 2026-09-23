@@ -685,6 +685,10 @@ CONTROL_COUNT = 0x17
 # distance, and $0B runs a sub-message that far away. Their handlers read it
 # from (IX+1) and step past it; everything else is one byte.
 CODES_WITH_OPERAND = {0x02, 0x0B}
+# The parser's handlers, one per token class from adverbs ($0) to the end of
+# the line ($C); an unknown word ($D) never reaches the parser.
+PARSER_CLASSES = 0x75D2
+PARSER_CLASS_COUNT = 13
 # Messages entered part-way through, with how the entry fits. Three begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
@@ -1131,6 +1135,10 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     # And RUN_MESSAGE's control codes: a handler per code in CONTROL_CODES, and
     # fifteen of the twenty-three reached in play.
     dispatched |= control_handlers(memory)
+    # And the parser's handler per word class, which PARSE_COMMAND jumps to
+    # through JP (HL): twelve of the thirteen were reached in play.
+    dispatched |= {memory[PARSER_CLASSES + 2 * c] | (memory[PARSER_CLASSES + 2 * c + 1] << 8)
+                   for c in range(PARSER_CLASS_COUNT)}
     executed = executed | dispatched
     # Follow the branches, then let the CPU overrule the result. A byte in the
     # game's variables reads as CALL NZ,$7874, and following that phantom call
