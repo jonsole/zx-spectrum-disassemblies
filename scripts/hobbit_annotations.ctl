@@ -2216,3 +2216,74 @@ D $8451 A block that fails to load leaves the game half-loaded, so LOAD_BLOCK do
   $8488,10 The script bytes back where they belong
 @ $8498 label=LOAD_BLOCK
 c $8498 Load one block, or start the game again
+
+# --------------------------------------------------------------------------
+# Printing: two windows, two fonts
+# --------------------------------------------------------------------------
+#
+# The screen has two text windows. The story -- everything the game narrates
+# -- is written in lower case with a capital to start each sentence, in the
+# game's own font six pixels wide, 42 columns to a line, and scrolls up over
+# the top 17 character rows, which is why a picture scrolls away as the story
+# goes on beneath it. The five rows at the bottom are the input window, in
+# the ROM's own font, 32 columns and all capitals: the command line, and the
+# game's messages about the tape and HELP. $B701 picks between them.
+
+@ $85B7 label=INPUT_CHAR
+c $85B7 Print a character in the input window
+D $85B7 The bottom five rows, 19 to 23, in capitals with the ROM's font. A carriage return blanks the rest of the line and scrolls the window up; a backspace ($08) steps back, and up to the line before if it has to. The cursor is kept at $85B4 and the columns left on the line at $85B3.
+  $85BA,14 A carriage return: to the next line
+  $85C8,4 Backspace
+  $85CC,10 Lower case to capitals
+  $85D6,3 Print it
+  $85D9,6 End of the line?
+  $85DF,7 Then scroll the window, and start again at the left
+  $85E6,15 The cursor after it
+  $85F5,24 Backspace: blank the cursor, step back, and up a line if it has to
+@ $860D label=SCROLL_INPUT
+c $860D Scroll the input window up a line
+D $860D Character rows 20-23 move up to 19-22, and row 23 is blanked.
+@ $864A label=SCROLL_INPUT_BACK
+c $864A Scroll the input window down a line
+D $864A For a backspace past the start of a line: rows 19-22 back down to 20-23.
+@ $867A label=ROM_FONT_CHAR
+c $867A Print a character at HL in the ROM's font
+D $867A The eight rows of the ROM's own character set at $3D00; L is moved on one column.
+R $867A I:A The character, $20 to $7F
+R $867A I:HL The screen address
+@ $86A1 label=STORY_CHAR
+c $86A1 Print a character of the story
+D $86A1 Where most of the game's text goes, in the six-pixel font at $8822 (NARROW_CHAR), 42 to a line: HL is the byte and C the pixel within it where the next character starts, kept at $869C and $869E between calls, and $869B counts the columns left.
+D $86A1 A new line starts with the indent at $869F -- how LIST_HELD indents what is inside something. Capitals are the game's own: every letter is made lower case, and the first letter after a carriage return or a full stop made upper case again, by the flag at $B704.
+D $86A1 At the end of a line the finished line is copied to the ZX Printer if PRINT is on, then the game waits about a third of a second, or less if a key is pressed, before scrolling. $B716, when not zero, takes away that wait for as many lines as it counts; what sets it is not yet traced.
+  $86A4,34 Starting a line: the indent
+  $86C6,6 A carriage return?
+  $86CC,5 The next letter is a capital
+  $86D1,7 A new line: to the printer, if PRINT is on
+  $86D8,32 A short wait, or until a key
+  $86F8,9 Until the keys are let go
+  $8701,12 Scroll the story up a line, 42 columns ahead
+  $870D,21 Backspace: back a column, blank it, back again
+  $8722,10 Capitals to lower case...
+  $872C,25 ...and a capital where a sentence starts
+  $8746,6 Print it
+  $874C,7 The line full? A new one
+  $8753,14 Keep the place
+@ $8761 label=BACK_ONE
+c $8761 Step back one six-pixel column
+R $8761 I:HL The screen byte
+R $8761 I:C The pixel within it
+@ $876B label=SCROLL_STORY
+c $876B Scroll the story up a line
+D $876B Character rows 1 to 17 move up to 0 to 16, attributes with them, and row 17 is cleared to 42 spaces. The picture is in rows 0 to 15, so it goes up and off the top as the story goes on.
+@ $87C9 label=NARROW_CHAR
+c $87C9 Print a character in the six-pixel font
+D $87C9 A character six pixels wide seldom sits in one byte: each row is shifted to the pixel in C and, when it runs over, the rest put into the next byte along. The font is at $8822, from the space: $8722 + 8 times the character.
+R $87C9 I:A The character
+R $87C9 I:HL The screen byte
+R $87C9 I:C The pixel within it where the character starts
+R $87C9 O:HL The byte the next character starts in
+R $87C9 O:C The pixel within it
+@ $8B22 label=LINE_TO_PRINTER
+c $8B22 Copy the newest line of the story to the ZX Printer
+D $8B22 Only while PRINT is on. The eight pixel rows of character row 17 go out through port $FB a pixel at a time, as the ROM's COPY does; a printer that stops, or is not there, ends it.
