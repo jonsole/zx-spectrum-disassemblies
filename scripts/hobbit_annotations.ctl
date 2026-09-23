@@ -213,6 +213,15 @@ c $8121 Right one cell, if it can
 c $8B93 Scan the whole keyboard, debounced
 D $8B93 Reads all eight half-rows with BC = $FEFE and RLC B, building a key map at $8B8B and comparing it against the previous one so that only changes count. It calls DEBOUNCE_DELAY first, which is where nearly all of the game's idle time goes: about 7.4ms per scan.
 E $8B93 Worth knowing when driving the game from a script: at uncapped emulation speed a key press and release can straddle a scan and be missed entirely, and the game's own ENTER still gets through, so a command comes out as a bare WAIT. Type at realtime speed.
+  $8B97,3 Debounce: about 7.4ms
+  $8B9A,14 No new key yet; HL = the keyboard as last seen, IX = the masks, BC = the first half-row
+  $8BA8,7 Read a half-row, with the keys that do not count masked out
+  $8BAF,6 Any key down now that was up last time?
+  $8BB5,7 Yes: remember which half-row and which bits
+  $8BBC,9 Remember this half-row for next time, and on to the next
+  $8BC5,8 No new key at all: A = 0
+  $8BCD,15 Key number = half-row times five plus bit
+  $8BDC,25 Look it up in KEY_MAP, or KEY_MAP_SHIFTED if either shift is held
 
 @ $8B78 label=DEBOUNCE_DELAY
 c $8B78 Busy-wait, 1000 times round
@@ -221,6 +230,8 @@ D $8B78 About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so wh
 @ $969A label=WAIT_FOR_ANY_KEY
 c $969A Wait until any key is pressed
 D $969A Polls the whole keyboard through port $FE and returns once something is held, setting the border white on the way out. The game drops into it once the opening picture is finished, before its first prompt -- and a key pressed there is taken as "carry on" and not as a letter, which is why the first letter of the first command typed after the picture always went missing. (The title screen does not use this: it waits in its own loop around $6C60.)
+  $969A,9 Wait until any key is down
+  $96A3,4 White border
 
 # --------------------------------------------------------------------------
 # The second word list
@@ -241,6 +252,14 @@ c $6F47 Look a typed word up in the dictionary
 D $6F47 Copies the word from the input line, turning each letter into its 5-bit code with AND $1F -- which works because 'A' is $41 and the codes were chosen to be the low five bits of the ASCII -- and stops at the first character below $40, so punctuation and spaces end a word without being tested for.
 D $6F47 Then the index: the first letter doubled and added to $6000 gives the bucket's offset, and that added to $6000 again gives the first entry. From there it walks entries one at a time and gives up when an entry's initial letter stops matching the one typed, which is the bucket's only end marker.
 E $6F47 A linear scan, not a binary search -- which is the other half of why the list only has to be grouped by initial letter and can be loosely ordered within a group, as BLOW before BLOOD and HELP before HEART are.
+  $6F47,18 Copy the typed word as 5-bit codes to $707A, up to the first character below $40
+  $6F59,4 Keep its length
+  $6F5D,21 IX = the first word in the dictionary under its initial letter
+  $6F72,4 Remember which entry is being tried
+  $6F76,11 Has the bucket run out? Its initial letter no longer matches
+  $6F82,40 Unpack this entry's letters to $708B, by PRINT_WORD's rule for where a word ends
+  $6FAA,5 Keep the entry's length
+  $6FAF,11 A synonym: step over its two-byte link to the next entry
 
 @ $74BA label=PRINT_WORD
 c $74BA Expand a packed word into letters
@@ -341,6 +360,20 @@ c $6DD6 Read a command from the keyboard
 D $6DD6 Prints the prompt, then takes keys into INPUT_LINE until a carriage return: letters, space, quote, comma and full stop are kept and echoed, backspace steps back, and anything else is ignored. The cursor lives only in registers -- HL walks the line and B counts the room left in it, 128 to start -- so there is no variable in memory that says how much has been typed.
 D $6DD6 That is what makes putting a whole command in from outside possible but not quite trivial: stop at $6DF3, just after HL and B are set, write the text into the line, move HL and B past it, and press ENTER. The reader then files the return after the text exactly as if the rest had been typed.
 R $6DD6 O:F NZ when a line has been read
+  $6DD6,6 Patience: GET_KEY waits this long before typing WAIT itself
+  $6DDC,8 Flags read by the printing code while a line is being typed
+  $6DE4,10 The prompt: "> "
+  $6DEE,5 HL = the start of INPUT_LINE, B = room for 128 characters
+  $6DF3,2 Nothing typed yet on this line
+  $6DF5,3 Wait for a key
+  $6DF8,9 @ on an empty line: do the last command again
+  $6E01,7 The first key of a line calls $6E4F first
+  $6E08,9 $18 clears the line and starts again
+  $6E11,17 Backspace, unless the line is empty: step back one
+  $6E22,24 Letters, quote, space, return, full stop and comma are kept; anything else is ignored
+  $6E3A,3 Remember the last key
+  $6E3D,10 If there is room, echo it and put it in the line
+  $6E47,8 Until return: then NZ, a line has been read
 
 # --------------------------------------------------------------------------
 # Rooms and exits
@@ -517,6 +550,11 @@ c $7249 Wait for a key, or type WAIT when none comes
 D $7249 Counts down from $B714 while it scans the keyboard, and returns the first new key. If the count runs out first it does something rather nice: it clears the line, copies the four letters at $7291 -- WAIT -- into it, prints them, and returns a carriage return as though the player had pressed ENTER. So "time passes" is the game typing a command on your behalf, and the WAIT lines on screen that nobody typed are exactly that.
 D $7249 The keyboard scan reports only changes. A driver that stops the game with ENTER held and presses it again at the next prompt is not heard, because the release was never seen; hobbit_drive.py lets it scan with nothing held first.
 R $7249 O:A The key
+  $724A,14 Scan until a new key, or until the patience in $B714 runs out
+  $7258,5 Out of patience: clear the line...
+  $725D,14 ...type WAIT into it, printing each letter as a player would...
+  $726B,8 ...and return as if ENTER had been pressed after it
+  $7273,21 The next wait is what was left of this one plus 500, at most 3000; after a timeout it is 3000 again
 
 @ $7291 label=WAIT_TEXT
 t $7291 What GET_KEY types when the player does not
@@ -744,3 +782,23 @@ R $9E7A O:A What it is shut in, or $FF
 @ $90D2 label=PLAYER_DIES
 c $90D2 The player is dead: say so and start again
 D $90D2 Prints "you are dead." as a sentence about the player, calls $83F5, waits for any key and goes back into the start-up at $6C27. Reached, for one, from MOVE when the player falls in the dark once too often.
+
+@ $8B81 label=KEY_STATE
+b $8B81 The keyboard scan's working bytes
+D $8B81 Eight masks, one per half-row, of keys that never count as pressed on their own -- CAPS SHIFT and SYMBOL SHIFT among them; then the half-row and bits of the last new key found; then the eight half-rows as last seen, which is how SCAN_KEYBOARD knows a key is new.
+B $8B81,8,8
+  $8B81,8 Keys that do not count as a keypress, per half-row
+B $8B89,2,2
+  $8B89,2 The last new key: half-row and bits
+B $8B8B,8,8
+  $8B8B,8 The keyboard as last scanned
+
+@ $8BFB label=KEY_MAP
+b $8BFB What each key gives
+D $8BFB Forty characters, one per key, indexed by half-row times five plus the key's bit: capital letters, SPACE, ENTER and a backspace on 0; the rest of the number row gives nothing.
+B $8BFB,40,10
+
+@ $8C23 label=KEY_MAP_SHIFTED
+b $8C23 What each key gives with a shift held
+D $8C23 The same, plus the quote on P, full stop and comma on M and N, the @ that repeats the last command, and the $18 that clears the line.
+B $8C23,40,10
