@@ -2817,7 +2817,6 @@ D $7B78 Four flags, from PATTERN_FLAGS. $B711: the action needs light at all -- 
 @ $7A14 label=MATCH_AND_TRY
 c $7A14 Try the objects that fit the sentence's names until the action works
 D $7A14 For a pattern with objects, the target and the instrument are each only names until something fits them. This goes through the objects that fit the target's name (NEXT_TARGET) and, for each, those that fit the instrument's (NEXT_INSTRUMENT), trying the action on each pair, and stops at the first that works. How many fitted is counted at $793F-$7941, and the first of each is kept at $7956-$7957, so that when only one thing fitted it is that one the refusal is about. The exact order of the fall-backs is not worked out in full.
-R $7A14 O:F Z if nothing worked
 @ $7AA1 label=START_TARGETS
   $7A14,5 The next target that fits
   $7A19,21 None left: if only one ever fitted, it is the one; try it with the instruments
@@ -2974,10 +2973,51 @@ R $7CAC I:HL Where to put it
 R $7CAC I:B How many words may still be taken
 @ $7C23 label=ASSIGN_PHRASES
 c $7C23 Decide which noun phrase is the target and which the instrument
-D $7C23 The pattern's preposition is compared with the frame's two phrases' prepositions, and with bit 5 of the pattern's flags decides which of the two phrases -- at +4 or +14 in the frame -- is the target: PUT THE KEY IN THE BOX and PUT IN THE BOX THE KEY come out the same. The phrases go to TARGET_NAME and INSTRUMENT_NAME, and the target's name is also kept at $B6E0 for IT.
+D $7C23 The pattern's preposition is compared with the frame's two phrases' prepositions, and with bit 5 of the pattern's flags decides which of the two phrases -- at +4 or +14 in the frame -- is the target: it goes by where the preposition the pattern wants is found, not simply by which phrase came first. The phrases go to TARGET_NAME and INSTRUMENT_NAME, and the target's name is also kept at $B6E0 for IT.
 @ $7B63 label=NAME_OF_NUMBER
 c $7B63 Copy the name of object (or, with A set, location) B to DE
 D $7B63 How a character's action, which comes as object numbers, gets names in TARGET_NAME and INSTRUMENT_NAME like a typed sentence's. $FF copies nothing.
 @ $7ACC label=SEARCH_START
 c $7ACC IX = where a search of the objects starts, for the mode in A's low bits
 D $7ACC Mode 0 starts at the object index itself, anything else three bytes before it; not worked out further.
+
+# --------------------------------------------------------------------------
+# Parsing an action, and what to say when the names do not fit
+# --------------------------------------------------------------------------
+
+@ $79B6 label=PARSE_ACTION
+c $79B6 Turn a parsed sentence into an action and do it
+D $79B6 MATCH_PATTERN finds the sentence's pattern; the action code is its place in ACTION_PATTERNS, counted from 1, into $B6E7 and $B6E6. The pattern's options are set (PATTERN_OPTIONS) and the search for the target begun. A pattern with objects goes to MATCH_AND_TRY, and anything it leaves to be said to TARGET_TROUBLE. With ALL, it goes round again for each object, passing over one an EXCEPT names -- which is what $7A73 is believed to check.
+  $79B6,15 No objects yet; clear the phrases; match the pattern
+  $79C5,20 The action code is the pattern's place in the table
+  $79D9,16 Keep it, and the pattern; set its options, start the search
+  $79E9,4 Only tests from here
+  $79ED,7 No objects in the pattern: done
+  $79F4,12 ALL?
+  $7A00,6 Match and try; trouble: TARGET_TROUBLE
+  $7A06,11 With ALL, on to the next object that is not excepted
+@ $7A73 label=EXCEPTED
+c $7A73 Is the target one an EXCEPT phrase names?
+D $7A73 Believed to be: it walks the frames above, and for each whose phrase is in use looks for its name among the objects (FIND_NAMED_OBJECT), comparing with the target in $B6E8. NZ if one matches. Not traced in play.
+@ $7D54 label=TRY_INSTRUMENTS
+c $7D54 TRY_TARGETS for the instrument: each object that fits INSTRUMENT_NAME in turn
+@ $7D6B label=PRINT_NOW
+c $7D6B For real, and in the input window: for the parser's own replies
+@ $7D74 label=KEEP_QUESTION
+c $7D74 Keep this sentence's frame, so that the next line can answer a question about it
+D $7D74 It is copied up to COMMAND_FRAME, and $B71A says a question is waiting.
+@ $7D83 label=ASK_WHICH
+c $7D83 "which ... ?": more than one thing fits the name
+D $7D83 The sentence is kept (KEEP_QUESTION) for the answer. $7D89 is the way in with the name already chosen, and $7D90 the way in for any of the parser's replies.
+@ $7DBC label=TARGET_TROUBLE
+c $7DBC The target's name did not lead to an action that worked: say why
+D $7DBC Nothing in an order, which is left to the character. One thing fitted: that is the one, and the action is done for real so that its refusal is told. Several: ASK_WHICH. None: the name is looked for among the rooms the exits lead to and all the objects, and if it is there it is the refusal that is told; otherwise "i do not see the ... here". No name given at all: "i see nothing to ..." or "... what ?".
+@ $7D98 label=INSTRUMENT_TROUBLE
+c $7D98 The same for the instrument
+@ $7E4D label=NO_INSTRUMENT
+c $7E4D No instrument named: "i see nothing to ... with" or "... with what ?"
+@ $7E78 label=PUSH_PATTERN_WORDS
+c $7E78 Push the pattern's particle and preposition, for a reply
+D $7E78 Each only if the pattern's flags say it is there; the tests are JR Z or JR NZ, as $7E78 and $7E7C write them into the code at $7E92 and $7EA1.
+@ $7EA8 label=UNKNOWN_VERB
+c $7EA8 "i do not know the verb "..."" 
