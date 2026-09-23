@@ -1364,7 +1364,7 @@ D $980E An order comes first. Whatever the player has told a character to do (se
   $9826,13 The sentence is about this character: its number, its record, and its location in $B6F6
   $9833,4 Printing off
   $9837,16 Can the player see it (IN_REACH_OF, the other way round)?
-  $9847,33 Then print what it does -- unless $980C is 2; at 1, the first one is only heard, "you hear a noise.", and not seen
+  $9847,33 Then print what it does -- unless the player is in the dark ($980C, set by NOTE_LIGHT): then the first one is only heard, "you hear a noise.", and nothing is printed
   $9868,8 Held by something? Try to get out (CAPTIVE)
   $9870,15 $B6F4 = 1 if it has an order waiting
   $987F,6 HL = where its script has got to
@@ -1802,3 +1802,61 @@ D $A71E Anyone who can be seen -- flag bit 7 -- sees "nothing special here." Any
   $A721,14 Visible? "you see nothing special here."
   $A72F,6 Start timer 5
   $A735,6 "the magic door warns of elves approaching."
+
+# --------------------------------------------------------------------------
+# Describing where the player is
+# --------------------------------------------------------------------------
+
+@ $9630 label=DESCRIBE_ROOM
+c $9630 Describe a location in full: "you are in ...", the picture, and what is there
+D $9630 What MOVE does on the first visit to a place. The opening phrase is a message with a word left to fill in: bits 1-3 of byte 0 of the room's record pick it from ROOM_PREPOSITIONS, and it is written into the message at $AFFC before DESCRIBE_LOCATION prints it -- "you are in", "you are on", "you are outside" and so on.
+R $9630 I:A The location
+  $9631,3 Its record
+  $9634,15 The word for how the player is placed there
+  $9643,6 Into the message, high byte first, the way messages keep a word
+  $9649,4 HL = "you are ..."
+  $964D,13 Describe it, keeping IX, IY and BC
+
+@ $BA80 label=ROOM_PREPOSITIONS
+w $BA80 How the player is placed in each kind of room
+D $BA80 Word references, picked by bits 1 to 3 of byte 0 of a room's record. Only five are needed: most rooms use IN, twenty ON and nine AT, and INSIDE and OUTSIDE are the two sides of the goblins' gate, locations 19 and 20. The room records follow straight on.
+  $BA80,2 OUTSIDE
+  $BA82,2 INSIDE
+  $BA84,2 IN
+  $BA86,2 ON
+  $BA88,2 AT
+
+@ $965B label=DESCRIBE_LOCATION
+c $965B Print the opening message at HL and describe the location in A
+D $965B Its long description if it has one, or else its name; its picture, with a wait for a key once it is drawn; and then $A0C8, $A138 and $9F94, which are not yet worked out but are presumably the exits and what can be seen there.
+R $965B I:A The location
+R $965B I:HL The opening message
+  $965B,1 B = the location
+  $965C,6 Its record; the opening message
+  $9662,11 Its description, or its name
+  $966D,4 Its picture
+  $9671,7 If a picture was drawn, wait for a key
+  $9678,3 New line
+  $967B,4 Not yet worked out
+  $967F,7 Nor these
+
+@ $9686 label=DESCRIPTION_OR_NAME
+c $9686 Print the message at HL if there is one, or else the room's name
+D $9686 $9689 prints the name alone, from the record's bytes 2 to 7, the same way an object's name is printed.
+R $9686 I:HL The description, or 0
+R $9686 I:F NZ if HL is not 0
+R $9686 I:IX The room's record
+  $9689,16 The name, which starts two bytes into the record
+
+@ $96A8 label=DESCRIBE_BRIEFLY
+c $96A8 Describe a location already visited
+D $96A8 What MOVE does on coming back to a place: just its name, then what DESCRIBE_LOCATION ends with -- no opening, no description, no picture, and not the routine at $A0C8.
+R $96A8 I:A The location
+  $96A8,6 Its name
+  $96AE,5 New line, and the end of DESCRIBE_LOCATION
+
+@ $9B02 label=NOTE_LIGHT
+c $9B02 Note where the player is, and whether it is too dark to see
+D $9B02 CHARACTERS_ACT starts with this. $B6F5 is the player's location and $980C is 1 in the dark, 0 in the light: in the dark the other characters are heard, not seen.
+  $9B02,8 $B6F5 = where the player is
+  $9B0A,11 $980C = 1 if too dark to see
