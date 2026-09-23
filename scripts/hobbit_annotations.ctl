@@ -1946,3 +1946,56 @@ R $9FC7 O:C How many were listed, added on
   $A026,5 A full stop
   $A02B,18 And what it holds, two further in
   $A03D,4 On to the next
+
+# --------------------------------------------------------------------------
+# Telling the player what someone did
+# --------------------------------------------------------------------------
+
+@ $70E8 label=PATTERN_OF
+c $70E8 Find an action's entry in ACTION_PATTERNS
+R $70E8 I:A The action code
+R $70E8 O:HL Its 8-byte pattern
+
+@ $70F3 label=PATTERN_FLAGS
+c $70F3 Gather an action pattern's flags
+D $70F3 The top four bits of each of the pattern's four word references are flags, not part of the word. They are gathered in pairs: $B71D from the first two references, $B71E from the last two. What is known of them is in NARRATE_ACTION and WOULD_WORK.
+R $70F3 I:IX The pattern
+  $70F3,19 $B71E = the fourth reference's flags, with the third's below them
+  $7106,19 $B71D = the second reference's flags, with the first's below them
+
+@ $712B label=NARRATE_ACTION
+c $712B Tell the player what was done, as a sentence
+D $712B Built from the action's pattern: who did it, "cannot" if it was refused, the verb -- or GO and the direction, for a move, or GO SOMEWHERE in the dark, when the player cannot see which way -- then the first object after its particle, and the second after its preposition, and a full stop. So what the other characters are seen to do is told by the same code, from the same patterns, as the player's own actions.
+D $712B A pattern with bit 4 of $B71D set is not narrated at all: that is LOOK and INVENTORY, the only two, which change nothing anyone could see.
+  $712B,5 Narrating
+  $7130,4 Not yet worked out
+  $7137,13 $B701 = 1 if the action was refused
+  $7148,9 IX = the action's pattern
+  $7151,11 Done, and by the player: a new line first
+  $715C,9 A pattern that is not narrated: nothing
+  $7165,3 Who did it
+  $7168,8 Refused: "cannot"
+  $7170,8 The pattern's last word -- GO, for a move
+  $7178,23 In the dark, a move goes "somewhere"
+  $718F,3 Otherwise the verb, or the direction
+  $7192,20 The first object, after its particle, if the pattern has one (bit 3)
+  $71A6,27 The second object, after its preposition, if it has one (bit 2)
+  $71C1,8 A full stop, and a new line
+  $71C9,4 No longer narrating
+
+@ $7AF5 label=WOULD_WORK
+c $7AF5 Would the action in $B6E7-$B6E9 work? Try it as a test
+D $7AF5 The action is run through DO_ACTION with $B6FA clear. That flag is not only whether anything is printed: it is whether the action is done for real, and with it clear a handler only says, by setting $B6FB, whether it would work -- the same test-then-do that SCRIPT_DO uses for a script's own routines. ACTOR_TRIES calls this first, and does the action for real only if it answers yes.
+D $7AF5 Patterns with bits 2 or 3 of $B71D, which have objects to be matched, go through $7A14 instead, not yet worked out.
+R $7AF5 O:F NZ if it would work
+  $7AFC,4 Keep $794E
+  $7B00,9 IX = the action's pattern
+  $7B09,9 Not yet worked out
+  $7B12,26 The two objects' names, into TARGET_NAME and INSTRUMENT_NAME
+  $7B2C,3 Not yet worked out
+  $7B2F,4 Only a test
+  $7B33,7 Objects to match? $7A14
+  $7B3A,9 Otherwise try it: $B6FB says whether it worked
+  $7B43,13 $7A14 answers instead
+  $7B50,2 It would work
+  $7B52,5 For real again
