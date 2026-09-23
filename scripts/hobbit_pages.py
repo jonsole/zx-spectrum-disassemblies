@@ -150,6 +150,8 @@ def save_animation(frames, path: Path) -> float:
     HOLD_MS before it starts again. Frames that show no change are merged into the one before, so
     the long pause while a fill runs costs nothing. Returns the seconds it
     takes to draw."""
+    from PIL import Image
+
     kept, durations = [frames[0]], [FRAME_MS]
     for frame in frames[1:]:
         if frame.tobytes() == kept[-1].tobytes():
@@ -158,9 +160,56 @@ def save_animation(frames, path: Path) -> float:
             kept.append(frame)
             durations.append(FRAME_MS)
     durations[-1] += HOLD_MS
+    # Saved at twice the size, as the pages show it: a browser stretching a
+    # 256x128 image to 512x256 rounds some rows and columns to one pixel and
+    # some to three, so the lines come out uneven.
+    kept = [frame.resize((512, 256), Image.NEAREST) for frame in kept]
     kept[0].save(path, save_all=True, append_images=kept[1:], duration=durations,
                  optimize=True, disposal=1, loop=0)
     return len(frames) * FRAME_MS / 1000
+
+
+LOGO = "images/logo.png"   # hobbit.ref's LogoImage, and the landing page's
+
+
+def save_logo(memory, path: Path) -> None:
+    """The title from the loading screen, for the top of every page and the
+    site's landing page.
+
+    The loader LOADs the title picture straight onto the screen, and it is
+    still there in the snapshot. The title is the cyan lettering in its top
+    nine character rows, but the dragon's wings are drawn across it in lines
+    a pixel wide, and in the cyan cells they come out cyan too. The letters'
+    strokes are all at least two pixels thick, so a pixel is kept only if it
+    is part of a solid 2x2 block: that keeps every letter and drops the wings.
+    The few cells the lightning makes yellow are drawn cyan, as the title is.
+    """
+    from PIL import Image
+
+    def pixel(x: int, y: int) -> int:
+        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
+        return memory[row + (x >> 3)] >> (7 - (x & 7)) & 1
+
+    width, height = 256, 72
+    on = [[pixel(x, y) for x in range(width)] for y in range(height)]
+    image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    cyan = PALETTE[8 + 5] + (255,)
+    for y in range(height - 1):
+        for x in range(width - 1):
+            if on[y][x] and on[y + 1][x] and on[y][x + 1] and on[y + 1][x + 1]:
+                for px, py in ((x, y), (x + 1, y), (x, y + 1), (x + 1, y + 1)):
+                    # Only the title's cyan and yellow cells: the white is
+                    # all wings.
+                    if memory[0x5800 + (py >> 3) * 32 + (px >> 3)] & 7 in (5, 6):
+                        image.putpixel((px, py), cyan)
+    # On the loading screen's black, with a margin, so that it reads on the
+    # pages' light backgrounds.
+    image = image.crop(image.getbbox())
+    margin = 6
+    framed = Image.new("RGB", (image.width + 2 * margin, image.height + 2 * margin), (0, 0, 0))
+    framed.paste(image, (margin, margin), image)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    framed.resize((framed.width * 2, framed.height * 2), Image.NEAREST).save(path)
 
 
 # The map: where each location goes on a grid, and how big things are drawn.
@@ -355,6 +404,7 @@ def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict) -> str:
 def build(html_dir: Path, out_ref: Path) -> None:
     """Render the pictures into html_dir and write the pages' ref file."""
     from hobbit_drive import Hobbit
+    from PIL import Image
 
     bh._log("Building the reference pages (locations, objects, characters, actions)...")
     game = Hobbit()
@@ -391,6 +441,7 @@ def build(html_dir: Path, out_ref: Path) -> None:
 
     image_dir = html_dir / "hobbit" / IMAGE_DIR
     image_dir.mkdir(parents=True, exist_ok=True)
+    save_logo(memory, html_dir / "hobbit" / LOGO)
 
     def loc_link(location: int) -> str:
         if location == 0 or location not in room_name:
@@ -405,8 +456,8 @@ def build(html_dir: Path, out_ref: Path) -> None:
     loc = ['<div class="hobbit-list">',
            f'<p>The {len(room_name)} places of the game, in the order of ROOM_POINTERS. '
            f'{len(pictures)} have a picture, drawn here by the game\'s own '
-           'DRAW_LOCATION_PICTURE (#R$7F78) and shown as it draws, at the speed it draws -- '
-           'pausing on the finished picture before it starts again. The rest show only text in the game too. '
+           'DRAW_LOCATION_PICTURE (#R$7F78); each picture\'s own page shows it being drawn. '
+           'The rest show only text in the game too. '
            'Each is named as the game names it, and described as it describes it on a '
            'first visit.</p>', '<p>']
     loc.append(" &middot; ".join(f'<a href="&#35;loc{k}">{k}</a>' for k in sorted(room_name)))
@@ -421,15 +472,13 @@ def build(html_dir: Path, out_ref: Path) -> None:
         loc.append('<table class="hobbit-entry"><tr>')
         if location in pictures:
             image, frames = _render_picture(game, location, start, player, clean)
-            image.resize((512, 256)).save(image_dir / f"{location:02d}.png")
+            image.resize((512, 256), Image.NEAREST).save(image_dir / f"{location:02d}.png")
             drawing_time[location] = save_animation(frames, image_dir / f"{location:02d}.gif")
-            # The animation loops, holding the finished picture a few
-            # seconds each time round; a click starts it again at once.
+            # The finished picture here; the animation is on the picture's
+            # own page in the disassembly.
             loc.append(f'<td style="vertical-align: top; width: 520px">'
-                       f'<img src="../{IMAGE_DIR}/{location:02d}.gif" width="512" height="256" '
-                       f'style="image-rendering: pixelated; cursor: pointer" '
-                       f'title="Click to draw it again" '
-                       f'onclick="this.src=this.src.split(\'?\')[0]+\'?\'+Date.now()" '
+                       f'<img src="../{IMAGE_DIR}/{location:02d}.png" width="512" height="256" '
+                       f'style="image-rendering: pixelated" '
                        f'alt="{esc(room_name[location])}"/></td>')
         loc.append('<td style="vertical-align: top">')
         if text:

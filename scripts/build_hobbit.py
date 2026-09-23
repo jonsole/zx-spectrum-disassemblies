@@ -589,8 +589,7 @@ def picture_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         # the HTML's images on each --html build. Only the HTML shows it.
         out.append(f"D ${start:04X} #HTML(<img src=\"../images/locations/{location:02d}.gif\" "
                    f"width=\"512\" height=\"256\" style=\"image-rendering: pixelated\" "
-                   f"alt=\"{where(location)}\"/><br/>As the game draws it, at the speed it draws it, "
-                   f"pausing on the finished picture before it starts again.)")
+                   f"alt=\"{where(location)}\"/>)")
         partner = (next(loc for s, _, loc, *_ in streams if s == inner)
                    if inner else None)
         ending = (f"counting the part it shares with location {partner}, "
@@ -1475,12 +1474,16 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
             out.append(f"W ${address + body:04X},2,2 If it is refused: {link(step['fallback'])}")
     out.append("")
 
-    # The slots, field by field, so that where each points is a label too.
+    # The slots, field by field, so that where each points is a label too,
+    # and each character's name a link to its object record.
+    record_of = {r["number"]: r["start"] for r in object_records(memory)}
     for slot in program["slots"]:
         a = slot["address"]
         who = names[slot["character"]]
-        first = (f"Empty at the start: {who}'s, once an arrival hook writes it in"
-                 if slot["empty"] else who.capitalize())
+        record = f"#R${record_of[slot['character']]:04X}({who})"
+        first = (f"Empty at the start: {record}'s, once an arrival hook writes it in"
+                 if slot["empty"] else f"#R${record_of[slot['character']]:04X}"
+                                        f"({who.capitalize()})")
         out += [f"B ${a:04X},1,1", f"  ${a:04X},1 {first}",
                 f"B ${a + 1:04X},1,1",
                 f"  ${a + 1:04X},1 How many of its scripts it chooses among at random",
