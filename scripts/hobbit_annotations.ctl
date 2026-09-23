@@ -473,7 +473,7 @@ R $9F08 O:F NZ if there is one
   $9F1A,7 Not the direction wanted: keep looking
 
 @ $B70C label=ACTOR
-b $B70C Whose turn it is
+b $B70C Whose turn it is, and the rest of the variables
 D $B70C The address of the acting character's object record. MOVE, ACTOR_ROOM and the rest read the actor through here rather than assuming the player, which is why one MOVE serves the whole cast.
 
 # --------------------------------------------------------------------------
@@ -3026,3 +3026,111 @@ c $7EA8 "i do not know the verb "...""
 c $7903 Copy a single word from frame IX to frame IY, at offset DE (COPY_FRAME_PHRASE with C = 2)
 @ $7E7C label=PUSH_PATTERN_WORDS_NZ
 c $7E7C PUSH_PATTERN_WORDS, with its tests the other way round (JR NZ)
+
+# --------------------------------------------------------------------------
+# The variables
+# --------------------------------------------------------------------------
+
+@ $B6DA label=VARIABLES
+b $B6DA The game's variables
+D $B6DA The working state, from here to ENDINGS. The part from $B6EB to $B707 is the game's own -- where things stand, the score, the riddle, the map -- and is what START keeps a copy of for a new game and SAVE writes to tape; the rest is scratch for the parser, the printer and the action in hand. DRUNK, at $B700, and ACTOR, at $B70C, have blocks of their own.
+B $B6DA,2,2
+  $B6DA,2 Where the last word began in the input, echoed back when a word is not known
+B $B6DC,2,2
+  $B6DC,2 The parser's place in TOKENS
+B $B6DE,1,1
+  $B6DE,1 The class of the last word, which the parser and the special words go back to
+B $B6DF,1,1
+  $B6DF,1 Set by NAME_MATCHES; MATCH_PATTERN ends in UNKNOWN_VERB when it is
+B $B6E0,6,6
+  $B6E0,6 The last target's name, for IT
+B $B6E6,1,1
+  $B6E6,1 The action code, a copy kept by PARSE_ACTION
+B $B6E7,1,1
+  $B6E7,1 The action code being carried out
+B $B6E8,1,1
+  $B6E8,1 Its first object, the target, or $FF
+B $B6E9,1,1
+  $B6E9,1 Its second object, the instrument, or $FF
+B $B6EA,1,1
+  $B6EA,1 Who is acting, and who the sentence is about: 0 for the player
+B $B6EB,3,3
+  $B6EB,3 Scratch: DO_SAVE carries Bard's three script bytes here. From here to $B707 is what START keeps a copy of and SAVE writes
+B $B6EE,2,2
+  $B6EE,2 This game's riddle, an entry in RIDDLES
+B $B6F0,1,1
+  $B6F0,1 A timer has fired this turn
+B $B6F1,1,1
+  $B6F1,1 Elrond has read the map and the shut road is open again
+B $B6F2,1,1
+  $B6F2,1 PRINT is on: the story goes to the ZX Printer too
+B $B6F3,1,1
+  $B6F3,1 Where the player came into the forest, for the eyes
+B $B6F4,1,1
+  $B6F4,1 The character acting has an order waiting
+B $B6F5,1,1
+  $B6F5,1 Where the player is
+B $B6F6,1,1
+  $B6F6,1 Where the character acting is
+B $B6F7,2,2
+  $B6F7,2 The score, in tenths of a per cent
+B $B6F9,1,1
+  $B6F9,1 Gollum is waiting for the answer to his riddle
+B $B6FA,1,1
+  $B6FA,1 For real: clear while an action is only being tested, and nothing is printed
+B $B6FB,1,1
+  $B6FB,1 It worked: what a test, or a handler, answers
+B $B6FC,2,2
+  $B6FC,2 The weapon's name, or FIST, for the fight's messages
+B $B6FE,1,1
+  $B6FE,1 The action's first object is a place (PATTERN_OPTIONS)
+B $B6FF,1,1
+  $B6FF,1 The second object is a place: set by no action
+B $B701,1,1
+  $B701,1 Print in the input window, in capitals; also set while an action is refused
+B $B702,1,1
+  $B702,1 Printing on
+B $B703,1,1
+  $B703,1 Names are printed as the noun alone
+B $B704,1,1
+  $B704,1 The next letter printed is a capital
+B $B705,1,1
+  $B705,1 More commands are waiting in the line, after THEN or a full stop
+B $B706,1,1
+  $B706,1 How many frames the command has taken
+B $B707,1,1
+  $B707,1 Pictures on: the N key held at the title screen turns them off
+B $B708,2,2
+  $B708,2 The first object's record
+B $B70A,2,2
+  $B70A,2 The second object's record
+B $B70C,2,2
+  $B70C,2 The acting character's record (ACTOR)
+B $B70E,1,1
+  $B70E,1 RANDOM's last result
+B $B70F,1,1
+  $B70F,1 An option of the action's pattern, read by the object matching
+B $B710,1,1
+  $B710,1 FIND_NAMED_OBJECT's mode: which kinds of object will do
+B $B711,1,1
+  $B711,1 The action needs light at all (PATTERN_OPTIONS)
+B $B712,2,2
+  $B712,2 RANDOM's pointer, stepping on through memory
+B $B714,2,2
+  $B714,2 GET_KEY's patience before it types WAIT itself, which adapts to the player
+B $B716,1,1
+  $B716,1 Lines of story to print without the end-of-line pause
+B $B717,2,2
+  $B717,2 The dictionary entry TOKENISE is trying
+B $B719,1,1
+  $B719,1 ALL (1) or ALL ... EXCEPT (2) in the sentence being parsed
+B $B71A,1,1
+  $B71A,1 A question is waiting for the next line to answer
+B $B71B,1,1
+  $B71B,1 The sentence being parsed is an order said to someone
+B $B71C,1,1
+  $B71C,1 ALL, for the action being carried out
+B $B71D,1,1
+  $B71D,1 The action pattern's flags, from its first two words (PATTERN_FLAGS)
+B $B71E,1,1
+  $B71E,1 The action pattern's flags, from its last two words
