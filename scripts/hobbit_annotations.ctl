@@ -284,6 +284,20 @@ D $C730 Every handler address here is real code on the table's own evidence: the
 c $8D9D Move a character one step
 D $8D9D Called for every character that moves, the player included, with the direction in $B6E7. Watched directly: a single turn in which the player only typed INVENTORY ran this 21 times for nine other characters, each wandering on its own -- which is The Hobbit's independent cast, seen from the inside.
 D $8D9D For the player -- told apart by $B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood, and the four diagonals will be among 4 to 8, but which is which has not been watched and is not asserted here.
+  $8D9D,14 In the dark, the direction asked for is thrown away for a random one from 1 to 10
+  $8DAB,11 Is the actor held by anything?
+  $8DB6,9 Held by a thing, not a character: cannot move
+  $8DBF,4 Held by a character: let go
+  $8DC3,12 The actor's size with everything it carries, for fitting through the way out
+  $8DCF,10 Is there an exit in that direction?
+  $8DD9,6 No way through. In the light, the ordinary refusal
+  $8DDF,15 In the dark the player falls: halve byte 5 of the player's record...
+  $8DEE,3 ...and while anything is left, "but fall and hit your HEAD." -- six falls are survived
+  $8DF1,9 The seventh empties it: "but fall and smash your skull.", and PLAYER_DIES
+  $8DFA,6 The exit leads to location 0: nowhere yet
+  $8E00,6 Keep the destination; A = the object the way goes through
+  $8E06,12 Can it be used? $8E85 answers 1 no, 2 and 3 other outcomes, else yes
+  $8E12,6 Move: the actor's location becomes the destination
 
 @ $C063 label=OBJECT_INDEX
 b $C063 Every object and every character, by number
@@ -395,6 +409,13 @@ D $95ED Characters are never in the dark: anyone but the player gets "no" at onc
 D $95ED Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
 D $95ED What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
 R $95ED O:F Carry set if the player cannot see
+  $95ED,5 Characters can always see: only the player is ever in the dark
+  $95F5,10 The player shut inside something can see
+  $95FF,9 So can a player in a lit room (bit 7 of its first byte)
+  $9608,15 Otherwise only by the sword, object $0E, if it is within reach...
+  $9617,9 ...and glowing: flags bit 2 set, bit 3 clear, bit 4 set, all in one test
+  $9620,4 Too dark: carry set, and HL = "it is dark."
+  $9628,3 Can see: carry clear
 
 # --------------------------------------------------------------------------
 # Messages
@@ -719,3 +740,7 @@ R $9E7A O:A What it is shut in, or $FF
   $9E83,7 Go up to the holder, keeping its number
   $9E8A,7 Can the holder be seen into (flags $28)? Then keep climbing
   $9E91,1 A = the first holder that cannot be seen into
+
+@ $90D2 label=PLAYER_DIES
+c $90D2 The player is dead: say so and start again
+D $90D2 Prints "you are dead." as a sentence about the player, calls $83F5, waits for any key and goes back into the start-up at $6C27. Reached, for one, from MOVE when the player falls in the dark once too often.
