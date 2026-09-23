@@ -2608,3 +2608,87 @@ D $A3BC Not if it is not being worn ("you are not wearing the ..."). Visible aga
   $A3C4,10 Not worn: refused
   $A3CE,3 The test ends here
   $A3D1,21 Seen again, and as strong as before; the timer stopped
+
+# --------------------------------------------------------------------------
+# The last of the objects' own handlers
+# --------------------------------------------------------------------------
+
+@ $97FF label=ONLY_IF_DONE
+c $97FF Go on only if the action was done for real, and worked
+D $97FF Otherwise it leaves the handler that called it. This is what the records keyed 0 after a handler use: they run whether or not the handler succeeded, and this is how they find out.
+@ $A448 label=GOBLIN_RETURNS
+  $97FF,9 Done for real, and it worked: carry on
+  $9808,3 Otherwise out of the caller
+c $A448 After a goblin is attacked: a dead goblin comes back
+D $A448 Killing a goblin does not get rid of it. "the ... falls down a hole and vanishes.", it is alive again, back in its slot in CHARACTERS and in its own place, named as it was, from GOBLIN_HOMES; and if that is where the player is, "another goblin enters.".
+@ $A49C label=GOBLIN_HOMES
+  $A448,9 Not dead: nothing
+  $A451,4 Alive again
+  $A455,19 Its entry in GOBLIN_HOMES
+  $A468,8 Back in its slot
+  $A470,15 Back in its place, and its name as it was
+  $A47F,6 "the ... falls down a hole and vanishes."
+  $A485,23 Where the player is: "another goblin enters."
+b $A49C Where each goblin comes back to
+D $A49C Six bytes for each of the six: the goblin, its slot in CHARACTERS, the location it comes back in, and the adjective its name had.
+B $A49C,36,6
+@ $A73B label=THORIN_KILLED
+c $A73B After Thorin is attacked: if he is dead, the curious key shatters
+D $A73B The small curious key opens the mountain's side door, and it is Thorin's. Killing him breaks it -- "the small curious key shatters." where the player can see -- which leaves the side door locked for good.
+@ $A761 label=WINDOW_OPEN_CLOSE
+  $A73B,6 Thorin not dead: nothing
+  $A741,3 Only if it really happened
+  $A744,13 The key is broken
+  $A751,16 "the small curious key shatters.", where the player sees it
+c $A761 The window's own OPEN and CLOSE: out of the player's reach unless carried
+D $A761 The player can only reach the window while held by something -- carried, as the guides have it, by Thorin -- and otherwise "you cannot reach the ...". Characters can open and close it as any door.
+@ $A784 label=WINDOW_OTHERS
+  $A761,21 The player, held by nothing: "you cannot reach the ..."
+  $A776,14 Otherwise the ordinary CLOSE or OPEN
+c $A784 The window's GO THROUGH, STRIKE WITH and LOOK THROUGH, with the same reach
+@ $A67E label=TRAP_DOOR_OPEN_CLOSE
+  $A784,19 The player, held by nothing: out of reach
+  $A797,19 Otherwise GO THROUGH, STRIKE WITH or LOOK THROUGH as usual
+c $A67E The trap door's own OPEN and CLOSE: only from the elvenking's cellar
+D $A67E Anywhere else, "you cannot reach the ...".
+@ $A814 label=THROW_ROPE_ACROSS
+  $A67E,15 Not in the cellar: out of reach
+  $A68D,11 Otherwise the ordinary CLOSE or OPEN
+c $A814 THROW ACROSS, carried by the rope
+D $A814 Across a river: "it sails across and" -- and if the boat is on the far bank, half the time it "lands in the boat.", tying the boat to it, and otherwise falls short or slides out again. With no boat there it lands on the other side, half the time, or falls short.
+@ $A86E label=HALF_THE_TIME
+  $A814,11 Across what? A river's way over
+  $A81F,3 The test ends here
+  $A822,6 "it sails across and"
+  $A828,8 Is the boat on the far bank?
+  $A830,18 Then half the time into it; if not, short or out again
+  $A842,10 In the boat: the boat is tied to the rope
+  $A84C,8 No boat: half the time short
+  $A854,23 ...otherwise over, onto the far bank
+  $A86B,3 Say which
+c $A86E Carry set half the time
+@ $A876 label=PULL_ROPE
+c $A876 PULL, carried by the rope
+D $A876 With the boat tied to it: "the boat glides across the river and lands on this side.", from one bank to the other, and it is let go. $A882 is the crossing itself, which BOAT_BOARDED uses too.
+@ $A89E label=BOAT_BOARDED
+  $A876,9 Only with the boat tied to it
+  $A87F,3 "the boat glides across the river and lands on this side."
+  $A882,3 The crossing: the message...
+  $A885,25 ...and the boat, with whoever is in it, to the other bank, let go
+c $A89E After climbing into the boat: across
+D $A89E "with a lurch the boat glides across the river and lands on the other side.", and whoever is in it goes too.
+@ $AA27 label=JUMP_ONTO_BARREL
+  $A89E,8 Only if it really happened, and for the player
+  $A8A6,5 "with a lurch..." and across
+c $AA27 JUMP ONTO, carried by the barrel
+D $AA27 Only down onto it, from a place with a way down to where it is: then the jumper is in the barrel, with it, and a player is shown the place. From anywhere else it is "you cannot jump onto the ... from here." -- or would be: where the way to it is not down, the code has JP NZ,$B301, which jumps into that message's bytes rather than printing them, apparently for LD HL,$B301 and JP $72DD. In a quick test, from the great halls beside the cellar, that path was not reached; whether anything can reach it is not worked out.
+@ $AAA2 label=SIDE_DOOR_CLOSED
+  $AA27,19 A way from here to where the barrel is? If not, say so
+  $AA3A,8 Not down: into the message bytes -- see above
+  $AA42,3 The test ends here
+  $AA45,13 In the barrel, and there
+  $AA52,10 For the player, describe it
+c $AAA2 After the side door is closed: locked, hidden, and the hole's timer started again
+  $AAA2,3 Only if it really happened
+  $AAA5,5 The hole comes again in six turns
+  $AAAA,9 Locked and hidden, and "the hole vanishes." where seen
