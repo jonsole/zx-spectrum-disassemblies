@@ -527,19 +527,30 @@ D $7295 Twenty-three handlers. Code $0D, a new line, is printed by the same rout
 
 @ $7367 label=MC_PUSHED_OBJECT
 c $7367 Message control code $00: print the object whose record the caller pushed
+  $7367,4 No article
+  $736B,4 Dig the caller's pushed record out from under the return addresses
+  $736F,5 Print it, unless it is zero
 
 @ $7376 label=MC_PUSHED_WORD
 c $7376 Message control code $01: print the word the caller pushed
+  $7376,5 Dig the caller's pushed word out into DE
+  $737B,3 NZ: print it
 
 @ $737E label=MC_JUMP
 c $737E Message control code $02: jump within the message by the signed byte that follows
 D $737E Checked, not only read: confirmed by running location 66's description, which prints the west bank and skips the east.
+  $737E,11 DE = the signed byte after the code
+  $7389,2 Jump by it -- and fall into MC_NOTHING, whose XOR A; RET is this handler's own end
 
 @ $738D label=MC_INSTRUMENT_NOUN
 c $738D Message control code $03: the noun of the instrument in the current command
+  $738D,7 DE = the instrument's noun, from $B6FC; NZ to print it
 
 @ $7394 label=MC_PUSHED_WITH_ARTICLE
 c $7394 Message control code $04: the pushed word with a or the in front
+  $7394,5 Dig the caller's pushed word out into DE
+  $7399,5 With an article
+  $739E,3 Print it
 
 @ $738B label=MC_NOTHING
 c $738B Message control code $05, $0A, $0F and $12: do nothing
@@ -547,44 +558,69 @@ c $738B Message control code $05, $0A, $0F and $12: do nothing
 @ $73A3 label=MC_ACTOR
 c $73A3 Message control code $06: the actor's name, or YOU
 D $73A3 Checked, not only read: confirmed by running a message with it as the player and as Gandalf.
+  $73A3,4 No article
+  $73A7,6 Print whoever the sentence is about: a name, or YOU
 
 @ $73AF label=MC_TARGET
 c $73AF Message control code $07: the target, with its article
+  $73AF,5 With an article
+  $73B4,9 The target, found one of two ways by $B6FE; printed as MC_INSTRUMENT does
 
 @ $73BD label=MC_BACKSPACE
 c $73BD Message control code $08: a backspace, joining the next word to the last
+  $73BD,3 A still holds the code, 8, which is the backspace character: print it
 
 @ $73C2 label=MC_INSTRUMENT
 c $73C2 Message control code $09: the instrument, with its article
+  $73C2,5 With an article
+  $73C7,7 The instrument, found one of two ways by $B6FF...
+  $73CE,12 ...one routine or the other giving its record...
+  $73DA,3 ...which is printed
 
 @ $73E0 label=MC_SUBMESSAGE
 c $73E0 Message control code $0B: run the sub-message the signed byte that follows points at
+  $73E0,2 Step past the offset byte
+  $73E2,16 HL = here plus the signed offset
+  $73F2,3 Run that sub-message, then carry on with this one
 
 @ $73F9 label=MC_ACTOR_HIS
 c $73F9 Message control code $0C: HIS, or YOUR for the player
 D $73F9 Checked, not only read: confirmed the same way: YOUR for the player, HIS for anyone else.
+  $73F9,3 The actor
+  $73FC,5 Anyone but the player: HIS
+  $7401,6 The player: YOUR
 
 @ $7407 label=MC_TARGET_HIS
 c $7407 Message control code $0E: HIS or YOUR for the target
+  $7407,5 The target instead of the actor
 
 @ $740C label=MC_ACTOR_IS
 c $740C Message control code $10: the actor's name and IS, or YOU ARE
 D $740C Checked, not only read: confirmed the same way: YOU ARE, GANDALF IS, THORIN IS, from one message.
+  $740C,9 The actor, with no article
+  $7415,5 Print the name
+  $741A,5 Anyone but the player: IS
+  $741F,6 The player: ARE
 
 @ $7425 label=MC_TARGET_IS
 c $7425 Message control code $11: the same for the target
+  $7425,8 The target, with an article
 
 @ $742D label=MC_PUSHED_IS
 c $742D Message control code $13: the same for a pushed object
+  $742D,7 An object the caller pushed
 
 @ $7340 label=MC_END_LINE
 c $7340 Message control code $14: end the message with a new line
+  $7340,4 End as flag nibble 6 would: a new line
 
 @ $7344 label=MC_END_STOP
 c $7344 Message control code $15: end the message with a full stop and a new line
+  $7344,4 End as flag nibble 3 would: a full stop and a new line
 
 @ $735B label=MC_END
 c $735B Message control code $16: end the message
+  $735B,12 End here: put back the DE, IX and A that RUN_MESSAGE kept
 
 @ $72C3 label=PRINT_LITERAL
 c $72C3 Print a literal character from a message
