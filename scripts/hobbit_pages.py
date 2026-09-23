@@ -71,21 +71,56 @@ def _object_names(memory, records) -> dict[int, str]:
     return {r["number"]: bh.name_of(memory, r["start"] + 8) for r in records}
 
 
+# A frame of the animation per frame of the Spectrum: 69888 T-states, the
+# 50 Hz interrupt the display refreshes on, so each frame of the animation
+# is what a television showed at the time.
+FRAME_TSTATES = 69888
+FRAME_MS = 20
+# How long the finished picture stays up before the drawing starts again.
+HOLD_MS = 3000
+
+
+def screen_image(memory):
+    """The top 128 scanlines of the screen -- the picture canvas -- as a PIL
+    image, in the Spectrum's colours.
+
+    Done with PIL's own operations rather than a pixel at a time, since an
+    animation takes a few hundred of these per picture: the bitmap is put back
+    into scanline order and made a mask, the attributes are blown up into an
+    ink layer and a paper layer, and the mask chooses between them.
+    """
+    from PIL import Image
+
+    rows = bytearray()
+    for y in range(128):
+        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
+        rows += bytes(memory[row:row + 32])
+    mask = Image.frombytes("1", (256, 128), bytes(rows)).convert("L")
+    attributes = bytes(memory[0x5800:0x5800 + 16 * 32])
+    ink = Image.new("RGB", (32, 16))
+    paper = Image.new("RGB", (32, 16))
+    ink.putdata([PALETTE[(8 if a & 0x40 else 0) + (a & 7)] for a in attributes])
+    paper.putdata([PALETTE[(8 if a & 0x40 else 0) + ((a >> 3) & 7)] for a in attributes])
+    ink = ink.resize((256, 128), Image.NEAREST)
+    paper = paper.resize((256, 128), Image.NEAREST)
+    return Image.composite(ink, paper, mask)
+
+
 def _render_picture(game, location: int, room_start: int, player_start: int,
                     clean: list):
-    """Draw one location's picture with the game's own code and return it as
-    a PIL image, 256 x 128 -- the canvas CLEAR_CANVAS clears.
+    """Draw one location's picture with the game's own code, and return the
+    finished picture and the frames of it being drawn, one at each frame
+    interrupt of the game's own time -- so the animation runs at the speed the
+    game draws, slow fills and all.
 
     Each picture starts from the same clean machine, `clean`: drawing one
     leaves enough behind -- the flood fill's queue on the stack among it --
     that the next, drawn straight after, can fail to finish.
     """
-    from PIL import Image
     from skoolkit.simutils import A, PC, SP, T
 
     memory, registers = game.memory, game.sim.registers
     memory[:] = clean
-    saved = {a: memory[a] for a in (room_start, player_start + 16, PICTURES_ON)}
     # The picture is drawn only if the player could see it: stand the player
     # there, with the room lit, for the length of the call.
     memory[room_start] |= 0x80
@@ -94,28 +129,38 @@ def _render_picture(game, location: int, room_start: int, player_start: int,
     stack = SCRATCH_STACK
     memory[stack], memory[stack + 1] = RETURN_HERE & 0xFF, RETURN_HERE >> 8
     registers[SP], registers[A] = stack, location
-    game.sim.trace(DRAW_LOCATION_PICTURE, RETURN_HERE, 0,
-                   registers[T] + 60 * bh.TSTATES_PER_SECOND,
-                   False, None, None, None, None, None)
-    reached = registers[PC] == RETURN_HERE
-    for address, value in saved.items():
-        memory[address] = value
-    if not reached:
+    frames = []
+    pc, limit = DRAW_LOCATION_PICTURE, registers[T] + 60 * bh.TSTATES_PER_SECOND
+    while registers[T] < limit:
+        # To the next frame boundary, as the ULA counts them.
+        frame_end = (registers[T] // FRAME_TSTATES + 1) * FRAME_TSTATES
+        game.sim.trace(pc, RETURN_HERE, 0, frame_end,
+                       False, None, None, None, None, None)
+        pc = registers[PC]
+        frames.append(screen_image(memory))
+        if pc == RETURN_HERE:
+            break
+    if pc != RETURN_HERE:
         raise RuntimeError(f"location {location}'s picture did not finish")
+    return frames[-1], frames
 
-    image = Image.new("RGB", (256, 128))
-    pixels = image.load()
-    for y in range(128):
-        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
-        for column in range(32):
-            attribute = memory[0x5800 + (y // 8) * 32 + column]
-            bright = 8 if attribute & 0x40 else 0
-            ink = PALETTE[bright + (attribute & 7)]
-            paper = PALETTE[bright + ((attribute >> 3) & 7)]
-            byte = memory[row + column]
-            for bit in range(8):
-                pixels[column * 8 + bit, y] = ink if byte & (0x80 >> bit) else paper
-    return image
+
+def save_animation(frames, path: Path) -> float:
+    """Save the drawing as a GIF that loops, holding the finished picture for
+    HOLD_MS before it starts again. Frames that show no change are merged into the one before, so
+    the long pause while a fill runs costs nothing. Returns the seconds it
+    takes to draw."""
+    kept, durations = [frames[0]], [FRAME_MS]
+    for frame in frames[1:]:
+        if frame.tobytes() == kept[-1].tobytes():
+            durations[-1] += FRAME_MS
+        else:
+            kept.append(frame)
+            durations.append(FRAME_MS)
+    durations[-1] += HOLD_MS
+    kept[0].save(path, save_all=True, append_images=kept[1:], duration=durations,
+                 optimize=True, disposal=1, loop=0)
+    return len(frames) * FRAME_MS / 1000
 
 
 # The map: where each location goes on a grid, and how big things are drawn.
@@ -360,11 +405,13 @@ def build(html_dir: Path, out_ref: Path) -> None:
     loc = ['<div class="hobbit-list">',
            f'<p>The {len(room_name)} places of the game, in the order of ROOM_POINTERS. '
            f'{len(pictures)} have a picture, drawn here by the game\'s own '
-           'DRAW_LOCATION_PICTURE (#R$7F78); the rest show only text in the game too. '
+           'DRAW_LOCATION_PICTURE (#R$7F78) and shown as it draws, at the speed it draws -- '
+           'pausing on the finished picture before it starts again. The rest show only text in the game too. '
            'Each is named as the game names it, and described as it describes it on a '
            'first visit.</p>', '<p>']
     loc.append(" &middot; ".join(f'<a href="&#35;loc{k}">{k}</a>' for k in sorted(room_name)))
     loc.append("</p>")
+    drawing_time: dict[int, float] = {}
     for location in sorted(room_name):
         room = rooms[location]
         start = room["start"]
@@ -373,10 +420,16 @@ def build(html_dir: Path, out_ref: Path) -> None:
         loc.append(f'<h3 id="loc{location}">{location}: {esc(room_name[location])}</h3>')
         loc.append('<table class="hobbit-entry"><tr>')
         if location in pictures:
-            image = _render_picture(game, location, start, player, clean)
+            image, frames = _render_picture(game, location, start, player, clean)
             image.resize((512, 256)).save(image_dir / f"{location:02d}.png")
+            drawing_time[location] = save_animation(frames, image_dir / f"{location:02d}.gif")
+            # The animation loops, holding the finished picture a few
+            # seconds each time round; a click starts it again at once.
             loc.append(f'<td style="vertical-align: top; width: 520px">'
-                       f'<img src="../{IMAGE_DIR}/{location:02d}.png" width="512" height="256" '
+                       f'<img src="../{IMAGE_DIR}/{location:02d}.gif" width="512" height="256" '
+                       f'style="image-rendering: pixelated; cursor: pointer" '
+                       f'title="Click to draw it again" '
+                       f'onclick="this.src=this.src.split(\'?\')[0]+\'?\'+Date.now()" '
                        f'alt="{esc(room_name[location])}"/></td>')
         loc.append('<td style="vertical-align: top">')
         if text:
@@ -409,7 +462,8 @@ def build(html_dir: Path, out_ref: Path) -> None:
         if location in hints:
             facts.append(("HELP", f"<i>{esc(game.message(hints[location]))}</i>"))
         if location in pictures:
-            facts.append(("Picture", f"#R${pictures[location]:04X}"))
+            facts.append(("Picture", f"#R${pictures[location]:04X} -- drawn in "
+                                     f"{drawing_time[location]:.1f} seconds"))
         loc.append("<table>" + "".join(
             f'<tr><td style="vertical-align: top; padding-right: 1em"><b>{k}</b></td><td>{v}</td></tr>'
             for k, v in facts) + "</table>")

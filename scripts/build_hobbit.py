@@ -461,6 +461,68 @@ def picture_boundaries(memory, start: int) -> list[int]:
             address += 1
 
 
+COLOURS = ["black", "blue", "red", "magenta", "green", "cyan", "yellow", "white"]
+
+
+def picture_commands(memory, start: int, stop: int) -> list[str]:
+    """A stream's header and each of its commands on a line of its own, in
+    words, as RUN_PICTURE reads them.
+
+    The header is the border colour and the attribute the canvas starts as.
+    Then: $08 moves the pen to x, y; a byte with bit 7 draws a line -- its
+    bits 0-2 the direction (bit 0 mostly vertical, bit 1 down, bit 2 left),
+    the second byte's bits 0-5 the length less one, and the minor-axis step
+    every n pixels, n less one being the first byte's bits 2-5 above the
+    second's bits 6-7; bit 6 fills from x, y in the colour in bits 0-2; bit 5
+    paints attributes in that colour along a path from an attribute address,
+    stored high byte first, to an $FF; $00 ends. y is measured up from the
+    bottom of the 128-line canvas.
+    """
+    out = [f"B ${start:04X},1,1", f"  ${start:04X},1 Border: {COLOURS[memory[start] & 7]}",
+           f"B ${start + 1:04X},1,1",
+           f"  ${start + 1:04X},1 The canvas starts {COLOURS[(memory[start + 1] >> 3) & 7]} "
+           f"paper, {COLOURS[memory[start + 1] & 7]} ink"]
+    for address in picture_boundaries(memory, start):
+        if address >= stop:
+            break
+        op = memory[address]
+        if op == 0x00:
+            out += [f"B ${address:04X},1,1", f"  ${address:04X},1 End of the picture"]
+            break
+        if op == 0x08:
+            length, text = 3, f"MOVE to {memory[address + 1]}, {memory[address + 2]}"
+        elif op & 0x80:
+            second = memory[address + 1]
+            pixels = (second & 0x3F) + 1
+            every = ((((op >> 1) & 0x3C) | (second >> 6)) + 1)
+            across = "left" if op & 4 else "right"
+            updown = "down" if op & 2 else "up"
+            main, side = (updown, across) if op & 1 else (across, updown)
+            if every == 1:
+                how = f"diagonally {main} and {side}"
+            else:
+                how = f"{main}, stepping {side} every {every}"
+            length, text = 2, f"LINE of {pixels} pixel{'s' if pixels != 1 else ''} {how}"
+        elif op & 0x40:
+            length = 3
+            text = f"FILL with {COLOURS[op & 7]} from {memory[address + 1]}, {memory[address + 2]}"
+        elif op & 0x20:
+            length = 3
+            while memory[address + length] != 0xFF:
+                length += 1
+            length += 1
+            cell = ((memory[address + 1] << 8) | memory[address + 2]) - 0x5800
+            text = (f"PAINT {COLOURS[op & 7]} ink from row {cell // 32}, column {cell % 32}, "
+                    f"along a path of {length - 4} step{'s' if length - 4 != 1 else ''}")
+        else:
+            length, text = 1, "Skipped: not a command"
+        if address + length > stop:
+            length = stop - address
+            text += " -- its last bytes are the next picture's start"
+        out += [f"B ${address:04X},{length},{length}", f"  ${address:04X},{length} {text}"]
+    return out
+
+
 def picture_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     """Control-file blocks for the picture table and every stream it names.
 
@@ -516,7 +578,15 @@ def picture_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         summary = ", ".join(f"{n} {k}{'s' if n != 1 else ''}"
                             for k, n in counts.items() if n)
         out.append(f"@ ${start:04X} label={label}")
-        out.append(f"b ${start:04X} Picture for location {location}")
+        rooms = room_records(memory)
+        where = name_of(memory, rooms[location]["start"] + 2) if location in rooms else "?"
+        out.append(f"b ${start:04X} Picture for location {location}: {where}")
+        # The picture, as the game draws it: hobbit_pages.py renders it into
+        # the HTML's images on each --html build. Only the HTML shows it.
+        out.append(f"D ${start:04X} #HTML(<img src=\"../images/locations/{location:02d}.gif\" "
+                   f"width=\"512\" height=\"256\" style=\"image-rendering: pixelated\" "
+                   f"alt=\"{where}\"/><br/>As the game draws it, at the speed it draws it, "
+                   f"pausing on the finished picture before it starts again.)")
         partner = (next(loc for s, _, loc, *_ in streams if s == inner)
                    if inner else None)
         ending = (f"counting the part it shares with location {partner}, and "
@@ -530,7 +600,7 @@ def picture_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
                        f"takes that picture's border and attribute bytes as "
                        f"its operands, and from its first opcode on the two "
                        f"are one stream.")
-        out.append(f"B ${start:04X},{stop - start}")
+        out += picture_commands(memory, start, stop)
         out.append("")
         spans.append((start, stop))
     return NEWLINE.join(out) + NEWLINE, spans
