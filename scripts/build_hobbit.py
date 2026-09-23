@@ -2390,6 +2390,8 @@ def build_html(skool: Path, out: Path) -> None:
     # -a: operands and links read GANDALF_A and DRAW_LINE, as the source
     # does, rather than $C8C2 and $8151.
     args = ["-d", str(out), "-t", "-a"]
+    # hobbit.css, which hobbit.ref's StyleSheet names, lives beside this.
+    args += ["-S", str(Path(__file__).resolve().parent)]
     args.append(str(skool))
     if REF.exists():
         args.append(str(REF))

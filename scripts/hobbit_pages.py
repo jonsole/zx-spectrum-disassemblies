@@ -170,6 +170,25 @@ def save_animation(frames, path: Path) -> float:
 
 
 LOGO = "images/logo.png"   # hobbit.ref's LogoImage, and the landing page's
+DIVIDER_IMAGE = "images/divider.png"   # hobbit.css draws it under each box
+DIVIDER = 0x6DCC
+
+
+def save_divider(memory, path: Path) -> None:
+    """The wavy line START draws between the story and the input window, as
+    a tile for the pages' stylesheet: five pixel rows, each a 2-byte pattern
+    START repeats across the screen, so one 16x5 repeat is the whole of it.
+    Black ink as on the screen, and transparent paper, at twice the size."""
+    from PIL import Image
+
+    tile = Image.new("RGBA", (16, 5), (0, 0, 0, 0))
+    for y in range(5):
+        bits = (memory[DIVIDER + 2 * y] << 8) | memory[DIVIDER + 2 * y + 1]
+        for x in range(16):
+            if bits & (0x8000 >> x):
+                tile.putpixel((x, y), (0, 0, 0, 255))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tile.resize((32, 10), Image.NEAREST).save(path)
 
 
 def save_logo(memory, path: Path) -> None:
@@ -352,7 +371,7 @@ def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict) -> str:
         return px + THUMB_W / 2, py + THUMB_H / 2
 
     out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-           'style="background: white; font-family: sans-serif">',
+           'style="background: #d7d7d7; font-family: sans-serif">',
            '<defs><marker id="head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" '
            f'markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="{HASH}444"/>'
            '</marker></defs>']
@@ -442,6 +461,7 @@ def build(html_dir: Path, out_ref: Path) -> None:
     image_dir = html_dir / "hobbit" / IMAGE_DIR
     image_dir.mkdir(parents=True, exist_ok=True)
     save_logo(memory, html_dir / "hobbit" / LOGO)
+    save_divider(memory, html_dir / "hobbit" / DIVIDER_IMAGE)
 
     def loc_link(location: int) -> str:
         if location == 0 or location not in room_name:
