@@ -49,8 +49,10 @@ Z are zero because no word starts with them), and the word list itself runs
 from $6040. Each entry is one 5-bit letter code per byte, A=1..Z=26, 0 for
 none:
 
-  - bytes 0 and 1 are always letters, because their top three bits are used
-    for the word's part of speech -- so bit 7 there is not a terminator;
+  - bytes 0 and 1 are always letters, because their top bits carry more: bits
+    5-6 of each, taken together, are the word's four-bit class, and bit 7 of
+    byte 1 marks a word that can take an -s -- so bit 7 there is not a
+    terminator;
   - from byte 2 on, bit 7 marks the last letter of the word;
   - if that terminator also has bit 6 set, two more bytes follow: an offset
     from $6000 to another entry, and the word is a synonym of that one.
@@ -160,17 +162,27 @@ NEWLINE = chr(10)
 
 LETTERS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-# Part of speech, read off the top three bits of an entry's first two bytes.
-# These are the groupings that are unambiguous -- every word in each one is the
-# same kind of word. Pairs not listed here are left as a bare code in the
-# comment rather than guessed at; see hobbit_annotations.ctl for what is open.
+# A word's class: bits 5-6 of its first byte, then bits 5-6 of its second,
+# read as one four-bit number. It is what the tokeniser puts in the top nibble
+# of each token -- every one of eighteen tokens captured from real sentences
+# carried exactly the class this predicts -- and bit 7 of the second byte is
+# not part of it: that marks the words PRINT_WORD may give an -s, which is why
+# an earlier reading of three bits made verbs look unlike every other class.
+# The names say what each class holds; 0, 2, 3, 5, 7, 8 and $A were also seen
+# as tokens.
 WORD_CLASSES = {
-    (0, 7): "verb",
-    (1, 1): "noun",
-    (1, 2): "adjective",
-    (0, 2): "direction",
-    (1, 3): "preposition",
-    (0, 0): "adverb",
+    0x0: "adverb",
+    0x1: "in or into",
+    0x2: "direction",
+    0x3: "verb",
+    0x4: "verb of motion",
+    0x5: "noun",
+    0x6: "adjective",
+    0x7: "preposition",
+    0x8: "article or the like",
+    0x9: "quantifier, pronoun or game command",
+    0xA: "and",
+    0xB: "then",
 }
 
 
@@ -228,7 +240,7 @@ class Word:
     """One dictionary entry: where it is, what it says, and what it is."""
 
     def __init__(self, address: int, length: int, text: str,
-                 cls: tuple[int, int], synonym_of: int | None):
+                 cls: int, synonym_of: int | None):
         self.address = address
         self.length = length
         self.text = text
@@ -237,7 +249,7 @@ class Word:
 
     @property
     def part_of_speech(self) -> str:
-        return WORD_CLASSES.get(self.cls, f"class {self.cls[0]},{self.cls[1]}")
+        return WORD_CLASSES.get(self.cls, f"class ${self.cls:X}")
 
 
 def word_index(memory) -> list[int]:
@@ -269,7 +281,7 @@ def decode_words(memory) -> list[Word]:
     while address < GAME_END - 4:
         start = address
         codes = [memory[address] & 0x1F, memory[address + 1] & 0x1F]
-        cls = (memory[address] >> 5, memory[address + 1] >> 5)
+        cls = ((memory[address] >> 5) & 3) * 4 + ((memory[address + 1] >> 5) & 3)
         address += 2
         synonym_of = None
         while address < GAME_END:
@@ -374,10 +386,11 @@ def dictionary_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         "",
         "@ $6040 label=WORD_LIST",
         "b $6040 Dictionary: the words",
-        "D $6040 One 5-bit letter code per byte (A=1..Z=26, 0 for none). The "
-        "top three bits of the first two bytes are the part of speech, so bit 7 "
-        "is not a terminator there; from the third byte on, bit 7 marks the "
-        "last letter. A terminator with bit 6 set is followed by a 2-byte "
+        "D $6040 One 5-bit letter code per byte (A=1..Z=26, 0 for none). Bits "
+        "5-6 of the first two bytes together are the word's class, the top "
+        "nibble of its token, and bit 7 of the second byte marks a word that "
+        "can take an -s, so bit 7 is not a terminator there; from the third "
+        "byte on, bit 7 marks the last letter. A terminator with bit 6 set is followed by a 2-byte "
         "offset, from the start of the index table, to the entry this word is "
         "a synonym of.",
     ]

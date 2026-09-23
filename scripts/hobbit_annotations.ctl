@@ -451,3 +451,34 @@ D $72C3 Also control code $0D, a new line, which is why that code has no handler
 @ $858B label=PRINT_CHAR
 c $858B Print one character
 D $858B Everything printed passes through here with the character in A -- which is what makes it a good place to stop to capture exactly what a message says.
+
+# --------------------------------------------------------------------------
+# Reading a command into tokens
+# --------------------------------------------------------------------------
+
+@ $7249 label=GET_KEY
+c $7249 Wait for a key, or type WAIT when none comes
+D $7249 Counts down from $B714 while it scans the keyboard, and returns the first new key. If the count runs out first it does something rather nice: it clears the line, copies the four letters at $7291 -- WAIT -- into it, prints them, and returns a carriage return as though the player had pressed ENTER. So "time passes" is the game typing a command on your behalf, and the WAIT lines on screen that nobody typed are exactly that.
+D $7249 The keyboard scan reports only changes. A driver that stops the game with ENTER held and presses it again at the next prompt is not heard, because the release was never seen; hobbit_drive.py lets it scan with nothing held first.
+R $7249 O:A The key
+
+@ $7291 label=WAIT_TEXT
+t $7291 What GET_KEY types when the player does not
+D $7291 Four letters, WAIT, and no terminator: GET_KEY copies exactly four.
+
+@ $6E97 label=TOKENISE
+c $6E97 Turn the next word of INPUT_LINE into a token
+D $6E97 A token is two bytes: the word's class in the top nibble -- bits 5-6 of its first two dictionary bytes, read together -- and its twelve-bit dictionary offset below that. A synonym comes out as the word it stands for, so GET SWORD is TAKE SWORD by the time anything reads it. $C0 ends the line; $D0 is a word not in the dictionary, and the main loop prints the complaint and never calls the parser.
+D $6E97 Watched on real sentences: VICIOUSLY ATTACK THE TROLL WITH THE SWORD comes out as adverb, verb, article, noun, preposition, article, noun, end; TAKE THE MAP AND THE KEY puts AND in class $A; and a closing quote gets a full stop token inserted before it by the main loop, so what is said to a character ends as a sentence.
+R $6E97 O:BC The token
+
+@ $709C label=TOKENS
+b $709C The tokens of the line being obeyed
+D $709C Two bytes each, up to the end-of-line token $C0. Cleared before each line.
+
+@ $7585 label=PARSE_COMMAND
+c $7585 Parse one command from the tokens
+D $7585 Called by the main loop with $B6DC pointing into TOKENS; returns NZ to go back for another line. A line of several commands -- joined by THEN, or by a full stop -- is taken one command at a time, the main loop coming back here while $B705 says there is more.
+
+@ $7960 label=OBEY
+c $7960 Carry out the parsed command, and let the world take its turn

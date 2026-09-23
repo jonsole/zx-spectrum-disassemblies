@@ -86,7 +86,16 @@ class Hobbit:
         self.pc = self.sim.registers[PC]
 
     def ready(self) -> None:
-        """Run until the game asks for a line."""
+        """Run until the game asks for a line.
+
+        If it is already asking, that is the answer. Running on from there does
+        not come back to the same place when a key arrives: READ_LINE times out
+        with no input, the game plays a turn of "time passes", and only then
+        asks again -- so every command used to be preceded by a WAIT nobody
+        typed, and the other characters had a turn more than they should.
+        """
+        if self.pc == READ_LINE_READY:
+            return
         for _ in range(10):
             self.run([], 60, stop=READ_LINE_READY)
             if self.pc == READ_LINE_READY:
@@ -112,6 +121,11 @@ class Hobbit:
         registers = self.sim.registers
         registers[H], registers[L] = cursor >> 8, cursor & 0xFF
         registers[B] = LINE_LENGTH - len(text)
+        # The keyboard scan only reports a change, so let it see no keys held
+        # before ENTER goes down: otherwise a release it never saw -- the last
+        # ENTER's, if the game was stopped while it was held -- makes this one
+        # look like no change at all, and the line is not taken.
+        self.run([], 0.05)
         self.run(["ENTER"], 0.10)
         self.run([], 0.10)
         self.ready()
