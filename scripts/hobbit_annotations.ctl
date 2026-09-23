@@ -345,3 +345,18 @@ R $9F08 O:F NZ if there is one
 @ $B70C label=ACTOR
 b $B70C Whose turn it is
 D $B70C The address of the acting character's object record. MOVE, ACTOR_ROOM and the rest read the actor through here rather than assuming the player, which is why one MOVE serves the whole cast.
+
+# --------------------------------------------------------------------------
+# Darkness
+# --------------------------------------------------------------------------
+#
+# The v1.0 disassembly credited in build_hobbit.py pointed at what this is --
+# the sword is the only lamp, as Sting glows in the book -- and everything
+# below was then checked against v1.2's own instructions and data.
+
+@ $95ED label=TOO_DARK
+c $95ED Is it too dark for the player to see?
+D $95ED Characters are never in the dark: anyone but the player gets "no" at once. The player can see if inside something, or if the room is lit -- bit 7 of the first byte of its record. Otherwise only the short strong sword helps: it has to be with the player, and its flag byte at $C30C must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and carrying it lights every dark place.
+D $95ED Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
+D $95ED What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
+R $95ED O:F Carry set if the player cannot see

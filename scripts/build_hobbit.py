@@ -583,13 +583,17 @@ def object_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         where = ", ".join(str(p) for p in places)
         label = "PLAYER" if n == 0 else f"OBJ{n:02X}"
         out.append(f"@ ${start:04X} label={label}")
-        out.append(f"b ${start:04X} Record for {kind}")
+        called = name_of(memory, start + 8)
+        out.append(f"b ${start:04X} Record for {kind}: {called}")
         out.append(f"D ${start:04X} A 16-byte head, where it is -- "
                    f"{'location' if len(places) == 1 else 'locations'} {where} "
                    f"when the game starts -- and {len(record['handlers'])} "
                    f"handler(s) of its own, ending at $FF.")
-        out.append(f"B ${start:04X},16,8")
-        out.append(f"  ${start:04X},16 The head; byte 0 is how many places it is in")
+        out.append(f"B ${start:04X},8,8")
+        out.append(f"  ${start:04X},8 Byte 0 is how many places it is in; byte 7 its flags")
+        out.append(f"B ${start + 8:04X},6,6")
+        out.append(f"  ${start + 8:04X},6 Its name: noun, then adjectives")
+        out.append(f"B ${start + 14:04X},2,2")
         out.append(f"B ${start + 16:04X},{record['listed']}")
         out.append(f"  ${start + 16:04X},{record['listed']} "
                    f"{'Its location' if len(places) == 1 else 'The locations it is in at once'}")
@@ -615,6 +619,45 @@ ROOM_HEAD = 10
 # the trolls' clearing's "southwest southeast north", which leaves 6.
 DIRECTIONS = {1: "north", 2: "south", 3: "east", 4: "west", 5: "northeast",
               6: "northwest", 7: "southeast", 8: "southwest", 9: "up", 10: "down"}
+
+
+def word_at(memory, reference: int) -> str | None:
+    """The word a 12-bit reference names, expanded by PRINT_WORD's own rule.
+
+    Rooms and objects are named this way -- a noun and up to two adjectives,
+    each a reference into the dictionary -- so a record's name is read out of
+    the game rather than written down here.
+    """
+    offset = reference & 0x0FFF
+    if not offset:
+        return None
+    address, letters = WORD_INDEX + offset, []
+    while len(letters) < 16:
+        byte = memory[address]
+        address += 1
+        code = byte & 0x1F
+        if not code:
+            break
+        letters.append(LETTERS[code] if code < len(LETTERS) else "?")
+        if byte & 0x80:
+            if len(letters) == 2:
+                continue
+            if len(letters) == 3 and memory[address - 2] & 0x80:
+                continue
+            break
+    return "".join(letters).lower()
+
+
+def name_of(memory, start: int) -> str:
+    """The adjectives in the order stored, then the noun, which is stored first.
+
+    That is the order the game prints them in: object 5 is stored door, round,
+    green and printed "round green door"; the sword is stored sword, short,
+    strong and is the "short strong sword".
+    """
+    noun, *adjectives = [word_at(memory, memory[start + i] | (memory[start + i + 1] << 8))
+                         for i in (0, 2, 4)]
+    return " ".join(w for w in adjectives + [noun] if w)
 
 
 def room_records(memory) -> dict[int, dict]:
@@ -692,11 +735,20 @@ def room_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
             out.append("")
             spans.append((start, room["end"]))
             continue
-        out.append(f"b ${start:04X} Location {location}")
+        name = name_of(memory, start + 2)
+        lit = "lit" if memory[start] & 0x80 else "dark"
+        out.append(f"b ${start:04X} Location {location}: {name}")
         ways = ", ".join(DIRECTIONS[d] for _, d, _, _ in room["exits"]) or "none"
-        out.append(f"D ${start:04X} A 10-byte head, then its exits: {ways}.")
-        out.append(f"B ${start:04X},{ROOM_HEAD},{ROOM_HEAD}")
-        out.append(f"  ${start:04X},{ROOM_HEAD} The head")
+        out.append(f"D ${start:04X} A 10-byte head -- {lit}, named {name} -- "
+                   f"then its exits: {ways}.")
+        out.append(f"B ${start:04X},2,2")
+        out.append(f"  ${start:04X},2 Flags ({lit}: bit 7), and a byte not yet understood")
+        out.append(f"B ${start + 2:04X},6,6")
+        out.append(f"  ${start + 2:04X},6 Its name: noun, then adjectives")
+        out.append(f"B ${start + 8:04X},2,2")
+        described = memory[start + 8] | (memory[start + 9] << 8)
+        out.append(f"  ${start + 8:04X},2 " + (f"A longer description, at ${described:04X}"
+                   if described else "No longer description"))
         for address, direction, via, destination in room["exits"]:
             through = f" through object {via}" if via else ""
             to = (f"to location {destination}" if destination else
