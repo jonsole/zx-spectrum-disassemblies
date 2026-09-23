@@ -1635,7 +1635,7 @@ B $A20B,5,5
 
 @ $9B44 label=SENSIBLE
 c $9B44 Does the action make sense?
-D $9B44 No if the actor would be doing it to itself, as either object, or doing it to one object with itself; $B6FE and $B6FF waive the checks, and what sets them is not yet traced. An action with no object always makes sense.
+D $9B44 No if the actor would be doing it to itself, as either object, or doing it to one object with itself; $B6FE and $B6FF waive the checks; they are options of the action's pattern (PATTERN_OPTIONS), $B6FE set for ENTER and GO INTO, whose object is a place, and $B6FF for nothing at all. An action with no object always makes sense.
 R $9B44 O:F Z if it makes no sense
   $9B44,8 No object: fine
   $9B4C,19 Unless $B6FE is set: not to itself, and not an object with itself
@@ -1958,7 +1958,7 @@ R $70E8 O:HL Its 8-byte pattern
 
 @ $70F3 label=PATTERN_FLAGS
 c $70F3 Gather an action pattern's flags
-D $70F3 The top four bits of each of the pattern's four word references are flags, not part of the word. They are gathered in pairs: $B71D from the first two references, $B71E from the last two. What is known of them is in NARRATE_ACTION and WOULD_WORK.
+D $70F3 The top four bits of each of the pattern's four word references are flags, not part of the word. They are gathered in pairs: $B71D from the first two references, $B71E from the last two. What is known of them is in PATTERN_OPTIONS, NARRATE_ACTION and WOULD_WORK: bits 2 and 3 of $B71D are the second and first objects, bit 4 not narrated, bit 7 an object that is a place, bit 0 $B70F; bit 6 of $B71E needs light.
 R $70F3 I:IX The pattern
   $70F3,19 $B71E = the fourth reference's flags, with the third's below them
   $7106,19 $B71D = the second reference's flags, with the first's below them
@@ -2801,3 +2801,11 @@ c $6FD3 Clear the screen: white border, black on white
 @ $7F60 label=CANCEL_ORDERS
 c $7F60 Throw away any orders waiting for character A
 D $7F60 KILL does this, so that the dead do not act on what they were told.
+
+@ $7B78 label=PATTERN_OPTIONS
+c $7B78 Set the action's options from its pattern's flags
+D $7B78 Four flags, from PATTERN_FLAGS. $B711: the action needs light at all -- set for every hands-on action, TAKE, OPEN, EXAMINE, LOOK and INVENTORY among them, which DO_ACTION refuses in the dark ("i see nothing here."), where the rest can still be done to what the actor carries. $B6FE: the first object is a place, not a thing -- ENTER and GO INTO. $B6FF: the same for the second object, set by no action in the game. $B70F: TAKE OFF, FOLLOW and JUMP ONTO, used by the object matching at $7D17 and not yet worked out.
+  $7B78,8 $B711: needs light
+  $7B80,9 $B70F
+  $7B89,10 $B6FE: the first object is a place
+  $7B93,10 $B6FF: the second is
