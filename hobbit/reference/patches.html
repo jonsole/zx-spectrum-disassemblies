@@ -15,6 +15,7 @@
 </table>
 <ul class="contents">
 <li><a href="#fastdraw">Pictures nine times faster</a></li>
+<li><a href="#typeahead">Typing ahead</a></li>
 </ul>
 <div><span id="fastdraw"></span></div>
 <div class="box box-1">
@@ -76,7 +77,26 @@ Each picture's time is the T-states <a href="../asm/32632.html">DRAW_LOCATION_PI
 </table>
 </div>
 <div class="paragraph">
-<b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.
+<b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch -- this one and the next -- on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.
+</div>
+</div>
+<div><span id="typeahead"></span></div>
+<div class="box box-2">
+<div class="box-title">Typing ahead</div>
+<div class="paragraph">
+The game reads the keyboard only while it is waiting for a key, so anything typed while a picture draws or the story scrolls is lost -- and pressing a key once a picture is finished does not type anything either: <a href="../asm/38554.html">WAIT_FOR_ANY_KEY</a> takes it to mean only "carry on". <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_keyboard.s">patches/hobbit_keyboard.s</a>, built into the same patched game as the faster pictures, reads the keyboard fifty times a second from an interrupt and keeps each new key until the game asks for one, so the next command can be typed while the last one is still being answered.
+</div>
+<div class="paragraph">
+<b>How.</b> An IM 2 interrupt, started once the title screen's key is pressed, runs the second half of <a href="../asm/35731.html">SCAN_KEYBOARD</a> -- the game's own scan, with its own new-key test and its own key maps -- and puts what it finds into a 16-key ring. SCAN_KEYBOARD itself still spends its 7.4ms debounce delay, since <a href="../asm/29257.html">GET_KEY</a>'s patience is a count of scans and the game must still type WAIT for a player who does nothing, then takes the next key from the ring. The game never enables interrupts and uses IY for itself, so the ROM's interrupt routine could not be used; the vector comes from the ROM's unused $FF bytes at $39FF, and lands, through a JR at $FFFF, on a jump at $FFF4, both in the user-defined-graphics area the game never uses.
+</div>
+<div class="paragraph">
+<b>What a player sees.</b> A command typed while a picture draws is answered as soon as the picture is done: the wait after the picture returns at once when something has been typed, and leaves it to be read. With nothing typed, it waits for a key and throws it away, as before. PAUSE and SAVE's "press any key" throw their key away too, and the two DIs after the tape routines become EIs so that reading goes on after a SAVE or a LOAD. The ring holds 15 keys; any more are lost until the game catches up.
+</div>
+<div class="paragraph">
+<b>Where it goes.</b> The rest of the space the picture patch left, and two more stretches of code that nothing reaches: <a href="../asm/41390.html">UNREACHED_WALK_HELD</a> holds the ring, <a href="../asm/42762.html">UNREACHED_WIPE_EXIT</a> the start of the set-up. 699 bytes change in all.
+</div>
+<div class="paragraph">
+<b>How it was checked.</b> On the emulator: a command typed straight after another, while the other's picture drew, was obeyed in full; the key that ends PAUSE did not reach the next command; and the game still typed WAIT after twenty-odd seconds of nothing. The pictures are still drawn identically: the interrupt is not part of the drawing, only a stop in it every 20ms -- about 1,200 T-states of scanning in each 69,888, so by its instruction timings the pictures take about 2% longer than the table above.
 </div>
 </div>
 <footer>
