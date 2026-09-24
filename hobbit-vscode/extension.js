@@ -89,8 +89,7 @@ function openPanel(context) {
   panel.webview.onDidReceiveMessage((message) => {
     if (message.type === 'ready') {
       pageReady = true;
-      const layout = JSON.parse(fs.readFileSync(path.join(context.extensionPath, 'map_layout.json'), 'utf8'));
-      panel.webview.postMessage({ type: 'layout', cells: layout.cells, flags: model.FLAGS });
+      panel.webview.postMessage({ type: 'flags', flags: model.FLAGS });
       for (const m of queued) {
         panel.webview.postMessage(m);
       }
@@ -248,12 +247,14 @@ function pageHtml(webview, root) {
   const nonce = [...Array(24)].map(() => Math.floor(Math.random() * 36).toString(36)).join('');
   const script = webview.asWebviewUri(vscode.Uri.file(path.join(root, 'inspector_page.js')));
   const style = webview.asWebviewUri(vscode.Uri.file(path.join(root, 'inspector.css')));
+  const flow = webview.asWebviewUri(vscode.Uri.file(path.join(root, 'map_flow.js')));
   return fs
     .readFileSync(path.join(root, 'inspector.html'), 'utf8')
     .replace(/\$\{csp\}/g, webview.cspSource)
     .replace(/\$\{nonce\}/g, nonce)
     .replace(/\$\{script\}/g, String(script))
-    .replace(/\$\{style\}/g, String(style));
+    .replace(/\$\{style\}/g, String(style))
+    .replace(/\$\{flow\}/g, String(flow));
 }
 
 module.exports = { activate, deactivate };

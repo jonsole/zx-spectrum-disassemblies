@@ -1,7 +1,7 @@
 'use strict';
 // The Hobbit Inspector's page: draws what the extension host sends it -- the
-// decoded state, the map's layout and the log -- and asks for nothing but a
-// cleared log. All the reading of the game happens in the host.
+// decoded state and the log -- and asks for nothing but a cleared log. All the
+// reading of the game happens in the host; the map's layout is map_flow.js.
 
 (function () {
   const vscode = acquireVsCodeApi();
@@ -16,12 +16,8 @@
                    '#b7950b', '#6c3483', '#1f618d', '#a04000', '#117a65', '#7b241c', '#5d6d7e',
                    '#b03a2e', '#1e8449', '#9a7d0a', '#2e4053'];
 
-  let cells = {};
   let flagInfo = [];
   let state = null;
-  /// Where the map was last scrolled to follow the player, so it moves only
-  /// when the player does and is otherwise left where the user put it.
-  let followed = -1;
   const byNumber = new Map();
 
   const el = (id) => document.getElementById(id);
@@ -182,37 +178,147 @@
     return lines;
   }
 
+  // The map is flowed out from one place (map_flow.js): the player's, or one
+  // clicked on. That place's exits always point their own way, and when it
+  // changes the map flows from the old layout to the new rather than jumping.
+  let following = true;
+  let focus = 0;
+  /// The layout being shown, as it moves: location -> [x, y] in cells, which
+  /// are fractions while it flows.
+  let shown = null;
+  let target = null;
+  let flowFrom = null;
+  let flowStart = 0;
+  let animating = false;
+  /// How far the canvas reaches from the focus, in cells, each way.
+  let reach = [1, 1];
+  const FLOW_MS = 450;
+
+  function currentFocus() {
+    return following ? state.playerAt : focus;
+  }
+
+  function sameLayout(a, b) {
+    if (!a || a.size !== b.size) {
+      return false;
+    }
+    for (const [loc, [x, y]] of b) {
+      const c = a.get(loc);
+      if (!c || c[0] !== x || c[1] !== y) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function updateFollowUi() {
+    const f = currentFocus();
+    el('centred').textContent = following ? 'Centred on you' : 'Centred on ' + f + ': ' + roomName(f);
+    el('follow').hidden = following;
+  }
+
+  /// Lays the map out around the current focus, and flows to it if it moved.
+  function relayout() {
+    const f = currentFocus();
+    updateFollowUi();
+    if (!f) {
+      return;
+    }
+    const next = MapFlow.flow(state.rooms, f);
+    if (sameLayout(target, next)) {
+      if (!animating) {
+        drawMap();
+      }
+      return;
+    }
+    flowFrom = shown ? new Map(shown) : null;
+    target = next;
+    // The canvas is sized for both layouts at once, so it stays still while
+    // the places move across it, with the focus at its centre.
+    let rx = 1;
+    let ry = 1;
+    for (const layout of [target, flowFrom]) {
+      for (const [x, y] of layout ? layout.values() : []) {
+        rx = Math.max(rx, Math.ceil(Math.abs(x)));
+        ry = Math.max(ry, Math.ceil(Math.abs(y)));
+      }
+    }
+    reach = [rx, ry];
+    if (!flowFrom) {
+      shown = new Map(target);
+      drawMap();
+      centreView();
+      return;
+    }
+    flowStart = performance.now();
+    centreView();
+    if (!animating) {
+      animating = true;
+      requestAnimationFrame(flowStep);
+    }
+  }
+
+  function flowStep(now) {
+    const t = Math.min(1, (now - flowStart) / FLOW_MS);
+    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    shown = new Map();
+    for (const [loc, [x1, y1]] of target) {
+      const from = flowFrom.get(loc) || [x1, y1];
+      shown.set(loc, [from[0] + (x1 - from[0]) * ease, from[1] + (y1 - from[1]) * ease]);
+    }
+    drawMap();
+    if (t < 1) {
+      requestAnimationFrame(flowStep);
+    } else {
+      animating = false;
+      shown = new Map(target);
+    }
+  }
+
+  function zoom() {
+    return Number(el('zoom').value) / 100;
+  }
+
+  function centreView() {
+    requestAnimationFrame(() => {
+      const scroll = el('map-scroll');
+      const z = zoom();
+      scroll.scrollLeft = ((reach[0] + 0.5) * CELL_W + 4) * z - scroll.clientWidth / 2;
+      scroll.scrollTop = ((reach[1] + 0.5) * CELL_H + 4) * z - scroll.clientHeight / 2;
+    });
+  }
+
   function drawMap() {
     const map = el('map');
     map.textContent = '';
-    const placed = state.rooms.filter((r) => cells[r.location]);
-    if (!placed.length) {
+    if (!shown) {
       return;
     }
-    const xs = placed.map((r) => cells[r.location][0]);
-    const ys = placed.map((r) => cells[r.location][1]);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
-    const width = (Math.max(...xs) - minX + 1) * CELL_W + 8;
-    const height = (Math.max(...ys) - minY + 1) * CELL_H + 8;
-    const zoom = Number(el('zoom').value) / 100;
-    map.setAttribute('width', String(width * zoom));
-    map.setAttribute('height', String(height * zoom));
+    const width = (2 * reach[0] + 1) * CELL_W + 8;
+    const height = (2 * reach[1] + 1) * CELL_H + 8;
+    const z = zoom();
+    map.setAttribute('width', String(width * z));
+    map.setAttribute('height', String(height * z));
     map.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
-    // The layout's cells are the site map's: x east, y south, so north is up.
+    // x east, y south: north is up, and the focus is in the middle.
     const centre = (location) => {
-      const [x, y] = cells[location];
-      return [(x - minX) * CELL_W + 4 + CELL_W / 2, (y - minY) * CELL_H + 4 + CELL_H / 2];
+      const [x, y] = shown.get(location);
+      return [(x + reach[0]) * CELL_W + 4 + CELL_W / 2, (y + reach[1]) * CELL_H + 4 + CELL_H / 2];
     };
+    const f = currentFocus();
 
     // Exits first, under the rooms: one line per pair of places, dashed where
-    // the way back is not the way there.
+    // the way back is not the way there. The focus's own are drawn last, on
+    // top, with their directions.
     const exits = svg('g', {}, map);
     const drawn = new Set();
     const leadsTo = new Map(state.rooms.map((r) => [r.location, new Set(r.exits.map((e) => e.to))]));
-    for (const r of placed) {
+    for (const r of state.rooms) {
+      if (r.location === f || !shown.has(r.location)) {
+        continue;
+      }
       for (const e of r.exits) {
-        if (!e.to || !cells[e.to] || e.to === r.location) {
+        if (!e.to || !shown.has(e.to) || e.to === r.location || e.to === f) {
           continue;
         }
         const key = Math.min(r.location, e.to) + '-' + Math.max(r.location, e.to);
@@ -223,10 +329,42 @@
         const [x1, y1] = centre(r.location);
         const [x2, y2] = centre(e.to);
         const back = leadsTo.get(e.to);
-        svg('line', {
-          class: 'exit' + (back && back.has(r.location) ? '' : ' oneway'),
-          x1, y1, x2, y2,
-        }, exits);
+        svg('line', { class: 'exit' + (back && back.has(r.location) ? '' : ' oneway'), x1, y1, x2, y2 }, exits);
+      }
+    }
+    const focusRoom = state.rooms.find((r) => r.location === f);
+    const labels = [];
+    if (focusRoom && shown.has(f)) {
+      // The directions to each place, together where the game gives one
+      // place two ways (the lonelands' east and north).
+      const ways = new Map();
+      for (const e of focusRoom.exits) {
+        if (e.to && e.to !== f && shown.has(e.to)) {
+          if (!ways.has(e.to)) {
+            ways.set(e.to, []);
+          }
+          ways.get(e.to).push(e.direction);
+        }
+      }
+      const [x1, y1] = centre(f);
+      // Ways in with no way back out: drawn, dashed, but not labelled.
+      for (const r of state.rooms) {
+        if (r.location !== f && shown.has(r.location) && !ways.has(r.location)
+            && r.exits.some((e) => e.to === f)) {
+          const [x2, y2] = centre(r.location);
+          svg('line', { class: 'exit oneway', x1, y1, x2, y2 }, exits);
+        }
+      }
+      for (const [to, directions] of ways) {
+        const [x2, y2] = centre(to);
+        const back = leadsTo.get(to);
+        svg('line', { class: 'exit focus' + (back && back.has(f) ? '' : ' oneway'), x1, y1, x2, y2 }, exits);
+        // The label just outside the focus's box, on its line.
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const t = Math.min(dx ? (ROOM_W / 2 + 10) / Math.abs(dx) : Infinity,
+                           dy ? (ROOM_H / 2 + 8) / Math.abs(dy) : Infinity, 0.5);
+        labels.push([x1 + dx * t, y1 + dy * t, directions.join('/')]);
       }
     }
 
@@ -244,11 +382,14 @@
       list.get(o.at).push(o);
     }
 
-    for (const r of placed) {
+    for (const r of state.rooms) {
+      if (!shown.has(r.location)) {
+        continue;
+      }
       const [cx, cy] = centre(r.location);
       const g = svg('g', {
         class: 'room' + (r.lit ? '' : ' dark') + (r.visited ? '' : ' unvisited')
-          + (r.location === state.playerAt ? ' you' : ''),
+          + (r.location === state.playerAt ? ' you' : '') + (r.location === f && !following ? ' focus' : ''),
       }, map);
       const x = cx - ROOM_W / 2;
       const y = cy - ROOM_H / 2;
@@ -260,7 +401,8 @@
         + (r.visited ? '' : ' (not yet visited)')
         + (here.length ? '\n' + here.map((o) => o.name).join(', ') : '')
         + (stuff.length ? '\nHere: ' + stuff.map((o) => o.name).join(', ') : '')
-        + '\nExits: ' + (r.exits.map((e) => e.direction + ' ' + e.to).join(', ') || 'none');
+        + '\nExits: ' + (r.exits.map((e) => e.direction + ' ' + e.to).join(', ') || 'none')
+        + '\nClick to centre the map here';
       const lines = wrapName(r.name);
       lines.forEach((text, i) => {
         const t = svg('text', { x: x + 4, y: y + 12 + i * 10 }, g);
@@ -268,12 +410,6 @@
       });
       const n = svg('text', { class: 'number', x: x + ROOM_W - 4, y: y + ROOM_H - 4, 'text-anchor': 'end' }, g);
       n.textContent = String(r.location);
-      if (r.location === state.playerAt && followed !== r.location) {
-        followed = r.location;
-        const scroll = el('map-scroll');
-        scroll.scrollLeft = cx * zoom - scroll.clientWidth / 2;
-        scroll.scrollTop = cy * zoom - scroll.clientHeight / 2;
-      }
       // A dot per character, along the bottom of the box.
       here.forEach((o, i) => {
         const dx = x + 7 + i * 11;
@@ -282,9 +418,29 @@
         const t = svg('text', { class: 'who', x: dx, y: dy + 2.5, 'text-anchor': 'middle' }, g);
         t.textContent = o.number === 0 ? '@' : o.name.split(' ').pop()[0].toUpperCase();
       });
+      g.addEventListener('click', () => {
+        following = r.location === state.playerAt;
+        focus = r.location;
+        relayout();
+      });
+    }
+
+    // The focus's directions, over everything.
+    for (const [lx, ly, text] of labels) {
+      const t = svg('text', { class: 'exit-label', x: lx, y: ly + 3, 'text-anchor': 'middle' }, map);
+      t.textContent = text;
     }
   }
-  el('zoom').addEventListener('input', () => state && drawMap());
+  el('zoom').addEventListener('input', () => {
+    if (state) {
+      drawMap();
+      centreView();
+    }
+  });
+  el('follow').addEventListener('click', () => {
+    following = true;
+    relayout();
+  });
 
   // ---- resizing the panes ------------------------------------------------------
 
@@ -360,18 +516,14 @@
     el('score').textContent = 'Score ' + (state.score / 10).toFixed(1) + '%';
     el('here').textContent = 'You are at ' + state.playerAt + ': ' + roomName(state.playerAt);
     drawObjects();
-    drawMap();
+    relayout();
   }
 
   window.addEventListener('message', (event) => {
     const m = event.data;
-    if (m.type === 'layout') {
-      cells = m.cells;
+    if (m.type === 'flags') {
       flagInfo = m.flags;
       el('flags-head').title = flagInfo.map((f) => f[1] + ' ' + f[2]).join('\n');
-      if (state) {
-        drawMap();
-      }
     } else if (m.type === 'state') {
       state = m.state;
       drawState();

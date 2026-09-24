@@ -17,6 +17,8 @@ a PNG -- so what is shown is what the game draws, not a reimplementation of it.
 from __future__ import annotations
 
 import html
+import math
+import random
 import re
 import sys
 from pathlib import Path
@@ -300,67 +302,81 @@ def map_layout(rooms: dict, first: int = 1) -> dict[int, tuple[int, int]]:
 
 
 def tidy_layout(rooms: dict, placed: dict[int, tuple[int, int]]) -> dict[int, tuple[int, int]]:
-    """Move places about until the map stops getting better.
+    """Move places about until as many exits as can point their own way do.
 
     The walk puts each place where the first exit it met says, and a
-    collision early on can leave a place a long way from its neighbours, with
-    long lines across the map to show for it. This looks at every place in
-    turn and tries it in each cell nearby -- or swapped with whatever is there
-    -- and keeps the change if the exits come out closer to their compass
-    directions and the lines shorter. A handful of passes is enough for it to
-    settle.
+    collision early on can leave a place a long way from its neighbours, or
+    on the wrong side of them. This anneals: it tries each place in cells
+    nearby -- or swapped with whatever is there -- keeping any move that makes
+    the map better and, early on, some that make it worse, so that it can get
+    out of a corner a greedy pass would stay in.
+
+    What counts is, first, whether each compass exit points its own way -- the
+    place to the north is above, whatever the distance -- and then how long
+    the lines are, which keeps the map compact. Up and down have no compass
+    to keep, only their length. Not every exit can be satisfied: the game's
+    own map contradicts itself (the lonelands' east and north both lead to
+    the trolls' clearing), and 30 of the 176 compass exits can point the
+    wrong way on any layout at all. This leaves about 42.
+
+    Seeded, so the map is the same on every build.
     """
+    def sign(v: int) -> int:
+        return (v > 0) - (v < 0)
+
     links = []
     for here, room in rooms.items():
         for _, direction, _, there in room["exits"]:
             if direction and there and there != here and there in placed:
-                links.append((here, there, STEP[direction]))
+                links.append((here, there, direction))
     touching: dict[int, list] = {}
     for link in links:
         touching.setdefault(link[0], []).append(link)
         touching.setdefault(link[1], []).append(link)
 
+    # Weights found by trying: a wrong way costs as much as five cells of
+    # line, which keeps directions true without sprawling the map.
+    WRONG_WAY, PER_CELL, NOT_ADJACENT = 10.0, 2.0, 0.5
+
     def cost(link, where) -> float:
-        a, b, (dx, dy) = link
-        (ax, ay), (bx, by) = where[a], where[b]
-        # How far b is from where the exit says it should be, and how long
-        # the line is: the first keeps the compass true, the second keeps
-        # the map from sprawling.
-        miss = abs(bx - (ax + dx)) + abs(by - (ay + dy))
-        length = max(abs(bx - ax), abs(by - ay))
-        return 2.0 * miss + 1.0 * length
+        a, b, direction = link
+        dx = where[b][0] - where[a][0]
+        dy = where[b][1] - where[a][1]
+        length = max(abs(dx), abs(dy))
+        if direction > 8:
+            return 0.3 * length
+        wrong = (sign(dx), sign(dy)) != STEP[direction]
+        return (WRONG_WAY if wrong else 0.0) + PER_CELL * length + (NOT_ADJACENT if length > 1 else 0.0)
 
     def local(location, where) -> float:
         return sum(cost(link, where) for link in touching.get(location, []))
 
+    rng = random.Random(1982)
     at = {cell: location for location, cell in placed.items()}
-    for _ in range(12):
-        improved = False
-        for location in sorted(placed):
-            x, y = placed[location]
-            for nx in range(x - 2, x + 3):
-                for ny in range(y - 2, y + 3):
-                    if (nx, ny) == (x, y):
-                        continue
-                    other = at.get((nx, ny))
-                    before = local(location, placed) + (local(other, placed) if other else 0)
-                    placed[location] = (nx, ny)
-                    if other:
-                        placed[other] = (x, y)
-                    after = local(location, placed) + (local(other, placed) if other else 0)
-                    if after < before - 1e-9:
-                        del at[(x, y)]
-                        at[(nx, ny)] = location
-                        if other:
-                            at[(x, y)] = other
-                        x, y = nx, ny
-                        improved = True
-                    else:
-                        placed[location] = (x, y)
-                        if other:
-                            placed[other] = (nx, ny)
-        if not improved:
-            break
+    locations = sorted(placed)
+    STEPS = 800000
+    for i in range(STEPS):
+        temperature = 3.0 * (1 - i / STEPS) + 0.02
+        location = rng.choice(locations)
+        x, y = placed[location]
+        nx, ny = x + rng.randint(-3, 3), y + rng.randint(-3, 3)
+        if (nx, ny) == (x, y):
+            continue
+        other = at.get((nx, ny))
+        before = local(location, placed) + (local(other, placed) if other else 0)
+        placed[location] = (nx, ny)
+        if other:
+            placed[other] = (x, y)
+        delta = local(location, placed) + (local(other, placed) if other else 0) - before
+        if delta <= 0 or rng.random() < math.exp(-delta / temperature):
+            del at[(x, y)]
+            at[(nx, ny)] = location
+            if other:
+                at[(x, y)] = other
+        else:
+            placed[location] = (x, y)
+            if other:
+                placed[other] = (nx, ny)
     return placed
 
 
