@@ -241,8 +241,7 @@ game restarted the Spectrum at the first `SAY "..."`; found by rewinding the
 emulator from the reset to the jump into $8315.
 
 The handler is back as it was. What the patch had there -- the end of the
-fill, FAST_SET_INK, LINE_STEP_Y, FAST_ADDRESS and the keyboard's AWAIT_KEY --
-went below the game, to $5D00-$5DBF (FAST_LOW in build_hobbit.py), saved as a
+fill, FAST_SET_INK, LINE_STEP_Y and FAST_ADDRESS -- went below the game, to $5D00-$5DBF (FAST_LOW in build_hobbit.py), saved as a
 block of its own and written into the snapshot. That is memory the BASIC
 loader used and the running game never touches: in the simulator, with
 everything from $5CC0 up to the stack marked, thirty-odd commands -- orders
@@ -252,7 +251,13 @@ nothing at all from $5B00 to $5CBF. check_fast_draw.py's stack marker moved up
 to $5DC0 to clear it. Checked on the emulator: `SAY "HELLO"` gets "TALK TO
 WHAT ?", and `SAY TO THORIN "CARRY ME"` gets "You talk to Thorin.".
 
-The keyboard patch's other two borrowed stretches, UNREACHED_WALK_HELD and
-UNREACHED_WIPE_EXIT, were checked again the same way: no address in the game
-points into either, and no relative jump lands in one. The only byte pairs
-that look like pointers to them are in the picture data.
+## The keyboard, read under interrupt: tried, and taken out
+
+For a while the fast build also read the keyboard fifty times a second from
+an IM 2 interrupt into a ring of keys, so that a command typed while a
+picture drew was not lost. With the pictures drawn in about a second at the
+most, there is little left to lose, and it went: it borrowed two more
+stretches of code the disassembly had as unreached, changed what happens
+after SAVE and LOAD, and cost the pictures a little time, for a gain the fast
+drawing had mostly already made. It is in the history as
+patches/hobbit_keyboard.s.

@@ -2390,13 +2390,7 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path, low=None) -> No
 FAST_DRAW_PATCH = Path(__file__).resolve().parent.parent / "patches" / "hobbit_fast_draw.s"
 FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0xF35B, 0xF400)]
 FAST_LOW = (0x5D00, 0x5DC0)
-# And the keyboard read under interrupt (patches/hobbit_keyboard.s): the call
-# that sets it up after the title screen, the two DIs after the tape routines,
-# NEW_KEYPRESS, SCAN_KEYBOARD's first seven bytes, WAIT_FOR_ANY_KEY, and two
-# stretches of code nothing reaches, UNREACHED_WALK_HELD and UNREACHED_WIPE_EXIT.
-KEYBOARD_RANGES = [(0x6C7F, 0x6C82), (0x8488, 0x8489), (0x84B9, 0x84CC), (0x8553, 0x8554),
-                   (0x8B93, 0x8B9A), (0x969A, 0x96A8), (0xA1AE, 0xA1C8), (0xA70A, 0xA71E)]
-PATCH_RANGES = FAST_DRAW_RANGES + KEYBOARD_RANGES
+PATCH_RANGES = FAST_DRAW_RANGES
 
 
 def build_fast_draw(snapshot: Path) -> None:
@@ -2466,9 +2460,7 @@ def main() -> None:
     parser.add_argument("--fast-draw", action="store_true",
                         help="also assemble patches/hobbit_fast_draw.s into "
                              "hobbit_fast.sna: the same game, drawing its "
-                             "pictures about nine times faster, with the "
-                             "keyboard read under interrupt so commands can "
-                             "be typed ahead (patches/hobbit_keyboard.s)")
+                             "pictures about nine times faster")
     parser.add_argument("--html", action="store_true",
                         help="also write a browsable HTML disassembly under "
                              "game_disassembly/hobbit/html/")

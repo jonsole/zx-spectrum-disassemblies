@@ -68,11 +68,8 @@ data goes, the room types, the sprites, the graphics, the sounds, and the bugs.
 [patches/hobbit_fast_draw.s](patches/hobbit_fast_draw.s) on top of the verified
 source and writes `game_disassembly/hobbit/hobbit_fast.sna`: the same game, with
 its pictures drawn about nine times faster -- Bag End in about half a second
-rather than 6.7 -- and with the keyboard read fifty times a second from an interrupt
-([patches/hobbit_keyboard.s](patches/hobbit_keyboard.s)), so that the next
-command can be typed while the last is still being answered. The patches replace
-only the plotting code and the keyboard handling, and the build refuses one that
-changes a byte anywhere else. `scripts/check_fast_draw.py` then draws all
+rather than 6.7. The patch replaces only the plotting code, and the build
+refuses one that changes a byte anywhere else. `scripts/check_fast_draw.py` then draws all
 22 pictures in both and compares the whole of memory afterwards: every one is
 identical, and the stack never goes deeper.
 [docs/hobbit-fast-draw-plan.md](docs/hobbit-fast-draw-plan.md) says how.

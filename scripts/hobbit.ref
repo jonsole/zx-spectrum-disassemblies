@@ -296,18 +296,7 @@ Each picture's time is the T-states #R$7F78(DRAW_LOCATION_PICTURE) takes in each
 <tr><td><b>All 22 pictures</b></td><td>126.1 s</td><td>13.4 s</td><td>9.4x</td></tr>
 </table>
 
-<b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch -- this one and the next -- on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.
-
-[Patch:typeahead:Typing ahead]
-The game reads the keyboard only while it is waiting for a key, so anything typed while a picture draws or the story scrolls is lost -- and pressing a key once a picture is finished does not type anything either: #R$969A(WAIT_FOR_ANY_KEY) takes it to mean only "carry on". <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_keyboard.s">patches/hobbit_keyboard.s</a>, built into the same patched game as the faster pictures, reads the keyboard fifty times a second from an interrupt and keeps each new key until the game asks for one, so the next command can be typed while the last one is still being answered.
-
-<b>How.</b> An IM 2 interrupt, started once the title screen's key is pressed, runs the second half of #R$8B93(SCAN_KEYBOARD) -- the game's own scan, with its own new-key test and its own key maps -- and puts what it finds into a 16-key ring. SCAN_KEYBOARD itself still spends its 7.4ms debounce delay, since #R$7249(GET_KEY)'s patience is a count of scans and the game must still type WAIT for a player who does nothing, then takes the next key from the ring. The game never enables interrupts and uses IY for itself, so the ROM's interrupt routine could not be used; the vector comes from the ROM's unused $FF bytes at $39FF, and lands, through a JR at $FFFF, on a jump at $FFF4, both in the user-defined-graphics area the game never uses.
-
-<b>What a player sees.</b> A command typed while a picture draws is answered as soon as the picture is done: the wait after the picture returns at once when something has been typed, and leaves it to be read. With nothing typed, it waits for a key and throws it away, as before. PAUSE and SAVE's "press any key" throw their key away too, and the two DIs after the tape routines become EIs so that reading goes on after a SAVE or a LOAD. The ring holds 15 keys; any more are lost until the game catches up.
-
-<b>Where it goes.</b> The rest of the space the picture patch left, below the game and after the pictures, and two more stretches of code that nothing reaches: #R$A1AE(UNREACHED_WALK_HELD) holds the ring, #R$A70A(UNREACHED_WIPE_EXIT) the start of the set-up. Both have been checked for anything that points or jumps into them, and nothing does. With the pictures, 551 bytes of the game change, and 148 are added below it.
-
-<b>How it was checked.</b> On the emulator: a command typed straight after another, while the other's picture drew, was obeyed in full; the key that ends PAUSE did not reach the next command; and the game still typed WAIT after twenty-odd seconds of nothing. The pictures are still drawn identically: the interrupt is not part of the drawing, only a stop in it every 20ms -- about 1,200 T-states of scanning in each 69,888, so by its instruction timings the pictures take about 2% longer than the table above.
+<b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.
 
 [Page:Bugs]
 SectionPrefix=Bug

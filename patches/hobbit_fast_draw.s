@@ -519,8 +519,5 @@ SPARE_REGION_END:
     DISPLAY "low code ends at ",/H,$," (limit ",/H,LOW_CODE+LOW_CODE_SIZE,")"
     ASSERT $ <= LOW_CODE + LOW_CODE_SIZE, "the low code has run past LOW_CODE_SIZE"
 
-; And the keyboard, read under interrupt so that commands can be typed ahead.
-    INCLUDE "hobbit_keyboard.s"
-
     SAVEBIN "../game_disassembly/hobbit/hobbit_fast.bin", $6000, 40000
     SAVEBIN "../game_disassembly/hobbit/hobbit_fast_low.bin", LOW_CODE, LOW_CODE_SIZE
