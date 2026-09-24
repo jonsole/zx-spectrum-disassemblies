@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 8EEF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36567.html">8ED7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36591">Map</a></td>
+<td class="next">
+Next: <a href="36710.html">8F66</a>
+</td>
+</tr>
+</table>
+<div class="description">8EEF: Move a heading towards a target, within limits</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Adds E and D to the pair at +$06 and +$07 and clamps the result to L and H, handling the negative side by negating, comparing and negating back. The two fields are a signed heading, so this is how a creature turns towards something gradually rather than snapping round to face it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">STEER</td>
+<td class="address-2"><span id="36591"></span>8EEF</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="2">Not every call: the low nibble of +$02 gates it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36594"></span>8EF2</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36596"></span>8EF4</td>
+<td class="instruction">JR NZ,<a href="36591.html#36661">STEER_6</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36598"></span>8EF6</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="2">Add the change to the horizontal part...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36599"></span>8EF7</td>
+<td class="instruction">ADD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36602"></span>8EFA</td>
+<td class="instruction">JP M,<a href="36591.html#36641">STEER_2</a></td>
+<td class="comment-1" rowspan="1">...taking the negative side separately.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36605"></span>8EFD</td>
+<td class="instruction">CP L</td>
+<td class="comment-1" rowspan="3">Clamp to the limit in L.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36606"></span>8EFE</td>
+<td class="instruction">JR C,<a href="36591.html#36609">STEER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36608"></span>8F00</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label">STEER_0</td>
+<td class="address-2"><span id="36609"></span>8F01</td>
+<td class="instruction">LD (IX+$06),A</td>
+<td class="comment-1" rowspan="1">Store it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36612"></span>8F04</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="2">And the vertical part the same way.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36613"></span>8F05</td>
+<td class="instruction">ADD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36616"></span>8F08</td>
+<td class="instruction">JP M,<a href="36591.html#36651">STEER_4</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36619"></span>8F0B</td>
+<td class="instruction">CP H</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36620"></span>8F0C</td>
+<td class="instruction">JR C,<a href="36591.html#36623">STEER_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36622"></span>8F0E</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_1</td>
+<td class="address-2"><span id="36623"></span>8F0F</td>
+<td class="instruction">LD (IX+$07),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36626"></span>8F12</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="2">Both parts through the same conversion on the way out.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36629"></span>8F15</td>
+<td class="instruction">CALL <a href="36736.html">SCALE_SIGNED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36632"></span>8F18</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36633"></span>8F19</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36636"></span>8F1C</td>
+<td class="instruction">CALL <a href="36736.html">SCALE_SIGNED</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36639"></span>8F1F</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36640"></span>8F20</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_2</td>
+<td class="address-2"><span id="36641"></span>8F21</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36643"></span>8F23</td>
+<td class="instruction">CP L</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36644"></span>8F24</td>
+<td class="instruction">JR C,<a href="36591.html#36647">STEER_3</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36646"></span>8F26</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_3</td>
+<td class="address-2"><span id="36647"></span>8F27</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36649"></span>8F29</td>
+<td class="instruction">JR <a href="36591.html#36609">STEER_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_4</td>
+<td class="address-2"><span id="36651"></span>8F2B</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36653"></span>8F2D</td>
+<td class="instruction">CP H</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36654"></span>8F2E</td>
+<td class="instruction">JR C,<a href="36591.html#36657">STEER_5</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36656"></span>8F30</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_5</td>
+<td class="address-2"><span id="36657"></span>8F31</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36659"></span>8F33</td>
+<td class="instruction">JR <a href="36591.html#36623">STEER_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_6</td>
+<td class="address-2"><span id="36661"></span>8F35</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36664"></span>8F38</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36665"></span>8F39</td>
+<td class="instruction">JP M,<a href="36591.html#36690">STEER_9</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36668"></span>8F3C</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36670"></span>8F3E</td>
+<td class="instruction">JR Z,<a href="36591.html#36674">STEER_7</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36672"></span>8F40</td>
+<td class="instruction">LD A,$02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_7</td>
+<td class="address-2"><span id="36674"></span>8F42</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36675"></span>8F43</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36678"></span>8F46</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36679"></span>8F47</td>
+<td class="instruction">JP M,<a href="36591.html#36700">STEER_10</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36682"></span>8F4A</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36684"></span>8F4C</td>
+<td class="instruction">JR Z,<a href="36591.html#36688">STEER_8</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36686"></span>8F4E</td>
+<td class="instruction">LD A,$02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_8</td>
+<td class="address-2"><span id="36688"></span>8F50</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36689"></span>8F51</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_9</td>
+<td class="address-2"><span id="36690"></span>8F52</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36692"></span>8F54</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36694"></span>8F56</td>
+<td class="instruction">JR Z,<a href="36591.html#36674">STEER_7</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36696"></span>8F58</td>
+<td class="instruction">LD A,$FE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36698"></span>8F5A</td>
+<td class="instruction">JR <a href="36591.html#36674">STEER_7</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_10</td>
+<td class="address-2"><span id="36700"></span>8F5C</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36702"></span>8F5E</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36704"></span>8F60</td>
+<td class="instruction">JR Z,<a href="36591.html#36688">STEER_8</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36706"></span>8F62</td>
+<td class="instruction">LD A,$FE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36708"></span>8F64</td>
+<td class="instruction">JR <a href="36591.html#36688">STEER_8</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36567.html">8ED7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36591">Map</a></td>
+<td class="next">
+Next: <a href="36710.html">8F66</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

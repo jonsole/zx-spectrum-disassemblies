@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 8EA0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36390.html">8E26</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36512">Map</a></td>
+<td class="next">
+Next: <a href="36567.html">8ED7</a>
+</td>
+</tr>
+</table>
+<div class="description">8EA0: Take a life and start the player sinking</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The single way out of the game. Both food penalties and the steady drain arrive here when the life force reaches zero, and with no lives left it goes straight to GAME_OVER.
+</div>
+<div class="paragraph">
+Otherwise the player is not moved or hidden -- their sprite is changed to $67, which ACTOR_HANDLERS sends to DYING, and the character they were is put in +$07 for MATERIALISING to restore. Nothing else has to know a death has happened; the sprite byte carries the whole state.
+</div>
+<div class="paragraph">
+Watched live by starving the player: lives went 3 to 2, the sprite went $08 to $67 to $66, the life force came back as $F0, and an object appeared in the first of the four drop slots reading 8F 00 68 60 68 45 FF 08 -- sprite $8F at the exact spot the player fell.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LOSE_LIFE</td>
+<td class="address-2"><span id="36512"></span>8EA0</td>
+<td class="instruction">LD A,($5E21)</td>
+<td class="comment-1" rowspan="2">No lives left...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36515"></span>8EA3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36516"></span>8EA4</td>
+<td class="instruction">JP Z,<a href="35893.html">GAME_OVER</a></td>
+<td class="comment-1" rowspan="1">...so that is the end of the game.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36519"></span>8EA7</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="2">Otherwise pay one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36520"></span>8EA8</td>
+<td class="instruction">LD ($5E21),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36523"></span>8EAB</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">Was the thing that died a player at all? Sprites $01 to $30 are.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36526"></span>8EAE</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36527"></span>8EAF</td>
+<td class="instruction">CP $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36529"></span>8EB1</td>
+<td class="instruction">JR C,<a href="36512.html#36550">LOSE_LIFE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36531"></span>8EB3</td>
+<td class="instruction">LD A,($EA90)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">LOSE_LIFE_0</td>
+<td class="address-2"><span id="36534"></span>8EB6</td>
+<td class="instruction">LD ($EA97),A</td>
+<td class="comment-1" rowspan="1">Remember what to come back as.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36537"></span>8EB9</td>
+<td class="instruction">CALL <a href="40585.html">SPRITE_ADDRESS</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36540"></span>8EBC</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36541"></span>8EBD</td>
+<td class="instruction">LD ($EA96),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36544"></span>8EC0</td>
+<td class="instruction">LD A,$67</td>
+<td class="comment-1" rowspan="2">$67 -- the sinking animation, which the dispatcher will find on the next pass.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36546"></span>8EC2</td>
+<td class="instruction">LD ($EA90),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36549"></span>8EC5</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">LOSE_LIFE_1</td>
+<td class="address-2"><span id="36550"></span>8EC6</td>
+<td class="instruction">LD A,($5E16)</td>
+<td class="comment-1" rowspan="4">A non-player dies where the workspace says it was, not where the player is.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36553"></span>8EC9</td>
+<td class="instruction">LD ($EA93),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36556"></span>8ECC</td>
+<td class="instruction">LD A,($5E17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36559"></span>8ECF</td>
+<td class="instruction">LD ($EA94),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36562"></span>8ED2</td>
+<td class="instruction">LD A,($5E15)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36565"></span>8ED5</td>
+<td class="instruction">JR <a href="36512.html#36534">LOSE_LIFE_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36390.html">8E26</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36512">Map</a></td>
+<td class="next">
+Next: <a href="36567.html">8ED7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

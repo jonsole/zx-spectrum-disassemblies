@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 7C19</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="31767.html">7C17</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#31769">Map</a></td>
+<td class="next">
+Next: <a href="31888.html">7C90</a>
+</td>
+</tr>
+</table>
+<div class="description">7C19: Title screen: draw the menu and poll for a selection</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Runs the "ATICATAC GAME SELECTION" menu -- control method (1-3), character (4-6) and 0 to start. Both answers are packed into the one byte at $5E00: bits 1 and 2 are the control method, which READ_CONTROLS picks out with AND $06, and bits 3 and 4 the character, which DRAW_LIVES turns back into a sprite number. Reading it after choosing each character in turn gives $00, $08 and $10.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN</td>
+<td class="address-2"><span id="31769"></span>7C19</td>
+<td class="instruction">LD HL,$5E00</td>
+<td class="comment-1" rowspan="1">$5E00 is the base of the game-state block; the first 16 bytes are zeroed here.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31772"></span>7C1C</td>
+<td class="instruction">LD B,$10</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_0</td>
+<td class="address-2"><span id="31774"></span>7C1E</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31776"></span>7C20</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31777"></span>7C21</td>
+<td class="instruction">DJNZ <a href="31769.html#31774">TITLE_SCREEN_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31779"></span>7C23</td>
+<td class="instruction">LD HL,$BE4C</td>
+<td class="comment-1" rowspan="2">Point the tile source at the text font, so the menu can be drawn with PRINT_STRING.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31782"></span>7C26</td>
+<td class="instruction">LD ($5E01),HL</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="31785"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="35893.html">GAME_OVER</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_1</td>
+<td class="address-2"><span id="31785"></span>7C29</td>
+<td class="instruction">CALL <a href="32938.html">CLEAR_SCREEN</a></td>
+<td class="comment-1" rowspan="1">}</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31788"></span>7C2C</td>
+<td class="instruction">CALL <a href="41745.html">DRAW_TITLE_ICONS</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_2</td>
+<td class="address-2"><span id="31791"></span>7C2F</td>
+<td class="instruction">CALL <a href="31919.html">DRAW_MENU</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31794"></span>7C32</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="3">Select the half-row holding keys 1-5. The OUT to $FD is inert on a 48K; what matters is that A is left as the high address byte for the IN that follows.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31796"></span>7C34</td>
+<td class="instruction">OUT ($FD),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31798"></span>7C36</td>
+<td class="instruction">IN A,($FE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31800"></span>7C38</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="1">Keyboard bits are active-low, so CPL makes a set bit mean "pressed".</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31801"></span>7C39</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31802"></span>7C3A</td>
+<td class="instruction">LD A,($5E00)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31805"></span>7C3D</td>
+<td class="instruction">BIT 0,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31807"></span>7C3F</td>
+<td class="instruction">JR Z,<a href="31769.html#31811">TITLE_SCREEN_3</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31809"></span>7C41</td>
+<td class="instruction">AND $F9</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_3</td>
+<td class="address-2"><span id="31811"></span>7C43</td>
+<td class="instruction">BIT 1,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31813"></span>7C45</td>
+<td class="instruction">JR Z,<a href="31769.html#31819">TITLE_SCREEN_4</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31815"></span>7C47</td>
+<td class="instruction">AND $F9</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31817"></span>7C49</td>
+<td class="instruction">OR $02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_4</td>
+<td class="address-2"><span id="31819"></span>7C4B</td>
+<td class="instruction">BIT 2,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31821"></span>7C4D</td>
+<td class="instruction">JR Z,<a href="31769.html#31827">TITLE_SCREEN_5</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31823"></span>7C4F</td>
+<td class="instruction">AND $F9</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31825"></span>7C51</td>
+<td class="instruction">OR $04</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_5</td>
+<td class="address-2"><span id="31827"></span>7C53</td>
+<td class="instruction">BIT 3,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31829"></span>7C55</td>
+<td class="instruction">JR Z,<a href="31769.html#31833">TITLE_SCREEN_6</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31831"></span>7C57</td>
+<td class="instruction">AND $E7</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_6</td>
+<td class="address-2"><span id="31833"></span>7C59</td>
+<td class="instruction">BIT 4,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31835"></span>7C5B</td>
+<td class="instruction">JR Z,<a href="31769.html#31841">TITLE_SCREEN_7</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31837"></span>7C5D</td>
+<td class="instruction">AND $E7</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31839"></span>7C5F</td>
+<td class="instruction">OR $08</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_7</td>
+<td class="address-2"><span id="31841"></span>7C61</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31842"></span>7C62</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31844"></span>7C64</td>
+<td class="instruction">OUT ($FD),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31846"></span>7C66</td>
+<td class="instruction">IN A,($FE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31848"></span>7C68</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31849"></span>7C69</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31850"></span>7C6A</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31851"></span>7C6B</td>
+<td class="instruction">BIT 4,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31853"></span>7C6D</td>
+<td class="instruction">JR Z,<a href="31769.html#31859">TITLE_SCREEN_8</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31855"></span>7C6F</td>
+<td class="instruction">AND $E7</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31857"></span>7C71</td>
+<td class="instruction">OR $10</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN_8</td>
+<td class="address-2"><span id="31859"></span>7C73</td>
+<td class="instruction">LD ($5E00),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31862"></span>7C76</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31863"></span>7C77</td>
+<td class="instruction">BIT 0,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31865"></span>7C79</td>
+<td class="instruction">JP NZ,<a href="32154.html">START_GAME</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31868"></span>7C7C</td>
+<td class="instruction">LD HL,$7CEA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31871"></span>7C7F</td>
+<td class="instruction">LD B,$03</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31873"></span>7C81</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31874"></span>7C82</td>
+<td class="instruction">CALL <a href="31888.html">HIGHLIGHT_LINE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31877"></span>7C85</td>
+<td class="instruction">LD B,$03</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31879"></span>7C87</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31880"></span>7C88</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31881"></span>7C89</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31882"></span>7C8A</td>
+<td class="instruction">CALL <a href="31888.html">HIGHLIGHT_LINE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="31885"></span>7C8D</td>
+<td class="instruction">JP <a href="31769.html#31791">TITLE_SCREEN_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="31767.html">7C17</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#31769">Map</a></td>
+<td class="next">
+Next: <a href="31888.html">7C90</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

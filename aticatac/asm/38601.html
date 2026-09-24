@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 96C9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38575.html">96AF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38601">Map</a></td>
+<td class="next">
+Next: <a href="38636.html">96EC</a>
+</td>
+</tr>
+</table>
+<div class="description">96C9: Work out how much of the castle has been seen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Counts the bits set in the room map and turns the total into a two-digit BCD figure at $5E54. It is not shown while playing -- DRAW_SUMMARY prints it on the GAME OVER screen, as the last of the three figures under the heading. Every third room seen is worth 2, and 1 is added at the end, so the value is (rooms / 3) * 2 + 1.
+</div>
+<div class="paragraph">
+Measured by setting the map by hand and running it: 6, 7 and 8 rooms all give $05, 11 gives $07, 144 gives $97, and none at all gives $01.
+</div>
+<div class="paragraph">
+The map holds 152 bits but the castle does not have 152 rooms. ROOM_TABLE runs from $A854 to $A981, 151 entries, and of those the last two are black -- colour $00, so nothing they draw can be seen. That leaves 149 real rooms, 0 to 148, and (149 / 3) * 2 + 1 is exactly 99. The figure is scaled so that seeing everything reads 99 and it never has to carry into a third digit, which a single byte of BCD could not hold: setting all 152 bits by hand does overflow it, and $5E54 comes back $01, but no game can get there.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COUNT_ROOMS_EXPLORED</td>
+<td class="address-2"><span id="38601"></span>96C9</td>
+<td class="instruction">LD HL,$5E40</td>
+<td class="comment-1" rowspan="2">19 bytes, 8 bits each.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38604"></span>96CC</td>
+<td class="instruction">LD BC,$0813</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38607"></span>96CF</td>
+<td class="instruction">LD D,$03</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38609"></span>96D1</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">COUNT_ROOMS_EXPLORED_0</td>
+<td class="address-2"><span id="38610"></span>96D2</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38611"></span>96D3</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38612"></span>96D4</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">COUNT_ROOMS_EXPLORED_1</td>
+<td class="address-2"><span id="38613"></span>96D5</td>
+<td class="instruction">RR E</td>
+<td class="comment-1" rowspan="2">Walk the bits of one byte.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38615"></span>96D7</td>
+<td class="instruction">JR NC,<a href="38601.html#38625">COUNT_ROOMS_EXPLORED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38617"></span>96D9</td>
+<td class="instruction">DEC D</td>
+<td class="comment-1" rowspan="4">Two per three rooms, in BCD -- hence the DAA.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38618"></span>96DA</td>
+<td class="instruction">JR NZ,<a href="38601.html#38625">COUNT_ROOMS_EXPLORED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38620"></span>96DC</td>
+<td class="instruction">LD D,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38622"></span>96DE</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38624"></span>96E0</td>
+<td class="instruction">DAA</td>
+<td class="comment-1" rowspan="1">Keeps the running total in BCD so it can be printed a digit at a time.</td>
+</tr>
+<tr>
+<td class="asm-label">COUNT_ROOMS_EXPLORED_2</td>
+<td class="address-2"><span id="38625"></span>96E1</td>
+<td class="instruction">DJNZ <a href="38601.html#38613">COUNT_ROOMS_EXPLORED_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38627"></span>96E3</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38628"></span>96E4</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38629"></span>96E5</td>
+<td class="instruction">JR NZ,<a href="38601.html#38610">COUNT_ROOMS_EXPLORED_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38631"></span>96E7</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="2">The finished figure, read back by the status panel.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38632"></span>96E8</td>
+<td class="instruction">LD ($5E54),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38635"></span>96EB</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38575.html">96AF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38601">Map</a></td>
+<td class="next">
+Next: <a href="38636.html">96EC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

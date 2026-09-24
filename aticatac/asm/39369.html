@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 99C9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39343.html">99AF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39369">Map</a></td>
+<td class="next">
+Next: <a href="39397.html">99E5</a>
+</td>
+</tr>
+</table>
+<div class="description">99C9: Copy a sprite to the screen, combining it however the caller asked</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The inner loop of everything that moves. A sprite is width bytes by height rows, and the row-to-row step is left to SCREEN_ROW_UP rather than being computed here, because the display file's thirds make it anything but a simple addition.
+</div>
+<div class="paragraph">
+It works upwards. The first row of a sprite's data is its bottom row, so an actor's +$03 and +$04 are the point its feet stand on rather than a top-left corner. Rendering the data top-down produces nothing recognisable; reversed, it comes out as a picture.
+</div>
+<div class="paragraph">
+How each byte meets what is already on the screen is not decided by a branch. $9D19 hands back an opcode and it is written over the NOP in the middle of the loop, so the same six instructions become a plain copy, an OR, an XOR or an AND with nothing tested per byte. Read live during play the byte is $00 -- a NOP, so a plain copy.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BLIT_SPRITE</td>
+<td class="address-2"><span id="39369"></span>99C9</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39370"></span>99CA</td>
+<td class="instruction">CALL <a href="40217.html">SPRITE_COMBINE_OPCODE</a></td>
+<td class="comment-1" rowspan="2">Fetch the combining opcode and write it into the loop below.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39373"></span>99CD</td>
+<td class="instruction">LD ($99D7),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39376"></span>99D0</td>
+<td class="instruction">CALL <a href="39317.html">FETCH_SPRITE</a></td>
+<td class="comment-1" rowspan="1">Bitmap, size and destination.</td>
+</tr>
+<tr>
+<td class="asm-label">BLIT_SPRITE_0</td>
+<td class="address-2"><span id="39379"></span>99D3</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39380"></span>99D4</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">BLIT_SPRITE_1</td>
+<td class="address-2"><span id="39381"></span>99D5</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="2">One byte of the sprite.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39382"></span>99D6</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39383"></span>99D7</td>
+<td class="instruction">NOP</td>
+<td class="comment-1" rowspan="1">Assembled at run time: NOP, OR (HL), XOR (HL) or AND (HL).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39384"></span>99D8</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="3">Store it and move one cell right, width times.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39385"></span>99D9</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39386"></span>99DA</td>
+<td class="instruction">DJNZ <a href="39369.html#39381">BLIT_SPRITE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39388"></span>99DC</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39389"></span>99DD</td>
+<td class="instruction">CALL <a href="40707.html">SCREEN_ROW_UP</a></td>
+<td class="comment-1" rowspan="1">Up one pixel row -- see SCREEN_ROW_UP. Sprites are stored and drawn from the bottom.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39392"></span>99E0</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">Repeat for every row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39393"></span>99E1</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39394"></span>99E2</td>
+<td class="instruction">JR NZ,<a href="39369.html#39379">BLIT_SPRITE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39396"></span>99E4</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39343.html">99AF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39369">Map</a></td>
+<td class="next">
+Next: <a href="39397.html">99E5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

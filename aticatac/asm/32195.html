@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 7DC3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32154.html">7D9A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32195">Map</a></td>
+<td class="next">
+Next: <a href="32275.html">7E13</a>
+</td>
+</tr>
+</table>
+<div class="description">7DC3: The loop the whole game runs in</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Everything the game does happens here. It walks three tables of records and hands each one to DISPATCH_ACTOR, which finds its handler from its sprite byte; there is no other structure above this. Monsters, doors, objects, the player and even the sound effects are all just records this loop reaches.
+</div>
+<div class="paragraph">
+The three tables have different shapes and are treated differently. From $EAA8 to $EE60 are eight-byte records -- objects, collectables, sounds -- and those are only dispatched if their room matches the player's. From $EE60 to $EEE0 are the sixteen-byte monster records, dispatched every pass whatever room they are in, which is how creatures keep moving around a castle you cannot see. From $EEE0 up are the doors, eight bytes again.
+</div>
+<div class="paragraph">
+Two details in the first three instructions are worth more than they look. The stack pointer is reset at the top of every pass, so no handler has to leave the stack as it found it -- which is what lets LOSE_FOOD_16 abandon its caller and jump straight to the death routine. And the EI here is where the DI at the entry point is finally lifted: everything before this runs with interrupts off.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP</td>
+<td class="address-2"><span id="32195"></span>7DC3</td>
+<td class="instruction">LD SP,$5E00</td>
+<td class="comment-1" rowspan="1">Reset the stack every pass; handlers need not balance it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32198"></span>7DC6</td>
+<td class="instruction">EI</td>
+<td class="comment-1" rowspan="1">Interrupts on. This is where the DI at ENTRY is undone.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32199"></span>7DC7</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Count of actors in the player's room, recounted each pass.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32200"></span>7DC8</td>
+<td class="instruction">LD ($5E25),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32203"></span>7DCB</td>
+<td class="instruction">LD IX,$EAA8</td>
+<td class="comment-1" rowspan="1">The first table: objects and sounds, eight bytes each.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32207"></span>7DCF</td>
+<td class="instruction">LD A,($5E14)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32210"></span>7DD2</td>
+<td class="instruction">BIT 0,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32212"></span>7DD4</td>
+<td class="instruction">JR NZ,<a href="32195.html#32220">MAIN_LOOP_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32214"></span>7DD6</td>
+<td class="instruction">LD IX,$EEE0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32218"></span>7DDA</td>
+<td class="instruction">JR <a href="32275.html#32291">MAIN_LOOP_MONSTERS_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_0</td>
+<td class="address-2"><span id="32220"></span>7DDC</td>
+<td class="instruction">LD A,($5C78)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32223"></span>7DDF</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32224"></span>7DE0</td>
+<td class="instruction">LD A,($5E03)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32227"></span>7DE3</td>
+<td class="instruction">CP C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32228"></span>7DE4</td>
+<td class="instruction">CALL NZ,<a href="32434.html">FRAME_TICK</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32231"></span>7DE7</td>
+<td class="instruction">LD A,($EA91)</td>
+<td class="comment-1" rowspan="2">Only things in the player's room are dispatched from this one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32234"></span>7DEA</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32237"></span>7DED</td>
+<td class="instruction">LD HL,$7DF3</td>
+<td class="comment-1" rowspan="2">The return address goes in HL, and the dispatch is a jump rather than a call.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32240"></span>7DF0</td>
+<td class="instruction">JP Z,<a href="32382.html">DISPATCH_ACTOR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32243"></span>7DF3</td>
+<td class="instruction">LD DE,$0008</td>
+<td class="comment-1" rowspan="2">Eight bytes to the next record.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32246"></span>7DF6</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32248"></span>7DF8</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="5">Until the monster table is reached.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32250"></span>7DFA</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32251"></span>7DFB</td>
+<td class="instruction">LD DE,$EE60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32254"></span>7DFE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32255"></span>7DFF</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32257"></span>7E01</td>
+<td class="instruction">JR C,<a href="32195.html#32220">MAIN_LOOP_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="32259"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32275.html">MAIN_LOOP_MONSTERS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_1</td>
+<td class="address-2"><span id="32259"></span>7E03</td>
+<td class="instruction">LD A,($5C78)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32262"></span>7E06</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32263"></span>7E07</td>
+<td class="instruction">LD A,($5E03)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32266"></span>7E0A</td>
+<td class="instruction">CP C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32267"></span>7E0B</td>
+<td class="instruction">CALL NZ,<a href="32434.html">FRAME_TICK</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32270"></span>7E0E</td>
+<td class="instruction">LD HL,$7E13</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32273"></span>7E11</td>
+<td class="instruction">JR <a href="32382.html">DISPATCH_ACTOR</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32154.html">7D9A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32195">Map</a></td>
+<td class="next">
+Next: <a href="32275.html">7E13</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

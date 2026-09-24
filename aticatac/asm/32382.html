@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 7E7E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32275.html">7E13</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32382">Map</a></td>
+<td class="next">
+Next: <a href="32403.html">7E93</a>
+</td>
+</tr>
+</table>
+<div class="description">7E7E: Jump to the handler for whatever this actor is</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Looks the actor's +$00 byte up in ACTOR_HANDLERS and jumps to the address it finds. This is why so many of the per-creature routines have nothing referencing them anywhere in the disassembly -- they are only ever reached from that table, which to a disassembler is just data.
+</div>
+<div class="paragraph">
+The jump itself is worth a look. Rather than an equivalent sequence ending in JP (HL), the routine jumps to $5CB0 -- an address in the system variables, well outside the game. What lives there is a single $E9 byte, which is the opcode for JP (HL), and it got there because one of the five blocks on the tape is one byte long and loads to exactly that address. So the dispatch runs through an instruction the loader poked into spare ROM-variable space, and a loader that skips that block leaves the game jumping into whatever happened to be at $5CB0.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The actor</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPATCH_ACTOR</td>
+<td class="address-2"><span id="32382"></span>7E7E</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">The caller left the address to come back to in HL, and this puts it on the stack -- so the handler's own RET returns into MAIN_LOOP, and the dispatch itself costs a jump rather than a call.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="32383"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32434.html">FRAME_TICK</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPATCH_ACTOR_0</td>
+<td class="address-2"><span id="32383"></span>7E7F</td>
+<td class="instruction">LD HL,$7EE6</td>
+<td class="comment-1" rowspan="1">The table.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="32386"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32403.html">DISPATCH_FROM_LIST</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPATCH_ACTOR_1</td>
+<td class="address-2"><span id="32386"></span>7E82</td>
+<td class="instruction">LD C,(IX+$00)</td>
+<td class="comment-1" rowspan="1">The actor's sprite byte doubles as its type.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="32389"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="39266.html">DRAW_SPRITE_PIXELS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPATCH_ACTOR_2</td>
+<td class="address-2"><span id="32389"></span>7E85</td>
+<td class="instruction">LD B,$00</td>
+<td class="comment-1" rowspan="3">Two bytes per entry, so double the index -- through B as well, since types run past $7F.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32391"></span>7E87</td>
+<td class="instruction">SLA C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32393"></span>7E89</td>
+<td class="instruction">RL B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32395"></span>7E8B</td>
+<td class="instruction">ADD HL,BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32396"></span>7E8C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">Fetch the handler address into HL.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32397"></span>7E8D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32398"></span>7E8E</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32399"></span>7E8F</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32400"></span>7E90</td>
+<td class="instruction">JP $5CB0</td>
+<td class="comment-1" rowspan="1">The poked JP (HL).</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32275.html">7E13</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32382">Map</a></td>
+<td class="next">
+Next: <a href="32403.html">7E93</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

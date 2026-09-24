@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 96AF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38527.html">967F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38575">Map</a></td>
+<td class="next">
+Next: <a href="38601.html">96C9</a>
+</td>
+</tr>
+</table>
+<div class="description">96AF: Mark a room as seen, by writing the instruction that does it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Sets one bit in the 19-byte map at $5E40, one bit per room, 152 rooms in all. The bit number is not known until run time, and rather than shift a mask into place the routine assembles the instruction it needs and stores it over the one below.
+</div>
+<div class="paragraph">
+SET b,(HL) is $CB followed by $C6 + b * 8, so ORing the room's low three bits (already shifted up by the three RLCAs) with $C6 gives exactly the operand byte required, and it is written into $96C7 -- the second byte of the SET at $96C6.
+</div>
+<div class="paragraph">
+Checked by calling it directly with a series of room numbers and reading both the map and the patched bytes back: $2A set bit 42 and left SET 2,(HL) in place, $07 set bit 7 as SET 7, $08 set bit 8 as SET 0, $4B set bit 75 as SET 3, and $97 set bit 151 as SET 7 -- the last bit the map has room for.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The room number</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MARK_ROOM_VISITED</td>
+<td class="address-2"><span id="38575"></span>96AF</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="4">Room / 8 -- which byte of the map.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38576"></span>96B0</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38578"></span>96B2</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38580"></span>96B4</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38582"></span>96B6</td>
+<td class="instruction">LD B,$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38584"></span>96B8</td>
+<td class="instruction">LD HL,$5E40</td>
+<td class="comment-1" rowspan="2">The map itself. It sits below $6000, so it is not part of this disassembly.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38587"></span>96BB</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38588"></span>96BC</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="5">Room AND 7, shifted into the bit-number field of a SET opcode.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38589"></span>96BD</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38590"></span>96BE</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38591"></span>96BF</td>
+<td class="instruction">AND $38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38593"></span>96C1</td>
+<td class="instruction">OR $C6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38595"></span>96C3</td>
+<td class="instruction">LD ($96C7),A</td>
+<td class="comment-1" rowspan="1">Overwrite the operand of the instruction on the next line.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38598"></span>96C6</td>
+<td class="instruction">SET 0,(HL)</td>
+<td class="comment-1" rowspan="1">Reads as SET 0 here, but by the time it runs it is SET (room AND 7).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38600"></span>96C8</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38527.html">967F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38575">Map</a></td>
+<td class="next">
+Next: <a href="38601.html">96C9</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 9117</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37115.html">90FB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37143">Map</a></td>
+<td class="next">
+Next: <a href="37215.html">915F</a>
+</td>
+</tr>
+</table>
+<div class="description">9117: Move the player through a door and redraw everything</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Takes the door record in IX, copies its destination into the player's room and position, and then rebuilds the screen: mark the room seen, blank the play area, draw the new room, recolour the panel.
+</div>
+<div class="paragraph">
+The arrival position is not stored outright. +$02 packs both offsets into one byte, unpacked by rotating it in opposite directions and masking to $1E -- an even number 0 to 30 each way, the vertical one negated. Every door checked holds $34, which comes out as 8 to the right and 6 up, so the player lands just inside the room rather than on top of the doorway they arrived through.
+</div>
+<div class="paragraph">
+Confirmed by setting IX to four different door records and running from $911A: doors to rooms $07, $19, $01 and $00 produced exactly the destination and the offset position predicted from their bytes.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The door being entered</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ENTER_ROOM</td>
+<td class="address-2"><span id="37143"></span>9117</td>
+<td class="instruction">CALL <a href="37510.html">DOOR_OTHER_SIDE</a></td>
+<td class="comment-1" rowspan="1">Swap to the door's other side. The record the player touched describes this room; the one eight bytes away describes where they come out. That reassignment of IX is also why anything testing this routine has to enter below it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37146"></span>911A</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="2">+$01 is the destination room.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37149"></span>911D</td>
+<td class="instruction">LD ($EA91),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37152"></span>9120</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="5">Rotate left and mask: the horizontal offset, added to the door's own x.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37155"></span>9123</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37156"></span>9124</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37158"></span>9126</td>
+<td class="instruction">ADD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37161"></span>9129</td>
+<td class="instruction">LD ($EA93),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37164"></span>912C</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="8">Rotate right three times for the vertical one, which is subtracted rather than added.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37167"></span>912F</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37168"></span>9130</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37169"></span>9131</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37170"></span>9132</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37172"></span>9134</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37174"></span>9136</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37177"></span>9139</td>
+<td class="instruction">LD ($EA94),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37180"></span>913C</td>
+<td class="instruction">CALL <a href="39018.html">MODE_TO_INDEX</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37183"></span>913F</td>
+<td class="instruction">LD A,($EA92)</td>
+<td class="comment-1" rowspan="3">Set the flag that stops PLAYER_AT_DOOR firing again on the way out.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37186"></span>9142</td>
+<td class="instruction">OR $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37188"></span>9144</td>
+<td class="instruction">LD ($EA92),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="37191"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32154.html">START_GAME</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ENTER_ROOM_0</td>
+<td class="address-2"><span id="37191"></span>9147</td>
+<td class="instruction">LD A,($EA91)</td>
+<td class="comment-1" rowspan="2">Record the new room as seen.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37194"></span>914A</td>
+<td class="instruction">CALL <a href="38575.html">MARK_ROOM_VISITED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37197"></span>914D</td>
+<td class="instruction">CALL <a href="32915.html">CLEAR_PLAY_AREA</a></td>
+<td class="comment-1" rowspan="3">Blank the play area, draw the new room, colour the panel to match.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37200"></span>9150</td>
+<td class="instruction">CALL <a href="39914.html">DRAW_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37203"></span>9153</td>
+<td class="instruction">CALL <a href="41536.html">PAINT_PANEL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37206"></span>9156</td>
+<td class="instruction">CALL <a href="41275.html">DRAW_INVENTORY</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37209"></span>9159</td>
+<td class="instruction">CALL <a href="41987.html">PLAY_SOUND_65</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37212"></span>915C</td>
+<td class="instruction">JP <a href="32195.html">MAIN_LOOP</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The doors themselves are 8-byte records in a table above the monsters, around $EEE0: +$00 a sprite, +$01 the destination room, +$02 the packed arrival offset, +$03 and +$04 the doorway's own position, +$05 flags with bit 6 giving its facing. Only the ones whose +$01 matches the room the player is in get tested.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37115.html">90FB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37143">Map</a></td>
+<td class="next">
+Next: <a href="37215.html">915F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

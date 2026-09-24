@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Where the 21K of data goes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+</head>
+<body class="Data">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Atic Atac</a></td>
+<td class="page-header">Where the 21K of data goes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#intro">Every byte accounted for</a></li>
+<li><a href="#template">The castle, written out in full</a></li>
+<li><a href="#graphics">The sprites</a></li>
+<li><a href="#outlines">The rooms</a></li>
+<li><a href="#fonts">The two character sets</a></li>
+<li><a href="#typo">CONGRATULATIONT</a></li>
+</ul>
+<div><span id="intro"></span></div>
+<div class="box box-1">
+<div class="box-title">Every byte accounted for</div>
+<div class="paragraph">
+The game is 30208 bytes and about two thirds of it is not code. This page is
+what that two thirds turned out to be. Nothing here was guessed from a hex
+dump: every table was found by following the code that reads it, and every
+extent was checked by seeing whether it tiled its region without leaving a
+byte over.
+</div>
+</div>
+<div><span id="template"></span></div>
+<div class="box box-2">
+<div class="box-title">The castle, written out in full</div>
+<div class="paragraph">
+5488 bytes at <a href="asm/24589.html">INITIAL_STATE</a> are simply the whole runtime area -- $EA90 upwards --
+as it looks before the game starts, copied into place with one LDIR. It holds
+three empty records for the player, the weapon and the sound slot; 115 objects,
+among them sixteen mushrooms and ten each of six kinds of food; five monsters,
+one each of the mummy, Dracula, the devil, Frankenstein's monster and the
+humpback; and 274 doors.
+The doors are sixteen bytes each, not eight -- one record holding both sides.
+The room lists prove it: of the 274, exactly 272 are named by two different
+rooms, which is what a door joining two rooms looks like from the data. That
+is also why DOOR_OTHER_SIDE flips bit 3 of an address rather than adding
+anything: it is moving between the two halves of one record.
+Three routines edit this template before it is copied, choosing rooms out of
+small tables using the frame counter. So the key pieces and a few other things
+are somewhere different every game, and the randomness is applied to the
+picture of the castle rather than to the castle itself.
+</div>
+</div>
+<div><span id="graphics"></span></div>
+<div class="box box-1">
+<div class="box-title">The sprites</div>
+<div class="paragraph">
+Every sprite's address is in <a href="asm/42174.html">SPRITE_TABLE</a>, 239 entries of two bytes. The graphics
+themselves carry no length: the first byte is the row count and every sprite is
+two bytes -- sixteen pixels -- wide.
+That was not read off a hex dump either. Each code was drawn on a machine of its
+own with the reads into the graphics region logged, and all 235 that draw read
+exactly one plus twice the row count, contiguously, from the address the table
+holds. The fourteen graphics below $AD2E are the wider pieces the rooms are
+built from and carry a width as well, and those fourteen tile their region
+exactly, ending on the first byte of ROOM_TABLE.
+A few hundred bytes scattered through the region are pictures that nothing
+points at and nothing reads -- artwork that did not make it into the finished
+game.
+</div>
+</div>
+<div><span id="outlines"></span></div>
+<div class="box box-2">
+<div class="box-title">The rooms</div>
+<div class="paragraph">
+A room is a shape number and a colour. The shape gives how far the player may
+walk from the centre each way, a table of corners, and a list of which corners
+to join up. There are thirteen of them.
+Count the entries in ROOM_TABLE carefully: there are 151, not 149. The last is
+not a room at all but the trapdoor fall -- shape $0C, twelve nested rectangles,
+drawn with the walk limits closing in so that it reads as dropping down a
+shaft. Stopping at 149 makes that shape look like unused artwork, which it very
+much is not.
+Two shapes really are unused. $05 to $08 are one staircase in four
+orientations, sharing a single edge list and differing only in their corners;
+the game uses $05 for five rooms and $08 for one, and leaves $06 and $07 --
+both complete, both drawable -- untouched.
+What is in a room is a separate list, and those lists follow their index with no
+gaps at all, filling everything up to $7C18, the byte before the game's own
+entry point.
+</div>
+</div>
+<div><span id="fonts"></span></div>
+<div class="box box-1">
+<div class="box-title">The two character sets</div>
+<div class="paragraph">
+There are two. The text font at $BF4C has 59 characters, $20 to $5A, so the
+game can print spaces, digits, punctuation and capitals and nothing else. The
+code never names that address: it loads $BE4C, which is the same block less $20
+characters, so a character's own code indexes it, and $BFCC, one bias further
+on, so that a digit's value indexes its own glyph.
+A second set of 94 characters draws the status panel, with a 192-byte map of
+which piece goes in each of its 8 columns by 24 rows: the parchment scroll down
+the side of the screen is a little character set and an index, not a bitmap.
+Running the routine and photographing the screen is what established that --
+these tiles were written up here as a title picture until then.
+</div>
+</div>
+<div><span id="typo"></span></div>
+<div class="box box-2">
+<div class="box-title">CONGRATULATIONT</div>
+<div class="paragraph">
+The message shown when the player escapes reads CONGRATULATION and then $D4,
+which is "T" with the end marker set. Drawing the screen confirms it: the game
+says CONGRATULATIONT. The sequence that plays it -- a note climbing while the
+screen flashes in and out from the middle -- is never reached by a machine
+playing the game at random, which is why it sat in the disassembly as data
+until it was picked apart by hand.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at A3E5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41952.html">A3E0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41957">Map</a></td>
+<td class="next">
+Next: <a href="41967.html">A3EF</a>
+</td>
+</tr>
+</table>
+<div class="description">A3E5: Start a sound effect</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+A sound is not played here and it is not played by a scheduler either: it is spawned as an actor. This writes a sprite and a count into the record at $EAA0, and from the next frame on the dispatcher finds it there like any other creature and calls its handler, which beeps once, counts down, and frees the slot when it reaches zero.
+</div>
+<div class="paragraph">
+So the second byte is a duration in frames rather than the room number the same field holds in every other record, and the sprite is one of the codes that draws nothing -- $64, $65 and $A0 are sounds wearing an actor's clothes.
+</div>
+<div class="paragraph">
+Three routines share the tail with different values: $6410 here, $650A from $A403 and $A010 from $A485. Watched live, writing $64 and $10 into the two bytes by hand makes the count fall 0C, 07, 03 over the following frames and then the slot empties itself.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">B = which sound, C = how many frames it lasts</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_SOUND</td>
+<td class="address-2"><span id="41957"></span>A3E5</td>
+<td class="instruction">LD BC,$6410</td>
+<td class="comment-1" rowspan="1">This entry's sound and length.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41960"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="41987.html">PLAY_SOUND_65</a> and <a href="42117.html">PLAY_SOUND_A0</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_SOUND_0</td>
+<td class="address-2"><span id="41960"></span>A3E8</td>
+<td class="instruction">LD HL,$EAA0</td>
+<td class="comment-1" rowspan="4">Sprite first, then the count -- the field an ordinary record uses for its room.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41963"></span>A3EB</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41964"></span>A3EC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41965"></span>A3ED</td>
+<td class="instruction">LD (HL),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41966"></span>A3EE</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41952.html">A3E0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41957">Map</a></td>
+<td class="next">
+Next: <a href="41967.html">A3EF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

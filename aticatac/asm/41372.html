@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at A19C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41349.html">A185</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41372">Map</a></td>
+<td class="next">
+Next: <a href="41427.html">A1D3</a>
+</td>
+</tr>
+</table>
+<div class="description">A19C: Add to the score and redraw it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The score is three bytes of BCD at $5E2A-$5E2C, printed as six digits. The three DAAs carry across the whole of it, so a caller only has to hand over the amount in BC.
+</div>
+<div class="paragraph">
+Confirmed against a running game: with the panel reading SCORE 000310 the three bytes held $00 $03 $10.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">The amount to add, in BCD</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE</td>
+<td class="address-2"><span id="41372"></span>A19C</td>
+<td class="instruction">LD HL,$5E2C</td>
+<td class="comment-1" rowspan="1">The least significant byte, working backwards from there.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41375"></span>A19F</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">DAA after each addition is what keeps it decimal.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41376"></span>A1A0</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41377"></span>A1A1</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41378"></span>A1A2</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41379"></span>A1A3</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="8">Carry up through the middle and top bytes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41380"></span>A1A4</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41381"></span>A1A5</td>
+<td class="instruction">ADC A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41382"></span>A1A6</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41383"></span>A1A7</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41384"></span>A1A8</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41385"></span>A1A9</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41386"></span>A1AA</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41388"></span>A1AC</td>
+<td class="instruction">DAA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41389"></span>A1AD</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41390"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="41497.html">DRAW_SCROLL</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE_0</td>
+<td class="address-2"><span id="41390"></span>A1AE</td>
+<td class="instruction">LD HL,$BFCC</td>
+<td class="comment-1" rowspan="2">Point the tile source at the digits before drawing -- this is the biased pointer PLOT_TILE's note describes, $BE4C + 48 * 8, so a digit value indexes its own character.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41393"></span>A1B1</td>
+<td class="instruction">LD ($5E01),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41396"></span>A1B4</td>
+<td class="instruction">LD HL,$50C8</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41399"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38465.html">DRAW_SUMMARY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE_1</td>
+<td class="address-2"><span id="41399"></span>A1B7</td>
+<td class="instruction">CALL <a href="39842.html">PIXEL_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41402"></span>A1BA</td>
+<td class="instruction">LD DE,$5E2A</td>
+<td class="comment-1" rowspan="2">Three bytes, two digits in each.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41405"></span>A1BD</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41407"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="38362.html">TICK_CLOCK</a> and <a href="38465.html">DRAW_SUMMARY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE_2</td>
+<td class="address-2"><span id="41407"></span>A1BF</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">High nibble first, then the low one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41408"></span>A1C0</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41409"></span>A1C1</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41410"></span>A1C2</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41411"></span>A1C3</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41412"></span>A1C4</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41414"></span>A1C6</td>
+<td class="instruction">CALL <a href="41427.html">PLOT_TILE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41417"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38362.html">TICK_CLOCK</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE_3</td>
+<td class="address-2"><span id="41417"></span>A1C9</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41418"></span>A1CA</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41420"></span>A1CC</td>
+<td class="instruction">CALL <a href="41427.html">PLOT_TILE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41423"></span>A1CF</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41424"></span>A1D0</td>
+<td class="instruction">DJNZ <a href="41372.html#41407">ADD_SCORE_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41426"></span>A1D2</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+$A1AE and $A1B7 are entered on their own to redraw the score without changing it, and $A1BF is the general digit printer: B bytes of BCD from DE, drawn at the screen address in HL. The status panel uses that last entry to print the rooms-explored figure from COUNT_ROOMS_EXPLORED as well.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41349.html">A185</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41372">Map</a></td>
+<td class="next">
+Next: <a href="41427.html">A1D3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

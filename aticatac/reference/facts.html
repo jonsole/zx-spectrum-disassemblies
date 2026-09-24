@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#nops">The eight NOPs are not padding</a></li>
+<li><a href="#sharedbytes">Two sprites share four bytes</a></li>
+<li><a href="#blanksprite">A sprite that is entirely zero</a></li>
+<li><a href="#trapdoor">Shape $0C is the trapdoor fall</a></li>
+<li><a href="#sound">What was checked and found sound</a></li>
+<li><a href="#twoformats">Two graphics formats, chosen by sprite code</a></li>
+<li><a href="#dead">Code and data that nothing reaches</a></li>
+</ul>
+<div><span id="nops"></span></div>
+<div class="box box-1">
+<div class="box-title">The eight NOPs are not padding</div>
+<div class="paragraph">
+Every one is a hole the game pokes an instruction into. Each has a LD (nn),A a
+few bytes earlier that writes the AND, OR or XOR combining a sprite with what is
+already on the screen. Remove them and sprite drawing breaks.
+</div>
+</div>
+<div><span id="sharedbytes"></span></div>
+<div class="box box-2">
+<div class="box-title">Two sprites share four bytes</div>
+<div class="paragraph">
+Sprite $54 at $C219 says eighteen rows, which runs four bytes past $C23A where
+sprite $58 begins. Neither is wrong. Drawing $54 reads all eighteen rows and the
+seventeenth continues the taper of the sixteenth exactly; the byte they share,
+$0C, is the last row's left half and also $58's row count. Three bytes saved by
+a coincidence someone noticed.
+</div>
+</div>
+<div><span id="blanksprite"></span></div>
+<div class="box box-1">
+<div class="box-title">A sprite that is entirely zero</div>
+<div class="paragraph">
+$31 draws nothing at all. That is what a blank frame in an animation looks like.
+</div>
+</div>
+<div><span id="trapdoor"></span></div>
+<div class="box box-2">
+<div class="box-title">Shape $0C is the trapdoor fall</div>
+<div class="paragraph">
+Twelve nested rectangles, appearing in no room's entry -- if you read the first
+149 entries of ROOM_TABLE. The table has 151, and the last is not a room but the
+fall. Drawn with the walk limits closing in, concentric squares read as dropping
+down a shaft. This one caught the author of these pages, which is why it is
+written down.
+</div>
+</div>
+<div><span id="sound"></span></div>
+<div class="box box-1">
+<div class="box-title">What was checked and found sound</div>
+<div class="paragraph">
+Every branch in the game -- 4823 instructions' worth of JP, JR, CALL and DJNZ --
+lands on an instruction boundary. None jumps into the middle of another, which
+is worth knowing in a game that patches its own code in eight places and enters
+routines part-way through in a dozen more.
+Nothing writes to an address below $4000, so no write is silently thrown away
+against the ROM. And the disassembly reassembles to the same 30208 bytes the
+tape produces, so nothing on these pages describes a byte that is not there.
+</div>
+</div>
+<div><span id="twoformats"></span></div>
+<div class="box box-2">
+<div class="box-title">Two graphics formats, chosen by sprite code</div>
+<div class="paragraph">
+A creature or object is two bytes wide with a single byte of row count. The
+pieces the rooms are furnished with -- the clock, the bookcase, the barrel, the
+skeleton in chains -- are drawn by different code and carry a width as well.
+Nothing in the bytes says which is which: the rule is the sprite code, and
+codes above $A1 are furniture.
+Reading the furniture as sprites makes each one nine or eleven bytes long
+instead of a hundred and thirty, and leaves the rest of every one of them
+looking like artwork nothing points at. That is exactly what this disassembly
+said until it was compared against pobtastic's, whose graphics macro reads a
+width where this one had assumed a row count.
+And the rows are stored bottom up. Every picture here is flipped vertically to
+match what the game draws.
+</div>
+</div>
+<div><span id="dead"></span></div>
+<div class="box box-1">
+<div class="box-title">Code and data that nothing reaches</div>
+<div class="paragraph">
+Two routines are complete, correct and called from nowhere: NEXT_PIXEL_ROW,
+which steps a screen address down one pixel row, and SETUP_BOTH_BANKS. Neither
+address appears anywhere in the game as a call, a jump or a table entry.
+Shapes $06 and $07 are two of the four orientations of the staircase, sharing
+their edge list with $05 and $08 and differing only in their corners; the game
+uses the other two.
+With the 251 bytes of padding at the top of the image that comes to 444 bytes,
+one and a half per cent, removable without changing anything a player would see.
+An earlier version of this page claimed 556 bytes of unreferenced artwork on top
+of that. There is none: those bytes were the tails of the room furniture, read
+in the sprite format instead of their own and so cut to a fraction of their real
+length. See the note beside GFX_FIRST.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

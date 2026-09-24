@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 85B2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34200.html">8598</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34226">Map</a></td>
+<td class="next">
+Next: <a href="34282.html">85EA</a>
+</td>
+</tr>
+</table>
+<div class="description">85B2: Has this monster caught the player?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Compares the monster IX points at against the player's record at $EA90: same room, and within 12 pixels on both axes. Confirmed by breaking here and collecting IX -- it is only ever one of the eight monster records at $EE60-$EED0, tested against the fixed player address.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The monster to test</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">1 if it has the player, 0 if not</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CHECK_HIT</td>
+<td class="address-2"><span id="34226"></span>85B2</td>
+<td class="instruction">LD A,($EA91)</td>
+<td class="comment-1" rowspan="3">Cheapest rejection first: a monster in another room cannot touch anything.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34229"></span>85B5</td>
+<td class="instruction">LD E,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34231"></span>85B7</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34234"></span>85BA</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34235"></span>85BB</td>
+<td class="instruction">LD A,($EA90)</td>
+<td class="comment-1" rowspan="5">$31 is not an arbitrary threshold: sprite codes $01-$30 are the three playable characters, sixteen codes each (see ACTOR_HANDLERS), so "non-zero and below $31" means "$EA90 currently holds a player". It reads $66 while the game is still bringing the player into the room, which is what stops them being killed before they exist.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34238"></span>85BE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34239"></span>85BF</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34240"></span>85C0</td>
+<td class="instruction">CP $31</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34242"></span>85C2</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34243"></span>85C3</td>
+<td class="instruction">LD A,($EA93)</td>
+<td class="comment-1" rowspan="4">|dx|, via negate-if-negative rather than a signed compare.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34246"></span>85C6</td>
+<td class="instruction">SUB (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34249"></span>85C9</td>
+<td class="instruction">JP P,<a href="34226.html#34254">CHECK_HIT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34252"></span>85CC</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">CHECK_HIT_0</td>
+<td class="address-2"><span id="34254"></span>85CE</td>
+<td class="instruction">CP $0C</td>
+<td class="comment-1" rowspan="2">Within 12 pixels horizontally, or no hit.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34256"></span>85D0</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34257"></span>85D1</td>
+<td class="instruction">LD A,($EA94)</td>
+<td class="comment-1" rowspan="5">The same for |dy|.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34260"></span>85D4</td>
+<td class="instruction">SUB (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34263"></span>85D7</td>
+<td class="instruction">JP P,<a href="34226.html#34268">CHECK_HIT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34266"></span>85DA</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">CHECK_HIT_1</td>
+<td class="address-2"><span id="34268"></span>85DC</td>
+<td class="instruction">CP $0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34270"></span>85DE</td>
+<td class="instruction">RET NC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34271"></span>85DF</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">Record the hit where the caller can find it...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34273"></span>85E1</td>
+<td class="instruction">LD ($EA92),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34276"></span>85E4</td>
+<td class="instruction">CALL <a href="41957.html">PLAY_SOUND</a></td>
+<td class="comment-1" rowspan="1">...and make a noise about it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34279"></span>85E7</td>
+<td class="instruction">LD E,$01</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34281"></span>85E9</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34200.html">8598</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34226">Map</a></td>
+<td class="next">
+Next: <a href="34282.html">85EA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

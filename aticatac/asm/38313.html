@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 95A9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38269.html">957D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38313">Map</a></td>
+<td class="next">
+Next: <a href="38359.html">95D7</a>
+</td>
+</tr>
+</table>
+<div class="description">95A9: Leave an object where the player is standing</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Four slots of eight bytes at $EAE8. The first with a zero sprite is taken, given sprite $8F, and the seven bytes after it are copied straight out of the player's own record -- room, flag, position and all -- so the thing appears exactly where the player is. With all four in use the routine simply returns and nothing is dropped.
+</div>
+<div class="paragraph">
+The copy is what makes it cheap: because an object and an actor share the same eight-byte header, placing one is one LDIR rather than half a dozen assignments.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_OBJECT</td>
+<td class="address-2"><span id="38313"></span>95A9</td>
+<td class="instruction">LD HL,$EAE8</td>
+<td class="comment-1" rowspan="3">Four slots, eight bytes apart.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38316"></span>95AC</td>
+<td class="instruction">LD DE,$0008</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38319"></span>95AF</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_OBJECT_0</td>
+<td class="address-2"><span id="38321"></span>95B1</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">A zero sprite means the slot is free.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38322"></span>95B2</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38323"></span>95B3</td>
+<td class="instruction">JR Z,<a href="38313.html#38329">DROP_OBJECT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38325"></span>95B5</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="3">All four taken, so give up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38326"></span>95B6</td>
+<td class="instruction">DJNZ <a href="38313.html#38321">DROP_OBJECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38328"></span>95B8</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_OBJECT_1</td>
+<td class="address-2"><span id="38329"></span>95B9</td>
+<td class="instruction">LD A,$45</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38331"></span>95BB</td>
+<td class="instruction">LD ($EA95),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38334"></span>95BE</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38335"></span>95BF</td>
+<td class="instruction">LD (HL),$8F</td>
+<td class="comment-1" rowspan="1">The sprite the dropped thing is drawn as.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38337"></span>95C1</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38338"></span>95C2</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38339"></span>95C3</td>
+<td class="instruction">LD HL,$EA91</td>
+<td class="comment-1" rowspan="3">Room, flag and position, straight from the player's record.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38342"></span>95C6</td>
+<td class="instruction">LD BC,$0007</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38345"></span>95C9</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38347"></span>95CB</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="38348"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38636.html">SHOW_END_SCREEN</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_OBJECT_2</td>
+<td class="address-2"><span id="38348"></span>95CC</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38350"></span>95CE</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38351"></span>95CF</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38353"></span>95D1</td>
+<td class="instruction">CALL <a href="40778.html">DRAW_THING</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38356"></span>95D4</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38358"></span>95D6</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38269.html">957D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38313">Map</a></td>
+<td class="next">
+Next: <a href="38359.html">95D7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

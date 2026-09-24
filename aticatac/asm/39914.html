@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 9BEA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39890.html">9BD2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39914">Map</a></td>
+<td class="next">
+Next: <a href="39983.html">9C2F</a>
+</td>
+</tr>
+</table>
+<div class="description">9BEA: Draw the room the player is in</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Looks the room up twice. Its own entry in ROOM_TABLE gives a colour and a shape number; the shape number then selects an entry in ROOM_SHAPES, which carries how far the player may walk and where the outline's geometry lives. Rooms therefore share outlines freely -- only the colour and the shape number are per-room.
+</div>
+<div class="paragraph">
+Verified against a running game: in room $00 the table gives colour $42 and shape $00, shape $00 gives 56 by 56 and the two pointers $A9DF and $A9EF, and the machine's own $5E1A, $5E1D and $5E1E read back $42, 56 and 56 with the attribute file filled with $42.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_ROOM</td>
+<td class="address-2"><span id="39914"></span>9BEA</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39915"></span>9BEB</td>
+<td class="instruction">LD ($5E14),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39918"></span>9BEE</td>
+<td class="instruction">LD A,($EA91)</td>
+<td class="comment-1" rowspan="1">The room the player is in.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="39921"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38705.html">ESCAPE_SEQUENCE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_ROOM_0</td>
+<td class="address-2"><span id="39921"></span>9BF1</td>
+<td class="instruction">LD BC,$A854</td>
+<td class="comment-1" rowspan="1">Two bytes per room...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39924"></span>9BF4</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="4">...so double the room number to index it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39925"></span>9BF5</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39927"></span>9BF7</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39928"></span>9BF8</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39929"></span>9BF9</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">First byte: the colour the whole room is drawn in.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39930"></span>9BFA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39931"></span>9BFB</td>
+<td class="instruction">LD ($5E1A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39934"></span>9BFE</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39935"></span>9BFF</td>
+<td class="instruction">LD HL,$5800</td>
+<td class="comment-1" rowspan="3">24 by 24 character cells -- the play area, the same extent CLEAR_PLAY_AREA blanks.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39938"></span>9C02</td>
+<td class="instruction">LD BC,$1818</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39941"></span>9C05</td>
+<td class="instruction">LD A,($5E1A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39944"></span>9C08</td>
+<td class="instruction">CALL <a href="32922.html">FILL_BLOCK</a></td>
+<td class="comment-1" rowspan="1">Flood the attribute file with the room's colour in one go.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39947"></span>9C0B</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39948"></span>9C0C</td>
+<td class="instruction">LD L,(HL)</td>
+<td class="comment-1" rowspan="8">Second byte is the shape number; six bytes per shape, so multiply by 6 the cheap way, as x2 + x4.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39949"></span>9C0D</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39951"></span>9C0F</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39952"></span>9C10</td>
+<td class="instruction">LD C,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39953"></span>9C11</td>
+<td class="instruction">LD B,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39954"></span>9C12</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39955"></span>9C13</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39956"></span>9C14</td>
+<td class="instruction">LD BC,$A982</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39959"></span>9C17</td>
+<td class="instruction">ADD HL,BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39960"></span>9C18</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">How far from the centre the player may walk -- MOVE_ACTOR reads these back out of $5E1D.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39961"></span>9C19</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39962"></span>9C1A</td>
+<td class="instruction">LD ($5E1D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39965"></span>9C1D</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">The vertical limit.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39966"></span>9C1E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39967"></span>9C1F</td>
+<td class="instruction">LD ($5E1E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39970"></span>9C22</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="4">Where the shape's vertices are.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39971"></span>9C23</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39972"></span>9C24</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39973"></span>9C25</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39974"></span>9C26</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">Where its edge list is.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39975"></span>9C27</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39976"></span>9C28</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39977"></span>9C29</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39978"></span>9C2A</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="2">The vertices are indexed through IX.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39979"></span>9C2B</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39981"></span>9C2D</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="39982"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="39983.html">DRAW_OUTLINE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_ROOM_1</td>
+<td class="address-2"><span id="39982"></span>9C2E</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39890.html">9BD2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39914">Map</a></td>
+<td class="next">
+Next: <a href="39983.html">9C2F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

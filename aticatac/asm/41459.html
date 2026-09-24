@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at A1F3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41427.html">A1D3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41459">Map</a></td>
+<td class="next">
+Next: <a href="41497.html">A219</a>
+</td>
+</tr>
+</table>
+<div class="description">A1F3: Print a string of tiles in a single colour</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Draws consecutive tiles left to right, writing one attribute byte per cell as it goes. It keeps the display address and the attribute address live at the same time in the two register banks, swapping with EXX between the pixel write and the colour write rather than recomputing either.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">H = y (0-191), L = x -- where to start</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The string: one attribute byte, then the tile codes. Bit 7 set on a code marks it as the last one.</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_STRING</td>
+<td class="address-2"><span id="41459"></span>A1F3</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41460"></span>A1F4</td>
+<td class="instruction">CALL <a href="39842.html">PIXEL_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1">Display address into the main bank...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41463"></span>A1F7</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">The first byte is the colour, not a character; it is kept in A' for the whole run.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41464"></span>A1F8</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41465"></span>A1F9</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41466"></span>A1FA</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41467"></span>A1FB</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41468"></span>A1FC</td>
+<td class="instruction">CALL <a href="39890.html">PIXEL_TO_ATTR</a></td>
+<td class="comment-1" rowspan="1">...and the attribute address into the alternate one.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41471"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32138.html">PRINT_MENU_LINE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_STRING_0</td>
+<td class="address-2"><span id="41471"></span>A1FF</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">}</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41472"></span>A200</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41473"></span>A201</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="1">Bit 7 is the end marker, not part of the code.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41475"></span>A203</td>
+<td class="instruction">JR NZ,<a href="41459.html#41488">PRINT_STRING_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41477"></span>A205</td>
+<td class="instruction">CALL <a href="41427.html">PLOT_TILE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41480"></span>A208</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41481"></span>A209</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41482"></span>A20A</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41483"></span>A20B</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="2">Colour the cell PLOT_TILE just drew into.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41484"></span>A20C</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41485"></span>A20D</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41486"></span>A20E</td>
+<td class="instruction">JR <a href="41459.html#41471">PRINT_STRING_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_STRING_1</td>
+<td class="address-2"><span id="41488"></span>A210</td>
+<td class="instruction">AND $7F</td>
+<td class="comment-1" rowspan="1">Strip the end marker before drawing the final character.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41490"></span>A212</td>
+<td class="instruction">CALL <a href="41427.html">PLOT_TILE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41493"></span>A215</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41494"></span>A216</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41495"></span>A217</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41496"></span>A218</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41427.html">A1D3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41459">Map</a></td>
+<td class="next">
+Next: <a href="41497.html">A219</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: The sounds</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Atic Atac</a></td>
+<td class="page-header">The sounds</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#intro">Everything the beeper does</a></li>
+<li><a href="#footstep">Walking</a></li>
+<li><a href="#footstep_low">Footstep, the low one</a></li>
+<li><a href="#footstep_high">Footstep, the high one</a></li>
+<li><a href="#bonus">The bonus note</a></li>
+<li><a href="#spell_A445">The wizard's spell</a></li>
+<li><a href="#spell_A4B0">The spell's second sound</a></li>
+<li><a href="#sweep_up">A rising sweep</a></li>
+<li><a href="#sweep_down">A falling blip</a></li>
+<li><a href="#sweep_A41B">The sweep at $A41B</a></li>
+<li><a href="#noise_burst">A rasp</a></li>
+<li><a href="#beep_one_cycle">One cycle of BEEP</a></li>
+</ul>
+<div><span id="intro"></span></div>
+<div class="box box-1">
+<div class="box-title">Everything the beeper does</div>
+<div class="paragraph">
+A 48K has one bit of sound hardware -- bit 4 of port $FE -- and every noise in the game is made by toggling it and counting. BEEP does the toggling; the routines below choose the pitch and how long to hold it.
+These recordings are the game's own code running: each routine was called on a machine of its own and the writes to port $FE captured. Nothing here is synthesised or approximated.
+There are two ways a sound gets started. Most are called directly and run to completion inside the call, which is why they are all a few milliseconds long -- the game is not doing anything else while they play. The rest are spawned as actors and glide over many frames; see the note on the architecture page.
+</div>
+</div>
+<div><span id="footstep"></span></div>
+<div class="box box-2">
+<div class="box-title">Walking</div>
+<div class="paragraph">
+The two tones at the pace they are really played: a step every eight frames, 159 ms apart, alternating low and high. Almost all of it is silence, which is what makes it read as footsteps rather than a tone.
+<audio controls preload="none" src="audio/footstep.wav"><a href="audio/footstep.wav">footstep.wav</a></audio>
+958.5 ms, 49 edges &mdash; <a href="asm/41927.html">SOUND_FOOTSTEP</a>.
+</div>
+</div>
+<div><span id="footstep_low"></span></div>
+<div class="box box-1">
+<div class="box-title">Footstep, the low one</div>
+<div class="paragraph">
+$6004 -- four cycles of half-period $60, from the branch at $A3DB.
+<audio controls preload="none" src="audio/footstep_low.wav"><a href="audio/footstep_low.wav">footstep_low.wav</a></audio>
+2.6 ms, 8 edges, 1357 to 1360 Hz &mdash; $A3AA.
+</div>
+</div>
+<div><span id="footstep_high"></span></div>
+<div class="box box-2">
+<div class="box-title">Footstep, the high one</div>
+<div class="paragraph">
+$4004, from the branch at $A3D3. SOUND_FOOTSTEP alternates the two.
+<audio controls preload="none" src="audio/footstep_high.wav"><a href="audio/footstep_high.wav">footstep_high.wav</a></audio>
+1.7 ms, 8 edges, 2002 to 2009 Hz &mdash; $A3AA.
+</div>
+</div>
+<div><span id="bonus"></span></div>
+<div class="box box-1">
+<div class="box-title">The bonus note</div>
+<div class="paragraph">
+Played by FLASH_SCORE every sixteenth step of its countdown.
+<audio controls preload="none" src="audio/bonus.wav"><a href="audio/bonus.wav">bonus.wav</a></audio>
+93.0 ms, 192 edges, 1026 to 1028 Hz &mdash; <a href="asm/41952.html">SOUND_BONUS</a>.
+</div>
+</div>
+<div><span id="spell_A445"></span></div>
+<div class="box box-2">
+<div class="box-title">The wizard's spell</div>
+<div class="paragraph">
+Its starting pitch comes from $5E25, the number of actors in the room, so it is never quite the same twice.
+<audio controls preload="none" src="audio/spell_A445.wav"><a href="audio/spell_A445.wav">spell_A445.wav</a></audio>
+6.3 ms, 32 edges, 1878 to 3715 Hz &mdash; <a href="asm/42053.html">SOUND_SPELL</a>.
+</div>
+</div>
+<div><span id="spell_A4B0"></span></div>
+<div class="box box-1">
+<div class="box-title">The spell's second sound</div>
+<div class="paragraph">
+The other of the two SPIN_SPELL makes.
+<audio controls preload="none" src="audio/spell_A4B0.wav"><a href="audio/spell_A4B0.wav">spell_A4B0.wav</a></audio>
+6.1 ms, 8 edges, 575 Hz &mdash; <a href="asm/42160.html">SOUND_SPELL_2</a>.
+</div>
+</div>
+<div><span id="sweep_up"></span></div>
+<div class="box box-2">
+<div class="box-title">A rising sweep</div>
+<div class="paragraph">
+Sixteen calls to BEEP with the pitch walked upwards.
+<audio controls preload="none" src="audio/sweep_up.wav"><a href="audio/sweep_up.wav">sweep_up.wav</a></audio>
+16.3 ms, 32 edges, 516 to 8838 Hz &mdash; <a href="asm/42023.html">SOUND_SWEEP_UP</a>.
+</div>
+</div>
+<div><span id="sweep_down"></span></div>
+<div class="box box-1">
+<div class="box-title">A falling blip</div>
+<div class="paragraph">
+Eight steps with the pitch complemented, so it falls.
+<audio controls preload="none" src="audio/sweep_down.wav"><a href="audio/sweep_down.wav">sweep_down.wav</a></audio>
+14.0 ms, 16 edges, 520 to 556 Hz &mdash; <a href="asm/42040.html">SOUND_SWEEP_DOWN</a>.
+</div>
+</div>
+<div><span id="sweep_A41B"></span></div>
+<div class="box box-2">
+<div class="box-title">The sweep at $A41B</div>
+<div class="paragraph">
+Reached from $8134.
+<audio controls preload="none" src="audio/sweep_A41B.wav"><a href="audio/sweep_A41B.wav">sweep_A41B.wav</a></audio>
+5.9 ms, 24 edges, 959 to 31818 Hz &mdash; <a href="asm/42011.html">SOUND_SWEEP_A41B</a>.
+</div>
+</div>
+<div><span id="noise_burst"></span></div>
+<div class="box box-1">
+<div class="box-title">A rasp</div>
+<div class="paragraph">
+119 edges in eight milliseconds with the gaps swinging wildly -- not a note at all. Reached from $917D.
+<audio controls preload="none" src="audio/noise_burst.wav"><a href="audio/noise_burst.wav">noise_burst.wav</a></audio>
+4.8 ms, 119 edges, 843 to 40698 Hz &mdash; <a href="asm/42094.html">SOUND_NOISE_BURST</a>.
+</div>
+</div>
+<div><span id="beep_one_cycle"></span></div>
+<div class="box box-2">
+<div class="box-title">One cycle of BEEP</div>
+<div class="paragraph">
+The smallest sound the game can make: a single square wave.
+<audio controls preload="none" src="audio/beep_one_cycle.wav"><a href="audio/beep_one_cycle.wav">beep_one_cycle.wav</a></audio>
+0.2 ms, 2 edges, 2002 Hz &mdash; <a href="asm/41896.html">BEEP</a>.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

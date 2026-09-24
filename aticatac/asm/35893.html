@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 8C35</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35885.html">8C2D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35893">Map</a></td>
+<td class="next">
+Next: <a href="35929.html">8C59</a>
+</td>
+</tr>
+</table>
+<div class="description">8C35: Clear the castle away and show how it went</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached from UPDATE_KNIGHT when the player's last life goes. It blanks the play area, prints GAME OVER across it, and hands over to DRAW_SUMMARY for the three figures underneath, then sits in a counting loop long enough to read them.
+</div>
+<div class="paragraph">
+Note the second and third instructions: the tile source has to be pointed back at the text font first. During play it holds $BFCC, the copy biased so that digits index themselves, and anything printed through PLOT_TILE while it is still there comes out as the wrong glyphs entirely.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER</td>
+<td class="address-2"><span id="35893"></span>8C35</td>
+<td class="instruction">CALL <a href="32915.html">CLEAR_PLAY_AREA</a></td>
+<td class="comment-1" rowspan="1">The castle goes; the status panel down the side stays.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35896"></span>8C38</td>
+<td class="instruction">LD HL,$BE4C</td>
+<td class="comment-1" rowspan="2">Back to the text font, or the words below would be gibberish.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35899"></span>8C3B</td>
+<td class="instruction">LD ($5E01),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35902"></span>8C3E</td>
+<td class="instruction">LD HL,$3040</td>
+<td class="comment-1" rowspan="2">"GAME OVER", centred above the figures.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35905"></span>8C41</td>
+<td class="instruction">LD DE,$8C59</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35908"></span>8C44</td>
+<td class="instruction">CALL <a href="41459.html">PRINT_STRING</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35911"></span>8C47</td>
+<td class="instruction">CALL <a href="38465.html">DRAW_SUMMARY</a></td>
+<td class="comment-1" rowspan="1">TIME, SCORE and the proportion of the castle seen.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="35914"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38636.html">SHOW_END_SCREEN</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER_0</td>
+<td class="address-2"><span id="35914"></span>8C4A</td>
+<td class="instruction">LD B,$14</td>
+<td class="comment-1" rowspan="2">A delay, and a long one: twenty times round a full 16-bit count.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35916"></span>8C4C</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER_1</td>
+<td class="address-2"><span id="35919"></span>8C4F</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">About four seconds in all, with nothing else running.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35920"></span>8C50</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35921"></span>8C51</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35922"></span>8C52</td>
+<td class="instruction">JR NZ,<a href="35893.html#35919">GAME_OVER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35924"></span>8C54</td>
+<td class="instruction">DJNZ <a href="35893.html#35919">GAME_OVER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35926"></span>8C56</td>
+<td class="instruction">JP <a href="31769.html#31785">TITLE_SCREEN_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35885.html">8C2D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35893">Map</a></td>
+<td class="next">
+Next: <a href="35929.html">8C59</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

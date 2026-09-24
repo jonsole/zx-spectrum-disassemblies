@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 9F9F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40832.html">9F80</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40863">Map</a></td>
+<td class="next">
+Next: <a href="40906.html">9FCA</a>
+</td>
+</tr>
+</table>
+<div class="description">9F9F: Work out where a sprite goes, and how far to shift it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Sprites in this family are two bytes wide in the data and land on the screen straddling two or three, because x is a pixel position and not a character column. Rather than keep eight pre-shifted copies of every sprite, the game shifts at draw time -- and rather than loop, it computes where to jump into an unrolled chain of shifts and writes that into the jump itself.
+</div>
+<div class="paragraph">
+The displacement is 2 * ((x - 1) AND 7), which SHIFT_AND_PLOT's JR turns into "skip this many bytes of the chain". More shifts for a small offset, fewer for a large one. The one case that would need none is redirected to a plot routine that does not shift at all.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The thing being drawn</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SETUP_SPRITE_DRAW</td>
+<td class="address-2"><span id="40863"></span>9F9F</td>
+<td class="instruction">CALL <a href="40598.html">SPRITE_OF_ACTOR</a></td>
+<td class="comment-1" rowspan="1">Its graphics, through SPRITE_TABLE.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="40866"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="40768.html">SETUP_ALT_ENTRIES</a> and <a href="40820.html">SETUP_BOTH_BANKS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SETUP_SPRITE_DRAW_0</td>
+<td class="address-2"><span id="40866"></span>9FA2</td>
+<td class="instruction">LD L,(IX+$03)</td>
+<td class="comment-1" rowspan="2">Its position.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40869"></span>9FA5</td>
+<td class="instruction">LD H,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40872"></span>9FA8</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="4">The low three bits of x, doubled: how far into the shift chain to start.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40873"></span>9FA9</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40874"></span>9FAA</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40875"></span>9FAB</td>
+<td class="instruction">AND $0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40877"></span>9FAD</td>
+<td class="instruction">CP $0E</td>
+<td class="comment-1" rowspan="2">A shift of none is a special case...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40879"></span>9FAF</td>
+<td class="instruction">JR NZ,<a href="40863.html#40883">SETUP_SPRITE_DRAW_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40881"></span>9FB1</td>
+<td class="instruction">LD A,$E8</td>
+<td class="comment-1" rowspan="1">...redirected right out of the chain to a plot with no shifting at all.</td>
+</tr>
+<tr>
+<td class="asm-label">SETUP_SPRITE_DRAW_1</td>
+<td class="address-2"><span id="40883"></span>9FB3</td>
+<td class="instruction">LD ($9F2A),A</td>
+<td class="comment-1" rowspan="1">Write it into the JR at $9F29.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40886"></span>9FB6</td>
+<td class="instruction">LD A,$02</td>
+<td class="comment-1" rowspan="3">Two bytes of sprite cover three columns unless it lands square.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40888"></span>9FB8</td>
+<td class="instruction">JR Z,<a href="40863.html#40891">SETUP_SPRITE_DRAW_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40890"></span>9FBA</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label">SETUP_SPRITE_DRAW_2</td>
+<td class="address-2"><span id="40891"></span>9FBB</td>
+<td class="instruction">LD ($5E10),A</td>
+<td class="comment-1" rowspan="1">How wide to erase and redraw.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40894"></span>9FBE</td>
+<td class="instruction">CALL <a href="39842.html">PIXEL_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40897"></span>9FC1</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">The first byte of a sprite's data is its height in rows.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40898"></span>9FC2</td>
+<td class="instruction">LD ($5E19),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40901"></span>9FC5</td>
+<td class="instruction">LD ($5E11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40904"></span>9FC8</td>
+<td class="instruction">JR <a href="40832.html#40859">SETUP_ERASE_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40832.html">9F80</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40863">Map</a></td>
+<td class="next">
+Next: <a href="40906.html">9FCA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at A3A8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41886.html">A39E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41896">Map</a></td>
+<td class="next">
+Next: <a href="41917.html">A3BD</a>
+</td>
+</tr>
+</table>
+<div class="description">A3A8: Square wave on the beeper</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Toggles bit 4 of port $FE with a busy-wait either side, which is the only way a 48K makes a sound. Every sound effect in the game is a call here, or a short sequence of them with different pitches.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">Half-period: the delay between edges, so smaller is higher pitched</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Number of complete cycles, i.e. how long the note lasts</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BEEP</td>
+<td class="address-2"><span id="41896"></span>A3A8</td>
+<td class="instruction">LD C,$01</td>
+<td class="comment-1" rowspan="1">The plain entry point plays exactly one cycle; callers wanting a longer note enter below with C already set.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41898"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="41917.html">BEEP_ENTRIES</a>, <a href="41927.html">SOUND_FOOTSTEP</a>, <a href="41952.html">SOUND_BONUS</a>, <a href="41967.html">SOUND_64</a>, <a href="41992.html">SOUND_65</a>, <a href="42079.html">SOUND_FROM_HEADING</a>, <a href="42123.html">SOUND_A0</a> and <a href="42160.html">SOUND_SPELL_2</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BEEP_0</td>
+<td class="address-2"><span id="41898"></span>A3AA</td>
+<td class="instruction">LD A,$10</td>
+<td class="comment-1" rowspan="2">Speaker bit high.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41900"></span>A3AC</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41902"></span>A3AE</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">BEEP_1</td>
+<td class="address-2"><span id="41903"></span>A3AF</td>
+<td class="instruction">DJNZ <a href="41896.html#41903">BEEP_1</a></td>
+<td class="comment-1" rowspan="1">The pitch: burn B iterations doing nothing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41905"></span>A3B1</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41906"></span>A3B2</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41907"></span>A3B3</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Speaker bit low again. This also writes 0 to the border bits, which is why the border stays black through every effect.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41908"></span>A3B4</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label">BEEP_2</td>
+<td class="address-2"><span id="41910"></span>A3B6</td>
+<td class="instruction">DJNZ <a href="41896.html#41910">BEEP_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41912"></span>A3B8</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41913"></span>A3B9</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="2">Repeat for C cycles.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41914"></span>A3BA</td>
+<td class="instruction">JR NZ,<a href="41896.html#41898">BEEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41916"></span>A3BC</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41886.html">A39E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41896">Map</a></td>
+<td class="next">
+Next: <a href="41917.html">A3BD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 95DA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38359.html">95D7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38362">Map</a></td>
+<td class="next">
+Next: <a href="38427.html">961B</a>
+</td>
+</tr>
+</table>
+<div class="description">95DA: Advance the elapsed-time clock</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The clock counts up rather than down -- Atic Atac's TIME is how long you have been in the castle, not how long is left. Three bytes of BCD at $5E3D, $5E3E and $5E3F hold it, and the panel prints them as one digit, then two, a colon, then two: 000:09.
+</div>
+<div class="paragraph">
+Its time base is the ROM's own FRAMES counter, which ticks 50 times a second on the interrupt the game leaves enabled. Rather than remember when the last second was, it subtracts 50 from FRAMES whenever there are at least 50 there, so the remainder carries the fraction of a second forward and nothing drifts.
+</div>
+<div class="paragraph">
+Confirmed against a running game: with the three bytes reading $00 $00 $09 the panel showed TIME 000:09.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TICK_CLOCK</td>
+<td class="address-2"><span id="38362"></span>95DA</td>
+<td class="instruction">LD A,($5C78)</td>
+<td class="comment-1" rowspan="3">Fewer than fifty frames since the last tick, so there is nothing to do yet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38365"></span>95DD</td>
+<td class="instruction">CP $32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38367"></span>95DF</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38368"></span>95E0</td>
+<td class="instruction">SUB $32</td>
+<td class="comment-1" rowspan="2">Take a whole second out and leave the remainder for next time.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38370"></span>95E2</td>
+<td class="instruction">LD ($5C78),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38373"></span>95E5</td>
+<td class="instruction">LD HL,$5E3F</td>
+<td class="comment-1" rowspan="1">The seconds, the last of the three bytes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38376"></span>95E8</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">INC then DAA -- adding 1 in BCD, so the digits stay printable.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38377"></span>95E9</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38378"></span>95EA</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38379"></span>95EB</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38380"></span>95EC</td>
+<td class="instruction">CP $60</td>
+<td class="comment-1" rowspan="2">Sixty, in BCD, is $60.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38382"></span>95EE</td>
+<td class="instruction">JR NZ,<a href="38362.html#38404">TICK_CLOCK_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38384"></span>95F0</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="2">Round the seconds and carry into the minutes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38386"></span>95F2</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38387"></span>95F3</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38388"></span>95F4</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38389"></span>95F5</td>
+<td class="instruction">DAA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38390"></span>95F6</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38391"></span>95F7</td>
+<td class="instruction">CP $60</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38393"></span>95F9</td>
+<td class="instruction">JR NZ,<a href="38362.html#38404">TICK_CLOCK_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38395"></span>95FB</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38397"></span>95FD</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="4">And the minutes into the hours.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38398"></span>95FE</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38399"></span>95FF</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38400"></span>9600</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38401"></span>9601</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1">Hours are kept to a single digit, which is what makes the display 000:09 rather than 00:00:09.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38403"></span>9603</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">TICK_CLOCK_0</td>
+<td class="address-2"><span id="38404"></span>9604</td>
+<td class="instruction">LD HL,$40C8</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="38407"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="38465.html">DRAW_SUMMARY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TICK_CLOCK_1</td>
+<td class="address-2"><span id="38407"></span>9607</td>
+<td class="instruction">CALL <a href="39842.html">PIXEL_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38410"></span>960A</td>
+<td class="instruction">LD DE,$5E3D</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38413"></span>960D</td>
+<td class="instruction">LD B,$02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38415"></span>960F</td>
+<td class="instruction">CALL <a href="41372.html#41417">ADD_SCORE_3</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38418"></span>9612</td>
+<td class="instruction">LD DE,$5E3F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38421"></span>9615</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38422"></span>9616</td>
+<td class="instruction">LD B,$01</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38424"></span>9618</td>
+<td class="instruction">JP <a href="41372.html#41407">ADD_SCORE_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38359.html">95D7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38362">Map</a></td>
+<td class="next">
+Next: <a href="38427.html">961B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

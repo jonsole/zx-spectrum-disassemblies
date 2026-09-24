@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 6000</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+</td>
+<td class="up">Up: <a href="../maps/all.html#24576">Map</a></td>
+<td class="next">
+Next: <a href="24589.html">600D</a>
+</td>
+</tr>
+</table>
+<div class="description">6000: Entry point, and the second half of the tape protection</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The 18-byte decryptor at $5B80 (in the printer buffer, entered by the loader's PRINT USR 23424) RRDs a nibble through the whole game block and then jumps here.
+</div>
+<div class="paragraph">
+This is where the tape's third trick pays off. One of the tiny CODE blocks pokes $255E into FRAMES at $5C78 for no reason a normal loader would have; the check below is the reason. A cracked loader that drops the little blocks, or anything that lets an interrupt tick FRAMES on before arriving here, fails the compare and falls straight back to BASIC with no error -- the game simply does not start.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">FRAMES+1, which must still hold $25</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ENTRY</td>
+<td class="address-2"><span id="24576"></span>6000</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24577"></span>6001</td>
+<td class="instruction">LD SP,$5E00</td>
+<td class="comment-1" rowspan="1">Well below the game block at $5FFF, so the stack cannot walk into the code.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24580"></span>6004</td>
+<td class="instruction">LD A,($5C79)</td>
+<td class="comment-1" rowspan="1">FRAMES+1. Interrupts are off from the DI above, so this still holds what the tape poked.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24583"></span>6007</td>
+<td class="instruction">CP $25</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24585"></span>6009</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1">Not a failure path with a message -- just RET, straight back to the BASIC that called USR.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24586"></span>600A</td>
+<td class="instruction">JP <a href="31769.html">TITLE_SCREEN</a></td>
+<td class="comment-1" rowspan="1">The real entry point.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+</td>
+<td class="up">Up: <a href="../maps/all.html#24576">Map</a></td>
+<td class="next">
+Next: <a href="24589.html">600D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

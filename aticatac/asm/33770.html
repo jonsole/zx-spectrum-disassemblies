@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 83EA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33738.html">83CA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33770">Map</a></td>
+<td class="next">
+Next: <a href="33887.html">845F</a>
+</td>
+</tr>
+</table>
+<div class="description">83EA: Put a new monster into the room</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Monsters are not placed once and left. When the player is in the room named by $5E26, a countdown at $5E27 runs down and a new creature is dropped into the room when it expires -- which is why standing still in one place does not make you safe.
+</div>
+<div class="paragraph">
+It looks for a free slot among only the first three of the eight monster records, and gives up if all three are taken. Those three are also the ones INERT_SPRITE bothers to burn time for, so the spawning slots and the timed slots are the same three.
+</div>
+<div class="paragraph">
+A new monster is a straight sixteen-byte copy of a template at $8B6A -- one LDIR, and the record is complete.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM</td>
+<td class="address-2"><span id="33770"></span>83EA</td>
+<td class="instruction">LD A,($5E26)</td>
+<td class="comment-1" rowspan="4">Only in the room the spawner is watching.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33773"></span>83ED</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33774"></span>83EE</td>
+<td class="instruction">LD A,($EA91)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33777"></span>83F1</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33778"></span>83F2</td>
+<td class="instruction">JR NZ,<a href="33770.html#33871">SPAWN_MONSTER_INTO_ROOM_3</a></td>
+<td class="comment-1" rowspan="1">Wrong room: nothing to do.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33780"></span>83F4</td>
+<td class="instruction">LD HL,$5E27</td>
+<td class="comment-1" rowspan="3">The countdown to the next one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33783"></span>83F7</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33784"></span>83F8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33785"></span>83F9</td>
+<td class="instruction">JR Z,<a href="33770.html#33880">SPAWN_MONSTER_INTO_ROOM_4</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33787"></span>83FB</td>
+<td class="instruction">DEC (HL)</td>
+<td class="comment-1" rowspan="2">Not yet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33788"></span>83FC</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM_0</td>
+<td class="address-2"><span id="33789"></span>83FD</td>
+<td class="instruction">LD HL,$EE60</td>
+<td class="comment-1" rowspan="3">Three slots, sixteen bytes apart.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33792"></span>8400</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33795"></span>8403</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM_1</td>
+<td class="address-2"><span id="33797"></span>8405</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">A zero sprite means the slot is free.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33798"></span>8406</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33799"></span>8407</td>
+<td class="instruction">JR Z,<a href="33770.html#33805">SPAWN_MONSTER_INTO_ROOM_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33801"></span>8409</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33802"></span>840A</td>
+<td class="instruction">DJNZ <a href="33770.html#33797">SPAWN_MONSTER_INTO_ROOM_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33804"></span>840C</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM_2</td>
+<td class="address-2"><span id="33805"></span>840D</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33806"></span>840E</td>
+<td class="instruction">LD HL,$8B6A</td>
+<td class="comment-1" rowspan="2">The template.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33809"></span>8411</td>
+<td class="instruction">LD BC,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33812"></span>8414</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33813"></span>8415</td>
+<td class="instruction">LDIR</td>
+<td class="comment-1" rowspan="1">Sixteen bytes, and the monster exists.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33815"></span>8417</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33816"></span>8418</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33817"></span>8419</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33818"></span>841A</td>
+<td class="instruction">LD A,($EA91)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33821"></span>841D</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33822"></span>841E</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33823"></span>841F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33824"></span>8420</td>
+<td class="instruction">LD HL,$8B7A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33827"></span>8423</td>
+<td class="instruction">LD A,($5C78)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33830"></span>8426</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33832"></span>8428</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33833"></span>8429</td>
+<td class="instruction">LD D,$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33835"></span>842B</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33836"></span>842C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33837"></span>842D</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33838"></span>842E</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33839"></span>842F</td>
+<td class="instruction">LD DE,($5E1D)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33843"></span>8433</td>
+<td class="instruction">LD B,E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33844"></span>8434</td>
+<td class="instruction">CALL <a href="34200.html">RANDOM_CHANCE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33847"></span>8437</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33848"></span>8438</td>
+<td class="instruction">LD B,D</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33849"></span>8439</td>
+<td class="instruction">CALL <a href="34200.html">RANDOM_CHANCE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33852"></span>843C</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33853"></span>843D</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33854"></span>843E</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33856"></span>8440</td>
+<td class="instruction">LD IX,$0000</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33860"></span>8444</td>
+<td class="instruction">ADD IX,DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33862"></span>8446</td>
+<td class="instruction">CALL <a href="34546.html">RANDOM_VERTICAL</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33865"></span>8449</td>
+<td class="instruction">CALL <a href="40778.html">DRAW_THING</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33868"></span>844C</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33870"></span>844E</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM_3</td>
+<td class="address-2"><span id="33871"></span>844F</td>
+<td class="instruction">LD ($5E26),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33874"></span>8452</td>
+<td class="instruction">LD A,$20</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33876"></span>8454</td>
+<td class="instruction">LD ($5E27),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33879"></span>8457</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_INTO_ROOM_4</td>
+<td class="address-2"><span id="33880"></span>8458</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33882"></span>845A</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33884"></span>845C</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33885"></span>845D</td>
+<td class="instruction">JR <a href="33770.html#33789">SPAWN_MONSTER_INTO_ROOM_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33738.html">83CA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33770">Map</a></td>
+<td class="next">
+Next: <a href="33887.html">845F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

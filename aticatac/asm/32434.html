@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 7EB2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32403.html">7E93</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32434">Map</a></td>
+<td class="next">
+Next: <a href="32453.html">7EC5</a>
+</td>
+</tr>
+</table>
+<div class="description">7EB2: The work that happens once per frame</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+MAIN_LOOP runs as fast as it can and calls this only when the ROM's frame counter has moved on, so what happens here is tied to the 50Hz interrupt rather than to how much there is to do.
+</div>
+<div class="paragraph">
+It dispatches three records the main loop deliberately skips -- $EA90, $EA98 and $EAA0, the player, the weapon it has in flight, and the sound effect slot -- and then ticks the clock. That is why the player moves at a steady speed however crowded a room is, while the monsters are dispatched on every pass of the outer loop.
+</div>
+<div class="paragraph">
+It runs with interrupts off, so a frame's work is never interrupted half way.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FRAME_TICK</td>
+<td class="address-2"><span id="32434"></span>7EB2</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1">Nothing may interrupt a frame's work.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32435"></span>7EB3</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32437"></span>7EB5</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">A flag saying a frame is in progress.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32439"></span>7EB7</td>
+<td class="instruction">LD ($5E04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32442"></span>7EBA</td>
+<td class="instruction">LD IX,$EA90</td>
+<td class="comment-1" rowspan="1">The player, first of the three.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="32446"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="32453.html">FRAME_TICK_NEXT</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FRAME_TICK_0</td>
+<td class="address-2"><span id="32446"></span>7EBE</td>
+<td class="instruction">LD HL,$7EC5</td>
+<td class="comment-1" rowspan="2">Push the return address, then enter DISPATCH_ACTOR below its own PUSH HL -- it has already been done here.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32449"></span>7EC1</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32450"></span>7EC2</td>
+<td class="instruction">JP <a href="32382.html#32383">DISPATCH_ACTOR_0</a></td>
+<td class="comment-1" rowspan="1">Dispatch.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32403.html">7E93</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32434">Map</a></td>
+<td class="next">
+Next: <a href="32453.html">7EC5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

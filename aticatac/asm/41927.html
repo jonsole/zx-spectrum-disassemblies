@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at A3C7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41917.html">A3BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41927">Map</a></td>
+<td class="next">
+Next: <a href="41952.html">A3E0</a>
+</td>
+</tr>
+</table>
+<div class="description">A3C7: The footstep, two tones alternating</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Called every frame by all three characters' handlers -- UPDATE_KNIGHT, UPDATE_WIZARD and UPDATE_SERF -- so walking sounds the same whoever is doing it. A counter at $5E2F advances on every call and its bottom two bits do all the work: bit 0 decides whether to make a sound at all, so only every other call does, and bit 1 chooses which of two notes.
+</div>
+<div class="paragraph">
+The two are $6004 and $4004 -- four cycles each, of half-period $60 and $40 -- which measure at about 1360 Hz and 2005 Hz. They alternate, so a walking character produces low, high, low, high rather than one repeated click. That is the whole footstep: two tones and a counter.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">None;</td>
+<td class="register-desc">it reads and advances $5E2F itself</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SOUND_FOOTSTEP</td>
+<td class="address-2"><span id="41927"></span>A3C7</td>
+<td class="instruction">LD HL,$5E2F</td>
+<td class="comment-1" rowspan="3">The step counter, advanced on every call.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41930"></span>A3CA</td>
+<td class="instruction">INC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41931"></span>A3CB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41932"></span>A3CC</td>
+<td class="instruction">BIT 1,A</td>
+<td class="comment-1" rowspan="2">Bit 1 picks the note.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41934"></span>A3CE</td>
+<td class="instruction">JR Z,<a href="41927.html#41944">SOUND_FOOTSTEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41936"></span>A3D0</td>
+<td class="instruction">AND $01</td>
+<td class="comment-1" rowspan="2">Bit 0 silences every other call, which is what sets the pace.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41938"></span>A3D2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41939"></span>A3D3</td>
+<td class="instruction">LD BC,$4004</td>
+<td class="comment-1" rowspan="2">The higher of the two, about 2005 Hz.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41942"></span>A3D6</td>
+<td class="instruction">JR <a href="41896.html#41898">BEEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">SOUND_FOOTSTEP_0</td>
+<td class="address-2"><span id="41944"></span>A3D8</td>
+<td class="instruction">AND $01</td>
+<td class="comment-1" rowspan="2">The same gate on the other branch.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41946"></span>A3DA</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41947"></span>A3DB</td>
+<td class="instruction">LD BC,$6004</td>
+<td class="comment-1" rowspan="2">The lower, about 1360 Hz.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41950"></span>A3DE</td>
+<td class="instruction">JR <a href="41896.html#41898">BEEP_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41917.html">A3BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41927">Map</a></td>
+<td class="next">
+Next: <a href="41952.html">A3E0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 8C63</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35929.html">8C59</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35939">Map</a></td>
+<td class="next">
+Next: <a href="35980.html">8C8C</a>
+</td>
+</tr>
+</table>
+<div class="description">8C63: The handler for a piece of food</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Sprites $50 to $57 are food, and ACTOR_HANDLERS sends all eight of them here. Every frame it asks whether the player is standing on it; if not, it just draws itself and that is the whole of its behaviour.
+</div>
+<div class="paragraph">
+Eating is worth $40 -- a quarter of the bar -- and the total is held at $F0 rather than being allowed to wrap, so arriving at a roast with almost full health wastes most of it. The two branches before the cap catch the carry as well as the compare, because $5E28 plus $40 can pass $FF.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The food</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EAT_FOOD</td>
+<td class="address-2"><span id="35939"></span>8C63</td>
+<td class="instruction">CALL <a href="40955.html">ACTOR_TO_WORKSPACE</a></td>
+<td class="comment-1" rowspan="2">Is the player on it?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35942"></span>8C66</td>
+<td class="instruction">CALL <a href="37115.html">NEAR_PLAYER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35945"></span>8C69</td>
+<td class="instruction">JR C,<a href="35939.html#35950">EAT_FOOD_0</a></td>
+<td class="comment-1" rowspan="2">No -- draw it and do nothing else.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35947"></span>8C6B</td>
+<td class="instruction">JP <a href="37600.html">DRAW_AT_POSITION</a></td>
+</tr>
+<tr>
+<td class="asm-label">EAT_FOOD_0</td>
+<td class="address-2"><span id="35950"></span>8C6E</td>
+<td class="instruction">CALL <a href="40790.html">ERASE_THING</a></td>
+<td class="comment-1" rowspan="2">Rub it out and free its slot: eaten food does not come back.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35953"></span>8C71</td>
+<td class="instruction">LD (IX+$00),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35957"></span>8C75</td>
+<td class="instruction">CALL <a href="42117.html">PLAY_SOUND_A0</a></td>
+<td class="comment-1" rowspan="1">A noise.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35960"></span>8C78</td>
+<td class="instruction">LD C,$40</td>
+<td class="comment-1" rowspan="3">Sixty-four units of life force.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35962"></span>8C7A</td>
+<td class="instruction">LD A,($5E28)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35965"></span>8C7D</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35966"></span>8C7E</td>
+<td class="instruction">JR C,<a href="35939.html#35972">EAT_FOOD_1</a></td>
+<td class="comment-1" rowspan="3">Cap it, catching both the carry and the limit...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35968"></span>8C80</td>
+<td class="instruction">CP $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35970"></span>8C82</td>
+<td class="instruction">JR C,<a href="35939.html#35974">EAT_FOOD_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">EAT_FOOD_1</td>
+<td class="address-2"><span id="35972"></span>8C84</td>
+<td class="instruction">LD A,$F0</td>
+<td class="comment-1" rowspan="1">...at $F0, just short of a full bar.</td>
+</tr>
+<tr>
+<td class="asm-label">EAT_FOOD_2</td>
+<td class="address-2"><span id="35974"></span>8C86</td>
+<td class="instruction">LD ($5E28),A</td>
+<td class="comment-1" rowspan="1">Store it and redraw the roast on the scroll.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35977"></span>8C89</td>
+<td class="instruction">JP <a href="35722.html">DRAW_FOOD</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35929.html">8C59</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35939">Map</a></td>
+<td class="next">
+Next: <a href="35980.html">8C8C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>

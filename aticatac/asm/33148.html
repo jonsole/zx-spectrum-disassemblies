@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Atic Atac: Routine at 817C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Atic Atac</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33099.html">814B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33148">Map</a></td>
+<td class="next">
+Next: <a href="33243.html">81DB</a>
+</td>
+</tr>
+</table>
+<div class="description">817C: Launch the player's weapon</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Sets the weapon's velocity from the direction the player is facing: +4, -4 or nothing on each axis, taken from the sign of +$06 and +$07. A shot therefore travels four pixels a frame along whichever axes the player was moving on, and a diagonal shot moves on both.
+</div>
+<div class="paragraph">
+Confirmed live -- firing and reading the weapon's velocity field back gives exactly $04 and $FC, and the shot's x walks across the room four pixels at a time.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The player</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON</td>
+<td class="address-2"><span id="33148"></span>817C</td>
+<td class="instruction">LD HL,$EA9E</td>
+<td class="comment-1" rowspan="1">The weapon's velocity field, +$0E of the player's record.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33151"></span>817F</td>
+<td class="instruction">LD A,$30</td>
+<td class="comment-1" rowspan="2">Mark the weapon as in flight.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33153"></span>8181</td>
+<td class="instruction">LD ($EAA7),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33156"></span>8184</td>
+<td class="instruction">LD A,$00</td>
+<td class="comment-1" rowspan="2">And clear its contact flag.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33158"></span>8186</td>
+<td class="instruction">LD ($EA9A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33161"></span>8189</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="3">Standing still: nothing to fire along.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33164"></span>818C</td>
+<td class="instruction">OR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33167"></span>818F</td>
+<td class="instruction">JR Z,<a href="33148.html#33203">FIRE_WEAPON_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33169"></span>8191</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="3">Which way on this axis?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33172"></span>8194</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33173"></span>8195</td>
+<td class="instruction">JR Z,<a href="33148.html#33184">FIRE_WEAPON_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33175"></span>8197</td>
+<td class="instruction">JP M,<a href="33148.html#33182">FIRE_WEAPON_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33178"></span>819A</td>
+<td class="instruction">LD A,$04</td>
+<td class="comment-1" rowspan="2">Right or down.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33180"></span>819C</td>
+<td class="instruction">JR <a href="33148.html#33184">FIRE_WEAPON_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_0</td>
+<td class="address-2"><span id="33182"></span>819E</td>
+<td class="instruction">LD A,$FC</td>
+<td class="comment-1" rowspan="1">Left or up: $FC is minus four.</td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_1</td>
+<td class="address-2"><span id="33184"></span>81A0</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="2">Store it and do the other axis the same way.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33185"></span>81A1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33186"></span>81A2</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33189"></span>81A5</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33190"></span>81A6</td>
+<td class="instruction">JR Z,<a href="33148.html#33201">FIRE_WEAPON_3</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33192"></span>81A8</td>
+<td class="instruction">JP M,<a href="33148.html#33199">FIRE_WEAPON_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33195"></span>81AB</td>
+<td class="instruction">LD A,$04</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33197"></span>81AD</td>
+<td class="instruction">JR <a href="33148.html#33201">FIRE_WEAPON_3</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_2</td>
+<td class="address-2"><span id="33199"></span>81AF</td>
+<td class="instruction">LD A,$FC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_3</td>
+<td class="address-2"><span id="33201"></span>81B1</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33202"></span>81B2</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_4</td>
+<td class="address-2"><span id="33203"></span>81B3</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33206"></span>81B6</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33207"></span>81B7</td>
+<td class="instruction">AND $0C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33209"></span>81B9</td>
+<td class="instruction">JR Z,<a href="33148.html#33225">FIRE_WEAPON_5</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33211"></span>81BB</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33213"></span>81BD</td>
+<td class="instruction">JR Z,<a href="33148.html#33231">FIRE_WEAPON_6</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33215"></span>81BF</td>
+<td class="instruction">CP $08</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33217"></span>81C1</td>
+<td class="instruction">JR NZ,<a href="33148.html#33237">FIRE_WEAPON_7</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33219"></span>81C3</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33221"></span>81C5</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33222"></span>81C6</td>
+<td class="instruction">LD (HL),$FC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33224"></span>81C8</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_5</td>
+<td class="address-2"><span id="33225"></span>81C9</td>
+<td class="instruction">LD (HL),$FC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33227"></span>81CB</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33228"></span>81CC</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33230"></span>81CE</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_6</td>
+<td class="address-2"><span id="33231"></span>81CF</td>
+<td class="instruction">LD (HL),$04</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33233"></span>81D1</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33234"></span>81D2</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33236"></span>81D4</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_WEAPON_7</td>
+<td class="address-2"><span id="33237"></span>81D5</td>
+<td class="instruction">LD (HL),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33239"></span>81D7</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33240"></span>81D8</td>
+<td class="instruction">LD (HL),$04</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33242"></span>81DA</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33099.html">814B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33148">Map</a></td>
+<td class="next">
+Next: <a href="33243.html">81DB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 A.C.G. (Ultimate Play The Game)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_aticatac.py</code>.</div>
+</footer>
+</body>
+</html>
