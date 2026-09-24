@@ -1080,6 +1080,12 @@ def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
         spans.append((address, address + length))
         lines.append("@ $%04X label=ROOM_LIST_%02X" % (address, room))
         lines.append("b $%04X What is in room $%02X" % (address, room))
+        # Drawn by the game on every --html build (render_rooms); only the
+        # HTML shows it.
+        lines.append("D $%04X #HTML(<img src=\"../images/rooms/room%02X.png\" width=\"384\" "
+                     "height=\"384\" style=\"image-rendering: pixelated\" alt=\"Room $%02X\"/>"
+                     "<br/>As a new game sets it out, drawn by the game itself.)"
+                     % (address, room, room))
         if count:
             lines.append("D $%04X %d record%s, then a zero to end the list. "
                          "Add $8A83 to each to get where it ends up at run "
@@ -2281,7 +2287,7 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
     misfit_records = {d["record"] for d in misfits} | {d["record"] ^ 8 for d in misfits}
     lists = {r: memory[ROOM_CONTENTS + 2 * r] | (memory[ROOM_CONTENTS + 2 * r + 1] << 8)
              for r in range(ROOM_LIST_ENTRIES)}
-    cell, box = 84, 60
+    cell, box = 124, 96
     names = {2: "Floor 2, the top", 1: "Floor 1", 0: "Floor 0, where the game starts",
              -1: "Floor -1", -2: "Floor -2: the caverns"}
 
@@ -2294,20 +2300,16 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
         ink = colour(room)
         title = (f"Room ${room:02X}: {shape['name'].lower() if shape else 'no outline'}, "
                  f"floor {floor[room]}")
+        # The room as the game draws it, with what is in it (render_rooms),
+        # and its number in the corner.
         parts = [f'<a href="asm/{lists[room]}.html"><g><title>{html.escape(title)}</title>',
                  f'<rect x="{x}" y="{y}" width="{box}" height="{box}" fill="#000000" '
-                 f'stroke="#2a2a60" stroke-width="1"/>']
-        if shape:
-            scale = (box - 8) / 192
-            for group in shape["groups"]:
-                x0, y0 = shape["points"][group[0]]
-                for vertex in group[1:]:
-                    x1, y1 = shape["points"][vertex]
-                    parts.append(f'<line x1="{x + 4 + x0 * scale:.1f}" y1="{y + 4 + y0 * scale:.1f}" '
-                                 f'x2="{x + 4 + x1 * scale:.1f}" y2="{y + 4 + y1 * scale:.1f}" '
-                                 f'stroke="{ink}" stroke-width="1"/>')
-        parts.append(f'<text x="{x + box / 2}" y="{y + box / 2 + 4}" text-anchor="middle" '
-                     f'font-size="11" fill="#ffffff">{room:02X}</text>')
+                 f'stroke="{ink}" stroke-width="1"/>',
+                 f'<image href="{ROOM_IMAGES}/room{room:02X}.png" x="{x}" y="{y}" '
+                 f'width="{box}" height="{box}"/>',
+                 f'<text x="{x + 3}" y="{y + 11}" '
+                 f'font-size="11" fill="#ffffff" stroke="#000000" stroke-width="3" '
+                 f'paint-order="stroke">{room:02X}</text>']
         if room == 0:
             parts.append(f'<text x="{x + box - 3}" y="{y + 12}" text-anchor="end" '
                          f'font-size="12" fill="#f0f050">&#9733;</text>')
@@ -2317,8 +2319,9 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
                       and (floor[d["to"]] != floor[room] or d["record"] in misfit_records)})
         for i, to in enumerate(off[:3]):
             arrow = "&#9650;" if floor[to] > floor[room] else "&#9660;" if floor[to] < floor[room] else "&#8646;"
-            parts.append(f'<text x="{x + 3}" y="{y + box - 4 - 10 * i}" font-size="9" '
-                         f'fill="#e8e8f4">{arrow}{to:02X}</text>')
+            parts.append(f'<text x="{x + 3}" y="{y + box - 4 - 11 * i}" font-size="10" '
+                         f'fill="#e8e8f4" stroke="#000000" stroke-width="3" paint-order="stroke">'
+                         f'{arrow}{to:02X}</text>')
         parts.append("</g></a>")
         return "".join(parts)
 
@@ -2334,9 +2337,9 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
            "room it joins, and the wall it is on is in its own +$05. So each room "
            "is put beside the room it was reached from, on the side of the door, "
            "and a staircase or a trapdoor takes it to another floor. Every room is "
-           "drawn in its own outline and colour, from ROOM_TABLE and ROOM_SHAPES, "
-           "and links to its list. &#9733; is room $00, where a new game puts the "
-           "player.</p>",
+           "drawn by the game itself, with what is in it as a new game sets it out, "
+           "and links to its list, where it is shown larger. &#9733; is room $00, "
+           "where a new game puts the player.</p>",
            "<p>Doors are grey, locked doors their colour, and the knight's clocks, "
            "the wizard's bookcases and the serf's barrels dashed. &#9650; and "
            "&#9660; mark the way to another floor, by stairs or trapdoor, with the "
@@ -2394,6 +2397,62 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
          f"{len(doors) // 2} doors, {len(misfits)} that do not fit")
 
 
+ROOM_IMAGES = "images/rooms"
+
+
+def render_rooms(snapshot: Path, out_dir: Path) -> None:
+    """Every room as a new game sets it out, drawn by the game itself.
+
+    A game is started from the title screen the way the code map's playthrough
+    starts one. Then, for each room in turn, from that same moment: the room
+    goes into $EA91, the player's sprite byte becomes 0 -- INERT_SPRITE, which
+    draws nothing, so the player is not in the picture -- and ENTER_ROOM's
+    redraw runs on into MAIN_LOOP for 0.4 seconds of the game's time. The loop
+    draws what is in the room itself: the doors and furniture from its list,
+    and every object whose room is this one. Nothing is reimplemented; what is
+    captured is the 24 by 24 cells of the play area, as the game left them.
+
+    Doors open and shut on a timer (SCAN_DOORS), and START_GAME writes a value
+    from the frame counter into the initial state (CYCLE_ROOM_COLOUR), so these
+    are one game's castle at its first moments.
+    """
+    from skoolkit import CSimulator, read_bin_file
+    from skoolkit.components import get_image_writer
+    from skoolkit.graphics import Frame, scr_udgs
+    from skoolkit.simulator import Simulator
+    from skoolkit.simutils import PC, T
+    from skoolkit.snapshot import Snapshot
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    key_tracer_class = _key_tracer_class()
+    memory = list(Snapshot.get(str(snapshot)).memory)
+    memory[:0x4000] = read_bin_file(str(ROM))
+    simulator = (CSimulator or Simulator)(memory, state={"iff": 0, "im": 1, "tstates": 0})
+    tracer = key_tracer_class(simulator)
+    simulator.set_tracer(tracer)
+    control, character, _ = SESSIONS[0]
+    pc = ENTRY
+    for keys, seconds in [([], 3.0), ([control], 0.3), ([], 0.5), ([character], 0.3),
+                          ([], 0.5), (["0"], 0.3), ([], 3.0)]:
+        tracer.keys = set(keys)
+        simulator.trace(pc, 0, 0, simulator.registers[T] + int(seconds * TSTATES_PER_SECOND),
+                        True, None, None, None, None, None)
+        pc = simulator.registers[PC]
+    started = list(simulator.memory)
+    writer = get_image_writer()
+    _log(f"Drawing all {ROOM_LIST_ENTRIES} rooms with what is in them...")
+    for room in range(ROOM_LIST_ENTRIES):
+        machine = (CSimulator or Simulator)(list(started), state={"iff": 1, "im": 1, "tstates": 0})
+        machine.set_tracer(key_tracer_class(machine))
+        machine.memory[CURRENT_ROOM] = room
+        machine.memory[CURRENT_ROOM - 1] = 0      # the player's sprite: nothing
+        machine.registers[24] = STACK
+        machine.trace(REDRAW_ROOM, 0, 0, int(0.4 * TSTATES_PER_SECOND),
+                      True, None, None, None, None, None)
+        with open(out_dir / ("room%02X.png" % room), "wb") as f:
+            writer.write_image([Frame(scr_udgs(machine.memory, 0, 0, 24, 24), 2)], f)
+
+
 def build_html(skool: Path, out: Path, tape: Path) -> None:
     """Render the skool file as a browsable HTML disassembly.
 
@@ -2425,6 +2484,7 @@ def build_html(skool: Path, out: Path, tape: Path) -> None:
         tape, out / "aticatac" / "images" / "loading")
     write_graphics_ref(snapshot, graphics_ref, has_screen)
     args.append(str(graphics_ref))
+    render_rooms(snapshot, out / "aticatac" / ROOM_IMAGES)
     map_ref = OUT_DIR / "aticatac-map.ref"
     write_map_ref(snapshot, shapes, map_ref)
     args.append(str(map_ref))
