@@ -35,11 +35,13 @@ Characters
 Actions
 
 [Index:Reference:Reference]
+Patches
 Bugs
 Credits
 
 [Paths]
 HowItWorks=reference/how-it-works.html
+Patches=reference/patches.html
 Map=reference/map.html
 Locations=reference/locations.html
 Objects=reference/objects.html
@@ -50,6 +52,7 @@ Credits=reference/credits.html
 
 [Titles]
 HowItWorks=How it works
+Patches=Patches
 Map=Map
 Locations=Locations
 Objects=Objects
@@ -60,6 +63,7 @@ Credits=Credits
 
 [PageHeaders]
 HowItWorks=How the game works
+Patches=Patches
 Map=The map
 Locations=The locations, and their pictures
 Objects=The objects
@@ -70,6 +74,7 @@ Credits=Credits
 
 [Links]
 HowItWorks=How it works
+Patches=Patches
 Map=Map
 Locations=Locations
 Objects=Objects
@@ -239,6 +244,33 @@ Either way the game starts again without reloading. At the very start #R$6C00(ST
 Each picture is a program for #R$7FA7(RUN_PICTURE), found through the picture table at #R$CC00(PICTURE_TABLE); each picture's own page here shows it being drawn, at the speed the game draws it. The stream starts with a border colour and the picture area's colours, then: move the pen, draw a line (two bytes: direction, length and a Bresenham step), flood-fill a region in a colour, or paint a path of attribute cells; $00 ends it.
 
 The flood fill (#R$8071(FLOOD_FILL)) keeps its queue of seed points on the machine stack and tests every pixel from each side it can be reached from, which is why the pictures fill so slowly. Holding N at the title screen turns the pictures off (#R$B707(PICTURES_ON)), and in the dark the canvas is blacked out instead of drawn (#R$820B(CLEAR_CANVAS)).
+
+The same pictures can be drawn four times faster without changing a pixel of them: see <a href="patches.html">Patches</a>.
+
+[Page:Patches]
+SectionPrefix=Patch
+
+[Patch:fastdraw:Pictures four times faster]
+Entering a new place stops the game for as long as its picture takes to draw -- nearly seven seconds for Bag End, the first thing a game shows, and almost twelve for the slowest. <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_fast_draw.s">patches/hobbit_fast_draw.s</a> draws every picture about four times faster, and draws each one exactly as the original does.
+
+#INCLUDE(FastDraw)
+
+<b>Why it was slow.</b> Both drawing routines, #R$8151(DRAW_LINE) and #R$8071(FLOOD_FILL), step a point one pixel at a time, so they always know where the next pixel is -- and then work its screen address out again from the coordinates, through #R$81DE(PIXEL_ADDRESS), which rotates a bit into place one position at a time. The fill does that four times for every pixel it fills: the pixel above, the pixel below, the pixel itself and the next one along. Measured in the simulator, PIXEL_ADDRESS is 52% of all the time spent drawing.
+
+<b>What the patch does.</b> The same algorithms, in the same order, pushing the same fill seeds onto the stack; only the addressing changes. The screen address and the bit mask are carried along with the point and stepped with it -- a rotate of the mask to move across, the Spectrum's next-line and previous-line arithmetic to move up and down -- and worked out from scratch only where a line or a fill's sweep begins, with the mask from an eight-byte table. The line drawer keeps the address in the alternate registers, so the line's own logic is untouched. The attribute rule, that the ink is flipped where it would match the paper, is kept, with its three values written into the comparison once per line or fill.
+
+<b>Where it goes.</b> Nowhere new: the plotting code is rewritten in place, either side of the four ATTR_ routines RUN_PICTURE's paint command uses, which stay where they are, and what does not fit goes into special word slot 0's handler (#R$82FD), 148 bytes nothing can run. 427 bytes change, and the build refuses a patched game that differs anywhere else.
+
+<b>How it was checked.</b> Every one of the 22 pictures is drawn from the same machine in the original and the patched game, and the whole of memory is compared afterwards -- the screen, the attributes and every variable, not only what can be seen. All 22 are identical. The stack never goes deeper than the original's; it stays two to four bytes shallower in every picture.
+
+<table class="default">
+<tr><th></th><th>Original</th><th>Patched</th></tr>
+<tr><td>Bag End</td><td>6.7 s</td><td>1.7 s</td></tr>
+<tr><td>The slowest picture (location 6)</td><td>11.7 s</td><td>2.9 s</td></tr>
+<tr><td>All 22 pictures</td><td>126.1 s</td><td>33.1 s</td></tr>
+</table>
+
+<b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.
 
 [Page:Bugs]
 SectionPrefix=Bug
