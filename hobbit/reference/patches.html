@@ -23,8 +23,11 @@
 Entering a new place stops the game for as long as its picture takes to draw -- nearly seven seconds for Bag End, the first thing a game shows, and almost twelve for the slowest. <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_fast_draw.s">patches/hobbit_fast_draw.s</a> draws every picture about four times faster, and draws each one exactly as the original does.
 </div>
 <div class="paragraph">
-<video src="../videos/bag_end_side_by_side.mp4" controls loop muted playsinline style="max-width: 100%; image-rendering: pixelated"></video>
-<p>Recorded on the emulator at real speed, from the title screen: the original on the left, patched on the right.</p>
+<p><img src="../videos/bag_end_side_by_side.gif" alt="Bag End, from the title screen: 6.7 s, and 1.7 s patched." style="max-width: 100%; image-rendering: pixelated"><br>Bag End, from the title screen: 6.7 s, and 1.7 s patched.</p>
+<p><img src="../videos/location6_side_by_side.gif" alt="Location 6, the hidden path with trolls' footprints, the slowest picture in the game: 11.7 s, and 2.9 s patched." style="max-width: 100%; image-rendering: pixelated"><br>Location 6, the hidden path with trolls' footprints, the slowest picture in the game: 11.7 s, and 2.9 s patched.</p>
+<p><img src="../videos/location4_side_by_side.gif" alt="Location 4, the lonelands, the second slowest: 11.5 s, and 2.8 s patched." style="max-width: 100%; image-rendering: pixelated"><br>Location 4, the lonelands, the second slowest: 11.5 s, and 2.8 s patched.</p>
+<p><img src="../videos/location39_side_by_side.gif" alt="Location 39, the front gate, the third slowest: 10.4 s, and 2.6 s patched." style="max-width: 100%; image-rendering: pixelated"><br>Location 39, the front gate, the third slowest: 10.4 s, and 2.6 s patched.</p>
+<p>Recorded on the emulator at real speed, the original on the left and the patched game on the right; each loops once its picture is done.</p>
 </div>
 <div class="paragraph">
 <b>Why it was slow.</b> Both drawing routines, <a href="../asm/33105.html">DRAW_LINE</a> and <a href="../asm/32881.html">FLOOD_FILL</a>, step a point one pixel at a time, so they always know where the next pixel is -- and then work its screen address out again from the coordinates, through <a href="../asm/33246.html">PIXEL_ADDRESS</a>, which rotates a bit into place one position at a time. The fill does that four times for every pixel it fills: the pixel above, the pixel below, the pixel itself and the next one along. Measured in the simulator, PIXEL_ADDRESS is 52% of all the time spent drawing.
@@ -43,6 +46,7 @@ Entering a new place stops the game for as long as its picture takes to draw -- 
 <tr><th></th><th>Original</th><th>Patched</th></tr>
 <tr><td>Bag End</td><td>6.7 s</td><td>1.7 s</td></tr>
 <tr><td>The slowest picture (location 6)</td><td>11.7 s</td><td>2.9 s</td></tr>
+<tr><td>The next two (locations 4 and 39)</td><td>11.5 s, 10.4 s</td><td>2.8 s, 2.6 s</td></tr>
 <tr><td>All 22 pictures</td><td>126.1 s</td><td>33.1 s</td></tr>
 </table>
 </div>
