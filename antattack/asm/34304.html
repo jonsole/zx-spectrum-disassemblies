@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8600</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34302.html">85FE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34304">Map</a></td>
+<td class="next">
+Next: <a href="34433.html">8681</a>
+</td>
+</tr>
+</table>
+<div class="description">8600: Work out where each object falls in PLANES</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+For each object, last to first, its position relative to <a href="46112.html">VIEW_ORIGIN</a> is turned for the view and projected: the half-row is v - u - 2h and the column (u + v) / 2, where u and v are the turned coordinates and h the height. The place is height x 512 + half-row x 16 + column -- the height counting a whole pass of <a href="34048.html">DRAW_SCENE</a> -- and it goes into <a href="46160.html">SPRITE_LIST</a> with the sprite frame: the object's first frame, plus four times its animation frame, plus its facing relative to the view.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES</td>
+<td class="address-2"><span id="34304"></span>8600</td>
+<td class="instruction">LD IX,<a href="46208.html#46320">ANT5</a></td>
+<td class="comment-1" rowspan="4">From the fifth ant back to the player; eight objects.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34308"></span>8604</td>
+<td class="instruction">LD DE,(<a href="46112.html">VIEW_ORIGIN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34312"></span>8608</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34314"></span>860A</td>
+<td class="instruction">LD HL,<a href="46160.html">SPRITE_LIST</a></td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_0</td>
+<td class="address-2"><span id="34317"></span>860D</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34318"></span>860E</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34319"></span>860F</td>
+<td class="instruction">LD B,(IX+$02)</td>
+<td class="comment-1" rowspan="1">Its height.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34322"></span>8612</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">Its position relative to the view's origin.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34325"></span>8615</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34326"></span>8616</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34327"></span>8617</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34330"></span>861A</td>
+<td class="instruction">SUB D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34331"></span>861B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34332"></span>861C</td>
+<td class="instruction">LD A,(<a href="46112.html#46114">VIEW</a>)</td>
+<td class="comment-1" rowspan="20">Turn it for the view: swap x and y for views 1 and 3, and negate as the view needs.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34335"></span>861F</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34336"></span>8620</td>
+<td class="instruction">JR NC,<a href="34304.html#34349">PROJECT_SPRITES_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34338"></span>8622</td>
+<td class="instruction">LD C,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34339"></span>8623</td>
+<td class="instruction">LD H,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34340"></span>8624</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34341"></span>8625</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34342"></span>8626</td>
+<td class="instruction">JR NC,<a href="34304.html#34355">PROJECT_SPRITES_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34344"></span>8628</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34345"></span>8629</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34346"></span>862A</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34347"></span>862B</td>
+<td class="instruction">JR <a href="34304.html#34359">PROJECT_SPRITES_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_1</td>
+<td class="address-2"><span id="34349"></span>862D</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34350"></span>862E</td>
+<td class="instruction">JR NC,<a href="34304.html#34358">PROJECT_SPRITES_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34352"></span>8630</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34353"></span>8631</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34354"></span>8632</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_2</td>
+<td class="address-2"><span id="34355"></span>8633</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34356"></span>8634</td>
+<td class="instruction">SUB H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34357"></span>8635</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_3</td>
+<td class="address-2"><span id="34358"></span>8636</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">Raise it by its height.</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_4</td>
+<td class="address-2"><span id="34359"></span>8637</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34360"></span>8638</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34361"></span>8639</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34362"></span>863A</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34363"></span>863B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34364"></span>863C</td>
+<td class="instruction">SUB L</td>
+<td class="comment-1" rowspan="4">The half-row, 0-31, or out of view.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34365"></span>863D</td>
+<td class="instruction">JP PE,<a href="34298.html">OFF_VIEW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34368"></span>8640</td>
+<td class="instruction">CP $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34370"></span>8642</td>
+<td class="instruction">JR NC,<a href="34298.html">OFF_VIEW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34372"></span>8644</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="6">Times 16, with the height above it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34373"></span>8645</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34374"></span>8646</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34375"></span>8647</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34377"></span>8649</td>
+<td class="instruction">RL B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34379"></span>864B</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34380"></span>864C</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="5">The column, 0-31 before halving, or out of view.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34381"></span>864D</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34382"></span>864E</td>
+<td class="instruction">JP PE,<a href="34298.html">OFF_VIEW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34385"></span>8651</td>
+<td class="instruction">CP $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34387"></span>8653</td>
+<td class="instruction">JR NC,<a href="34298.html">OFF_VIEW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34389"></span>8655</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="5">Into the place, plus one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34390"></span>8656</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34391"></span>8657</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34392"></span>8658</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34393"></span>8659</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="34394"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="34298.html">OFF_VIEW</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_5</td>
+<td class="address-2"><span id="34394"></span>865A</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="5">Store the place.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34395"></span>865B</td>
+<td class="instruction">LD (HL),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34396"></span>865C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34397"></span>865D</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34398"></span>865E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34399"></span>865F</td>
+<td class="instruction">LD A,(<a href="46112.html#46114">VIEW</a>)</td>
+<td class="comment-1" rowspan="4">The facing relative to the view.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34402"></span>8662</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34405"></span>8665</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34407"></span>8667</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34408"></span>8668</td>
+<td class="instruction">LD A,(IX+$08)</td>
+<td class="comment-1" rowspan="3">Bit 7 set: the frame outright...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34411"></span>866B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34412"></span>866C</td>
+<td class="instruction">JP M,<a href="34304.html#34421">PROJECT_SPRITES_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34415"></span>866F</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="4">...otherwise the first frame, plus four times the animation frame, plus the facing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34416"></span>8670</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34417"></span>8671</td>
+<td class="instruction">ADD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34420"></span>8674</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_SPRITES_6</td>
+<td class="address-2"><span id="34421"></span>8675</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34422"></span>8676</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34423"></span>8677</td>
+<td class="instruction">LD BC,$FFF0</td>
+<td class="comment-1" rowspan="2">The object before.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34426"></span>867A</td>
+<td class="instruction">ADD IX,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34428"></span>867C</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34429"></span>867D</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34430"></span>867E</td>
+<td class="instruction">JR NZ,<a href="34304.html#34317">PROJECT_SPRITES_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34432"></span>8680</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34302.html">85FE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34304">Map</a></td>
+<td class="next">
+Next: <a href="34433.html">8681</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

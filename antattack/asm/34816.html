@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8800</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34805.html">87F5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34816">Map</a></td>
+<td class="next">
+Next: <a href="34903.html">8857</a>
+</td>
+</tr>
+</table>
+<div class="description">8800: Move an object one frame: fall, climb, jump, walk</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The physics for everything. Nothing is solid but the map, and ants put themselves in the map (<a href="35136.html">TOGGLE_MAP_BIT</a>), so walking into an ant is walking into a wall -- and an ant arriving in someone's cell is a bite.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_OBJECT</td>
+<td class="address-2"><span id="34816"></span>8800</td>
+<td class="instruction">LD L,(IX+$00)</td>
+<td class="comment-1" rowspan="3">Where it is.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34819"></span>8803</td>
+<td class="instruction">LD H,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34822"></span>8806</td>
+<td class="instruction">LD C,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34825"></span>8809</td>
+<td class="instruction">LD D,H</td>
+<td class="comment-1" rowspan="6">Anything to stand on? If not, fall.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34826"></span>880A</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34827"></span>880B</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34828"></span>880C</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34829"></span>880D</td>
+<td class="instruction">CALL <a href="35165.html">TEST_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34832"></span>8810</td>
+<td class="instruction">JP NC,<a href="34944.html">FALL</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="34835"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="34944.html">FALL</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_OBJECT_0</td>
+<td class="address-2"><span id="34835"></span>8813</td>
+<td class="instruction">LD D,H</td>
+<td class="comment-1" rowspan="5">Something in this very cell: bitten, and pushed up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34836"></span>8814</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34837"></span>8815</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34838"></span>8816</td>
+<td class="instruction">CALL <a href="35104.html">TEST_MAP_BIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34841"></span>8819</td>
+<td class="instruction">JP C,<a href="34976.html">BITTEN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34844"></span>881C</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="3">Stunned: count it down.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34847"></span>881F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34848"></span>8820</td>
+<td class="instruction">JP NZ,<a href="34992.html">STUNNED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34851"></span>8823</td>
+<td class="instruction">LD A,(IX+$05)</td>
+<td class="comment-1" rowspan="3">Just landed from a fall.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34854"></span>8826</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34856"></span>8828</td>
+<td class="instruction">JP NC,<a href="34912.html">LANDED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34859"></span>882B</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Standing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34860"></span>882C</td>
+<td class="instruction">LD (IX+$05),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34863"></span>882F</td>
+<td class="instruction">BIT 1,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Jump.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34867"></span>8833</td>
+<td class="instruction">JP NZ,<a href="35024.html">RISE</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="34870"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="34944.html">FALL</a> and <a href="35024.html">RISE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_OBJECT_1</td>
+<td class="address-2"><span id="34870"></span>8836</td>
+<td class="instruction">BIT 2,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Walk forward, if moving...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34874"></span>883A</td>
+<td class="instruction">JP Z,<a href="34816.html#34902">MOVE_OBJECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34877"></span>883D</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="6">...a cell the way it faces...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34880"></span>8840</td>
+<td class="instruction">CALL <a href="35072.html">STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34883"></span>8843</td>
+<td class="instruction">LD D,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34884"></span>8844</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34885"></span>8845</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34886"></span>8846</td>
+<td class="instruction">CALL <a href="35104.html">TEST_MAP_BIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34889"></span>8849</td>
+<td class="instruction">JP C,<a href="35040.html">STEP_UP</a></td>
+<td class="comment-1" rowspan="1">...unless the way is blocked.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34892"></span>884C</td>
+<td class="instruction">LD (IX+$00),L</td>
+<td class="comment-1" rowspan="3">A step.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34895"></span>884F</td>
+<td class="instruction">LD (IX+$01),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34898"></span>8852</td>
+<td class="instruction">LD (IX+$0F),$01</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_OBJECT_2</td>
+<td class="address-2"><span id="34902"></span>8856</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34805.html">87F5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34816">Map</a></td>
+<td class="next">
+Next: <a href="34903.html">8857</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

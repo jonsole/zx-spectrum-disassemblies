@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8A00</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35324.html">89FC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35328">Map</a></td>
+<td class="next">
+Next: <a href="35420.html">8A5C</a>
+</td>
+</tr>
+</table>
+<div class="description">8A00: Move an ant towards the player</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The ant is taken out of the map, moved, and put back. If the move brought it closer to the player it walks on (and, within four cells, turns to face the player); otherwise it stops and turns a random way.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_ANT</td>
+<td class="address-2"><span id="35328"></span>8A00</td>
+<td class="instruction">LD D,(IX+$01)</td>
+<td class="comment-1" rowspan="5">Out of the map...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35331"></span>8A03</td>
+<td class="instruction">LD E,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35334"></span>8A06</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35335"></span>8A07</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35338"></span>8A0A</td>
+<td class="instruction">CALL <a href="35136.html">TOGGLE_MAP_BIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35341"></span>8A0D</td>
+<td class="instruction">CALL <a href="35280.html">MOVE_OR_RESPAWN</a></td>
+<td class="comment-1" rowspan="1">Move it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35344"></span>8A10</td>
+<td class="instruction">LD H,(IX+$01)</td>
+<td class="comment-1" rowspan="6">...and back in where it is now.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35347"></span>8A13</td>
+<td class="instruction">LD L,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35350"></span>8A16</td>
+<td class="instruction">LD D,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35351"></span>8A17</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35352"></span>8A18</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35355"></span>8A1B</td>
+<td class="instruction">CALL <a href="35136.html">TOGGLE_MAP_BIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35358"></span>8A1E</td>
+<td class="instruction">LD D,(IY+$01)</td>
+<td class="comment-1" rowspan="7">Its distance from the player, now and before.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35361"></span>8A21</td>
+<td class="instruction">LD E,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35364"></span>8A24</td>
+<td class="instruction">CALL <a href="35456.html">DISTANCE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35367"></span>8A27</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35368"></span>8A28</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35369"></span>8A29</td>
+<td class="instruction">CALL <a href="35456.html">DISTANCE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35372"></span>8A2C</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35373"></span>8A2D</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35374"></span>8A2E</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35375"></span>8A2F</td>
+<td class="instruction">JR NC,<a href="35328.html#35403">MOVE_ANT_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35377"></span>8A31</td>
+<td class="instruction">LD A,(IX+$08)</td>
+<td class="comment-1" rowspan="4">Closer: walk.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35380"></span>8A34</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35381"></span>8A35</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35383"></span>8A37</td>
+<td class="instruction">LD (IX+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35386"></span>8A3A</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="7">Within four: face the player.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35387"></span>8A3B</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35389"></span>8A3D</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35390"></span>8A3E</td>
+<td class="instruction">LD H,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35393"></span>8A41</td>
+<td class="instruction">LD L,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35396"></span>8A44</td>
+<td class="instruction">CALL <a href="35473.html">DIRECTION_TO</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35399"></span>8A47</td>
+<td class="instruction">LD (IX+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35402"></span>8A4A</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_ANT_0</td>
+<td class="address-2"><span id="35403"></span>8A4B</td>
+<td class="instruction">LD (IX+$08),$00</td>
+<td class="comment-1" rowspan="7">No closer: stop, and turn left or right at random.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35407"></span>8A4F</td>
+<td class="instruction">CALL <a href="33632.html">RANDOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35410"></span>8A52</td>
+<td class="instruction">JR C,<a href="35328.html#35416">MOVE_ANT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35412"></span>8A54</td>
+<td class="instruction">INC (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35415"></span>8A57</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_ANT_1</td>
+<td class="address-2"><span id="35416"></span>8A58</td>
+<td class="instruction">DEC (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35419"></span>8A5B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35324.html">89FC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35328">Map</a></td>
+<td class="next">
+Next: <a href="35420.html">8A5C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8E0D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36363.html">8E0B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36365">Map</a></td>
+<td class="next">
+Next: <a href="36480.html">8E80</a>
+</td>
+</tr>
+</table>
+<div class="description">8E0D: Run a script: text, sound and colour</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Every message the machine code shows and every sound it makes is a script in <a href="36864.html">SCRIPTS</a>: the Dth record there, counting the $FF that ends each. The first byte is a stream to print to (2, the upper screen); then, until $FF:
+</div>
+<div class="paragraph">
+$80-$FF: a sound -- bits 0-3 a note from <a href="35761.html">TONES</a>, $0F meaning noise, and bits 4-6 one less than how many times. $7D: the next byte is an attribute to fill the play area with. $7E: the next byte is the low byte of the address of a two-byte number, in the variables, to print. Anything else is printed, control codes and all.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The script's number</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT</td>
+<td class="address-2"><span id="36365"></span>8E0D</td>
+<td class="instruction">LD IY,<a href="23552.html#23610">ERR_NR</a></td>
+<td class="comment-1" rowspan="4">Find the Dth $FF from <a href="36864.html">SCRIPTS</a>...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36369"></span>8E11</td>
+<td class="instruction">LD HL,<a href="36864.html">SCRIPTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36372"></span>8E14</td>
+<td class="instruction">LD BC,$0800</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36375"></span>8E17</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_0</td>
+<td class="address-2"><span id="36377"></span>8E19</td>
+<td class="instruction">CPIR</td>
+<td class="comment-1" rowspan="4">...or give up after 2K.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36379"></span>8E1B</td>
+<td class="instruction">RET PO</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36380"></span>8E1C</td>
+<td class="instruction">DEC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36381"></span>8E1D</td>
+<td class="instruction">JR NZ,<a href="36365.html#36377">RUN_SCRIPT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36383"></span>8E1F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="2">IX = the script.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36384"></span>8E20</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36386"></span>8E22</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="7">Stream 1 or 2, or nothing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36389"></span>8E25</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36391"></span>8E27</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36392"></span>8E28</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36394"></span>8E2A</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36395"></span>8E2B</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36396"></span>8E2C</td>
+<td class="instruction">CALL $1601</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_1</td>
+<td class="address-2"><span id="36399"></span>8E2F</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">The next byte; $FF ends.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36402"></span>8E32</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36404"></span>8E34</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36406"></span>8E36</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36407"></span>8E37</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="2">A sound?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36408"></span>8E38</td>
+<td class="instruction">JP P,<a href="36365.html#36447">RUN_SCRIPT_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36411"></span>8E3B</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="8">D = how many times.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36412"></span>8E3C</td>
+<td class="instruction">AND $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36414"></span>8E3E</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36415"></span>8E3F</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36416"></span>8E40</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36417"></span>8E41</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36418"></span>8E42</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36419"></span>8E43</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36420"></span>8E44</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">E = the note; $0F is noise.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36421"></span>8E45</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36423"></span>8E47</td>
+<td class="instruction">CP $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36425"></span>8E49</td>
+<td class="instruction">JR Z,<a href="36365.html#36437">RUN_SCRIPT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_2</td>
+<td class="address-2"><span id="36427"></span>8E4B</td>
+<td class="instruction">PUSH AF</td>
+<td class="comment-1" rowspan="6">Play the note D times.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36428"></span>8E4C</td>
+<td class="instruction">CALL <a href="35712.html">TONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36431"></span>8E4F</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36432"></span>8E50</td>
+<td class="instruction">DEC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36433"></span>8E51</td>
+<td class="instruction">JR NZ,<a href="36365.html#36427">RUN_SCRIPT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36435"></span>8E53</td>
+<td class="instruction">JR <a href="36365.html#36399">RUN_SCRIPT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_3</td>
+<td class="address-2"><span id="36437"></span>8E55</td>
+<td class="instruction">LD B,$00</td>
+<td class="comment-1" rowspan="5">Or the noise.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36439"></span>8E57</td>
+<td class="instruction">CALL <a href="35658.html">NOISE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36442"></span>8E5A</td>
+<td class="instruction">DEC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36443"></span>8E5B</td>
+<td class="instruction">JR NZ,<a href="36365.html#36437">RUN_SCRIPT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36445"></span>8E5D</td>
+<td class="instruction">JR <a href="36365.html#36399">RUN_SCRIPT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_4</td>
+<td class="address-2"><span id="36447"></span>8E5F</td>
+<td class="instruction">CP $7E</td>
+<td class="comment-1" rowspan="2">$7E: a number.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36449"></span>8E61</td>
+<td class="instruction">JR Z,<a href="36365.html#36468">RUN_SCRIPT_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36451"></span>8E63</td>
+<td class="instruction">CP $7D</td>
+<td class="comment-1" rowspan="2">$7D: a colour.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36453"></span>8E65</td>
+<td class="instruction">JR Z,<a href="36365.html#36458">RUN_SCRIPT_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36455"></span>8E67</td>
+<td class="instruction">RST $10</td>
+<td class="comment-1" rowspan="2">Print anything else.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36456"></span>8E68</td>
+<td class="instruction">JR <a href="36365.html#36399">RUN_SCRIPT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_5</td>
+<td class="address-2"><span id="36458"></span>8E6A</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">Fill the play area with the colour.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36461"></span>8E6D</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36463"></span>8E6F</td>
+<td class="instruction">CALL <a href="35584.html">FILL_PLAY_ATTRIBUTES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36466"></span>8E72</td>
+<td class="instruction">JR <a href="36365.html#36399">RUN_SCRIPT_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">RUN_SCRIPT_6</td>
+<td class="address-2"><span id="36468"></span>8E74</td>
+<td class="instruction">LD L,(IX+$00)</td>
+<td class="comment-1" rowspan="4">Print the number whose address has the next byte as its low byte and $B4 as its high.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36471"></span>8E77</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36473"></span>8E79</td>
+<td class="instruction">LD H,$B4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36475"></span>8E7B</td>
+<td class="instruction">CALL $1A28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36478"></span>8E7E</td>
+<td class="instruction">JR <a href="36365.html#36399">RUN_SCRIPT_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36363.html">8E0B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36365">Map</a></td>
+<td class="next">
+Next: <a href="36480.html">8E80</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

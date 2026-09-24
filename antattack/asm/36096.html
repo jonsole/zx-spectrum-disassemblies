@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8D00</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35839.html">8BFF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36096">Map</a></td>
+<td class="next">
+Next: <a href="36244.html">8D94</a>
+</td>
+</tr>
+</table>
+<div class="description">8D00: Throw a grenade, or keep one flying</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+S, D, F and G throw, further along the keyboard throwing further: each key's bit is its flight time (2, 4, 8 or 16 frames). The grenade starts at the player and moves like anything else, a cell a frame; when the time runs out it explodes where it is.
+</div>
+<div class="paragraph">
+Every frame of the flight, not only the last, the grenade is checked against the player's cell and the rescued person's: if it is in either, they are blown up.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The grenade</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The player</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">THROW_GRENADE</td>
+<td class="address-2"><span id="36096"></span>8D00</td>
+<td class="instruction">LD A,(<a href="46112.html#46126">THROW_TIME</a>)</td>
+<td class="comment-1" rowspan="3">In flight.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36099"></span>8D03</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36100"></span>8D04</td>
+<td class="instruction">JR NZ,<a href="36096.html#36151">THROW_GRENADE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36102"></span>8D06</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">Still exploding.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36105"></span>8D09</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36106"></span>8D0A</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36107"></span>8D0B</td>
+<td class="instruction">LD BC,$FDFE</td>
+<td class="comment-1" rowspan="5">A to G: S, D, F or G.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36110"></span>8D0E</td>
+<td class="instruction">IN A,(C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36112"></span>8D10</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36113"></span>8D11</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36115"></span>8D13</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36116"></span>8D14</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1">C = the flight time.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36117"></span>8D15</td>
+<td class="instruction">LD A,(<a href="46112.html#46128">AMMO_LOW</a>)</td>
+<td class="comment-1" rowspan="5">None left, or one fewer.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36120"></span>8D18</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36121"></span>8D19</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36122"></span>8D1A</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36123"></span>8D1B</td>
+<td class="instruction">LD (<a href="46112.html#46128">AMMO_LOW</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36126"></span>8D1E</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="2">Launch.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36127"></span>8D1F</td>
+<td class="instruction">LD (<a href="46112.html#46126">THROW_TIME</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36130"></span>8D22</td>
+<td class="instruction">LD (IY+$08),$02</td>
+<td class="comment-1" rowspan="1">The player's throwing pose.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36134"></span>8D26</td>
+<td class="instruction">SET 2,(IX+$07)</td>
+<td class="comment-1" rowspan="1">The grenade moves...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36138"></span>8D2A</td>
+<td class="instruction">CALL <a href="33440.html">COPY_POSITION</a></td>
+<td class="comment-1" rowspan="1">...from where the player is...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36141"></span>8D2D</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">...and the count is reprinted.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36143"></span>8D2F</td>
+<td class="instruction">LD (<a href="46112.html#46125">GRENADE_EVENTS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36146"></span>8D32</td>
+<td class="instruction">LD (IX+$08),$F4</td>
+<td class="comment-1" rowspan="2">In flight it is drawn as frame $F4.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36150"></span>8D36</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">THROW_GRENADE_0</td>
+<td class="address-2"><span id="36151"></span>8D37</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="3">One frame less in the air...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36152"></span>8D38</td>
+<td class="instruction">LD (<a href="46112.html#46126">THROW_TIME</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36155"></span>8D3B</td>
+<td class="instruction">JR NZ,<a href="36096.html#36171">THROW_GRENADE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36157"></span>8D3D</td>
+<td class="instruction">LD A,$02</td>
+<td class="comment-1" rowspan="4">...and at the end, bang: explode and stop.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36159"></span>8D3F</td>
+<td class="instruction">LD (<a href="46112.html#46125">GRENADE_EVENTS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36162"></span>8D42</td>
+<td class="instruction">LD (IX+$09),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36166"></span>8D46</td>
+<td class="instruction">RES 2,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36170"></span>8D4A</td>
+<td class="instruction">NOP</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">THROW_GRENADE_1</td>
+<td class="address-2"><span id="36171"></span>8D4B</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="9">In the player's cell...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36174"></span>8D4E</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36177"></span>8D51</td>
+<td class="instruction">JR NZ,<a href="36096.html#36212">THROW_GRENADE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36179"></span>8D53</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36182"></span>8D56</td>
+<td class="instruction">CP (IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36185"></span>8D59</td>
+<td class="instruction">JR NZ,<a href="36096.html#36209">THROW_GRENADE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36187"></span>8D5B</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36190"></span>8D5E</td>
+<td class="instruction">CP (IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36193"></span>8D61</td>
+<td class="instruction">JR NZ,<a href="36096.html#36209">THROW_GRENADE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36195"></span>8D63</td>
+<td class="instruction">LD A,(IY+$09)</td>
+<td class="comment-1" rowspan="5">...blows the player up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36198"></span>8D66</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36199"></span>8D67</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36200"></span>8D68</td>
+<td class="instruction">LD (IY+$09),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36204"></span>8D6C</td>
+<td class="instruction">LD (IY+$0F),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36208"></span>8D70</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">THROW_GRENADE_2</td>
+<td class="address-2"><span id="36209"></span>8D71</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="9">In the rescued person's cell...</td>
+</tr>
+<tr>
+<td class="asm-label">THROW_GRENADE_3</td>
+<td class="address-2"><span id="36212"></span>8D74</td>
+<td class="instruction">CP (IY+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36215"></span>8D77</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36216"></span>8D78</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36219"></span>8D7B</td>
+<td class="instruction">CP (IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36222"></span>8D7E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36223"></span>8D7F</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36226"></span>8D82</td>
+<td class="instruction">CP (IY+$12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36229"></span>8D85</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36230"></span>8D86</td>
+<td class="instruction">LD A,(IY+$19)</td>
+<td class="comment-1" rowspan="5">...blows them up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36233"></span>8D89</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36234"></span>8D8A</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36235"></span>8D8B</td>
+<td class="instruction">LD (IY+$19),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36239"></span>8D8F</td>
+<td class="instruction">LD (IY+$1F),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36243"></span>8D93</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35839.html">8BFF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36096">Map</a></td>
+<td class="next">
+Next: <a href="36244.html">8D94</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

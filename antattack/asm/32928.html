@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 80A0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32919.html">8097</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32928">Map</a></td>
+<td class="next">
+Next: <a href="32979.html">80D3</a>
+</td>
+</tr>
+</table>
+<div class="description">80A0: Draw one sprite into the render buffer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+A sprite frame is 64 bytes: 16 rows of mask, graphic, mask, graphic. Frame f lives 64f bytes above <a href="32768.html">PLAY</a>, so the frame number is the address, less <a href="32768.html">PLAY</a>, divided by 64 -- the sprites are at <a href="39424.html">SPRITES</a> (frames $68-$7F) and <a href="46848.html">MORE_SPRITES</a> (frames $DC-$FF).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The frame byte of the sprite's entry in <a href="46160.html">SPRITE_LIST</a>; moved on one</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The sprite's place in <a href="46336.html">PLANES</a></td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The render buffer's row length less one ($1F)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE</td>
+<td class="address-2"><span id="32928"></span>80A0</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">BC = the row step.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32929"></span>80A1</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32930"></span>80A2</td>
+<td class="instruction">LD B,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32931"></span>80A3</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="2">The frame number.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32934"></span>80A6</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32936"></span>80A8</td>
+<td class="instruction">LD E,$00</td>
+<td class="comment-1" rowspan="8">DE = 64 x the frame number: the frame's first byte.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32938"></span>80AA</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32939"></span>80AB</td>
+<td class="instruction">RR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32941"></span>80AD</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32942"></span>80AE</td>
+<td class="instruction">RR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32944"></span>80B0</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32946"></span>80B2</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32948"></span>80B4</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32949"></span>80B5</td>
+<td class="instruction">CALL <a href="33072.html">PLANE_TO_BUFFER</a></td>
+<td class="comment-1" rowspan="1">HL = where the sprite goes in the render buffer.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32952"></span>80B8</td>
+<td class="instruction">LD A,$10</td>
+<td class="comment-1" rowspan="2">Sixteen rows.</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_0</td>
+<td class="address-2"><span id="32954"></span>80BA</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32955"></span>80BB</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="7">The left byte: mask out, then OR in the graphic...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32956"></span>80BC</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32957"></span>80BD</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32958"></span>80BE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32959"></span>80BF</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32960"></span>80C0</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32961"></span>80C1</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32962"></span>80C2</td>
+<td class="instruction">INC E</td>
+<td class="comment-1" rowspan="7">...and the right byte.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32963"></span>80C3</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32964"></span>80C4</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32965"></span>80C5</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32966"></span>80C6</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32967"></span>80C7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32968"></span>80C8</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32969"></span>80C9</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="2">Down a row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32970"></span>80CA</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32971"></span>80CB</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32972"></span>80CC</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32973"></span>80CD</td>
+<td class="instruction">JR NZ,<a href="32928.html#32954">DRAW_SPRITE_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32975"></span>80CF</td>
+<td class="instruction">LD E,C</td>
+<td class="comment-1" rowspan="3">Give DE back.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32976"></span>80D0</td>
+<td class="instruction">LD D,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32977"></span>80D1</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32978"></span>80D2</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32919.html">8097</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32928">Map</a></td>
+<td class="next">
+Next: <a href="32979.html">80D3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

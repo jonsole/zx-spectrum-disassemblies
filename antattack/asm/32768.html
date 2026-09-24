@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8000</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32218.html">7DDA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32768">Map</a></td>
+<td class="next">
+Next: <a href="32820.html">8034</a>
+</td>
+</tr>
+</table>
+<div class="description">8000: Play the game (USR 32768)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The machine code's main loop, called from BASIC line 700 (to draw the city before "READY WHEN YOU ARE") and line 720 (to play). It runs <a href="36480.html">GAME_FRAME</a>, <a href="36512.html">CHECK_RESCUED</a> and <a href="36560.html">CHECK_GAME_OVER</a> over and over, returning to BASIC when 1 is pressed (back to the city gate, and "Have another go!") or when <a href="46112.html#46136">FRAMES_LEFT</a> counts out.
+</div>
+<div class="paragraph">
+<a href="46112.html#46136">FRAMES_LEFT</a> is both the stop signal and a frame budget. BASIC pokes 2 into it before the first call, so that call draws two frames and returns; it is then 0, and the next call decrements that to $FF, which means "run until the game says stop" -- <a href="36560.html">CHECK_GAME_OVER</a> and <a href="36512.html">CHECK_RESCUED</a> stop it by storing a small count again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY</td>
+<td class="address-2"><span id="32768"></span>8000</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32769"></span>8001</td>
+<td class="instruction">LD HL,<a href="46160.html#46185">SPRITE_LIST_END</a></td>
+<td class="comment-1" rowspan="2">Mark the end of <a href="46160.html">SPRITE_LIST</a>, one byte past its eighth entry.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32772"></span>8004</td>
+<td class="instruction">LD (HL),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32774"></span>8006</td>
+<td class="instruction">CALL <a href="33252.html">PRINT_COUNTERS</a></td>
+<td class="comment-1" rowspan="1">Print the grenade count and both energies on the panel.</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_0</td>
+<td class="address-2"><span id="32777"></span>8009</td>
+<td class="instruction">LD BC,$F7FE</td>
+<td class="comment-1" rowspan="4">Key 1 (bit 0 of the 1-5 half-row, low when pressed)...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32780"></span>800C</td>
+<td class="instruction">IN A,(C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32782"></span>800E</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32784"></span>8010</td>
+<td class="instruction">JR NZ,<a href="32768.html#32788">PLAY_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32786"></span>8012</td>
+<td class="instruction">EI</td>
+<td class="comment-1" rowspan="2">...goes straight back to BASIC.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32787"></span>8013</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_1</td>
+<td class="address-2"><span id="32788"></span>8014</td>
+<td class="instruction">CALL <a href="36480.html">GAME_FRAME</a></td>
+<td class="comment-1" rowspan="1">One frame of the game: move everything, draw the view.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32791"></span>8017</td>
+<td class="instruction">CALL <a href="36512.html">CHECK_RESCUED</a></td>
+<td class="comment-1" rowspan="1">Have both left the city?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32794"></span>801A</td>
+<td class="instruction">CALL <a href="36560.html">CHECK_GAME_OVER</a></td>
+<td class="comment-1" rowspan="1">Out of time, or out of energy?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32797"></span>801D</td>
+<td class="instruction">LD A,(<a href="46112.html#46136">FRAMES_LEFT</a>)</td>
+<td class="comment-1" rowspan="3">$FF: keep playing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32800"></span>8020</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32802"></span>8022</td>
+<td class="instruction">JP Z,<a href="32768.html#32777">PLAY_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32805"></span>8025</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="3">Otherwise count a frame off, and stop at zero.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32806"></span>8026</td>
+<td class="instruction">LD (<a href="46112.html#46136">FRAMES_LEFT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32809"></span>8029</td>
+<td class="instruction">JP NZ,<a href="32768.html#32777">PLAY_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32812"></span>802C</td>
+<td class="instruction">LD A,(<a href="46112.html#46120">RANDOM_BITS</a>)</td>
+<td class="comment-1" rowspan="2">Leave the random number in SEED, for BASIC's RND.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32815"></span>802F</td>
+<td class="instruction">LD (<a href="23552.html#23670">SEED</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32818"></span>8032</td>
+<td class="instruction">EI</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32819"></span>8033</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32218.html">7DDA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32768">Map</a></td>
+<td class="next">
+Next: <a href="32820.html">8034</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

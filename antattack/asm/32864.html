@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8060</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32820.html">8034</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32864">Map</a></td>
+<td class="next">
+Next: <a href="32912.html">8090</a>
+</td>
+</tr>
+</table>
+<div class="description">8060: Read the movement keys into the player's record</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+V (move) and C (jump) become bits 2 and 1 of the flags at +7, in one go. SYMBOL SHIFT and M turn the player, but only when not stunned.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The player's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS</td>
+<td class="address-2"><span id="32864"></span>8060</td>
+<td class="instruction">LD BC,$FEFE</td>
+<td class="comment-1" rowspan="3">CAPS SHIFT to V, made active high: C is bit 3, V bit 4.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32867"></span>8063</td>
+<td class="instruction">IN A,(C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32869"></span>8065</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32870"></span>8066</td>
+<td class="instruction">AND $18</td>
+<td class="comment-1" rowspan="3">Down to bits 1 and 2: jump and move.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32872"></span>8068</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32873"></span>8069</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32874"></span>806A</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="5">Replace the player's jump and move bits with them.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32875"></span>806B</td>
+<td class="instruction">LD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32878"></span>806E</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32880"></span>8070</td>
+<td class="instruction">OR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32881"></span>8071</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32884"></span>8074</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="3">Stunned: no turning.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32887"></span>8077</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32888"></span>8078</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32889"></span>8079</td>
+<td class="instruction">LD B,$7F</td>
+<td class="comment-1" rowspan="4">SPACE to B: SYMBOL SHIFT is bit 1, M bit 2.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32891"></span>807B</td>
+<td class="instruction">IN A,(C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32893"></span>807D</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32894"></span>807E</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32896"></span>8080</td>
+<td class="instruction">CP $02</td>
+<td class="comment-1" rowspan="4">SYMBOL SHIFT alone: turn one way...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32898"></span>8082</td>
+<td class="instruction">JR NZ,<a href="32864.html#32904">READ_CONTROLS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32900"></span>8084</td>
+<td class="instruction">DEC (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32903"></span>8087</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_0</td>
+<td class="address-2"><span id="32904"></span>8088</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="3">...M alone: the other.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32906"></span>808A</td>
+<td class="instruction">JR NZ,<a href="32864.html#32911">READ_CONTROLS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="32908"></span>808C</td>
+<td class="instruction">INC (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_1</td>
+<td class="address-2"><span id="32911"></span>808F</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="32820.html">8034</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#32864">Map</a></td>
+<td class="next">
+Next: <a href="32912.html">8090</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8460</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33864.html">8448</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33888">Map</a></td>
+<td class="next">
+Next: <a href="33943.html">8497</a>
+</td>
+</tr>
+</table>
+<div class="description">8460: Scroll the view when the player nears its edge</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reads where the player was placed this frame (the last entry of <a href="46160.html">SPRITE_LIST</a>) and, if that is outside a central window of the view, steps <a href="46112.html">VIEW_ORIGIN</a> a cell in the direction the player is facing -- unless the player is jumping or falling. It takes effect next frame, since the view has already been gathered.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCROLL_VIEW</td>
+<td class="address-2"><span id="33888"></span>8460</td>
+<td class="instruction">LD DE,(<a href="46160.html#46181">PLAYER_SPRITE</a>)</td>
+<td class="comment-1" rowspan="4">Off the view altogether: leave it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33892"></span>8464</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33893"></span>8465</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33894"></span>8466</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33895"></span>8467</td>
+<td class="instruction">DEC DE</td>
+<td class="comment-1" rowspan="1">Undo the +1 <a href="34304.html">PROJECT_SPRITES</a> adds.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33896"></span>8468</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="5">Across: inside if the column is 4-11 of 16...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33897"></span>8469</td>
+<td class="instruction">SUB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33899"></span>846B</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33901"></span>846D</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33903"></span>846F</td>
+<td class="instruction">JR NC,<a href="33888.html#33919">SCROLL_VIEW_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33905"></span>8471</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="10">...and down: inside if the row is 8-23 of 32.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33906"></span>8472</td>
+<td class="instruction">RR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33908"></span>8474</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33909"></span>8475</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33910"></span>8476</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33911"></span>8477</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33912"></span>8478</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33914"></span>847A</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33916"></span>847C</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33918"></span>847E</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label">SCROLL_VIEW_0</td>
+<td class="address-2"><span id="33919"></span>847F</td>
+<td class="instruction">LD HL,(<a href="46112.html">VIEW_ORIGIN</a>)</td>
+<td class="comment-1" rowspan="1">Outside: move the view.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33922"></span>8482</td>
+<td class="instruction">LD A,(<a href="46208.html#46215">PLAYER_FLAGS</a>)</td>
+<td class="comment-1" rowspan="6">Not while jumping or falling.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33925"></span>8485</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33927"></span>8487</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33928"></span>8488</td>
+<td class="instruction">LD A,(<a href="46208.html#46213">PLAYER_FALL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33931"></span>848B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33932"></span>848C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33933"></span>848D</td>
+<td class="instruction">LD A,(<a href="46208.html#46212">PLAYER_FACING</a>)</td>
+<td class="comment-1" rowspan="3">A cell the way the player faces.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33936"></span>8490</td>
+<td class="instruction">CALL <a href="35072.html">STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33939"></span>8493</td>
+<td class="instruction">LD (<a href="46112.html">VIEW_ORIGIN</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33942"></span>8496</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33864.html">8448</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33888">Map</a></td>
+<td class="next">
+Next: <a href="33943.html">8497</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

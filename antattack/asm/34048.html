@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 8500</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34042.html">84FA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34048">Map</a></td>
+<td class="next">
+Next: <a href="34091.html">852B</a>
+</td>
+</tr>
+</table>
+<div class="description">8500: Paint PLANES and the sprites into the render buffer, back to front</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+<a href="46336.html">PLANES</a> holds, per place, one of $01, $02 ... $20 (a block at that height) or $FF (nothing). This paints every $01 place, then every $02, and so on up to $40 -- a pass with no blocks in it, for anything standing on top of a six-high block -- using CPIR to find each next one. The sprites are threaded in by distance: BC counts down the places to the next sprite across all the passes, so when CPIR runs BC out before finding a block, it is time to draw a sprite (<a href="34095.html">DRAW_HERE</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SCENE</td>
+<td class="address-2"><span id="34048"></span>8500</td>
+<td class="instruction">LD IX,<a href="46160.html">SPRITE_LIST</a></td>
+<td class="comment-1" rowspan="2">BC = the count to the first sprite.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34052"></span>8504</td>
+<td class="instruction">CALL <a href="34128.html">NEXT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34055"></span>8507</td>
+<td class="instruction">LD DE,$001F</td>
+<td class="comment-1" rowspan="3">Row step for the drawers; start with height bit $01.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34058"></span>850A</td>
+<td class="instruction">LD A,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34060"></span>850C</td>
+<td class="instruction">LD HL,$B6FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34063"></span>850F</td>
+<td class="instruction">JR <a href="34048.html#34071">DRAW_SCENE_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="34065"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="34095.html">DRAW_HERE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SCENE_0</td>
+<td class="address-2"><span id="34065"></span>8511</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="4">The next height's bit; past $40, done.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34066"></span>8512</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34067"></span>8513</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34069"></span>8515</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34070"></span>8516</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="1">HL was one past the end; back to the last place.</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SCENE_1</td>
+<td class="address-2"><span id="34071"></span>8517</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="1">A sentinel, so the CPIR stops at the end.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34072"></span>8518</td>
+<td class="instruction">LD HL,<a href="46336.html">PLANES</a></td>
+<td class="comment-1" rowspan="1">From the first place.</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="34075"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="34091.html">BLOCK_DRAWN</a> and <a href="34095.html">DRAW_HERE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SCENE_2</td>
+<td class="address-2"><span id="34075"></span>851B</td>
+<td class="instruction">CPIR</td>
+<td class="comment-1" rowspan="2">Find the next place at this height -- or run out of count first.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34077"></span>851D</td>
+<td class="instruction">JP PO,<a href="34095.html">DRAW_HERE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34080"></span>8520</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="4">Found the sentinel: the next height.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34081"></span>8521</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34082"></span>8522</td>
+<td class="instruction">CP $B7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34084"></span>8524</td>
+<td class="instruction">JR Z,<a href="34048.html#34065">DRAW_SCENE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34086"></span>8526</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">Draw the block through the pointer <a href="34160.html">SELECT_BLOCK_DRAWER</a> set.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34087"></span>8527</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34088"></span>8528</td>
+<td class="instruction">JP (IY)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34090"></span>852A</td>
+<td class="instruction">NOP</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34042.html">84FA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34048">Map</a></td>
+<td class="next">
+Next: <a href="34091.html">852B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

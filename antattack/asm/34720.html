@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Routine at 87A0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34563.html">8703</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34720">Map</a></td>
+<td class="next">
+Next: <a href="34768.html">87D0</a>
+</td>
+</tr>
+</table>
+<div class="description">87A0: See whether an exploding grenade got an ant</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Only ants at the grenade's height and not already exploding. Within four cells (counted along the grid, not diagonally) the ant is blown up -- "GOOD SHOT!" -- and within seven it is stunned for 24 frames. Both seen in play, in staged scenes.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The grenade's x and y</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Its height</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The ant</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BLAST_ANT</td>
+<td class="address-2"><span id="34720"></span>87A0</td>
+<td class="instruction">LD A,(IY+$02)</td>
+<td class="comment-1" rowspan="6">Another height, or already exploding: no.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34723"></span>87A3</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34724"></span>87A4</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34725"></span>87A5</td>
+<td class="instruction">LD A,(IY+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34728"></span>87A8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34729"></span>87A9</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34730"></span>87AA</td>
+<td class="instruction">LD E,(IY+$00)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34733"></span>87AD</td>
+<td class="instruction">LD D,(IY+$01)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34736"></span>87B0</td>
+<td class="instruction">CALL <a href="35456.html">DISTANCE</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34739"></span>87B3</td>
+<td class="instruction">CP $08</td>
+<td class="comment-1" rowspan="2">Eight or more away: missed.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34741"></span>87B5</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34742"></span>87B6</td>
+<td class="instruction">CP $05</td>
+<td class="comment-1" rowspan="4">Five to seven: stunned.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34744"></span>87B8</td>
+<td class="instruction">JR C,<a href="34720.html#34751">BLAST_ANT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34746"></span>87BA</td>
+<td class="instruction">LD (IY+$06),$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34750"></span>87BE</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">BLAST_ANT_0</td>
+<td class="address-2"><span id="34751"></span>87BF</td>
+<td class="instruction">LD (IY+$09),$05</td>
+<td class="comment-1" rowspan="2">Four or less: blown up...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34755"></span>87C3</td>
+<td class="instruction">LD (IY+$06),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34759"></span>87C7</td>
+<td class="instruction">LD A,(<a href="46112.html#46125">GRENADE_EVENTS</a>)</td>
+<td class="comment-1" rowspan="3">...and "GOOD SHOT!".</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34762"></span>87CA</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34764"></span>87CC</td>
+<td class="instruction">LD (<a href="46112.html#46125">GRENADE_EVENTS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34767"></span>87CF</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34563.html">8703</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34720">Map</a></td>
+<td class="next">
+Next: <a href="34768.html">87D0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

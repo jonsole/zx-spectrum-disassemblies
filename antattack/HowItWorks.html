@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: How the game works</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+</head>
+<body class="HowItWorks">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Ant Attack</a></td>
+<td class="page-header">How the game works</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#loading">Loading: one line of BASIC and the whole of memory</a></li>
+<li><a href="#break">BREAK starts it again</a></li>
+<li><a href="#halves">Half BASIC, half machine code</a></li>
+<li><a href="#objects">Eight objects, one record</a></li>
+<li><a href="#collisions">The ants are part of the map</a></li>
+<li><a href="#drawing">How the view is drawn</a></li>
+<li><a href="#moving">Falling, jumping and standing on each other</a></li>
+<li><a href="#ants">The ants</a></li>
+<li><a href="#rescue">Finding someone and leading them out</a></li>
+<li><a href="#scripts">Messages and sounds are one thing</a></li>
+<li><a href="#leftovers">Leftovers</a></li>
+<li><a href="#method">How this was worked out</a></li>
+</ul>
+<div><span id="loading"></span></div>
+<div class="box box-1">
+<div class="box-title">Loading: one line of BASIC and the whole of memory</div>
+<div class="paragraph">
+The tape holds a BASIC header, a 76-byte program and one headerless block of 41984 bytes. The program is a single line,
+<pre>1 RANDOMIZE USR (PEEK 23635+256*PEEK 23636+53)</pre>
+which is PROG plus 53: the machine code sitting after the line's own ENTER. That code loads the big block to $5C00 -- the system variables -- and everything above, to the top of memory. It replaces the running BASIC program with the game's own, 8K of it, and survives doing so because nothing returns to the old program: LD-BYTES is entered with <a href="asm/38656.html">LOADED</a> pushed as its return address.
+<a href="asm/38656.html">LOADED</a> checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: <a href="asm/38816.html">RESTART_BASIC</a> types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header has no auto-run line; the game starts itself.
+</div>
+</div>
+<div><span id="break"></span></div>
+<div class="box box-2">
+<div class="box-title">BREAK starts it again</div>
+<div class="paragraph">
+Interrupt mode 2 sends every interrupt through <a href="asm/38912.html">INTERRUPT_VECTORS</a> to <a href="asm/38807.html">INTERRUPT</a>. That passes the interrupt on to the ROM's own routine unless ERR_NR says an error has happened -- BREAK, most likely -- in which case it drops into the same <a href="asm/38816.html">RESTART_BASIC</a> that started the game, and the BASIC program runs again from the top. There is no way to stop it into BASIC.
+</div>
+</div>
+<div><span id="halves"></span></div>
+<div class="box box-1">
+<div class="box-title">Half BASIC, half machine code</div>
+<div class="paragraph">
+BASIC runs everything that is not the city: the title screen, "Girl or Boy (g/b)?", the story cards, the score card, "Have another go!", and the setting up of each level, which is a matter of POKEing the object records at <a href="asm/46208.html">PLAYER</a> from DATA (lines 100-190) and the variables at <a href="asm/46112.html">VIEW_ORIGIN</a> (lines 200-230). The ten places the person to be rescued waits are DATA too -- see <a href="Levels.html">the levels</a>.
+The machine code is entered through four USRs: <a href="asm/32768.html">PLAY</a> (32768) to play, <a href="asm/32912.html">GET_KEY</a> (32912) for the girl-or-boy key, <a href="asm/32919.html">WAIT_KEY</a> (32919) to wait for a key, and <a href="asm/36594.html">FINAL_SCRIPT</a> (36594) for the ending.
+<a href="asm/32768.html">PLAY</a> is called twice a level. With 2 in <a href="asm/46112.html#46136">FRAMES_LEFT</a> it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- five frames after time or energy runs out (<a href="asm/36560.html">CHECK_GAME_OVER</a>), one after a rescue (<a href="asm/36512.html">CHECK_RESCUED</a>). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (<a href="asm/46208.html#46237">RESCUEE_STATE</a>, BASIC's <code>w</code>) is a rescue.
+</div>
+</div>
+<div><span id="objects"></span></div>
+<div class="box box-2">
+<div class="box-title">Eight objects, one record</div>
+<div class="paragraph">
+The player, the person to be rescued, the grenade and five ants are all the same 16-byte record at <a href="asm/46208.html">PLAYER</a>, and all moved by the same code (<a href="asm/34816.html">MOVE_OBJECT</a>).
+<table class="default">
+<tr><th>Offset</th><th>What</th></tr>
+<tr><td>+$00, +$01, +$02</td><td>x, y and height</td></tr>
+<tr><td>+$03</td><td>first sprite frame: the boy $DC, the girl $6C, ants $F8</td></tr>
+<tr><td>+$04</td><td>facing, 0-3: y up, x up, y down, x down</td></tr>
+<tr><td>+$05</td><td>frames spent falling</td></tr>
+<tr><td>+$06</td><td>frames left stunned; $FF on an ant is paralysed for good</td></tr>
+<tr><td>+$07</td><td>flags: bit 0 may stand on the other person, 1 jump, 2 move, 3 never falls (never set), 4 steps up a one-block rise</td></tr>
+<tr><td>+$08</td><td>animation frame, or with bit 7 set a sprite frame outright</td></tr>
+<tr><td>+$09</td><td>explosion countdown, after which the object goes home</td></tr>
+<tr><td>+$0A-+$0C</td><td>home: x, y and height</td></tr>
+<tr><td>+$0D, +$0E</td><td>an ant's speed and its count; the rescued person's state and last distance to the player</td></tr>
+<tr><td>+$0F</td><td>what just happened to it, for <a href="asm/36608.html">HANDLE_EVENTS</a>: a step, a bad fall, a bite, a blast</td></tr>
+</table>
+The player starts every level by exploding: BASIC sets the explosion countdown to 1, and when it runs out, one frame later, <a href="asm/35280.html">MOVE_OR_RESPAWN</a> puts the player at home -- the city gate.
+</div>
+</div>
+<div><span id="collisions"></span></div>
+<div class="box box-1">
+<div class="box-title">The ants are part of the map</div>
+<div class="paragraph">
+Nothing is solid but the map. So <a href="asm/35328.html">MOVE_ANT</a> takes an ant out of the map before moving it and puts it back afterwards (<a href="asm/35136.html">TOGGLE_MAP_BIT</a>, an XOR on its height's bit), and from then on everything else bumps into it exactly as it would into a wall. The city map in memory changes as the ants walk about.
+A bite is the other half of the same trick. <a href="asm/34816.html">MOVE_OBJECT</a> starts every move by asking whether the object's own cell is occupied at its own height; the only way that can happen is for an ant to have walked into it. That is a bite (<a href="asm/34976.html">BITTEN</a>): an event for <a href="asm/36608.html">HANDLE_EVENTS</a>, a point of energy off, and the bitten object pushed up a block.
+Because it is an XOR, the map and the ants' records have to agree. Move an ant's record without its bit -- as an early version of the scenes this disassembly was checked with did -- and it leaves a phantom block where it was and, at the new place, puts a block in its own cell: it is promptly "bitten" by itself and pushed up a block.
+</div>
+</div>
+<div><span id="drawing"></span></div>
+<div class="box box-2">
+<div class="box-title">How the view is drawn</div>
+<div class="paragraph">
+<a href="asm/33952.html">DRAW_VIEW</a> is a painter's algorithm done with tables, eleven steps a frame.
+<ol>
+<li><a href="asm/33712.html">GATHER_VIEW</a> reads the map along diagonals from <a href="asm/46112.html">VIEW_ORIGIN</a> into <a href="asm/45440.html">VIEW_CELLS</a>: 21 rows of 32 cells, in the order the view needs. There is one routine per view, the same apart from signs.</li>
+<li><a href="asm/33200.html">BUILD_PLANES</a> turns that into <a href="asm/46336.html">PLANES</a>, 512 places each saying which height of block is seen there, or $FF for none. A block one higher is drawn one row further up the screen, so height h simply reads the gathered cells h rows further on -- and the heights are done lowest first, so a higher block overwrites a lower one. That is the whole of the 3D.</li>
+<li><a href="asm/34304.html">PROJECT_SPRITES</a> projects each object into the same places: the half-row is v - u - 2h and the column (u + v) / 2, for the object's position (u, v) relative to the view, turned for it, and h its height.</li>
+<li><a href="asm/34176.html">SORT_SPRITES</a> sorts the objects by place, and <a href="asm/34256.html">SPRITE_DISTANCES</a> turns the sorted places into gaps from one to the next.</li>
+<li><a href="asm/34048.html">DRAW_SCENE</a> paints: every place holding $01, then every $02, and so on, each found with CPIR. The objects are threaded in with no extra test at all: BC, CPIR's count, is the gap to the next object, so when CPIR runs out of count before it finds a block, the next object is due. An object's place counts in which pass it belongs to, so a sprite is painted after every block below its height and before any above it.</li>
+<li><a href="asm/33024.html">COPY_TO_SCREEN</a> copies rows 12-127 of the buffer to the screen.</li>
+</ol>
+The block picture itself is code: <a href="asm/33283.html">DRAW_BLOCK</a> and <a href="asm/34563.html">DRAW_BLOCK_TURNED</a> (one for each pair of views, since turning a quarter mirrors the shading) are unrolled runs of immediate stores, each step painting one row of the outline over what is behind it and the row eight below outright. The places tile like bricks, 16 pixels wide, each half-row a byte across and four pixels down from the last.
+The pass for $40, above the six heights of block, has no blocks in it: it is there for anything standing on top of the tallest walls.
+</div>
+</div>
+<div><span id="moving"></span></div>
+<div class="box box-1">
+<div class="box-title">Falling, jumping and standing on each other</div>
+<div class="paragraph">
+<a href="asm/34816.html">MOVE_OBJECT</a> moves everything the same way. Nothing to stand on: fall -- but not on the first frame, when the object can still walk, which is what lets you step off a ledge (<a href="asm/34944.html">FALL</a>). Something in your own cell: bitten. Otherwise jump if asked, and walk forward if moving and the way is clear; a blocked walker with bit 4 set steps up a one-block rise by itself, which is how the rescued person follows you up steps.
+A landing (<a href="asm/34912.html">LANDED</a>) after five frames' fall or more is a bad fall -- "NASTY FALL !" -- and stuns for eight frames per frame fallen; shorter ones stun briefly. Landing at height 1 means landing on something at ground level, which may be an ant's back: <a href="asm/35793.html">PARALYSE_ANT</a> paralyses it for good ("PARALYSED AN ANT !").
+The player and the rescued person may stand on each other (bit 0 of the flags, <a href="asm/35165.html">TEST_BELOW</a>). When they share a cell a block apart, <a href="asm/34000.html">SHARE_CELL</a> clears the player's fall count and both stuns, so dropping onto each other is never a landing at all. And a fall that ends while an object is still stunned is never landed either: the stunned branch clears the fall count without a word. The rescued person starts every level stunned for four frames, which is enough to swallow a short drop.
+</div>
+</div>
+<div><span id="ants"></span></div>
+<div class="box box-2">
+<div class="box-title">The ants</div>
+<div class="paragraph">
+<a href="asm/35421.html">ANT_TURN</a> gives each ant a turn every frame but one in +$0D. The first ant's +$0D is 20 (line 140) -- nearly full speed. The other four take BASIC's <code>sp</code>, which is 2 (half speed) for the first four levels and one more for every four rescues after that.
+<a href="asm/35328.html">MOVE_ANT</a> steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within four cells turns to face the player. Not closer: it stops and turns left or right at random (<a href="asm/33632.html">RANDOM</a>). There is no path-finding; the city's walls do the rest.
+A grenade (<a href="asm/36096.html">THROW_GRENADE</a>: S, D, F or G throw for 2, 4, 8 or 16 frames) explodes where it is when the time runs out. <a href="asm/34720.html">BLAST_ANT</a> blows up any ant at the same height within four cells ("GOOD SHOT!") and stuns one within seven. The grenade is checked against the player's and the rescued person's cells on every frame of its flight, not just the last: anything it meets on the way is blown up.
+</div>
+</div>
+<div><span id="rescue"></span></div>
+<div class="box box-1">
+<div class="box-title">Finding someone and leading them out</div>
+<div class="paragraph">
+While the person waits, <a href="asm/36736.html">MOVE_RESCUEE</a> colours the scanner (<a href="asm/34768.html">SCANNER</a>): green if the player is closer than last frame, red if not. Within three cells at the same height they are found -- "MY HERO!" -- and from then on <a href="asm/35510.html">FOLLOW_PLAYER</a> walks them after the player, stopping beside them or when left more than five cells behind.
+The rescue is <a href="asm/36512.html">CHECK_RESCUED</a>: once both are outside the walls, with a coordinate below $80, it is done.
+</div>
+</div>
+<div><span id="scripts"></span></div>
+<div class="box box-2">
+<div class="box-title">Messages and sounds are one thing</div>
+<div class="paragraph">
+Every message and every sound is a script in <a href="asm/36864.html">SCRIPTS</a>, run by <a href="asm/36365.html">RUN_SCRIPT</a>: a stream to print to, then printable characters and control codes, bytes of $80 and above that play a note or a burst of noise, $7D to fill the play area with a colour and $7E to print a number from the variables. So "MY HERO!" is a tune with letters between the notes. See <a href="Scripts.html">the scripts page</a> for all seventeen.
+</div>
+</div>
+<div><span id="leftovers"></span></div>
+<div class="box box-1">
+<div class="box-title">Leftovers</div>
+<div class="paragraph">
+<ul>
+<li>Sandy White's name is in the code three times: "SandyWhite1983" at <a href="asm/32820.html">8034</a> (twice) and at <a href="asm/33864.html">8448</a>, in the gaps between routines.</li>
+<li><a href="asm/35680.html">8B60</a> is a script that nothing runs: "OWCH!", with notes, in the script format but outside <a href="asm/36864.html">SCRIPTS</a>.</li>
+<li>The three bytes before each block drawer are <code>LD DE,31</code>, that routine's own first instruction; both are entered three bytes in, since <a href="asm/34048.html">DRAW_SCENE</a> has already set DE.</li>
+<li>Bit 3 of the flags, "never falls", is tested by <a href="asm/34944.html">FALL</a> and set by nothing. Its three instructions are the only ones in the game not seen to run.</li>
+<li>Five NOPs sit where something was taken out: three in <a href="asm/34000.html">SHARE_CELL</a>, one in <a href="asm/35008.html">ON_TOP</a> and one in <a href="asm/36096.html">THROW_GRENADE</a>.</li>
+<li><a href="asm/36304.html">COUNT_DOWN_TIME</a> decrements the time's low byte and then overwrites it with the same result worked out another way.</li>
+<li>Frames $F0-$F3 are an ant on its back, and nothing draws them.</li>
+</ul>
+</div>
+</div>
+<div><span id="method"></span></div>
+<div class="box box-2">
+<div class="box-title">How this was worked out</div>
+<div class="paragraph">
+The code/data split is not a guess. The build plays the game in SkoolKit's Z80 simulator and records every instruction executed: random play, then a rescue, running out of time, the ending, and a dozen staged scenes -- an ant beside the player, a grenade thrown at an ant, a drop onto an ant's back, onto a wall, onto the rescued person's head -- each placed on the simulated machine and then left to the game's own code. Between them they run every instruction in the game but three. Branches out of executed code are followed as well, which finds nothing the scenes have not.
+The assembly is fed back through sjasmplus and compared with the tape: all 41984 bytes, from the system variables up, match byte for byte, and the build fails if they ever stop matching.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>
