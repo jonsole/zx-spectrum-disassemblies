@@ -189,7 +189,7 @@ NEXT_KEY_DONE:
     DISPLAY "keyboard in the line region ends at ",/H,$," (limit ",/H,CLEAR_CANVAS,")"
 
 ; --------------------------------------------------------------------------
-; Waiting, in the spare slot.
+; Waiting, in low memory after the drawing code's.
 ; --------------------------------------------------------------------------
 
     ORG SPARE_REGION_END
@@ -208,8 +208,8 @@ AWAIT_KEY_WAIT:
     JR Z,AWAIT_KEY_WAIT
     RET
 
-    ASSERT $ <= UNREACHED_SPECIAL_ZERO + 148, "the keyboard has run past slot 0's handler"
-    DISPLAY "keyboard in the spare slot ends at ",/H,$," (limit ",/H,UNREACHED_SPECIAL_ZERO+148,")"
+    ASSERT $ <= LOW_CODE + LOW_CODE_SIZE, "the keyboard has run past LOW_CODE_SIZE"
+    DISPLAY "keyboard in low memory ends at ",/H,$," (limit ",/H,LOW_CODE+LOW_CODE_SIZE,")"
 
 ; --------------------------------------------------------------------------
 ; Setting it up, once the title screen's key is down: where UNREACHED_WIPE_

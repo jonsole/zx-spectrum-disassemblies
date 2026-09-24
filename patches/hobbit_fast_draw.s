@@ -20,8 +20,8 @@
 ; but RUN_PICTURE, and only through FLOOD_FILL, DRAW_LINE and the four ATTR_
 ; routines, which stay where they are. So the new code goes into the two
 ; stretches either side of them, $8071-$80F4 and $812B-$820A, and two places
-; nothing else uses: special word slot 0's handler, $82FD-$8390, and the zeros
-; after the last picture, $F35B-$F3FF.
+; nothing else uses: the zeros after the last picture, $F35B-$F3FF, and low
+; memory below the machine stack, $5D00-$5DBF (see LOW_CODE).
 ;
 ; Build: sjasmplus hobbit_fast_draw.s (build_hobbit.py --fast-draw does it).
 
@@ -44,7 +44,7 @@
 ;
 ; The fill starts where it always did and sets up each sweep there; the loop
 ; along a sweep is in the zeros after the last picture (AFTER_PICTURES), which
-; nothing reads or writes; the end of the fill is in special word slot 0.
+; nothing reads or writes; the end of the fill is in low memory (LOW_CODE).
 ; --------------------------------------------------------------------------
 
     ORG FLOOD_FILL
@@ -392,13 +392,25 @@ LINE_REGION_END:
 
 
 ; --------------------------------------------------------------------------
-; What does not fit beside them goes where special word slot 0's handler was:
-; $82FD-$8390, 148 bytes nothing ever runs. SPECIAL_WORDS names $8315 as slot
-; 0's handler, but slot 0 holds no word, so PARSE_SPECIAL can never choose it,
-; and nothing else leads into these bytes (see the disassembly's note there).
+; What does not fit beside them goes below the game, in memory the BASIC
+; loader used and the running game never touches: the machine stack starts at
+; $5EFF and grows down, and in play -- orders said to other characters, a
+; fight, a walk through the pictures -- it was never seen lower than $5E85,
+; while nothing at all wrote from $5CC0 up to it. $5D00-$5DBF leaves more than
+; 200 bytes between this and the deepest the stack has gone. It is outside
+; the game's own image, so it is saved on its own (hobbit_fast_low.bin) and the
+; build writes it into the snapshot.
+;
+; This used to go into special word slot 0's handler, $82FD-$8390, which the
+; disassembly then had as code nothing could reach. It is the handler for a
+; quote mark -- SAY TO THORIN "..." -- and the game crashed at the first thing
+; said in quotes.
 ; --------------------------------------------------------------------------
 
-    ORG UNREACHED_SPECIAL_ZERO
+LOW_CODE        EQU $5D00
+LOW_CODE_SIZE   EQU $C0
+
+    ORG LOW_CODE
 ; The end of a fill: the seeded flags back where the old code left them, the
 ; caller's BC, IX, IY and the ink put back, and the registers the fill saved.
 FILL_FINISH:
@@ -504,10 +516,11 @@ FAST_ADDRESS:
     RET
 
 SPARE_REGION_END:
-    DISPLAY "spare code ends at ",/H,$," (limit ",/H,UNREACHED_SPECIAL_ZERO+148,")"
-    ASSERT $ <= UNREACHED_SPECIAL_ZERO + 148, "the spare code has run past slot 0's handler"
+    DISPLAY "low code ends at ",/H,$," (limit ",/H,LOW_CODE+LOW_CODE_SIZE,")"
+    ASSERT $ <= LOW_CODE + LOW_CODE_SIZE, "the low code has run past LOW_CODE_SIZE"
 
 ; And the keyboard, read under interrupt so that commands can be typed ahead.
     INCLUDE "hobbit_keyboard.s"
 
     SAVEBIN "../game_disassembly/hobbit/hobbit_fast.bin", $6000, 40000
+    SAVEBIN "../game_disassembly/hobbit/hobbit_fast_low.bin", LOW_CODE, LOW_CODE_SIZE

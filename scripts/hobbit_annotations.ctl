@@ -134,7 +134,15 @@ D $81B5 Sets the pixel at (D,E) and fixes the attribute of the cell it lands in,
 
 @ $824E label=PLOT_INK
 b $824E The ink PLOT_PIXEL and the fill are drawing in
-D $824E Set from bits 0-2 of a fill opcode for as long as that fill runs, and put back to zero afterwards.
+D $824E Set from bits 0-2 of a fill opcode for as long as that fill runs, and put back to zero afterwards. The two bytes after it are the quote mark's: see SPECIAL_QUOTE.
+B $824E,1,1
+  $824E,1 The ink
+@ $824F label=ORDER_SAVED_D
+B $824F,1,1
+  $824F,1 D, kept by ORDER_BEGINS while an order is parsed
+@ $8250 label=ORDER_FIRST_FRAME
+B $8250,1,1
+  $8250,1 COMMAND_FRAMES when the order began: its commands are the frames after
 
 # --------------------------------------------------------------------------
 # Pictures: the flood fill
@@ -1166,7 +1174,7 @@ c $7850 Put PHRASE into the frame's first noun phrase
 
 @ $8271 label=SPECIAL_WORDS
 b $8271 The special words, and what PARSE_SPECIAL does with each
-D $8271 Thirteen word references, then a handler for each, reached through JP (HL) -- so the handlers are code seeds. Among them are the game's own commands: SAVE and LOAD, which the playthrough never types, QUIT, PAUSE, HELP, SCORE, and PRINT and NOPRINT. Slot 0 holds no word, so its handler is never reached through here; ONE's handler just goes on to the next word.
+D $8271 Thirteen word references, then a handler for each, reached through JP (HL) -- so the handlers are code seeds. Among them are the game's own commands: SAVE and LOAD, which the playthrough never types, QUIT, PAUSE, HELP, SCORE, and PRINT and NOPRINT. Slot 0 holds no word -- the reference zero -- and that is what a quote mark comes through the tokeniser as: its handler is SPECIAL_QUOTE's. ONE's handler just goes on to the next word.
 W $8271,26,2
   $8271,2 NO WORD
   $8273,2 ALL
@@ -3417,10 +3425,13 @@ b $9BDC Cleared by MOVE_HELD when the player is among what it moves
 @ $78FB label=UNREACHED_COPY_SIX
 b $78FB Unreached: LD C,6 and JR #R$7905
 D $78FB A third way into COPY_FRAME_PHRASE, for six bytes, that nothing uses.
-@ $82FD label=UNREACHED_SPECIAL_ZERO
-b $82FD Unreached: code before and including special word slot 0's handler
-D $82FD SPECIAL_WORDS names #R$8315 as the handler for slot 0, but slot 0 holds no word, so PARSE_SPECIAL can never choose it; the 148 bytes from #R$82FD read as code and nothing else leads into them.
-; span $82FD,148
+@ $82FD label=ORDER_BEGINS
+c $82FD Begin an order: the opening quote
+D $82FD Reached from SPECIAL_QUOTE at the opening quote of something said to a character -- SAY TO THORIN "CARRY ME". What follows, up to the closing quote, is parsed as commands of its own, in fresh command frames: this keeps D and COMMAND_FRAMES aside in the two bytes after PLOT_INK, and IY on the stack, steps IY on a frame, and goes back into PARSE_COMMAND at PARSE_ORDER with A = 1, which marks the commands as an order (IS_ORDER).
+@ $8315 label=SPECIAL_QUOTE
+c $8315 Special word slot 0: a quote mark
+D $8315 Slot 0 of SPECIAL_WORDS holds the word reference zero, and a quote mark comes through the tokeniser as a zero word, so this is where everything said in quotes comes. At the opening quote, with IS_ORDER clear, it begins an order (ORDER_BEGINS). At the closing one it clears IS_ORDER and files each command parsed since -- the frames after ORDER_FIRST_FRAME -- into a free slot of ORDERS, eight of 25 bytes, marking the slot taken with $FF and counting them into ORDER_COUNT; then it puts back what ORDER_BEGINS kept and goes on with the sentence at NEW_NOUN_PHRASE. What the character then does with them is its own business: see CHARACTERS.
+D $8315 Nothing in the playthrough that finds the code said anything in quotes, so for a while this disassembly had these 148 bytes as code nothing reaches -- and the fast-draw patch put its own code over them, so that the patched game crashed at the first thing said in quotes. It has moved; see the Patches page.
 @ $9030 label=UNREACHED_LET_GO
 b $9030 Unreached: LD (IX+1),$FF -- let something go
 @ $92E8 label=UNREACHED_SAY_BROKEN
@@ -3589,7 +3600,7 @@ D $F400 The object records and then the room records, $0BEE bytes, which START c
 
 @ $6C6D label=TITLE_WAIT
 @ $75C1 label=CLASS_DISPATCH
-@ $8315 label=SPECIAL_SLOT_ZERO
+@ $758A label=PARSE_ORDER
 @ $93AB label=GIVE_TOO_MUCH
 @ $A8CC label=BARD_SETS_STEP
 

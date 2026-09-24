@@ -989,8 +989,9 @@ CODES_WITH_OPERAND = {0x02, 0x0B}
 # the line ($C); an unknown word ($D) never reaches the parser.
 PARSER_CLASSES = 0x75D2
 PARSER_CLASS_COUNT = 13
-# PARSE_SPECIAL's words and, 26 bytes on, a handler for each. Slot 0 holds no
-# word, so its handler cannot be reached through the table and is not a seed.
+# PARSE_SPECIAL's words and, 26 bytes on, a handler for each. Slot 0 holds the
+# word reference zero, which is what a quote mark comes through as: its handler
+# is the quote's, SPECIAL_QUOTE.
 SPECIAL_WORDS = 0x8271
 SPECIAL_COUNT = 13
 # The timers END_OF_TURN counts down: 7-byte entries ending at $FF, each a
@@ -1990,10 +1991,11 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     dispatched |= {memory[PARSER_CLASSES + 2 * c] | (memory[PARSER_CLASSES + 2 * c + 1] << 8)
                    for c in range(PARSER_CLASS_COUNT)}
     # And PARSE_SPECIAL's, one per special word -- the game's own commands
-    # among them, SAVE and LOAD included, which the playthrough never types.
+    # among them, SAVE and LOAD included, which the playthrough never types,
+    # and slot 0's, the quote mark's, which it never typed either.
     handlers = SPECIAL_WORDS + 2 * SPECIAL_COUNT
     dispatched |= {memory[handlers + 2 * i] | (memory[handlers + 2 * i + 1] << 8)
-                   for i in range(1, SPECIAL_COUNT)}
+                   for i in range(SPECIAL_COUNT)}
     # And the timers' routines, which END_OF_TURN runs through $9B80's
     # JP (HL) -- the wine wearing off among them, at $AB0B.
     dispatched |= timer_handlers(memory)
@@ -2361,15 +2363,18 @@ def verify(game_bytes: bytes, snapshot: Path) -> None:
     _log(f"Verified: {len(game_bytes)} bytes reassemble byte-for-byte")
 
 
-def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
+def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path, low=None) -> None:
     """Splice the assembled bytes into the loaded RAM image.
 
     Starting from the real post-load image rather than a blank one keeps what
     the game needs but the disassembly does not contain: the title picture at
-    $4000, and the system variables the BASIC loader set.
+    $4000, and the system variables the BASIC loader set. `low`, an (address,
+    bytes) pair, is a block below the game to write in as well.
     """
     memory = list(game_memory(snapshot))
     memory[LOAD_ADDR:GAME_END] = game_bytes
+    if low:
+        memory[low[0]:low[0] + len(low[1])] = low[1]
     ram = bytes(bytearray(memory[0x4000:0x4000 + RAM_SIZE]))
     regs = Registers(pc=ENTRY, sp=STACK, iy=SYSVARS, im=1, iff1=True, iff2=True)
     out.write_bytes(write_sna(regs, ram, border=0))
@@ -2377,11 +2382,14 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
 
 # The faster pictures: patches/hobbit_fast_draw.s, assembled on top of the
 # byte-exact source. These are the only ranges it may change -- the plotting
-# code either side of the ATTR_ routines, special word slot 0's handler, which
-# nothing runs, and the zeros after the last picture, which nothing reads or
-# writes -- and the build refuses a patched image that differs anywhere else.
+# code either side of the ATTR_ routines and the zeros after the last picture,
+# which nothing reads or writes -- and the build refuses a patched image that
+# differs anywhere else. What does not fit there goes below the game, at
+# FAST_LOW (patches/hobbit_fast_draw.s says why that is free), saved on its own
+# and written into the snapshot beside the game.
 FAST_DRAW_PATCH = Path(__file__).resolve().parent.parent / "patches" / "hobbit_fast_draw.s"
-FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0x82FD, 0x8391), (0xF35B, 0xF400)]
+FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0xF35B, 0xF400)]
+FAST_LOW = (0x5D00, 0x5DC0)
 # And the keyboard read under interrupt (patches/hobbit_keyboard.s): the call
 # that sets it up after the title screen, the two DIs after the tape routines,
 # NEW_KEYPRESS, SCAN_KEYBOARD's first seven bytes, WAIT_FOR_ANY_KEY, and two
@@ -2416,7 +2424,10 @@ def build_fast_draw(snapshot: Path) -> None:
         sys.exit(f"error: the patch changes {len(stray)} byte(s) outside its ranges, "
                  f"first at 0x{stray[0]:04X}")
     changed = sum(1 for a, b in zip(original, patched) if a != b)
-    write_snapshot(patched, snapshot, OUT_DIR / "hobbit_fast.sna")
+    low = (OUT_DIR / "hobbit_fast_low.bin").read_bytes()
+    if len(low) != FAST_LOW[1] - FAST_LOW[0]:
+        sys.exit(f"error: the low block is {len(low)} bytes, not {FAST_LOW[1] - FAST_LOW[0]}")
+    write_snapshot(patched, snapshot, OUT_DIR / "hobbit_fast.sna", low=(FAST_LOW[0], low))
     _log(f"  {changed} bytes changed, all inside the patch's ranges; "
          f"wrote hobbit_fast.sna and hobbit_fast.sld")
 

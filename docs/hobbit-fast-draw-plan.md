@@ -99,7 +99,7 @@ game never prints, and nothing on a 48K Spectrum writes there otherwise --
 and is page-aligned, which suits the mask table. (Wrong: the game has a PRINT
 command that copies its text to a ZX Printer through the ROM, which uses that
 buffer. What was used instead is special word slot 0's handler, $82FD-$8390,
-148 bytes that nothing can run.) The gap between the BASIC
+148 bytes that nothing can run -- wrong too: see the correction at the end.) The gap between the BASIC
 loader and the stack ($5CCB up to the stack under $5EFF) is not safe to use
 until the fill's worst-case stack depth has been measured.
 
@@ -228,3 +228,31 @@ address set-up, clearing the canvas, and the fill's edges.
 
 Still not done: the two further steps under "Not in this plan", and a tape
 image of the patched game.
+
+## A correction
+
+Special word slot 0's handler, $82FD-$8390, is not code nothing can run. Slot
+0 holds the word reference zero, and a quote mark comes through the
+tokeniser as a zero word: the handler is the quote's (SPECIAL_QUOTE, with
+ORDER_BEGINS before it), which files what is said to a character as orders.
+The playthrough that found the game's code never said anything in quotes, and
+the reasoning that nothing could choose slot 0 filled the gap. The patched
+game restarted the Spectrum at the first `SAY "..."`; found by rewinding the
+emulator from the reset to the jump into $8315.
+
+The handler is back as it was. What the patch had there -- the end of the
+fill, FAST_SET_INK, LINE_STEP_Y, FAST_ADDRESS and the keyboard's AWAIT_KEY --
+went below the game, to $5D00-$5DBF (FAST_LOW in build_hobbit.py), saved as a
+block of its own and written into the snapshot. That is memory the BASIC
+loader used and the running game never touches: in the simulator, with
+everything from $5CC0 up to the stack marked, thirty-odd commands -- orders
+given in quotes, a fight with the trolls, walks through the pictures --
+changed nothing below $5E85, 122 bytes under where the stack starts, and
+nothing at all from $5B00 to $5CBF. check_fast_draw.py's stack marker moved up
+to $5DC0 to clear it. Checked on the emulator: `SAY "HELLO"` gets "TALK TO
+WHAT ?", and `SAY TO THORIN "CARRY ME"` gets "You talk to Thorin.".
+
+The keyboard patch's other two borrowed stretches, UNREACHED_WALK_HELD and
+UNREACHED_WIPE_EXIT, were checked again the same way: no address in the game
+points into either, and no relative jump lands in one. The only byte pairs
+that look like pointers to them are in the picture data.

@@ -32,8 +32,8 @@ import hobbit_pages as hp
 PATCHED = bh.PATCH_RANGES
 FAST_BIN = bh.OUT_DIR / "hobbit_fast.bin"
 STACK_TOP = hp.SCRATCH_STACK            # where the picture's call starts from
-STACK_AREA = (0x5D00, STACK_TOP)        # checked for the deepest the stack went: below
-                                        # the system variables, above the BASIC loader
+STACK_AREA = (bh.FAST_LOW[1], STACK_TOP)  # checked for the deepest the stack went: above
+                                          # the patch's low code, below the scratch stack
 
 
 def in_patch(address: int) -> bool:
@@ -89,6 +89,8 @@ def main() -> None:
     clean_fast = list(clean_original)
     for start, end in PATCHED:
         clean_fast[start:end] = fast[start - bh.LOAD_ADDR:end - bh.LOAD_ADDR]
+    low = (bh.OUT_DIR / "hobbit_fast_low.bin").read_bytes()
+    clean_fast[bh.FAST_LOW[0]:bh.FAST_LOW[1]] = low
 
     total_before = total_after = 0
     worst_depth = 0
@@ -104,6 +106,7 @@ def main() -> None:
         (before_mem, before_t, before_sp), (after_mem, after_t, after_sp) = results
         differ = [a for a in range(0x4000, 0x10000)
                   if before_mem[a] != after_mem[a] and not in_patch(a)
+                  and not bh.FAST_LOW[0] <= a < bh.FAST_LOW[1]
                   and not (min(before_sp, after_sp) <= a < STACK_TOP)]
         deeper = after_sp < before_sp
         worst_depth = max(worst_depth, STACK_TOP - after_sp)
