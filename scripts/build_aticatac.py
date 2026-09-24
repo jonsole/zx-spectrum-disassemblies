@@ -2118,7 +2118,8 @@ def build_html(skool: Path, out: Path, tape: Path) -> None:
     shapes = read_shapes(snapshot)
     shapes_ref = OUT_DIR / "aticatac-rooms.ref"
     write_shapes_ref(shapes, shapes_ref)
-    args = ["-H", "-a", "-d", str(out), str(skool)]
+    # aticatac.css, which aticatac.ref's StyleSheet names, lives beside this.
+    args = ["-H", "-a", "-d", str(out), "-S", str(Path(__file__).resolve().parent), str(skool)]
     if REF.exists():
         args.append(str(REF))
     else:
