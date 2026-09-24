@@ -7,7 +7,7 @@ a snapshot you can debug at source level.
 
 | Game | Coverage | Build |
 |---|---|---|
-| Atic Atac (1983, Ultimate) | **100%** &mdash; 30208 of 30208 bytes, 631 named entries | `scripts/build_aticatac.py` |
+| Atic Atac (1983, Ultimate) | **100%** &mdash; 30208 of 30208 bytes, every routine, table and variable named, every address the code or the comments use a label or an equate, a map of the castle and every room drawn with what is in it | `scripts/build_aticatac.py` |
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |

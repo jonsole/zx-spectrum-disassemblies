@@ -92,7 +92,7 @@ R $A1D3 HL Display file address of the cell to draw into. On exit, advanced to t
   $A1DC,4 The current tile source. Not a fixed font: callers repoint it.
   $A1E3,8 INC H walks down the eight scan lines of a character cell, which works because the cell never crosses a third boundary.
   $A1ED,4 Undo the eight INC Hs, then INC L to land on the next cell to the right.
-E $A1D3 The tile source at $5E01 is deliberately biased by its callers. Initialised to the text font at $BE4C, where a tile code is simply an ASCII character, it is repointed during play -- while the score is on screen it holds $BFCC, which is $BE4C + 48 * 8, so that a raw digit 0-9 indexes the characters '0' to '9' directly with no adjustment at the call site.
+E $A1D3 The tile source at $5E01 is deliberately biased by its callers. Initialised to TEXT_FONT less $100, where a tile code is simply an ASCII character, it is repointed during play -- while the score is on screen it holds #R$BFCC, which is TEXT_FONT + $80, so that a raw digit 0-9 indexes the characters '0' to '9' directly with no adjustment at the call site.
 
 @ $A1F3 label=PRINT_STRING
 c $A1F3 Print a string of tiles in a single colour
@@ -121,7 +121,7 @@ E $9FFB The record is 16 bytes. The lower half describes the thing itself -- +$0
 
 @ $85F0 label=ACTOR_TICK_TIMER
 c $85F0 Count down the actor's timer, and act when it expires
-D $85F0 Field +$0F of the actor record is a countdown. Almost every call is a no-op that just decrements it; only on the tick where it reaches zero does control go to $81F0.
+D $85F0 Field +$0F of the actor record is a countdown. Almost every call is a no-op that just decrements it; only on the tick where it reaches zero does control go to #R$81F0.
 R $85F0 IX The actor record
 
 # --------------------------------------------------------------------------
@@ -183,7 +183,7 @@ R $A3A8 C Number of complete cycles, i.e. how long the note lasts
 c $A3E5 Start a sound effect
 D $A3E5 A sound is not played here and it is not played by a scheduler either: it is spawned as an actor. This writes a sprite and a count into the record at $EAA0, and from the next frame on the dispatcher finds it there like any other creature and calls its handler, which beeps once, counts down, and frees the slot when it reaches zero.
 D $A3E5 So the second byte is a duration in frames rather than the room number the same field holds in every other record, and the sprite is one of the codes that draws nothing -- $64, $65 and $A0 are sounds wearing an actor's clothes.
-D $A3E5 Three routines share the tail with different values: $6410 here, $650A from $A403 and $A010 from $A485. Watched live, writing $64 and $10 into the two bytes by hand makes the count fall 0C, 07, 03 over the following frames and then the slot empties itself.
+D $A3E5 Three routines share the tail with different values: $6410 here, $650A from #R$A403 and $A010 from #R$A485. Watched live, writing $64 and $10 into the two bytes by hand makes the count fall 0C, 07, 03 over the following frames and then the slot empties itself.
 R $A3E5 BC B = which sound, C = how many frames it lasts
   $A3E5,3 This entry's sound and length.
   $A3E8,6 Sprite first, then the count -- the field an ordinary record uses for its room.
@@ -243,7 +243,7 @@ R $845F IX The actor to move
   $8523,6 Commit the new position.
   $8530,7 Two kinds are exempt from the check below: the humpback, whose codes are $9C-$9F, and the four big monsters at $70-$7F -- the mummy, Frankenstein's monster, the devil and Dracula. Masking with $FC and $F0 tests a whole run of codes in one compare, without caring which frame is showing.
 E $845F Nothing in the disassembly jumps here, which is not because the routine is dead: it is entry $5C/$5D of the table at ACTOR_HANDLERS, and DISPATCH_ACTOR reaches it through a JP (HL). Breaking here does catch it, 16 times in 20, always with IX = $EE80 -- the monster whose sprite byte is currently $5C. Two earlier rounds of sampling reported zero hits and concluded it was unused; both were taken before the player had finished spawning, when no monster was in the room yet.
-E $845F $84CD is also entered directly by eight other routines, which is why the position update is written as a separate stretch: they supply their own velocity in +$08/+$09 and reuse the bounce logic. Verified against the running game -- ($5E1D) reads 56 by 56, and sampled actor positions stay inside $58 +/- 56 by $68 +/- 56.
+E $845F #R$84CD is also entered directly by eight other routines, which is why the position update is written as a separate stretch: they supply their own velocity in +$08/+$09 and reuse the bounce logic. Verified against the running game -- ($5E1D) reads 56 by 56, and sampled actor positions stay inside $58 +/- 56 by $68 +/- 56.
 
 # --------------------------------------------------------------------------
 # Animation
@@ -302,7 +302,7 @@ R $7E7E IX The actor
 w $7EE6 Handler address for each actor type
 D $7EE6 202 addresses, indexed by an actor's +$00 byte, used by DISPATCH_ACTOR. Entries come in runs of two or four because the low bits of +$00 are the animation frame rather than part of the identity -- $5C and $5D are the two frames of one creature and share a handler, as do $58 to $5B.
 D $7EE6 The first three runs are the playable characters -- $01-$10 knight, $11-$20 wizard, $21-$30 serf -- sixteen sprite codes each, which is what makes "below $31" mean "is a player" in CHECK_HIT. Confirmed by starting a game as each of the three in turn and reading the player's sprite byte back: $08, $18 and $28, the same offset into each band.
-D $7EE6 Checked against the running game: the monster at $EE80 had sprite byte $5C, the table entry two bytes into $7EE6 + $5C * 2 reads $845F, and a breakpoint at $845F does fire with IX pointing at that monster.
+D $7EE6 Checked against the running game: the monster at $EE80 had sprite byte $5C, the table entry two bytes into #R$7EE6 + $5C * 2 reads #R$845F, and a breakpoint at #R$845F does fire with IX pointing at that monster.
 
 @ $80D2 label=UPDATE_WIZARD
 c $80D2 Per-frame update for the wizard
@@ -320,11 +320,11 @@ D $8DC4 The serf's equivalent of UPDATE_KNIGHT, reached from ACTOR_HANDLERS for 
 @ $96AF label=MARK_ROOM_VISITED
 c $96AF Mark a room as seen, by writing the instruction that does it
 D $96AF Sets one bit in the 19-byte map at $5E40, one bit per room, 152 rooms in all. The bit number is not known until run time, and rather than shift a mask into place the routine assembles the instruction it needs and stores it over the one below.
-D $96AF SET b,(HL) is $CB followed by $C6 + b * 8, so ORing the room's low three bits (already shifted up by the three RLCAs) with $C6 gives exactly the operand byte required, and it is written into $96C7 -- the second byte of the SET at $96C6.
+D $96AF SET b,(HL) is $CB followed by $C6 + b * 8, so ORing the room's low three bits (already shifted up by the three RLCAs) with $C6 gives exactly the operand byte required, and it is written into SET_BIT_OP+1 -- the second byte of the SET at #R$96C6.
 D $96AF Checked by calling it directly with a series of room numbers and reading both the map and the patched bytes back: $2A set bit 42 and left SET 2,(HL) in place, $07 set bit 7 as SET 7, $08 set bit 8 as SET 0, $4B set bit 75 as SET 3, and $97 set bit 151 as SET 7 -- the last bit the map has room for.
 R $96AF A The room number
   $96AF,7 Room / 8 -- which byte of the map.
-  $96B8,4 The map itself. It sits below $6000, so it is not part of this disassembly.
+  $96B8,4 The map itself. It sits below #R$6000, so it is not part of this disassembly.
   $96BC,7 Room AND 7, shifted into the bit-number field of a SET opcode.
   $96C3,3 Overwrite the operand of the instruction on the next line.
   $96C6,2 Reads as SET 0 here, but by the time it runs it is SET (room AND 7).
@@ -333,7 +333,7 @@ R $96AF A The room number
 c $96C9 Work out how much of the castle has been seen
 D $96C9 Counts the bits set in the room map and turns the total into a two-digit BCD figure at $5E54. It is not shown while playing -- DRAW_SUMMARY prints it on the GAME OVER screen, as the last of the three figures under the heading. Every third room seen is worth 2, and 1 is added at the end, so the value is (rooms / 3) * 2 + 1.
 D $96C9 Measured by setting the map by hand and running it: 6, 7 and 8 rooms all give $05, 11 gives $07, 144 gives $97, and none at all gives $01.
-D $96C9 The map holds 152 bits but the castle does not have 152 rooms. ROOM_TABLE runs from $A854 to $A981, 151 entries, and of those the last two are black -- colour $00, so nothing they draw can be seen. That leaves 149 real rooms, 0 to 148, and (149 / 3) * 2 + 1 is exactly 99. The figure is scaled so that seeing everything reads 99 and it never has to carry into a third digit, which a single byte of BCD could not hold: setting all 152 bits by hand does overflow it, and $5E54 comes back $01, but no game can get there.
+D $96C9 The map holds 152 bits but the castle does not have 152 rooms. ROOM_TABLE has 151 entries, and of those the last two are black -- colour $00, so nothing they draw can be seen. That leaves 149 real rooms, 0 to 148, and (149 / 3) * 2 + 1 is exactly 99. The figure is scaled so that seeing everything reads 99 and it never has to carry into a third digit, which a single byte of BCD could not hold: setting all 152 bits by hand does overflow it, and $5E54 comes back $01, but no game can get there.
   $96C9,6 19 bytes, 8 bits each.
   $96D5,4 Walk the bits of one byte.
   $96D9,7 Two per three rooms, in BCD -- hence the DAA.
@@ -352,10 +352,10 @@ R $A19C BC The amount to add, in BCD
   $A19C,3 The least significant byte, working backwards from there.
   $A19F,4 DAA after each addition is what keeps it decimal.
   $A1A3,9 Carry up through the middle and top bytes.
-  $A1AE,6 Point the tile source at the digits before drawing -- this is the biased pointer PLOT_TILE's note describes, $BE4C + 48 * 8, so a digit value indexes its own character.
+  $A1AE,6 Point the tile source at the digits before drawing -- this is the biased pointer PLOT_TILE's note describes, TEXT_FONT + $80, so a digit value indexes its own character.
   $A1BA,5 Three bytes, two digits in each.
   $A1BF,7 High nibble first, then the low one.
-E $A19C $A1AE and $A1B7 are entered on their own to redraw the score without changing it, and $A1BF is the general digit printer: B bytes of BCD from DE, drawn at the screen address in HL. The status panel uses that last entry to print the rooms-explored figure from COUNT_ROOMS_EXPLORED as well.
+E $A19C #R$A1AE and #R$A1B7 are entered on their own to redraw the score without changing it, and #R$A1BF is the general digit printer: B bytes of BCD from DE, drawn at the screen address in HL. The status panel uses that last entry to print the rooms-explored figure from COUNT_ROOMS_EXPLORED as well.
 
 # --------------------------------------------------------------------------
 # Rooms: drawing and geometry
@@ -364,7 +364,7 @@ E $A19C $A1AE and $A1B7 are entered on their own to redraw the score without cha
 @ $9BEA label=DRAW_ROOM
 c $9BEA Draw the room the player is in
 D $9BEA Looks the room up twice. Its own entry in ROOM_TABLE gives a colour and a shape number; the shape number then selects an entry in ROOM_SHAPES, which carries how far the player may walk and where the outline's geometry lives. Rooms therefore share outlines freely -- only the colour and the shape number are per-room.
-D $9BEA Verified against a running game: in room $00 the table gives colour $42 and shape $00, shape $00 gives 56 by 56 and the two pointers $A9DF and $A9EF, and the machine's own $5E1A, $5E1D and $5E1E read back $42, 56 and 56 with the attribute file filled with $42.
+D $9BEA Verified against a running game: in room $00 the table gives colour $42 and shape $00, shape $00 gives 56 by 56 and the two pointers #R$A9DF and #R$A9EF, and the machine's own $5E1A, $5E1D and $5E1E read back $42, 56 and 56 with the attribute file filled with $42.
   $9BEE,3 The room the player is in.
   $9BF1,3 Two bytes per room...
   $9BF4,5 ...so double the room number to index it.
@@ -407,7 +407,7 @@ D $A854 Two bytes per room, indexed by room number: the first is the attribute t
 @ $A982 label=ROOM_SHAPES
 ; span $A982,78
 b $A982 Geometry of each room shape
-D $A982 Six bytes per shape: how far the player may walk from the centre horizontally and vertically, then a pointer to the shape's vertex table, then a pointer to its edge list. Shape $00 reads 56, 56, $A9DF, $A9EF.
+D $A982 Six bytes per shape: how far the player may walk from the centre horizontally and vertically, then a pointer to the shape's vertex table, then a pointer to its edge list. Shape $00 reads 56, 56, #R$A9DF, #R$A9EF.
 D $A982 A vertex table is two bytes per point, x then y; an edge list is the $FF-separated groups DRAW_OUTLINE walks.
 
 # --------------------------------------------------------------------------
@@ -458,7 +458,7 @@ R $90FB IX The thing to measure from
 c $9117 Move the player through a door and redraw everything
 D $9117 Takes the door record in IX, copies its destination into the player's room and position, and then rebuilds the screen: mark the room seen, blank the play area, draw the new room, recolour the panel.
 D $9117 The arrival position is not stored outright. +$02 packs both offsets into one byte, unpacked by rotating it in opposite directions and masking to $1E -- an even number 0 to 30 each way, the vertical one negated. Every door checked holds $34, which comes out as 8 to the right and 6 up, so the player lands just inside the room rather than on top of the doorway they arrived through.
-D $9117 Confirmed by setting IX to four different door records and running from $911A: doors to rooms $07, $19, $01 and $00 produced exactly the destination and the offset position predicted from their bytes.
+D $9117 Confirmed by setting IX to four different door records and running from ENTER_ROOM+3, past its first call: doors to rooms $07, $19, $01 and $00 produced exactly the destination and the offset position predicted from their bytes.
 R $9117 IX The door being entered
   $9117,3 Swap to the door's other side. The record the player touched describes this room; the one eight bytes away describes where they come out. That reassignment of IX is also why anything testing this routine has to enter below it.
   $911A,6 +$01 is the destination room.
@@ -490,7 +490,7 @@ D $9970 Chosen by DRAW_SPRITE_PIXELS from the drawing mode.
 
 @ $9980 label=DRAW_SPRITE_COLOURS
 c $9980 Draw a sprite from the other set of eight routines
-D $9980 As DRAW_SPRITE_PIXELS, but pointing at COLOUR_DRAWERS. Actor handlers call this one to put a sprite down and the masked one to take it away again, a row above -- which is why $91F2 does the two with the same coordinates but a DEC D between them.
+D $9980 As DRAW_SPRITE_PIXELS, but pointing at COLOUR_DRAWERS. Actor handlers call this one to put a sprite down and the masked one to take it away again, a row above -- which is why #R$91F2 does the two with the same coordinates but a DEC D between them.
   $9980,3 The other table.
 
 @ $9985 label=COLOUR_DRAWERS
@@ -499,7 +499,7 @@ D $9985 Chosen by DRAW_SPRITE_COLOURS from the drawing mode.
 
 @ $9995 label=FETCH_SPRITE
 c $9995 Look up a sprite's bitmap and work out where it goes
-D $9995 Sprite numbers are 1-based, so the number is decremented before being doubled into the table of addresses at $A600. The first two bytes of the data are its size, and the pointer is left just past them.
+D $9995 Sprite numbers are 1-based, so the number is decremented before being doubled into the table of addresses at #R$A600. The first two bytes of the data are its size, and the pointer is left just past them.
 R $9995 C Sprite number
 R $9995 DE On exit, the first row of bitmap data
 R $9995 B On exit, width in bytes
@@ -511,11 +511,11 @@ R $9995 HL On exit, where the top-left corner lands in the display file
   $99A5,3 Turn the pixel coordinates into a display file address.
   $99A8,6 Width then height, and step past them to the first row.
 E $9995 Watched live, the sizes coming back are 4 by 24 for the characters and 6 by 5 or 6 by 6 for smaller pieces -- so width really is in bytes, eight pixels at a time.
-E $9995 $A600 is not a table of its own. It is the 161st entry of SPRITE_TABLE, and this routine does the same arithmetic SPRITE_ADDRESS does, so asking it for sprite 1 fetches entry 161. The base is what says which family of sprites is wanted. An earlier reading of this routine took the 39 entries between $A600 and $A64E for the whole table and concluded it held the knight, the wizard and seven frames of the serf; that was an accident of where the next base happens to fall.
+E $9995 #R$A600 is not a table of its own. It is the 161st entry of SPRITE_TABLE, and this routine does the same arithmetic SPRITE_ADDRESS does, so asking it for sprite 1 fetches entry 161. The base is what says which family of sprites is wanted. An earlier reading of this routine took the 39 entries between #R$A600 and #R$A64E for the whole table and concluded it held the knight, the wizard and seven frames of the serf; that was an accident of where the next base happens to fall.
 
 @ $99AF label=FETCH_SPRITE_ATTRS
 c $99AF Look up a sprite's colours
-D $99AF The same routine as FETCH_SPRITE but based at $A64E -- the 200th entry of SPRITE_TABLE rather than the 161st -- and ending in PIXEL_TO_ATTR rather than PIXEL_TO_SCREEN, so what it fetches is a sprite's colours rather than its shape.
+D $99AF The same routine as FETCH_SPRITE but based at #R$A64E -- the 200th entry of SPRITE_TABLE rather than the 161st -- and ending in PIXEL_TO_ATTR rather than PIXEL_TO_SCREEN, so what it fetches is a sprite's colours rather than its shape.
 R $99AF C Sprite number
   $99AF,3 The colour tables, one per sprite.
   $99BF,3 The attribute address rather than the display one.
@@ -524,7 +524,7 @@ R $99AF C Sprite number
 c $99C9 Copy a sprite to the screen, combining it however the caller asked
 D $99C9 The inner loop of everything that moves. A sprite is width bytes by height rows, and the row-to-row step is left to SCREEN_ROW_UP rather than being computed here, because the display file's thirds make it anything but a simple addition.
 D $99C9 It works upwards. The first row of a sprite's data is its bottom row, so an actor's +$03 and +$04 are the point its feet stand on rather than a top-left corner. Rendering the data top-down produces nothing recognisable; reversed, it comes out as a picture.
-D $99C9 How each byte meets what is already on the screen is not decided by a branch. $9D19 hands back an opcode and it is written over the NOP in the middle of the loop, so the same six instructions become a plain copy, an OR, an XOR or an AND with nothing tested per byte. Read live during play the byte is $00 -- a NOP, so a plain copy.
+D $99C9 How each byte meets what is already on the screen is not decided by a branch. #R$9D19 hands back an opcode and it is written over the NOP in the middle of the loop, so the same six instructions become a plain copy, an OR, an XOR or an AND with nothing tested per byte. Read live during play the byte is $00 -- a NOP, so a plain copy.
   $99CA,6 Fetch the combining opcode and write it into the loop below.
   $99D0,3 Bitmap, size and destination.
   $99D5,2 One byte of the sprite.
@@ -577,7 +577,7 @@ D $95DA Confirmed against a running game: with the three bytes reading $00 $00 $
 @ $8C35 label=GAME_OVER
 c $8C35 Clear the castle away and show how it went
 D $8C35 Reached from UPDATE_KNIGHT when the player's last life goes. It blanks the play area, prints GAME OVER across it, and hands over to DRAW_SUMMARY for the three figures underneath, then sits in a counting loop long enough to read them.
-D $8C35 Note the second and third instructions: the tile source has to be pointed back at the text font first. During play it holds $BFCC, the copy biased so that digits index themselves, and anything printed through PLOT_TILE while it is still there comes out as the wrong glyphs entirely.
+D $8C35 Note the second and third instructions: the tile source has to be pointed back at the text font first. During play it holds #R$BFCC, the copy biased so that digits index themselves, and anything printed through PLOT_TILE while it is still there comes out as the wrong glyphs entirely.
   $8C35,3 The castle goes; the status panel down the side stays.
   $8C38,6 Back to the text font, or the words below would be gibberish.
   $8C3E,6 "GAME OVER", centred above the figures.
@@ -637,7 +637,7 @@ D $A331 Nine records of eight bytes, in the ordinary short form -- sprite, room,
 
 @ $8C2D label=FOOD_RECORD
 s $8C2D A second scratch record, for redrawing the food
-D $8C2D The disassembler calls this unused because nothing reaches it as code and nothing loads it as data through an obvious address. It is neither: DRAW_FOOD puts it in IX and draws from it, and writes a screen address into $8C30 in the middle of it.
+D $8C2D The disassembler calls this unused because nothing reaches it as code and nothing loads it as data through an obvious address. It is neither: DRAW_FOOD puts it in IX and draws from it, and writes a screen address into its +$03 and +$04.
 
 @ $8A15 label=LOSE_FOOD_16
 c $8A15 Take sixteen off the life force
@@ -654,8 +654,8 @@ R $8A1E A The new level
 @ $8B8A label=DRAW_FOOD
 c $8B8A Redraw the roast on the scroll
 D $8B8A The life force in $5E28 is drawn as the roast down the right-hand side, eaten away as it falls. $5E29 remembers the level the picture was last drawn at, and both are shifted right three times before being compared, so nothing happens until a whole eighth of the roast has gone -- most calls return at the third instruction.
-D $8B8A It does not have its own copy of the picture. It reaches into the sprite tables, moves the roast's entry at $A626 forward by however many rows have been eaten and shortens the height bytes at $C48D and $C543 to match, draws, and then puts all three back from the stack. The tables are only wrong for the few hundred T-states it takes to draw.
-D $8B8A Watched live: at rest $A626 holds $C48C and $C48D holds $1E, and breaking just before the restore catches $A626 reading $C522 and then $C51C as the roast goes down -- the same entry, advanced past the rows that have been eaten.
+D $8B8A It does not have its own copy of the picture. It reaches into the sprite tables, moves the roast's entry at #R$A626 forward by however many rows have been eaten and shortens the height bytes of GFX_B5 and GFX_B4, the second byte of each, to match, draws, and then puts all three back from the stack. The tables are only wrong for the few hundred T-states it takes to draw.
+D $8B8A Watched live: at rest #R$A626 holds #R$C48C and GFX_B5's height byte holds $1E, and breaking just before the restore catches #R$A626 reading $C522 and then $C51C as the roast goes down -- the same entry, advanced past the rows that have been eaten.
 R $8B8A None; it reads the level out of $5E28
   $8B8A,9 The level, in eighths.
   $8B94,10 What was drawn last time, also in eighths.
@@ -727,7 +727,7 @@ D $8ED7 The heaviest of the three penalties, and the one MOVE_ACTOR's hit path u
 
 @ $8D45 label=DYING
 c $8D45 Sink the player into the floor
-D $8D45 The handler for sprite $67. Every fourth frame it counts +$06 down and shifts the sprite further down the screen by that much, so the character appears to sink. When the count passes zero it drops an object where the body was and hands over to $9443.
+D $8D45 The handler for sprite $67. Every fourth frame it counts +$06 down and shifts the sprite further down the screen by that much, so the character appears to sink. When the count passes zero it drops an object where the body was and hands over to #R$9443.
   $8D45,5 One step in four frames.
   $8D4C,6 Down a little further, until it goes negative.
   $8D5B,6 Leave something behind, then carry on.
@@ -899,11 +899,11 @@ R $9E89 DE On exit, that sprite's graphics
 ; span $A4BE,478
 @ $A4BE label=SPRITE_TABLE
 b $A4BE The address of every sprite's graphics
-D $A4BE 239 addresses, two bytes each, indexed by sprite number less one, running from $A4BE to $A69B. The graphics themselves start immediately after it.
-D $A4BE It is three tables end to end, which is why the count is 239. The first 161 entries, to $A5FF, are the creatures and objects -- two bytes wide, one byte of row count. The next 39, from $A600, are the pieces the rooms are furnished with, which carry a width as well. The last 39, from $A64E, are not pictures at all: they are those same pieces' attribute tables, one colour per character cell in the same width-and-height format.
-D $A4BE Entry N of the third table belongs to entry N of the second, which is how one picture serves four doors: $A9 to $AC all point at the graphic at $A69C and differ only in their colours -- $43 $42 for red, $44 green, $45 cyan, $46 yellow. The three bases the code uses, $A4BE, $A600 and $A64E, are not a bias trick after all; they are simply where each table starts.
+D $A4BE 239 addresses, two bytes each, indexed by sprite number less one, running from #R$A4BE up to the graphics. The graphics themselves start immediately after it.
+D $A4BE It is three tables end to end, which is why the count is 239. The first 161 entries, up to FURNITURE_SPRITES, are the creatures and objects -- two bytes wide, one byte of row count. The next 39, from #R$A600, are the pieces the rooms are furnished with, which carry a width as well. The last 39, from #R$A64E, are not pictures at all: they are those same pieces' attribute tables, one colour per character cell in the same width-and-height format.
+D $A4BE Entry N of the third table belongs to entry N of the second, which is how one picture serves four doors: $A9 to $AC all point at the graphic at #R$A69C and differ only in their colours -- $43 $42 for red, $44 green, $45 cyan, $46 yellow. The three bases the code uses, #R$A4BE, #R$A600 and #R$A64E, are not a bias trick after all; they are simply where each table starts.
 D $A4BE The count is measured rather than assumed: every code was drawn on a machine of its own with its reads logged, and 239 is the highest whose entry points at something the drawing code can read. Entries beyond that hold values like $1804 and $33F8, which are not addresses in this game at all.
-D $A4BE FETCH_SPRITE and FETCH_SPRITE_ATTRS were read here as biased views of a single table, on the grounds that $A600 is its 161st entry and $A64E its 200th. That is arithmetically true and the wrong way round: they are separate tables, and the arithmetic works because they follow each other.
+D $A4BE FETCH_SPRITE and FETCH_SPRITE_ATTRS were read here as biased views of a single table, on the grounds that #R$A600 is its 161st entry and #R$A64E its 200th. That is arithmetically true and the wrong way round: they are separate tables, and the arithmetic works because they follow each other.
 
 # --------------------------------------------------------------------------
 # Drawing a sprite at any x
@@ -919,7 +919,7 @@ R $9F9F IX The thing being drawn
   $9FA8,5 The low three bits of x, doubled: how far into the shift chain to start.
   $9FAD,4 A shift of none is a special case...
   $9FB1,2 ...redirected right out of the chain to a plot with no shifting at all.
-  $9FB3,3 Write it into the JR at $9F29.
+  $9FB3,3 Write it into the JR at #R$9F29.
   $9FB6,5 Two bytes of sprite cover three columns unless it lands square.
   $9FBB,3 How wide to erase and redraw.
   $9FC1,7 The first byte of a sprite's data is its height in rows.
@@ -960,7 +960,7 @@ D $A3E0 One call from FLASH_SCORE, once every sixteen steps of its countdown. BC
 
 @ $A427 label=SOUND_SWEEP_UP
 c $A427 A rising sweep
-D $A427 Sixteen calls to BEEP with the pitch walked from one end to the other, so the note climbs. Measured at roughly 16 milliseconds, sweeping from about 500 Hz upwards. Reached from the serf's handler by way of $8283.
+D $A427 Sixteen calls to BEEP with the pitch walked from one end to the other, so the note climbs. Measured at roughly 16 milliseconds, sweeping from about 500 Hz upwards. Reached from the serf's handler by way of #R$8283.
   $A427,2 Sixteen steps.
   $A429,7 The pitch for this step, derived from the step number.
   $A431,3 One short note.
@@ -974,12 +974,12 @@ D $A438 Eight steps rather than sixteen, and the pitch complemented so it falls 
 
 @ $A445 label=SOUND_SPELL
 c $A445 The wizard's spell
-D $A445 Called from SPIN_SPELL, along with $A4B0. Unlike the fixed sweeps this one takes its starting pitch from $5E25, the count of actors in the room, so the spell does not sound quite the same twice. Measured at about 6 milliseconds across 1900 to 3700 Hz.
+D $A445 Called from SPIN_SPELL, along with #R$A4B0. Unlike the fixed sweeps this one takes its starting pitch from $5E25, the count of actors in the room, so the spell does not sound quite the same twice. Measured at about 6 milliseconds across 1900 to 3700 Hz.
 
 @ $A46E label=SOUND_NOISE_BURST
 c $A46E A short burst of noise
 D $A46E Run from a cold machine it lasts about 8 milliseconds and puts out 119 speaker edges with the gaps between them swinging wildly -- 843 Hz at the widest and far above hearing at the narrowest. That is not a note; it is a rasp.
-D $A46E Reached from FLASH_AND_RASP, and by JP rather than CALL, so it returns to whoever called that rather than to the jump. That also makes it awkward to capture on its own during play: there is no return address on the stack to stop at. An earlier note put the caller at $917D, which was wrong -- the call site sits inside a block the automatic pass had left as data, so it was attributed to the nearest entry above it.
+D $A46E Reached from FLASH_AND_RASP, and by JP rather than CALL, so it returns to whoever called that rather than to the jump. That also makes it awkward to capture on its own during play: there is no return address on the stack to stop at. An earlier note put the caller at #R$917D, which was wrong -- the call site sits inside a block the automatic pass had left as data, so it was attributed to the nearest entry above it.
 D $A46E An earlier note here claimed this was a full second of sound sweeping the audible range, which was wrong. The measurement behind it came from running several sound routines in turn on one machine, so this one inherited the state the others left and took a longer path than it ever does in the game.
 
 # --------------------------------------------------------------------------
@@ -1040,7 +1040,7 @@ c $9DF8
 @ $988B label=MUSHROOM
 c $988B The mushroom that drains you
 D $988B Sprite $A1. Standing on it is not fatal at once -- it takes a unit of life force per pass and loops, so the drain continues for as long as the player stays on it and stops the moment they step off. Reaching zero there kills as surely as anything else.
-D $988B When nobody is on it, it cycles its colour rather than its shape: the low two bits of a counter index four attribute bytes at $98C4, and only the drawing mode in +$05 changes. The sprite itself never moves.
+D $988B When nobody is on it, it cycles its colour rather than its shape: the low two bits of a counter index four attribute bytes at #R$98C4, and only the drawing mode in +$05 changes. The sprite itself never moves.
 R $988B IX The mushroom
   $988B,6 Is the player standing on it?
   $9891,2 Yes -- start draining.
@@ -1067,8 +1067,8 @@ c $98C8
 
 @ $9421 label=DOOR_SERF
 c $9421 A door the serf can use
-D $9421 Three doors, three entry points, one test. Each subtracts a character's first sprite from the player's current one and asks whether what is left is under $10 -- which is exactly "is the player this character", since each character owns sixteen consecutive sprite codes. $9421 takes $21 for the serf, $9428 takes $11 for the wizard and $942F takes 1 for the knight, and the three sprites that reach them are $BC, $B9 and $B2.
-D $9421 Pass the test and the thing behaves as an ordinary door, through the same $91F2 that every other door goes through. Fail it and control goes to $91FE instead, which draws it and nothing more: the door is there, visible, and will not open.
+D $9421 Three doors, three entry points, one test. Each subtracts a character's first sprite from the player's current one and asks whether what is left is under $10 -- which is exactly "is the player this character", since each character owns sixteen consecutive sprite codes. #R$9421 takes $21 for the serf, #R$9428 takes $11 for the wizard and #R$942F takes 1 for the knight, and the three sprites that reach them are $BC, $B9 and $B2.
+D $9421 Pass the test and the thing behaves as an ordinary door, through the same #R$91F2 that every other door goes through. Fail it and control goes to #R$91FE instead, which draws it and nothing more: the door is there, visible, and will not open.
 R $9421 IX The door
   $9421,5 The serf's sprites start at $21.
   $9428,5 The wizard's at $11.
@@ -1093,12 +1093,12 @@ R $9A92 A On exit, the same bits in reverse
 
 @ $9A9D label=NEXT_SPRITE_ROW
 c $9A9D Step the sprite pointer on by one row
-D $9A9D DE += B, where B is the width in bytes. The counterpart at $9AA5 subtracts instead, for the routines that read a sprite from the bottom up.
+D $9A9D DE += B, where B is the width in bytes. The counterpart at #R$9AA5 subtracts instead, for the routines that read a sprite from the bottom up.
 
 @ $99E5 label=BLIT_SPRITE_MIRRORED
 c $99E5 Copy a sprite to the screen, back to front
 D $99E5 BLIT_SPRITE with two changes: the row is walked with DEC DE rather than INC DE, and every byte goes through REVERSE_BITS on the way out. Between them those mirror the sprite horizontally without a second copy of the data.
-D $99E5 It patches its own combining instruction the same way BLIT_SPRITE does -- $9D19 hands back an opcode and it is written over the NOP in the loop.
+D $99E5 It patches its own combining instruction the same way BLIT_SPRITE does -- #R$9D19 hands back an opcode and it is written over the NOP in the loop.
   $99E5,7 The combining opcode, into the loop below.
   $99EF,5 Start of a row.
   $99F4,5 Backwards through the row, reversing each byte.
@@ -1106,7 +1106,7 @@ D $99E5 It patches its own combining instruction the same way BLIT_SPRITE does -
 
 @ $9AEF label=BLIT_SPRITE_FLIPPED
 c $9AEF Copy a sprite mirrored and upside down
-D $9AEF Mirrored like BLIT_SPRITE_MIRRORED, and turned over as well: the call to $9ABA moves the data pointer to the last row before anything is drawn, so the rows come out in the opposite order.
+D $9AEF Mirrored like BLIT_SPRITE_MIRRORED, and turned over as well: the call to #R$9ABA moves the data pointer to the last row before anything is drawn, so the rows come out in the opposite order.
 D $9AEF This is why there are eight drawing routines in each family rather than one. Four are the four orientations a sprite can be put on the screen in -- as stored, mirrored, upside down, or both -- and the drawing mode in the top three bits of an actor's +$05 picks between them. A creature that walks in four directions is one set of bytes.
   $9AEF,7 The combining opcode.
   $9AF9,3 Move to the last row: this one draws bottom to top.
@@ -1227,7 +1227,7 @@ D $9565 The opposite of the routine above: set bit 3 on both halves, so the door
 @ $902B label=POPULATE_ROOM
 c $902B Set up the records that belong to a room
 D $902B Every room has a list of the things in it -- its doors, and whatever else is fixed there. ROOM_CONTENTS holds one pointer per room, and this walks the list it finds, stopping at the $0000 that ends it.
-D $902B The addresses in the lists are not runtime addresses -- they point into the template at $600D that LOAD_INITIAL_STATE copies to $EA90, and taking $757D off one relocates it. That is not an arbitrary bias: $EA90 minus $600D is $8A83, and subtracting $757D is the same as adding $8A83 in sixteen bits. Room $00's list holds $645D, which is $0450 into the template and therefore $EEE0 once copied -- the door record a running game really has there.
+D $902B The addresses in the lists are not runtime addresses -- they point into the template at #R$600D that LOAD_INITIAL_STATE copies to $EA90, and taking #R$757D off one relocates it. That is not an arbitrary bias: $EA90 minus #R$600D is $8A83, and subtracting #R$757D is the same as adding $8A83 in sixteen bits. Room $00's list holds #R$645D, which is $0450 into the template and therefore $EEE0 once copied -- the door record a running game really has there.
 D $902B So the lists can be written once, against the template, and go on being correct after it has been moved.
 D $902B The check part-way down is the door pairing again. A door is two records eight bytes apart, one per room; if the one named in the list belongs to the other room, eight is added to reach the half that belongs to this one.
 R $902B IX A record whose +$01 is the room to set up
@@ -1243,7 +1243,7 @@ R $902B IX A record whose +$01 is the room to set up
 @ $757D label=ROOM_CONTENTS
 b $757D What is in each room
 D $757D One pointer per room, 150 of them, each to a $0000-terminated list of the records that belong to that room. Read out of the game, room $00's list names $EEE0, $EEF0 and $EF00 -- which are exactly the door records found in the running game when the player starts there.
-D $757D The lists themselves follow immediately, from $76A9 on. Their entries are addresses into the initial-state template at $600D rather than into the runtime tables, and subtracting $757D is exactly the relocation from one to the other. See POPULATE_ROOM.
+D $757D The lists themselves follow immediately, from #R$76A9 on. Their entries are addresses into the initial-state template at #R$600D rather than into the runtime tables, and subtracting #R$757D is exactly the relocation from one to the other. See POPULATE_ROOM.
 
 # --------------------------------------------------------------------------
 # Firing, spawning, and steering
@@ -1267,7 +1267,7 @@ R $817C IX The player
 c $83EA Put a new monster into the room
 D $83EA Monsters are not placed once and left. When the player is in the room named by $5E26, a countdown at $5E27 runs down and a new creature is dropped into the room when it expires -- which is why standing still in one place does not make you safe.
 D $83EA It looks for a free slot among only the first three of the eight monster records, and gives up if all three are taken. Those three are also the ones INERT_SPRITE bothers to burn time for, so the spawning slots and the timed slots are the same three.
-D $83EA A new monster is a straight sixteen-byte copy of a template at $8B6A -- one LDIR, and the record is complete.
+D $83EA A new monster is a straight sixteen-byte copy of a template at #R$8B6A -- one LDIR, and the record is complete.
   $83EA,8 Only in the room the spawner is watching.
   $83F2,2 Wrong room: nothing to do.
   $83F4,5 The countdown to the next one.
@@ -1289,6 +1289,7 @@ D $8EEF Adds E and D to the pair at +$06 and +$07 and clamps the result to L and
   $8F12,6 Both parts through the same conversion on the way out.
 
 ; span $8B6A,16
+; span $8B7A,11
 @ $8B6A label=MONSTER_TEMPLATE
 b $8B6A A new monster, ready to copy
 D $8B6A The sixteen bytes SPAWN_MONSTER_INTO_ROOM copies into a free slot. Read out of the game they are 58 00 5C 68 68 44 00 00 02 02 00 00 00 10 20 00, and every one of them means something already documented elsewhere.
@@ -1457,9 +1458,9 @@ D $8F96 The counterpart to STEER. Where that adds to the pair at +$06 and +$07, 
 c $9E9B Draw only the rows that fit
 D $9E9B Part of the drawing path that deals with a sprite hanging off an edge: it counts rows down in C and drops out early rather than letting the blitter run past the end of the play area. The alternate register set holds the second of the two counts, which is why it is full of EXX.
 
-@ $98D2 label=CYCLE_ROOM_COLOUR
-c $98D2 Work a value out of the frame counter and write it into the code
-D $98D2 Takes the frame counter, looks it up in a small table at $990C, and stores the result at $603E -- an address inside the game's own code, not a variable. Another of the places where the game writes to itself rather than keeping state somewhere and testing it.
+@ $98D2 label=PLACE_KEYS
+c $98D2 Put three of the keys, and the mummy, in rooms chosen for this game
+D $98D2 Writes into INITIAL_STATE before START_GAME copies it: the rooms of GREEN_KEY, RED_KEY and CYAN_KEY, each one of eight from RANDOM_ROOMS_ONE, RANDOM_ROOMS_TWO and RANDOM_ROOMS_THREE, chosen by the frame counter mixed with the running values at $5E12 and $5E13. The mummy goes into the same room as the red key. The yellow key's room is not touched, and neither is anything else here -- so these are the things that are somewhere different in every game.
 
 @ $A14D label=DRAW_LIST
 c $A14D Draw a list of things through the scratch record
@@ -1515,11 +1516,11 @@ D $8134 The third of the three per-character fire routines, alongside TRY_FIRE a
 
 @ $7E93 label=DISPATCH_FROM_LIST
 c $7E93 Dispatch a record named in a room's list
-D $7E93 Takes an entry as ROOM_CONTENTS stores it, subtracts the $757D bias to get the real address, puts it in IX and dispatches it -- pushing a return address first, the same convention MAIN_LOOP uses.
+D $7E93 Takes an entry as ROOM_CONTENTS stores it, subtracts the #R$757D bias to get the real address, puts it in IX and dispatches it -- pushing a return address first, the same convention MAIN_LOOP uses.
 
 @ $83BA label=VELOCITY_LOOKUP
 c $83BA Index a table by a creature's vertical speed
-D $83BA Doubles +$09 and adds it to a table at $83CA, then tests bit 2 of +$08. The pair of them are the velocity fields, so this is picking something -- a sprite or an offset -- out of a table according to how fast and which way a creature is moving.
+D $83BA Doubles +$09 and adds it to a table at #R$83CA, then tests bit 2 of +$08. The pair of them are the velocity fields, so this is picking something -- a sprite or an offset -- out of a table according to how fast and which way a creature is moving.
 
 # --------------------------------------------------------------------------
 # Setting the castle up, and the small helpers
@@ -1527,8 +1528,8 @@ D $83BA Doubles +$09 and adds it to a table at $83CA, then tests bit 2 of +$08. 
 
 @ $8D61 label=LOAD_INITIAL_STATE
 c $8D61 Put the castle back the way it started
-D $8D61 One LDIR of $1570 bytes from $600D to $EA90. Everything the game keeps at run time -- the player's record, the objects, the monsters, the doors, all of it -- exists as a template inside the loaded block and is copied wholesale into the working area.
-D $8D61 So the runtime tables that do not appear in this disassembly, because they live above $D600, do appear in it after all: as five and a half kilobytes of data starting at $600D, waiting to be copied. Starting a new game is a single block move.
+D $8D61 One LDIR of $1570 bytes from #R$600D to $EA90. Everything the game keeps at run time -- the player's record, the objects, the monsters, the doors, all of it -- exists as a template inside the loaded block and is copied wholesale into the working area.
+D $8D61 So the runtime tables that do not appear in this disassembly, because they live above $D600, do appear in it after all: as five and a half kilobytes of data starting at #R$600D, waiting to be copied. Starting a new game is a single block move.
 
 @ $86F2 label=RANDOM_VERTICAL
 c $86F2 Give a creature a random up or down
@@ -1570,7 +1571,7 @@ D $85EA The two-instruction path taken when a monster's proximity test succeeds:
 c $82C3 Turn a signed value into a direction code
 D $82C3 Zero, positive or negative becomes 0 or 4 in C, which is then used to pick a sprite or a table entry. The game's usual way of turning "which way is it going" into "which picture".
 
-@ $8ADB label=SCAN_EB18
+@ $8ADB label=SCAN_COLLECTABLES
 c $8ADB Walk the eight records at $EB18
 D $8ADB Eight records, eight bytes apart, skipping any whose first byte is zero -- the same shape as every other table walk in the game.
 
@@ -1662,13 +1663,13 @@ D $986A Rotates +$05 down and masks to $06, which turns the top bits of the draw
 c $98C8 Rub the mushroom out and take the life
 D $98C8 Erases it, frees its slot, and jumps into LOSE_LIFE. The mushroom is consumed by killing you.
 
-@ $961B label=CARRYING_8C
-c $961B Is the player carrying object $8C?
-D $961B Walks the three inventory slots four bytes at a time looking for one particular sprite. Unlike FIND_CARRIED, which is given what to look for, this one has the answer built in, so $8C is an object the game asks about by name.
+@ $961B label=ACG_DOOR
+c $961B The A.C.G. door: it opens only for the whole of the A.C.G. key
+D $961B The handler for the A.C.G. door. It walks the three inventory slots four bytes at a time and wants $8C, $8D and $8E in them, in that order -- the three pieces of the A.C.G. key, ACG_KEY_PARTS -- and only then opens the door (OPEN_DOOR) and behaves as one, with a wider doorway than most. Anything less and it is drawn shut (SHUT_DOOR). Through it is room $8E, and reaching that ends the game.
 
 @ $96EC label=SHOW_END_SCREEN
 c $96EC Draw the screen shown when a game ends
-D $96EC Draws the player, points the tile source back at the text font and prints a line at $2040 from a string at $9710 -- the same shape as GAME_OVER, for a different ending.
+D $96EC Draws the player, points the tile source back at the text font and prints a line at $2040 from a string at #R$9710 -- the same shape as GAME_OVER, for a different ending.
 
 @ $94B6 label=ROTATING_INDEX
 c $94B6 A number that changes every frame
@@ -1728,7 +1729,7 @@ D $A185 Works out the display address from a record's position and writes zero a
 
 @ $A219 label=DRAW_SCROLL
 c $A219 Draw the scroll down the side of the screen
-D $A219 Points the tile source at $B03A -- a set of tiles of its own, not the text font -- and lays out an eight by twenty-four block of them from $B32A at x $C0. The parchment border, drawn once when a game starts and left alone after that.
+D $A219 Points the tile source at #R$B03A -- a set of tiles of its own, not the text font -- and lays out an eight by twenty-four block of them from #R$B32A at x $C0. The parchment border, drawn once when a game starts and left alone after that.
 
 @ $9546 label=DOOR_OPEN_OR_SHUT
 c $9546 Open or shut a door, according to its sprite
@@ -1780,7 +1781,7 @@ D $A485 Hands $A010 to the same tail: sound $A0, sixteen frames.
 
 @ $A48B label=SOUND_A0
 c $A48B Sound $A0, one frame of it
-D $A48B The third of the sound handlers, alongside SOUND_64 and SOUND_65. It takes its pitch from a table at $A4A0 rather than computing it, so its sweep is a shape someone chose rather than an arithmetic accident.
+D $A48B The third of the sound handlers, alongside SOUND_64 and SOUND_65. It takes its pitch from a table at #R$A4A0 rather than computing it, so its sweep is a shape someone chose rather than an arithmetic accident.
 
 @ $A41B label=SOUND_SWEEP_A41B
 c $A41B A short sweep
@@ -1803,7 +1804,7 @@ b $600D Every record in the game, before anything has happened
 D $600D The 5488 bytes LOAD_INITIAL_STATE copies to $EA90 -- which is to say the whole of the runtime area, $EA90 to the top of memory, written out in full and moved into place with one LDIR. Nothing is built at run time; the castle is simply copied.
 D $600D It is laid out exactly as the running game reads it, in the four regions MAIN_LOOP and FRAME_TICK walk. The bytes below are grouped one record to a line.
 D $600D What is in it, read out of the data: three empty records for the player, the weapon and the sound slot, which are filled in when a game starts rather than here; 115 objects of the 119 slots, among them sixteen mushrooms and ten each of the six kinds of food; five monsters, one each of the mummy, Dracula, the devil, Frankenstein's monster and the humpback; and 274 sixteen-byte records for the doors and the furniture.
-D $600D The doors are the surprise. Every one is sixteen bytes, not eight -- one record holding both of its sides -- which is why DOOR_OTHER_SIDE flips bit 3 of an address: it is moving between the two halves of a single record. The last region is 274 of these sixteen-byte records: 205 doors, and 69 pairs of pieces of furniture, one in each of two rooms, stored the same way though nothing ever crosses between them -- 36 of the pairs are not even the same piece. A record's type byte says which (see DOOR_KINDS in build_aticatac.py): its handler, found by DISPATCH_FROM_LIST, is a door routine for a door and DOOR_1's draw-only tail for furniture. Each room's list names the records that are in it; the objects and monsters it names nowhere, finding them by their own room byte.
+D $600D The doors are the surprise. Every one is sixteen bytes, not eight -- one record holding both of its sides -- which is why DOOR_OTHER_SIDE flips bit 3 of an address: it is moving between the two halves of a single record. The last region is 274 of these sixteen-byte records: 205 doors, and 69 pairs of pieces of furniture, one in each of two rooms, stored the same way though nothing ever crosses between them -- 36 of the pairs are not even the same piece. A record's type byte says which (see DOOR_KINDS in build_aticatac.py): its handler, found by DISPATCH_FROM_LIST, is a door routine for a door and DRAW_DOOR, the draw-only tail of DOOR, for furniture. Each room's list names the records that are in it; the objects and monsters it names nowhere, finding them by their own room byte.
 
 # --------------------------------------------------------------------------
 # The two character sets
@@ -1820,14 +1821,14 @@ B $B03A,752,8
 ; span $B32A,192
 @ $B32A label=PANEL_LAYOUT
 b $B32A The status panel, as tile numbers
-D $B32A 24 rows of 8, each byte an index into PANEL_TILES. The loop at $A228 walks it a row at a time, calling PLOT_TILE for each cell and colouring it as it goes. The eight columns start at x=192, which is the first character column past the play area -- the same place PAINT_PANEL colours.
-B $B32A,192,24
+D $B32A 24 rows of 8, each byte an index into PANEL_TILES. The loop at #R$A228 walks it a row at a time, calling PLOT_TILE for each cell and colouring it as it goes. The eight columns start at x=192, which is the first character column past the play area -- the same place PAINT_PANEL colours.
+B $B32A,192,8
 
 ; span $BF4C,472
 @ $BF4C label=TEXT_FONT
 b $BF4C The text font
 D $BF4C 59 characters, eight bytes each, for the codes $20 (space) to $5A ("Z") -- so the game can print spaces, digits, punctuation and capitals, and nothing else.
-D $BF4C The code never names this address. It loads $BE4C into the tile source instead, which is this block less $20 characters, so that a character's own ASCII code indexes it. $965F and $A1AE load $BFCC for the same reason one bias further on: that is where "0" lives, so a digit's value indexes its own glyph with no adjustment at all. Drawing the two glyphs out confirms it -- $BFCC is a nought, $BE4C plus $41 characters is an A, and plus $5A is a Z.
+D $BF4C The code never names this address. It loads TEXT_FONT less $100 into the tile source instead, which is this block less $20 characters, so that a character's own ASCII code indexes it. DRAW_SUMMARY+30 and #R$A1AE load #R$BFCC for the same reason one bias further on: that is where "0" lives, so a digit's value indexes its own glyph with no adjustment at all. Drawing the two glyphs out confirms it -- #R$BFCC is a nought, TEXT_FONT less $100 plus $41 characters is an A, and plus $5A is a Z.
 B $BF4C,472,8
 
 # --------------------------------------------------------------------------
@@ -1858,9 +1859,9 @@ D $9710 Two strings, each a colour byte then the text, with bit 7 on the last ch
 T $9710,33,16,17
 
 ; span $9731,120
-@ $9731 label=ESCAPE_SEQUENCE
-c $9731 The sequence played when the player gets out
-D $9731 Runs 128 times: each pass beeps a note whose pitch comes from the frame counter at $5C78, picks black or white from bit 3 of it, writes that into two cells of the attribute file and then floods the rest outwards with SPIRAL_FILL. So the screen flashes in and out from the middle while the note climbs. It ends by jumping straight back into the main loop at $9117.
+@ $9731 label=TRAPDOOR_FALL
+c $9731 Fall through a trapdoor
+D $9731 Reached only from the trapdoor's handler, #R$91C5, and only while the player is standing on it -- PLAYER_AT_DOOR with a tolerance of $1818. It draws room $96, which is not a room but the trapdoor fall's twelve nested rectangles (see the room types), then runs 128 times: each pass beeps a note whose pitch comes from the frame counter at $5C78 and walks down as the loop counts up, picks black or white from bit 3 of it, writes that into two cells of the attribute file and floods the rest outwards with SPIRAL_FILL. It ends in ENTER_ROOM, which takes the player to the trapdoor's other half -- the landing in the room below.
 D $9731 Never reached in any of the recorded playthroughs, which is why the code map left it as data until it was disassembled by hand.
   $9748,3 The frame counter, so the pitch follows real time rather than a count of its own.
   $9750,3 One cycle of BEEP with B complemented, which is what walks the pitch down as the loop counts up.
@@ -1869,7 +1870,7 @@ D $9731 Never reached in any of the recorded playthroughs, which is why the code
   $9771,3 Straight back into the main loop; there is no return.
 
 @ $9774 label=SPIRAL_FILL
-D $9774 Fills the attribute file from the centre outwards in a rectangular spiral: right along a row, down the far column, back along the bottom and up the near column, then in by one and round again. It reads the colour to write from the cell one row above the start, so it spreads whatever ESCAPE_SEQUENCE just put there.
+D $9774 Fills the attribute file from the centre outwards in a rectangular spiral: right along a row, down the far column, back along the bottom and up the near column, then in by one and round again. It reads the colour to write from the cell one row above the start, so it spreads whatever TRAPDOOR_FALL just put there.
   $9777,6 $5AE0 is the last row of the attribute file; the spiral is walked backwards from there.
   $97A3,3 Two rows and one column shorter each time round.
 
@@ -1898,7 +1899,7 @@ B $D505,251,16
 @ $9BC1 label=NEXT_PIXEL_ROW
 c $9BC1 Step a screen address down one pixel row
 D $9BC1 The standard Spectrum move: bump the row within the character cell, and only when that carries out of three bits step L on by 32 and take 8 off H to get back into the right third of the screen.
-D $9BC1 Nothing calls it. There is no CALL or JP to $9BC1 anywhere in the game, and it is not in any of the jump tables; the drawing routines all compute a fresh address through PIXEL_TO_SCREEN instead. It disassembles cleanly and ends in a RET, so it is a routine, just not one that runs.
+D $9BC1 Nothing calls it. There is no CALL or JP to #R$9BC1 anywhere in the game, and it is not in any of the jump tables; the drawing routines all compute a fresh address through PIXEL_TO_SCREEN instead. It disassembles cleanly and ends in a RET, so it is a routine, just not one that runs.
   $9BC2,3 Still inside the cell -- nothing else to do.
   $9BC6,4 Down to the next character row...
   $9BCA,2 ...and if that did not wrap, the third is unchanged.
@@ -1906,7 +1907,7 @@ D $9BC1 Nothing calls it. There is no CALL or JP to $9BC1 anywhere in the game, 
 ; span $9F74,12
 @ $9F74 label=SETUP_BOTH_BANKS
 c $9F74 Set up the drawing address in both register banks
-D $9F74 Runs the same setup twice, once per bank, keeping DE across the first call so the second gets the same argument, and then joins the erase path at $9FD1.
+D $9F74 Runs the same setup twice, once per bank, keeping DE across the first call so the second gets the same argument, and then joins the erase path at #R$9FD1.
 D $9F74 Like NEXT_PIXEL_ROW, nothing reaches it: no call, no jump, no table entry. SETUP_ERASE immediately after it is the version the game actually uses.
   $9F74,4 DE is wanted twice, so it is kept over the first call.
   $9F78,5 The second bank gets the same argument.
@@ -1924,38 +1925,38 @@ B $83CA,32,2
 ; span $8C59,10
 @ $8C59 label=GAME_OVER_TEXT
 b $8C59 "GAME OVER"
-D $8C59 A colour byte and nine characters, the last with bit 7 set. $8C41 hands it to PRINT_STRING, then the three figures are printed under it, then a two-level counted delay runs and the game jumps back to the title screen.
+D $8C59 A colour byte and nine characters, the last with bit 7 set. GAME_OVER+12 hands it to PRINT_STRING, then the three figures are printed under it, then a two-level counted delay runs and the game jumps back to the title screen.
 T $8C59,10
 
 ; span $94DD,24
 @ $94DD label=KEY_ROOM_SETS
 b $94DD Eight sets of three rooms, for hiding the key
-D $94DD The routine above picks a set with (A + C) AND $07, multiplies by three, and copies the three bytes into $6026 stepping by eight -- which is +$01 of three consecutive object records in INITIAL_STATE, the field that says which room the object is in. So this chooses where the three pieces are hidden, and it does it by editing the template before LOAD_INITIAL_STATE copies it.
+D $94DD The routine above picks a set with (A + C) AND $07, multiplies by three, and copies the three bytes into the room bytes of ACG_KEY_PARTS, stepping by eight -- which is +$01 of three consecutive object records in INITIAL_STATE, the field that says which room the object is in. So this chooses where the three pieces are hidden, and it does it by editing the template before LOAD_INITIAL_STATE copies it.
 D $94DD Every one of the 24 values is a valid room number, 149 or less, which is what a table of rooms should look like and what a table of anything else almost certainly would not.
 B $94DD,24,3
 
 ; span $990C,8
 @ $990C label=RANDOM_ROOMS_ONE
 b $990C Eight rooms to choose between
-D $990C Read by the helper at $9904, which takes A AND $07 as the index. The result is written to $603E -- inside INITIAL_STATE again, so this is another thing placed differently each game.
+D $990C Read by the helper at #R$9904, which takes A AND $07 as the index. The result is written to GREEN_KEY's room byte -- inside INITIAL_STATE again, so this is another thing placed differently each game.
 B $990C,8,8
 
 ; span $9914,8
 @ $9914 label=RANDOM_ROOMS_TWO
 b $9914 Eight more
-D $9914 Chosen with the frame counter added to $5E12, and written to two places at once, $6046 and $640E.
+D $9914 Chosen with the frame counter added to $5E12, and written to two places at once, RED_KEY's room byte and MUMMY's.
 B $9914,8,8
 
 ; span $991C,8
 @ $991C label=RANDOM_ROOMS_THREE
 b $991C Eight more again
-D $991C Chosen with the other half of the frame counter added to $5E13, and written to $604E.
+D $991C Chosen with the other half of the frame counter added to $5E13, and written to CYAN_KEY's room byte.
 B $991C,8,8
 
 ; span $A064,22
 @ $A064 label=FILL_HANDLERS
 b $A064 Where to go for each way of filling a run
-D $A064 Eleven addresses, picked up two at a time and entered with JP (HL). Two of the eleven are $807A rather than a routine in this group, which is the same trick the actor table uses: an entry that does nothing useful points at something harmless instead of being left out.
+D $A064 Eleven addresses, picked up two at a time and entered with JP (HL). Two of the eleven are #R$807A rather than a routine in this group, which is the same trick the actor table uses: an entry that does nothing useful points at something harmless instead of being left out.
 W $A064,22,2
 
 ; span $A4A0,16
@@ -1971,7 +1972,7 @@ B $A4A0,16,16
 ; span $A3BD,10
 @ $A3BD label=BEEP_ENTRIES
 c $A3BD Two more ways into BEEP
-D $A3BD Each loads a pitch and a length and drops into BEEP a few bytes above, the same shape as the two footstep branches. $4040 is one long note; $2080 is a shorter, higher one. Reached from $934A.
+D $A3BD Each loads a pitch and a length and drops into BEEP a few bytes above, the same shape as the two footstep branches. $4040 is one long note; $2080 is a shorter, higher one. Reached from the JP at REMEMBER_CARRIED+35.
   $A3BD,5 One long note.
   $A3C2,5 Shorter and higher.
 
@@ -1998,13 +1999,13 @@ D $7CA8 The other half of SET_HIGHLIGHT: RES 7,(HL) then INC HL.
 ; span $9883,8
 @ $9883 label=DRIFT_OFFSETS
 b $9883 Eight small steps
-D $9883 $00 $20 $E0 $00 $00 $E0 $20 $00 -- read by $9876. As signed bytes they are 0, +32, -32, 0, 0, -32, +32, 0: a pair of nudges one way and then the other, which is what the mushroom's wander looks like on screen.
+D $9883 $00 $20 $E0 $00 $00 $E0 $20 $00 -- read by the LD HL at MODE_TO_INDEX+11. As signed bytes they are 0, +32, -32, 0, 0, -32, +32, 0: a pair of nudges one way and then the other, which is what the mushroom's wander looks like on screen.
 B $9883,8,8
 
 ; span $8B85,5
 @ $8B85 label=SPAWNABLE_SPRITES
 b $8B85 Five creatures
-D $8B85 $62, $4C, $4E, $68, $6A -- a ghost, the pumpkin, a bat, another ghost and another bat. Five sprite codes in a row immediately before the routine that both $9340 and the mushroom handler call.
+D $8B85 $62, $4C, $4E, $68, $6A -- a ghost, the pumpkin, a bat, another ghost and another bat. Five sprite codes in a row immediately before the routine at #R$8B8A -- and, as it turns out, the last five entries of SPAWN_TYPES.
 B $8B85,5,5
 
 
@@ -2056,3 +2057,298 @@ B $8B85,5,5
 ; sprite $C6 Pumpkin picture
 ; sprite $C7 Skeleton
 ; sprite $C8 Barrel stack
+
+@ $8B7A label=SPAWN_TYPES
+b $8B7A What a new monster turns into
+D $8B7A Sixteen sprite codes, picked by the frame counter's low four bits: SPAWN_MONSTER_INTO_ROOM puts the one it picks into the new record's +$02, where MONSTER_TEMPLATE's arrival animation finds it when it finishes. The table runs on into the five bytes of SPAWNABLE_SPRITES below, which are its last five entries as well as a list of their own.
+B $8B7A,11,8,3
+
+W $A4BE,322,8
+@ $A600 label=FURNITURE_SPRITES
+W $A600,38,8
+@ $A626 label=ROAST_SPRITE
+W $A626,2,2 The roast chicken's entry, which DRAW_FOOD moves on past the rows eaten
+W $A628,38,8
+@ $A64E label=FURNITURE_COLOURS
+W $A64E,78,8
+@ $BFCC label=FONT_DIGITS
+
+@ $7CF1 label=MENU_ROWS
+@ $7CF8 label=MENU_TEXT
+@ $7D51 label=COPYRIGHT_LINE
+@ $7D72 label=MENU_TITLE
+@ $968F label=SCORE_LABEL
+@ $969F label=TIME_LABEL
+@ $9720 label=ESCAPED_TEXT
+
+# ---- Places in the code others name: return points, handlers, doors.
+@ $7DF3 label=NEXT_OBJECT
+@ $7E35 label=NEXT_IN_LIST
+@ $91C5 label=TRAPDOOR
+@ $91ED label=BIG_DOOR
+@ $9428 label=DOOR_WIZARD
+@ $942F label=DOOR_KNIGHT
+@ $954D label=OPEN_DOOR
+@ $9565 label=SHUT_DOOR
+
+# ---- Self-modifying code: the instructions written into, and the writes as label plus offset.
+@ $99D7 label=BLIT_SPRITE_OP
+@ $99F9 label=BLIT_MIRRORED_OP
+@ $9A36 label=DRAW_PIXELS_2_OP
+@ $9A78 label=DRAW_PIXELS_3_OP
+@ $9ADD label=DRAW_PIXELS_4_OP
+@ $9B06 label=BLIT_FLIPPED_OP
+@ $9B43 label=DRAW_PIXELS_6_OP
+@ $9B88 label=DRAW_PIXELS_7_OP
+@ $96C6 label=SET_BIT_OP
+@ $9C3D label=FROM_VERTEX_X
+@ $9C40 label=FROM_VERTEX_Y
+@ $9C53 label=TO_VERTEX_X
+@ $9C56 label=TO_VERTEX_Y
+@ $9EE4 label=ERASE_JR
+@ $9F29 label=DRAW_JR
+
+# --------------------------------------------------------------------------
+# The runtime records, above the loaded block: named, not labelled
+# --------------------------------------------------------------------------
+
+@ $6000 equ=PLAYER=$EA90
+@ $6000 equ=PLAYER_ROOM=$EA91
+@ $6000 equ=PLAYER_FLAG=$EA92
+@ $6000 equ=PLAYER_X=$EA93
+@ $6000 equ=PLAYER_Y=$EA94
+@ $6000 equ=PLAYER_MODE=$EA95
+@ $6000 equ=PLAYER_DX=$EA96
+@ $6000 equ=PLAYER_DY=$EA97
+@ $6000 equ=WEAPON=$EA98
+@ $6000 equ=WEAPON_ROOM=$EA99
+@ $6000 equ=WEAPON_HIT=$EA9A
+@ $6000 equ=WEAPON_X=$EA9B
+@ $6000 equ=WEAPON_Y=$EA9C
+@ $6000 equ=WEAPON_DX=$EA9E
+@ $6000 equ=WEAPON_DY=$EA9F
+@ $6000 equ=SOUND_SLOT=$EAA0
+@ $6000 equ=LIVE_OBJECTS=$EAA8
+@ $6000 equ=LIVE_RED_KEY=$EAC8
+@ $6000 equ=LIVE_COLLECTABLE_80=$EAE0
+@ $6000 equ=LIVE_DROP_SLOTS=$EAE8
+@ $6000 equ=LIVE_COLLECTABLES=$EB18
+@ $6000 equ=LIVE_FOOD=$EB58
+@ $6000 equ=LIVE_MUSHROOMS=$EDD8
+@ $6000 equ=MOVE_ROOM=$EE59
+@ $6000 equ=LIVE_MONSTERS=$EE60
+@ $6000 equ=LIVE_DOORS=$EEE0
+
+# Writes into data and code, as a label plus the offset of the byte written.
+@ $7C23 isub=LD HL,TEXT_FONT-$0100
+@ $7CAF isub=LD HL,TEXT_FONT-$0100
+@ $7EAD isub=LD HL,ACTOR_HANDLERS+$0144
+@ $8181 isub=LD (SOUND_SLOT+7),A
+@ $88F4 isub=LD (LIVE_COLLECTABLE_80+1),A
+@ $8BA0 isub=LD A,(GFX_B4+1)
+@ $8BA4 isub=LD A,(GFX_B5+1)
+@ $8BC9 isub=LD A,(GFX_B5+1)
+@ $8BE2 isub=LD (FOOD_RECORD+3),HL
+@ $8BE8 isub=LD HL,(FOOD_RECORD+3)
+@ $8C02 isub=LD (GFX_B4+1),A
+@ $8C06 isub=LD (GFX_B5+1),A
+@ $8C13 isub=LD (GFX_B4+1),A
+@ $8C1E isub=LD (FOOD_RECORD+3),HL
+@ $8C38 isub=LD HL,TEXT_FONT-$0100
+@ $944B isub=LD (PLAYER_TEMPLATE+7),A
+@ $9451 isub=LD (PLAYER_TEMPLATE+1),A
+@ $94CB isub=LD HL,ACG_KEY_PARTS+1
+@ $9505 isub=LD DE,LIVE_DOORS+8
+@ $96C3 isub=LD (SET_BIT_OP+1),A
+@ $96F2 isub=LD HL,TEXT_FONT-$0100
+@ $98DB isub=LD (GREEN_KEY+1),A
+@ $98EC isub=LD (RED_KEY+1),A
+@ $98EF isub=LD (MUMMY+1),A
+@ $9900 isub=LD (CYAN_KEY+1),A
+@ $9C36 isub=LD (FROM_VERTEX_X+2),A
+@ $9C3A isub=LD (FROM_VERTEX_Y+2),A
+@ $9C4C isub=LD (TO_VERTEX_X+2),A
+@ $9C50 isub=LD (TO_VERTEX_Y+2),A
+@ $9F91 isub=LD (ERASE_JR+1),A
+@ $9FB3 isub=LD (DRAW_JR+1),A
+
+# Pairs of numbers loaded together -- pitches, sounds and lengths, pixel# coordinates -- not addresses.
+@ $7CD8 keep
+@ $8BDC keep
+@ $8C1B keep
+@ $9656 keep
+@ $9671 keep
+@ $A266 keep
+@ $A27E keep
+@ $A286 keep
+@ $A2E3 keep
+@ $A3DB keep
+@ $A3E0 keep
+@ $A3E5 keep
+@ $A403 keep
+@ $A485 keep
+
+# Addresses loaded as return points: the label is right.
+@ $7E0E nowarn
+@ $7EBE nowarn
+
+# Seventeen codes in SPRITE_TABLE point here: the last row of the graphic
+# before, whose first byte, read as a row count, is zero -- a sprite of no rows.
+@ $AEEA label=NO_GRAPHIC
+
+# Writes into the drawing loops, and return points: the labels are right.
+@ $7DED nowarn
+@ $7E93 nowarn
+@ $99CD nowarn
+@ $99E9 nowarn
+@ $9A0E nowarn
+@ $9A54 nowarn
+@ $9ACF nowarn
+@ $9AF3 nowarn
+@ $9B18 nowarn
+@ $9B61 nowarn
+
+# Entry points other routines use, named for what happens there.
+@ $7C29 label=TITLE_AGAIN
+@ $7E03 label=NEXT_MONSTER
+@ $7E23 label=ROOM_LIST_PASS
+@ $7E7F label=DISPATCH_PUSHED
+@ $7E82 label=DISPATCH_IN_TABLE
+@ $7E85 label=DISPATCH_TYPE_C
+@ $7EBE label=TICK_DISPATCH
+@ $80B9 label=CLEAR_FROM_HL
+@ $80BB label=FILL_FROM_HL
+@ $8160 label=LAUNCH_SHOT
+@ $8209 label=SPIN_WEAPON
+@ $826F label=WEAPON_GONE
+@ $827E label=CLEAR_ACTOR
+@ $84CD label=STEP_ACTOR
+@ $875F label=DRAW_MONSTER
+@ $89BB label=BIG_MONSTER_STEP
+@ $8A25 label=SET_FOOD_LEVEL
+@ $8A2B label=FOOD_GONE
+@ $8C4A label=END_DELAY
+@ $8CD4 label=ANIMATE_SHAPE
+@ $8D12 label=ANIMATE_COLOUR
+@ $8E78 label=PLAYER_TICK
+@ $8E8E label=REDRAW_ACTOR
+@ $9147 label=ARRIVE_IN_ROOM
+@ $9193 label=RESTART_WAIT
+@ $91F5 label=DOORWAY
+@ $91FE label=DRAW_DOOR
+@ $9213 label=DRAW_RECORD
+@ $924C label=OPEN_AND_ENTER
+@ $92E2 label=DRAW_AT_A
+@ $95CC label=PLACE_RECORD
+@ $9607 label=PRINT_CLOCK
+@ $9893 label=MUSHROOM_COLOUR_STEP
+@ $98B1 label=MUSHROOM_DRAIN
+@ $98C4 label=MUSHROOM_COLOURS
+@ $9965 label=DRAW_WITH_MODE
+@ $9BF1 label=DRAW_ROOM_A
+@ $9C2E label=OUTLINE_DONE
+@ $9EB4 label=CLIP_SWAP
+@ $9EB5 label=CLIP_TOP
+@ $9EC8 label=CLIP_STORE
+@ $9EF9 label=XOR_BYTE
+@ $9F4D label=DRAW_THING_ALT
+@ $9F59 label=ERASE_THING_ALT
+@ $9F83 label=SETUP_ERASE_ALT
+@ $9F9B label=SETUP_DONE
+@ $9FA2 label=SETUP_AT_POSITION
+@ $9FD1 label=CLIP_BOTTOM
+@ $A01A label=DRAW_FROM_RECORD
+@ $A07B label=FILL_ATTRS_BODY
+@ $A08E label=FILL_ATTRS_BACK_BODY
+@ $A0A4 label=FILL_ATTRS_SECOND_BODY
+@ $A0C9 label=FILL_ATTRS_LIMIT
+@ $A1AE label=DRAW_SCORE
+@ $A1B7 label=DRAW_SCORE_AT
+@ $A1BF label=DRAW_DIGITS
+@ $A1C9 label=DRAW_LOW_DIGIT
+@ $A1FF label=PRINT_STRING_REST
+@ $A3AA label=BEEP_BC
+@ $A3C2 label=SHORT_HIGH_BEEP
+@ $A3E8 label=PLAY_SOUND_BC
+
+# The game's variables below the loaded block, from $5E00, and the ROM's
+# FRAMES -- named where the notes above describe them, as equates since none
+# of them is in the disassembly.
+@ $6000 equ=FRAMES=$5C78
+@ $6000 equ=FRAMES_HIGH=$5C79
+@ $6000 equ=JP_HL_POKE=$5CB0
+@ $6000 equ=SELECTION=$5E00
+@ $6000 equ=TILE_SOURCE=$5E01
+@ $6000 equ=LAST_FRAME=$5E03
+@ $6000 equ=IN_FRAME=$5E04
+@ $6000 equ=RUNNING_SUM=$5E05
+@ $6000 equ=DRAW_WIDTH=$5E10
+@ $6000 equ=DRAW_SHIFT=$5E11
+@ $6000 equ=TICKS=$5E12
+@ $6000 equ=TICKS_HIGH=$5E13
+@ $6000 equ=ROOM_DRAWN=$5E14
+@ $6000 equ=WORK_SPRITE=$5E15
+@ $6000 equ=WORK_X=$5E16
+@ $6000 equ=WORK_Y=$5E17
+@ $6000 equ=CLIP_COUNT=$5E18
+@ $6000 equ=CLIP_LIMIT=$5E19
+@ $6000 equ=ROOM_COLOUR=$5E1A
+@ $6000 equ=LIST_POINTER=$5E1B
+@ $6000 equ=ROOM_HALF_WIDTH=$5E1D
+@ $6000 equ=ROOM_HALF_HEIGHT=$5E1E
+@ $6000 equ=CARRYING=$5E1F
+@ $6000 equ=PICKUP_KEY=$5E20
+@ $6000 equ=LIVES=$5E21
+@ $6000 equ=MENU_COLOUR=$5E22
+@ $6000 equ=LINE_WORK=$5E23
+@ $6000 equ=LINE_WORK_NEXT=$5E24
+@ $6000 equ=ACTORS_HERE=$5E25
+@ $6000 equ=SPAWN_ROOM=$5E26
+@ $6000 equ=SPAWN_COUNTDOWN=$5E27
+@ $6000 equ=FOOD_LEVEL=$5E28
+@ $6000 equ=FOOD_DRAWN=$5E29
+@ $6000 equ=SCORE=$5E2A
+@ $6000 equ=SCORE_LOW=$5E2C
+@ $6000 equ=FIRE_BLOCKED=$5E2D
+@ $6000 equ=DOOR_WAIT=$5E2E
+@ $6000 equ=STEP_COUNTER=$5E2F
+@ $6000 equ=CARRIED=$5E30
+@ $6000 equ=CARRIED_SPRITE=$5E32
+@ $6000 equ=THIRD_SLOT=$5E38
+@ $6000 equ=FLASH_COUNT=$5E3C
+@ $6000 equ=CLOCK=$5E3D
+@ $6000 equ=CLOCK_SECONDS=$5E3F
+@ $6000 equ=ROOMS_SEEN=$5E40
+@ $6000 equ=ROOMS_EXPLORED=$5E54
+@ $6000 equ=CURSOR=$5E55
+@ $934C isub=LD HL,CARRIED+7
+@ $934F isub=LD DE,CARRIED+11
+# The stack's top, not the variable that happens to share the address.
+@ $6001 keep
+@ $7DC3 keep
+
+# Line comments for the operands written as label plus offset: the HTML shows
+# their addresses, so the comment says which field it is.
+  $7CAF,3 The text font, less $100: TEXT_FONT-$100
+  $7EAD,3 ACTOR_HANDLERS + 2 * $A2, where the room records' handlers start
+  $88F4,3 LIVE_COLLECTABLE_80+1: its room
+  $8BC9,3 GFX_B5+1: the bones' height byte
+  $8BE2,3 FOOD_RECORD+3: where the roast is drawn
+  $8BE8,3 FOOD_RECORD+3: where the roast is drawn
+  $8C02,3 GFX_B4+1: the whole roast's height byte
+  $8C06,3 GFX_B5+1: the bones' height byte
+  $8C13,3 GFX_B4+1: the whole roast's height byte
+  $8C1E,3 FOOD_RECORD+3: where the roast is drawn
+  $934C,3 CARRIED+7: the last byte of the second slot...
+  $934F,3 CARRIED+11: ...and of the third
+  $944B,3 PLAYER_TEMPLATE+7: the character's sprite
+  $9451,3 PLAYER_TEMPLATE+1: the room
+  $94CB,3 ACG_KEY_PARTS+1: the first piece's room
+  $96F2,3 The text font, less $100: TEXT_FONT-$100
+  $98DB,3 GREEN_KEY+1: the green key's room
+  $98EC,3 RED_KEY+1: the red key's room...
+  $98EF,3 ...and MUMMY+1, the mummy's
+  $9900,3 CYAN_KEY+1: the cyan key's room
+  $9C4C,3 TO_VERTEX_X+2: the displacement in the fetch below
+  $9C50,3 TO_VERTEX_Y+2: likewise
+  $9F91,3 ERASE_JR+1: the jump's displacement

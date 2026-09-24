@@ -14,7 +14,7 @@ StyleSheet=skoolkit.css;aticatac.css
 Copyright=&copy; 1983 A.C.G. (Ultimate Play The Game)
 Release=Disassembled from the original tape image
 Created=Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> #VERSION, driven by <code>scripts/build_aticatac.py</code>.
-LinkOperands=CALL,DEFW,DJNZ,JP,JR
+LinkOperands=CALL,DEFW,DJNZ,JP,JR,LD
 
 [Index:Reference:About this disassembly]
 Map
@@ -79,7 +79,7 @@ What is sitting there is a decryptor:
 5B8A: 10 FB      DJNZ $5B87
 5B8C: 0D         DEC C
 5B8D: 20 F8      JR NZ,$5B87
-5B8F: C3 00 60   JP $6000</pre>
+5B8F: C3 00 60   JP #R$6000</pre>
 <code>RRD</code> rotates one nibble out of <code>(HL)</code> into <code>A</code> and <code>A</code>'s low nibble into <code>(HL)</code>, so a single nibble is dragged through the entire block. Every byte depends on the one before it, and the plaintext exists only in RAM &mdash; there is no offline transformation that recovers it. The tape has to be run.
 
 [Loading:frames:The second lock, in the frame counter]
@@ -89,7 +89,7 @@ The two bytes at 0x5C78 land on FRAMES, the ROM's frame counter, and the value p
 6004: 3A 79 5C   LD A,($5C79)    ; FRAMES+1
 6007: FE 25      CP $25          ; ...must still be $25
 6009: C0         RET NZ          ; or fall straight back to BASIC
-600A: C3 19 7C   JP $7C19        ; the real entry point</pre>
+600A: C3 19 7C   JP #R$7C19        ; the real entry point</pre>
 A loader that drops the little blocks, or that lets an interrupt tick FRAMES on before arriving here, gets a game that returns quietly to BASIC with no error at all.
 
 [Loading:trampoline:The one-byte block is an instruction]
@@ -151,7 +151,7 @@ This is what makes the threshold in #R$85B2 meaningful: codes below $31 are exac
 
 [Architecture:roomcontents:What is in a room]
 A room's furniture is not searched for. #R$757D holds one pointer per room to a $0000-terminated list of the records that belong to it, and #R$902B walks that list when the room is set up. Room $00's list names $EEE0, $EEF0 and $EF00, which are the three door records a running game really does have there.
-The addresses in the lists are stored with $757D added to them, so each has to have it taken off again. That looks like obfuscation and is not: BC still holds $757D from the lookup two instructions earlier, so both the bias and its removal are free. It is the same habit as the tile source at $5E01 and the sprite bases at $A600 &mdash; a pointer's base made to carry information rather than a separate field doing it.
+The addresses in the lists are stored with #R$757D added to them, so each has to have it taken off again. That looks like obfuscation and is not: BC still holds #R$757D from the lookup two instructions earlier, so both the bias and its removal are free. It is the same habit as the tile source at $5E01 and the sprite bases at #R$A600 &mdash; a pointer's base made to carry information rather than a separate field doing it.
 
 [Architecture:doors:A door is two records]
 Every door exists twice, once in each room it joins, and the two halves are put eight bytes apart on purpose. Finding the far side is then one instruction:
@@ -231,7 +231,7 @@ two bytes -- sixteen pixels -- wide.
 That was not read off a hex dump either. Each code was drawn on a machine of its
 own with the reads into the graphics region logged, and all 235 that draw read
 exactly one plus twice the row count, contiguously, from the address the table
-holds. The fourteen graphics below $AD2E are the wider pieces the rooms are
+holds. The fourteen graphics below #R$AD2E are the wider pieces the rooms are
 built from and carry a width as well, and those fourteen tile their region
 exactly, ending on the first byte of ROOM_TABLE.
 A few hundred bytes scattered through the region are pictures that nothing
@@ -256,10 +256,10 @@ gaps at all, filling everything up to $7C18, the byte before the game's own
 entry point.
 
 [Data:fonts:The two character sets]
-There are two. The text font at $BF4C has 59 characters, $20 to $5A, so the
+There are two. The text font at #R$BF4C has 59 characters, $20 to $5A, so the
 game can print spaces, digits, punctuation and capitals and nothing else. The
-code never names that address: it loads $BE4C, which is the same block less $20
-characters, so a character's own code indexes it, and $BFCC, one bias further
+code never names that address: it loads TEXT_FONT less $100, the same block less $20
+characters, so a character's own code indexes it, and #R$BFCC, one bias further
 on, so that a digit's value indexes its own glyph.
 A second set of 94 characters draws the status panel, with a 192-byte map of
 which piece goes in each of its 8 columns by 24 rows: the parchment scroll down
@@ -290,10 +290,11 @@ them is that one byte.
 </div>
 <div style="clear:both"></div>
 It survived because almost nobody saw it. Reaching this screen means finishing
-the game, and the sequence that plays it -- ESCAPE_SEQUENCE, a note climbing
-while the screen flashes out from the middle -- is never entered by a machine
-playing the game at random. A code map built from playthroughs classified the
-whole routine as data until it was picked apart by hand.
+the game: getting through the A.C.G. door, with all three pieces of its key,
+into room $8E, which MAIN_LOOP checks for on every pass before it jumps to
+SHOW_END_SCREEN. A machine playing the game at random never gets there, and a
+code map built from playthroughs classified the whole routine as data until it
+was picked apart by hand.
 
 [Poke:congratulations:Spell CONGRATULATIONS correctly]
 One byte, and nothing else moves: the string is the same length.
@@ -305,7 +306,7 @@ few bytes earlier that writes the AND, OR or XOR combining a sprite with what is
 already on the screen. Remove them and sprite drawing breaks.
 
 [Fact:sharedbytes:Two sprites share four bytes]
-Sprite $54 at $C219 says eighteen rows, which runs four bytes past $C23A where
+Sprite $54 at #R$C219 says eighteen rows, which runs four bytes past #R$C23A where
 sprite $58 begins. Neither is wrong. Drawing $54 reads all eighteen rows and the
 seventeenth continues the taper of the sixteenth exactly; the byte they share,
 $0C, is the last row's left half and also $58's row count. Three bytes saved by

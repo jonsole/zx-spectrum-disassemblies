@@ -1066,6 +1066,13 @@ INITIAL_STATE_LENGTH = 5488
 # copied to $EA90: three records filled in when a game starts, the objects,
 # the monsters, and the doors and furniture.
 STATE_SLOTS, STATE_OBJECTS, STATE_MONSTERS, STATE_PAIRS = 0x600D, 0x6025, 0x63DD, 0x645D
+# Labels for the records the code names, and the starts of the runs of them.
+# The keys' colours are their drawing modes: $42 red, $44 green, $45 cyan,
+# $46 yellow, the colours DOOR_NEEDS_KEY matches against a door's.
+STATE_LABELS = {0x6025: "ACG_KEY_PARTS", 0x603D: "GREEN_KEY", 0x6045: "RED_KEY",
+                0x604D: "CYAN_KEY", 0x6055: "YELLOW_KEY", 0x605D: "COLLECTABLE_80",
+                0x6065: "DROP_SLOTS", 0x6095: "COLLECTABLES", 0x60D5: "FOOD",
+                0x6355: "MUSHROOMS", 0x63DD: "MONSTERS"}
 STATE_SLOT_NAMES = ["The player: filled in when a game starts",
                     "The player's weapon: filled in when one is thrown",
                     "The sound slot: filled in when a sound plays"]
@@ -1075,6 +1082,10 @@ def sprite_name(code: int) -> str:
     """What a sprite code depicts, from the `; sprite` lines in the annotations.
     The collectables, $80-$8E, are named there only as a group, so each is
     called by its code."""
+    if code == 0x81:
+        return "Key"                              # DOOR_NEEDS_KEY
+    if 0x8C <= code <= 0x8E:
+        return "A.C.G. key, piece %d" % (code - 0x8B)   # ACG_DOOR
     if 0x80 <= code <= 0x8E:
         return "Collectable $%02X" % code
     for low, high, name in sprite_names():
@@ -1146,11 +1157,19 @@ def initial_state_blocks(snapshot: Path) -> tuple[str, list[Span]]:
         lines += ["B $%04X,8,8" % address, "  $%04X,8 %s" % (address, STATE_SLOT_NAMES[i])]
     for address in range(STATE_OBJECTS, STATE_MONSTERS, 8):
         sprite, room, x, y = memory[address], memory[address + 1], memory[address + 3], memory[address + 4]
+        if address in STATE_LABELS:
+            lines.append("@ $%04X label=%s" % (address, STATE_LABELS[address]))
         text = ("An empty object slot" if sprite == 0 else
                 "%s: in %s at %d,%d" % (sprite_name(sprite), room_link(memory, room), x, y))
         lines += ["B $%04X,8,8" % address, "  $%04X,8 %s" % (address, text)]
     for address in range(STATE_MONSTERS, STATE_PAIRS, 16):
         sprite, room = memory[address], memory[address + 1]
+        # Each monster by name -- MUMMY, whose room PLACE_KEYS writes -- and
+        # the first slot as the start of them all.
+        name = (re.sub(r"[^A-Z]+", "_", sprite_name(sprite).split(",")[0].upper()).strip("_")
+                if sprite else None)
+        if address in STATE_LABELS or name:
+            lines.append("@ $%04X label=%s" % (address, STATE_LABELS.get(address, name)))
         text = ("An empty monster slot" if sprite == 0 else
                 "%s: in %s" % (sprite_name(sprite), room_link(memory, room)))
         lines += ["B $%04X,16,8" % address, "  $%04X,16 %s" % (address, text)]
@@ -1222,9 +1241,10 @@ def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
                      "<br/>As a new game sets it out, drawn by the game itself.)"
                      % (address, room, room))
         if count:
-            lines.append("D $%04X %d record%s, then a zero to end the list. "
-                         "Add $8A83 to each to get where it ends up at run "
-                         "time." % (address, count, "" if count == 1 else "s"))
+            lines.append("D $%04X %d record%s, then a zero to end the list. Each "
+                         "entry is its record in INITIAL_STATE, which POPULATE_ROOM "
+                         "relocates to where the running game keeps it."
+                         % (address, count, "" if count == 1 else "s"))
         else:
             lines.append("D $%04X Nothing at all: just the terminator. An empty "
                          "room." % address)
@@ -2277,7 +2297,7 @@ RUNTIME = 0xEA90
 # starts its table lookup at $802A, which is ACTOR_HANDLERS + 2 * $A2. So a
 # type is a door exactly when that entry is one of the door routines -- DOOR,
 # the locked doors, the character doors, the trapdoor and the A.C.G. door --
-# and not DOOR_1's draw-only tail, which the furniture uses. Read off the table:
+# and not DRAW_DOOR, the draw-only tail of DOOR,, which the furniture uses. Read off the table:
 DOOR_KINDS = {
     0x01: "cave door", 0x02: "door", 0x03: "big door",
     0x08: "red door", 0x09: "green door", 0x0A: "cyan door", 0x0B: "yellow door",
@@ -2553,6 +2573,7 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
 
 
 ROOM_IMAGES = "images/rooms"
+END_ROOM_TEST = 0x7E76      # CP $8E, in the tail of MAIN_LOOP
 
 
 def render_rooms(snapshot: Path, out_dir: Path) -> None:
@@ -2568,7 +2589,7 @@ def render_rooms(snapshot: Path, out_dir: Path) -> None:
     captured is the 24 by 24 cells of the play area, as the game left them.
 
     Doors open and shut on a timer (SCAN_DOORS), and START_GAME writes a value
-    from the frame counter into the initial state (CYCLE_ROOM_COLOUR), so these
+    from the frame counter into the initial state (PLACE_KEYS), so these
     are one game's castle at its first moments.
     """
     from skoolkit import CSimulator, read_bin_file
@@ -2601,6 +2622,12 @@ def render_rooms(snapshot: Path, out_dir: Path) -> None:
         machine.set_tracer(key_tracer_class(machine))
         machine.memory[CURRENT_ROOM] = room
         machine.memory[CURRENT_ROOM - 1] = 0      # the player's sprite: nothing
+        # MAIN_LOOP ends every pass with CP $8E and a jump to SHOW_END_SCREEN:
+        # standing in room $8E, the passage through the A.C.G. door, is winning.
+        # Left alone it would draw the end screen over that room's picture, so
+        # this machine's copy of the comparison is pointed at a room there is
+        # none of. Only the simulated machine is changed, not the game.
+        machine.memory[END_ROOM_TEST + 1] = 0xFF
         machine.registers[24] = STACK
         machine.trace(REDRAW_ROOM, 0, 0, int(0.4 * TSTATES_PER_SECOND),
                       True, None, None, None, None, None)
