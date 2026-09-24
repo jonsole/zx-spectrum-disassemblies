@@ -1859,7 +1859,68 @@ def render_loading_screen(tape: Path, out_dir: Path) -> bool:
     with open(out_dir / "loading.png", "wb") as f:
         get_image_writer().write_image(
             [Frame(scr_udgs(memory, 0, 0, 32, 24), 2)], f)
+    save_logo(screen, out_dir.parent / "logo.png")
     return True
+
+
+def save_logo(screen, path: Path) -> None:
+    """The title lettering from the loading screen, for the top of every page
+    (LogoImage in aticatac.ref).
+
+    ATIC ATAC is drawn in white over red in the top eight character rows,
+    between two cyan chains, with a magenta copyright sign beside it and the
+    ghost's hat just below. Keeping only the white and red ink -- and the
+    magenta above the hat -- leaves the letters and the sign, and two
+    six-pixel scraps of the chains' red padlocks. Those are dropped as any
+    red or white piece of fewer than 20 pixels; the one small piece that stays
+    is the magenta C inside the copyright ring. On black, as on the screen,
+    with a margin, at twice the size.
+    """
+    from PIL import Image
+
+    palette = [((level if c & 2 else 0), (level if c & 4 else 0), (level if c & 1 else 0))
+               for level in (0xD7, 0xFF) for c in range(8)]
+    colour = {}
+    for y in range(64):
+        for x in range(256):
+            address = ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2) | (x >> 3)
+            attribute = screen[6144 + (y >> 3) * 32 + (x >> 3)]
+            ink = attribute & 7
+            if screen[address] >> (7 - (x & 7)) & 1 and (ink in (2, 7) or (ink == 3 and y < 40)):
+                colour[(x, y)] = palette[(8 if attribute & 0x40 else 0) + ink]
+    # The pieces, eight-connected.
+    pieces, seen = [], set()
+    for start in colour:
+        if start in seen:
+            continue
+        piece, stack = [], [start]
+        seen.add(start)
+        while stack:
+            x, y = stack.pop()
+            piece.append((x, y))
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    n = (x + dx, y + dy)
+                    if n in colour and n not in seen:
+                        seen.add(n)
+                        stack.append(n)
+        pieces.append(piece)
+
+    def bounds(piece):
+        return (min(x for x, _ in piece), min(y for _, y in piece),
+                max(x for x, _ in piece), max(y for _, y in piece))
+    magenta = {palette[3], palette[11]}
+    kept = [p for p in pieces if len(p) >= 20 or colour[p[0]] in magenta]
+    left = min(bounds(p)[0] for p in kept)
+    top = min(bounds(p)[1] for p in kept)
+    right = max(bounds(p)[2] for p in kept)
+    bottom = max(bounds(p)[3] for p in kept)
+    margin = 6
+    image = Image.new("RGB", (right - left + 1 + 2 * margin, bottom - top + 1 + 2 * margin))
+    for piece in kept:
+        for x, y in piece:
+            image.putpixel((x - left + margin, y - top + margin), colour[(x, y)])
+    image.resize((image.width * 2, image.height * 2), Image.NEAREST).save(path)
 
 
 def render_panel(snapshot: Path, out_dir: Path) -> None:
