@@ -2375,6 +2375,45 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
     out.write_bytes(write_sna(regs, ram, border=0))
 
 
+# The faster pictures: patches/hobbit_fast_draw.s, assembled on top of the
+# byte-exact source. These are the only ranges it may change -- the plotting
+# code either side of the ATTR_ routines, and special word slot 0's handler,
+# which nothing runs -- and the build refuses a patched image that differs
+# anywhere else.
+FAST_DRAW_PATCH = Path(__file__).resolve().parent.parent / "patches" / "hobbit_fast_draw.s"
+FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0x82FD, 0x8391)]
+
+
+def build_fast_draw(snapshot: Path) -> None:
+    """Assemble the fast-draw patch and write hobbit_fast.sna and its SLD.
+
+    The patch INCLUDEs hobbit.asm, so this runs after the byte-exact check, on
+    the source that has just been verified. scripts/check_fast_draw.py is what
+    shows the pictures come out the same.
+    """
+    sjasmplus = str(SJASMPLUS) if SJASMPLUS.exists() else "sjasmplus"
+    _log("Assembling the fast-draw patch...")
+    sld = OUT_DIR / "hobbit_fast.sld"
+    result = subprocess.run(
+        [sjasmplus, FAST_DRAW_PATCH.name, f"--sld={sld}", "--fullpath"],
+        cwd=FAST_DRAW_PATCH.parent, text=True, capture_output=True)
+    if result.returncode != 0:
+        sys.exit(f"error: sjasmplus failed on the patch:\n{result.stdout}\n{result.stderr}")
+    patched = (OUT_DIR / "hobbit_fast.bin").read_bytes()
+    original = bytes(game_memory(snapshot)[LOAD_ADDR:GAME_END])
+    if len(patched) != len(original):
+        sys.exit(f"error: the patched image is {len(patched)} bytes, not {len(original)}")
+    stray = [LOAD_ADDR + i for i, (a, b) in enumerate(zip(original, patched))
+             if a != b and not any(lo <= LOAD_ADDR + i < hi for lo, hi in FAST_DRAW_RANGES)]
+    if stray:
+        sys.exit(f"error: the patch changes {len(stray)} byte(s) outside its ranges, "
+                 f"first at 0x{stray[0]:04X}")
+    changed = sum(1 for a, b in zip(original, patched) if a != b)
+    write_snapshot(patched, snapshot, OUT_DIR / "hobbit_fast.sna")
+    _log(f"  {changed} bytes changed, all inside the patch's ranges; "
+         f"wrote hobbit_fast.sna and hobbit_fast.sld")
+
+
 def build_html(skool: Path, out: Path) -> None:
     from skoolkit import skool2html
 
@@ -2406,6 +2445,10 @@ def main() -> None:
     parser.add_argument("--tape", required=True, type=Path,
                         help="the Hobbit .tzx or .tap to disassemble "
                              "(v1.2 is the one to use)")
+    parser.add_argument("--fast-draw", action="store_true",
+                        help="also assemble patches/hobbit_fast_draw.s into "
+                             "hobbit_fast.sna: the same game, drawing its "
+                             "pictures about four times faster")
     parser.add_argument("--html", action="store_true",
                         help="also write a browsable HTML disassembly under "
                              "game_disassembly/hobbit/html/")
@@ -2450,6 +2493,8 @@ def main() -> None:
     game_bytes = assemble(asm, sld)
     verify(game_bytes, snapshot)
     write_snapshot(game_bytes, snapshot, sna)
+    if args.fast_draw:
+        build_fast_draw(snapshot)
     if args.html:
         build_html(skool, OUT_DIR / "html")
 

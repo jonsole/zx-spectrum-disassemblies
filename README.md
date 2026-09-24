@@ -62,6 +62,18 @@ Verified: 30208 bytes reassemble byte-for-byte
 and pages covering the tape protection, how the game is put together, where the
 data goes, the room types, the sprites, the graphics, the sounds, and the bugs.
 
+### The Hobbit, drawing faster
+
+`build_hobbit.py --fast-draw` also assembles
+[patches/hobbit_fast_draw.s](patches/hobbit_fast_draw.s) on top of the verified
+source and writes `game_disassembly/hobbit/hobbit_fast.sna`: the same game, with
+its pictures drawn about four times faster -- Bag End in 1.7 seconds rather
+than 6.7. The patch replaces only the plotting code, and the build refuses one
+that changes a byte anywhere else. `scripts/check_fast_draw.py` then draws all
+22 pictures in both and compares the whole of memory afterwards: every one is
+identical, and the stack never goes deeper.
+[docs/hobbit-fast-draw-plan.md](docs/hobbit-fast-draw-plan.md) says how.
+
 ## How it is put together
 
 [docs/game-examples.md](docs/game-examples.md) is the long version: how the tape
