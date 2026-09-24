@@ -1,0 +1,143 @@
+/* The Hobbit Inspector's page: VS Code's own colours, so it follows the theme. */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  gap: 1.5em;
+  align-items: baseline;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+#score { font-weight: bold; }
+#status { color: var(--vscode-descriptionForeground); font-style: italic; }
+
+main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 35%) 1fr;
+  grid-template-rows: 45% 55%;
+  grid-template-areas: "log objects" "map map";
+}
+#log-pane { grid-area: log; }
+#objects-pane { grid-area: objects; }
+#map-pane { grid-area: map; }
+
+section {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  border-right: 1px solid var(--vscode-panel-border);
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+h2 {
+  font-size: 1em;
+  margin: 0;
+  padding: 4px 8px;
+  display: flex;
+  gap: 1em;
+  align-items: center;
+  background: var(--vscode-sideBarSectionHeader-background);
+  color: var(--vscode-sideBarSectionHeader-foreground);
+}
+h2 input[type=search] {
+  background: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border, transparent);
+  padding: 1px 4px;
+  font: inherit;
+  width: 14em;
+}
+h2 label { font-weight: normal; }
+button {
+  background: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: none;
+  padding: 1px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+.scroll { overflow: auto; flex: 1; min-height: 0; }
+
+/* The log */
+#log {
+  flex: 1;
+  overflow: auto;
+  padding: 4px 8px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  white-space: pre-wrap;
+}
+#log .line { margin: 0 0 2px 0; }
+#log .who { color: var(--vscode-textLink-foreground); margin-right: 0.5em; }
+#log .line.you .who { color: var(--vscode-charts-red); }
+#log .line.unseen { color: var(--vscode-descriptionForeground); }
+#log .line.considered { color: var(--vscode-descriptionForeground); font-style: italic; opacity: 0.7; }
+#log.hide-considered .line.considered { display: none; }
+#log-status { padding: 2px 8px; color: var(--vscode-errorForeground); }
+#log-status:empty { display: none; }
+.dropped { color: var(--vscode-errorForeground); font-style: italic; }
+
+/* The objects */
+table { border-collapse: collapse; width: 100%; }
+th, td { padding: 1px 6px; text-align: left; white-space: nowrap; }
+th {
+  position: sticky;
+  top: 0;
+  background: var(--vscode-editor-background);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  font-weight: normal;
+  color: var(--vscode-descriptionForeground);
+}
+td.num { text-align: right; font-family: var(--vscode-editor-font-family); }
+td.flags { font-family: var(--vscode-editor-font-family); }
+tr.character td.name { font-weight: bold; }
+tr.here { background: var(--vscode-list-inactiveSelectionBackground); }
+tr.you td { color: var(--vscode-charts-red); }
+tr.dead td { text-decoration: line-through; opacity: 0.7; }
+tr.hidden { display: none; }
+
+/* The map */
+#map-scroll { background: var(--vscode-editor-background); }
+#map .room rect {
+  fill: var(--vscode-editorWidget-background);
+  stroke: var(--vscode-panel-border);
+  stroke-width: 1;
+}
+#map .room.dark rect { fill: var(--vscode-editor-inactiveSelectionBackground); }
+#map .room.unvisited { opacity: 0.75; }
+#map .room.unvisited rect { stroke-dasharray: 3 2; }
+#map .room.you rect { stroke: var(--vscode-charts-red); stroke-width: 3; stroke-dasharray: none; }
+#map .room text {
+  font-size: 9px;
+  fill: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+}
+#map .room text.number { fill: var(--vscode-descriptionForeground); font-size: 8px; }
+#map line.exit { stroke: var(--vscode-descriptionForeground); stroke-width: 1; opacity: 0.6; }
+#map line.exit.oneway { stroke-dasharray: 3 2; }
+#map circle.who { stroke: var(--vscode-editor-background); stroke-width: 1; }
+#map text.who { font-size: 7px; fill: #fff; font-weight: bold; pointer-events: none; }
+.legend { font-weight: normal; display: flex; gap: 0.4em; align-items: center; }
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 9px;
+  border: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-editorWidget-background);
+}
+.swatch.you { border: 2px solid var(--vscode-charts-red); }
+.swatch.dark { background: var(--vscode-editor-inactiveSelectionBackground); }
+.swatch.unvisited { opacity: 0.75; border-style: dashed; }

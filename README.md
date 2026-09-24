@@ -77,6 +77,16 @@ changes a byte anywhere else. `scripts/check_fast_draw.py` then draws all
 identical, and the stack never goes deeper.
 [docs/hobbit-fast-draw-plan.md](docs/hobbit-fast-draw-plan.md) says how.
 
+### The Hobbit, watched while it runs
+
+[hobbit-vscode/](hobbit-vscode/) is a VS Code extension, after
+[Wilderland](https://github.com/efa/Wilderland), for The Hobbit running in the
+[emulator](https://github.com/jonsole/zx-spectrum-emulator)'s debugger: a map
+with every character where it is, every object with its place and flags, and a
+log of everything the game says -- including what the other characters do
+where the player cannot see, and what they only try out before deciding. It
+reads it all from the running game; its README says how to install it.
+
 ## How it is put together
 
 [docs/game-examples.md](docs/game-examples.md) is the long version: how the tape
