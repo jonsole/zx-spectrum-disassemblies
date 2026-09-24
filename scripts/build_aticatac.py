@@ -562,6 +562,7 @@ def read_shapes(snapshot: Path) -> list[dict]:
             "edges": edges,
             "points": points,
             "lines": sum(len(g) - 1 for g in groups),
+            "groups": groups,
             "rooms": rooms_by_shape[shape],
         })
     return shapes
@@ -2104,6 +2105,295 @@ def write_graphics_ref(snapshot: Path, path: Path,
     path.write_text(NEWLINE.join(lines), encoding="utf-8")
 
 
+# --------------------------------------------------------------------------
+# The map: how the rooms join, floor by floor.
+# --------------------------------------------------------------------------
+
+# The template the room lists point into, and where LOAD_INITIAL_STATE puts it.
+TEMPLATE = 0x600D
+RUNTIME = 0xEA90
+# A room record's type byte is its handler's index less $A2: DISPATCH_FROM_LIST
+# starts its table lookup at $802A, which is ACTOR_HANDLERS + 2 * $A2. So a
+# type is a door exactly when that entry is one of the door routines -- DOOR,
+# the locked doors, the character doors, the trapdoor and the A.C.G. door --
+# and not DOOR_1's draw-only tail, which the furniture uses. Read off the table:
+DOOR_KINDS = {
+    0x01: "cave door", 0x02: "door", 0x03: "big door",
+    0x08: "red door", 0x09: "green door", 0x0A: "cyan door", 0x0B: "yellow door",
+    0x0C: "red cave door", 0x0D: "green cave door", 0x0E: "cyan cave door",
+    0x0F: "yellow cave door",
+    0x10: "clock (the knight only)", 0x17: "bookcase (the wizard only)",
+    0x1A: "barrel (the serf only)", 0x19: "trapdoor", 0x24: "A.C.G. door",
+}
+TRAPDOOR, BIG_DOOR = 0x19, 0x03
+# Where a door is on its wall: bits 5-7 of its +$05, as PLAYER_AT_DOOR reads
+# its facing. Five -- the A.C.G. door and four barrels -- have facings that are
+# none of the four walls; they are put on the wall they are nearest instead.
+WALLS = {0: "N", 4: "S", 7: "W", 3: "E"}
+STEPS = {"N": (0, -1), "S": (0, 1), "E": (1, 0), "W": (-1, 0)}
+STAIR_SHAPES = {5, 6, 7, 8}
+LOCK_COLOURS = {0x08: "#ff5050", 0x09: "#50e050", 0x0A: "#50e0e0", 0x0B: "#f0f050",
+                0x0C: "#ff5050", 0x0D: "#50e050", 0x0E: "#50e0e0", 0x0F: "#f0f050"}
+INKS = ["#000000", "#5050ff", "#ff5050", "#ff50ff", "#50e050", "#50e0e0", "#f0f050", "#ffffff"]
+
+
+def castle_doors(memory) -> list[dict]:
+    """Every door in every room's list: the room it is in, where it leads, what
+    kind it is and which wall it is on. A door is two records eight bytes apart
+    -- the other side is found by flipping bit 3 of the address, as ENTER_ROOM
+    does -- so the room it leads to is the other record's +$01. A trapdoor's
+    other half is the spot in the room below where the player lands."""
+    doors = []
+    for room in range(ROOM_LIST_ENTRIES):
+        address = memory[ROOM_CONTENTS + 2 * room] | (memory[ROOM_CONTENTS + 2 * room + 1] << 8)
+        while True:
+            entry = memory[address] | (memory[address + 1] << 8)
+            if not entry:
+                break
+            address += 2
+            runtime = (entry - ROOM_CONTENTS) & 0xFFFF
+            record = runtime - RUNTIME + TEMPLATE
+            if memory[record + 1] != room:
+                runtime ^= 8
+                record = runtime - RUNTIME + TEMPLATE
+            kind = memory[record]
+            if kind not in DOOR_KINDS:
+                continue
+            other = (runtime ^ 8) - RUNTIME + TEMPLATE
+            x, y, flags = memory[record + 3], memory[record + 4], memory[record + 5]
+            wall = "D" if kind == TRAPDOOR else WALLS.get(flags >> 5)
+            if wall is None:
+                wall = min(("W", x), ("E", 191 - x), ("N", y), ("S", 191 - y), key=lambda w: w[1])[0]
+            doors.append({"room": room, "to": memory[other + 1], "kind": kind,
+                          "wall": wall, "x": x, "y": y, "record": runtime})
+    return doors
+
+
+def castle_floors(memory, doors: list[dict]) -> tuple[dict, list[dict]]:
+    """Which floor each room is on, and the doors that do not fit.
+
+    Nothing in the game says: it has no map and no idea of a floor. They are
+    worked out from the ways between them. A trapdoor drops one floor. A
+    staircase has a big door frame at one end and a door at the other, and the
+    door is a floor below the frame: of the 64 ways to take the six staircases
+    up or down, that is the one that leaves the fewest doors out of place, all
+    six the same way. Each room then takes the floor most of its doors agree
+    on, which leaves a handful of doors that no assignment satisfies -- drawn
+    on the map as links elsewhere rather than as neighbours.
+    """
+    shape = {r: memory[ROOM_TABLE + 2 * r + 1] for r in range(ROOM_LIST_ENTRIES)}
+    stairs = {r for r in shape if shape[r] in STAIR_SHAPES}
+    foot = {d["room"]: d["to"] for d in doors if d["room"] in stairs and d["kind"] == BIG_DOOR}
+
+    def rise(door) -> int:
+        a, b = door["room"], door["to"]
+        if door["kind"] == TRAPDOOR:
+            return -1
+        return (-1 if a in stairs and foot.get(a) != b else 0) + \
+               (1 if b in stairs and foot.get(b) != a else 0)
+
+    links = {}
+    for d in doors:
+        links.setdefault(d["room"], []).append((d["to"], rise(d)))
+        links.setdefault(d["to"], []).append((d["room"], -rise(d)))
+    floor, queue = {0: 0}, [0]
+    while queue:
+        a = queue.pop(0)
+        for b, up in links.get(a, []):
+            if b not in floor:
+                floor[b] = floor[a] + up
+                queue.append(b)
+    for _ in range(20):
+        changed = False
+        for room in sorted(floor):
+            votes = {}
+            for b, up in links.get(room, []):
+                if b in floor:
+                    votes[floor[b] - up] = votes.get(floor[b] - up, 0) + 1
+            ranked = sorted(votes.items(), key=lambda kv: -kv[1])
+            if ranked and ranked[0][0] != floor[room] and (len(ranked) == 1 or ranked[0][1] > ranked[1][1]):
+                floor[room] = ranked[0][0]
+                changed = True
+        if not changed:
+            break
+    misfits = [d for d in doors if d["room"] in floor and d["to"] in floor
+               and floor[d["to"]] != floor[d["room"]] + rise(d) and d["room"] < d["to"]]
+    return floor, misfits
+
+
+def castle_layout(floor: dict, doors: list[dict]) -> dict:
+    """A grid position for every room, floor by floor: each room is put beside
+    the one it was reached from, on the side its door is on. The castle does not
+    quite lie flat -- a few corridors loop back on themselves -- so a room whose
+    square is taken goes to the nearest free one, and its doors are drawn as
+    longer lines."""
+    position = {}
+    for level in sorted(set(floor.values())):
+        rooms = sorted(r for r in floor if floor[r] == level)
+        taken = set()
+        left = 0
+        for start in rooms:
+            if start in position:
+                continue
+            placed_here = []
+
+            def place(room, cell):
+                ring = 0
+                while True:
+                    candidates = [(cell[0] + dx, cell[1] + dy)
+                                  for dx in range(-ring, ring + 1) for dy in range(-ring, ring + 1)
+                                  if max(abs(dx), abs(dy)) == ring]
+                    free = [c for c in candidates if c not in taken]
+                    if free:
+                        chosen = min(free, key=lambda c: (abs(c[0] - cell[0]) + abs(c[1] - cell[1]), c))
+                        taken.add(chosen)
+                        position[room] = chosen
+                        placed_here.append(room)
+                        return
+                    ring += 1
+
+            place(start, (left, 0))
+            queue = [start]
+            while queue:
+                a = queue.pop(0)
+                for d in doors:
+                    if d["room"] != a or d["wall"] not in STEPS or floor.get(d["to"]) != level:
+                        continue
+                    if d["to"] in position:
+                        continue
+                    dx, dy = STEPS[d["wall"]]
+                    place(d["to"], (position[a][0] + dx, position[a][1] + dy))
+                    queue.append(d["to"])
+            left = max(position[r][0] for r in placed_here) + 2
+    return position
+
+
+def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
+    """The map page's content: one drawing per floor, every room in its own
+    outline and colour, every door a line between the rooms it joins."""
+    import html
+
+    memory = game_memory(snapshot)
+    doors = castle_doors(memory)
+    floor, misfits = castle_floors(memory, doors)
+    position = castle_layout(floor, doors)
+    outline = {s["shape"]: s for s in shapes}
+    misfit_records = {d["record"] for d in misfits} | {d["record"] ^ 8 for d in misfits}
+    lists = {r: memory[ROOM_CONTENTS + 2 * r] | (memory[ROOM_CONTENTS + 2 * r + 1] << 8)
+             for r in range(ROOM_LIST_ENTRIES)}
+    cell, box = 84, 60
+    names = {2: "Floor 2, the top", 1: "Floor 1", 0: "Floor 0, where the game starts",
+             -1: "Floor -1", -2: "Floor -2: the caverns"}
+
+    def colour(room):
+        return INKS[memory[ROOM_TABLE + 2 * room] & 7]
+
+    def room_svg(room, ox, oy):
+        shape = outline.get(memory[ROOM_TABLE + 2 * room + 1])
+        x, y = ox + position[room][0] * cell, oy + position[room][1] * cell
+        ink = colour(room)
+        title = (f"Room ${room:02X}: {shape['name'].lower() if shape else 'no outline'}, "
+                 f"floor {floor[room]}")
+        parts = [f'<a href="asm/{lists[room]}.html"><g><title>{html.escape(title)}</title>',
+                 f'<rect x="{x}" y="{y}" width="{box}" height="{box}" fill="#000000" '
+                 f'stroke="#2a2a60" stroke-width="1"/>']
+        if shape:
+            scale = (box - 8) / 192
+            for group in shape["groups"]:
+                x0, y0 = shape["points"][group[0]]
+                for vertex in group[1:]:
+                    x1, y1 = shape["points"][vertex]
+                    parts.append(f'<line x1="{x + 4 + x0 * scale:.1f}" y1="{y + 4 + y0 * scale:.1f}" '
+                                 f'x2="{x + 4 + x1 * scale:.1f}" y2="{y + 4 + y1 * scale:.1f}" '
+                                 f'stroke="{ink}" stroke-width="1"/>')
+        parts.append(f'<text x="{x + box / 2}" y="{y + box / 2 + 4}" text-anchor="middle" '
+                     f'font-size="11" fill="#ffffff">{room:02X}</text>')
+        if room == 0:
+            parts.append(f'<text x="{x + box - 3}" y="{y + 12}" text-anchor="end" '
+                         f'font-size="12" fill="#f0f050">&#9733;</text>')
+        # The ways off this floor: a stair or trapdoor, or a door that does not
+        # fit, marked with the room it leads to.
+        off = sorted({d["to"] for d in doors if d["room"] == room and d["to"] in floor
+                      and (floor[d["to"]] != floor[room] or d["record"] in misfit_records)})
+        for i, to in enumerate(off[:3]):
+            arrow = "&#9650;" if floor[to] > floor[room] else "&#9660;" if floor[to] < floor[room] else "&#8646;"
+            parts.append(f'<text x="{x + 3}" y="{y + box - 4 - 10 * i}" font-size="9" '
+                         f'fill="#e8e8f4">{arrow}{to:02X}</text>')
+        parts.append("</g></a>")
+        return "".join(parts)
+
+    def door_point(room, wall, ox, oy):
+        x, y = ox + position[room][0] * cell, oy + position[room][1] * cell
+        return {"N": (x + box / 2, y), "S": (x + box / 2, y + box),
+                "W": (x, y + box / 2), "E": (x + box, y + box / 2)}[wall]
+
+    out = ['<div class="map-intro">',
+           "<p>The castle, worked out from its doors. The game itself has no map "
+           "and no idea of a floor: every room has a list of what is in it "
+           "(ROOM_CONTENTS), a door is two records eight bytes apart, one in each "
+           "room it joins, and the wall it is on is in its own +$05. So each room "
+           "is put beside the room it was reached from, on the side of the door, "
+           "and a staircase or a trapdoor takes it to another floor. Every room is "
+           "drawn in its own outline and colour, from ROOM_TABLE and ROOM_SHAPES, "
+           "and links to its list. &#9733; is room $00, where a new game puts the "
+           "player.</p>",
+           "<p>Doors are grey, locked doors their colour, and the knight's clocks, "
+           "the wizard's bookcases and the serf's barrels dashed. &#9650; and "
+           "&#9660; mark the way to another floor, by stairs or trapdoor, with the "
+           "room it leads to. The floors are numbered by counting stairs and "
+           "trapdoors from room $00: which way a staircase goes is not written "
+           "anywhere either, and the reading that leaves the fewest doors out of "
+           "place is that its big door frame is a floor above its other end.</p>",
+           f"<p>The castle does not quite lie flat. {len(misfits)} doors join rooms "
+           "that no single choice of floors puts together, and a few corridors "
+           "loop round, so some doors are long lines and some rooms have been "
+           "moved to the nearest free square: &#8646; marks a door whose other "
+           "side is somewhere the drawing could not put beside it.</p>",
+           "</div>"]
+    for level in sorted(set(floor.values()), reverse=True):
+        rooms = [r for r in floor if floor[r] == level]
+        xs = [position[r][0] for r in rooms]
+        ys = [position[r][1] for r in rooms]
+        ox, oy = 12 - min(xs) * cell, 12 - min(ys) * cell
+        width = (max(xs) - min(xs)) * cell + box + 24
+        height = (max(ys) - min(ys)) * cell + box + 24
+        svg = [f'<h2 id="floor{level}">{names.get(level, f"Floor {level}")} &ndash; {len(rooms)} rooms</h2>',
+               f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+               f'viewBox="0 0 {width} {height}" style="max-width: 100%; height: auto; '
+               f'background: #07071c; font-family: monospace">']
+        drawn = set()
+        for d in doors:
+            a, b = d["room"], d["to"]
+            if floor.get(a) != level or floor.get(b) != level or d["wall"] not in STEPS:
+                continue
+            if d["record"] in misfit_records or (d["record"] ^ 8) in drawn:
+                continue
+            back = next((e for e in doors if e["record"] == d["record"] ^ 8), None)
+            if not back or back["wall"] not in STEPS:
+                continue
+            drawn.add(d["record"])
+            x1, y1 = door_point(a, d["wall"], ox, oy)
+            x2, y2 = door_point(b, back["wall"], ox, oy)
+            colour_ = LOCK_COLOURS.get(d["kind"], "#8888a8")
+            dash = ' stroke-dasharray="4 3"' if d["kind"] in (0x10, 0x17, 0x1A) else ""
+            width_ = 3 if d["kind"] == 0x24 else 2
+            svg.append(f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}" '
+                       f'stroke="{colour_}" stroke-width="{width_}"{dash}>'
+                       f'<title>{DOOR_KINDS[d["kind"]]}: ${a:02X} to ${b:02X}</title></line>')
+        svg += [room_svg(r, ox, oy) for r in sorted(rooms)]
+        svg.append("</svg>")
+        out += svg
+    unplaced = [r for r in range(ROOM_LIST_ENTRIES) if r not in floor]
+    if unplaced:
+        out.append("<p>Not reached by any door: " + ", ".join(
+            f'<a href="asm/{lists[r]}.html">${r:02X}</a>' for r in unplaced) + ".</p>")
+    text = "\n".join(out).replace("#", "&#35;").replace("&&#35;", "&#")
+    path.write_text("; Generated by scripts/build_aticatac.py -- do not edit.\n\n"
+                    "[Map]\n" + text + "\n", encoding="utf-8")
+    _log(f"Mapping the castle: {len(floor)} rooms on {len(set(floor.values()))} floors, "
+         f"{len(doors) // 2} doors, {len(misfits)} that do not fit")
+
+
 def build_html(skool: Path, out: Path, tape: Path) -> None:
     """Render the skool file as a browsable HTML disassembly.
 
@@ -2135,6 +2425,9 @@ def build_html(skool: Path, out: Path, tape: Path) -> None:
         tape, out / "aticatac" / "images" / "loading")
     write_graphics_ref(snapshot, graphics_ref, has_screen)
     args.append(str(graphics_ref))
+    map_ref = OUT_DIR / "aticatac-map.ref"
+    write_map_ref(snapshot, shapes, map_ref)
+    args.append(str(map_ref))
     sounds_ref = OUT_DIR / "aticatac-sounds.ref"
     sounds = record_sounds(snapshot, out / "aticatac" / "audio")
     write_sounds_ref(sounds, entry_addresses(OUT_DIR / "aticatac.ctl"), sounds_ref)
