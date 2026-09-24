@@ -150,6 +150,102 @@
   el('filter').addEventListener('input', applyFilter);
   el('here-only').addEventListener('change', applyFilter);
 
+  // ---- the characters and the timers ------------------------------------------
+
+  function cell(tr, text, cls) {
+    const td = document.createElement('td');
+    if (cls) {
+      td.className = cls;
+    }
+    if (text !== undefined) {
+      td.textContent = text;
+    }
+    tr.appendChild(td);
+    return td;
+  }
+
+  function routineName(address) {
+    return (state.names && state.names[address]) || '$' + address.toString(16).toUpperCase();
+  }
+
+  function drawCharacters() {
+    const body = el('characters').tBodies[0];
+    body.textContent = '';
+    for (const c of state.characters) {
+      const tr = document.createElement('tr');
+      const who = c.number === null ? 'gone' : nameOf(c.number);
+      const name = cell(tr, who, 'name');
+      if (c.number !== null) {
+        name.style.color = colourOf(c.number);
+      }
+      if (!c.inStory) {
+        tr.classList.add('idle');
+        cell(tr, '');
+        cell(tr, c.number === null ? 'its part in the story is over' : 'not in the story yet', 'next');
+        cell(tr, '');
+        body.appendChild(tr);
+        continue;
+      }
+      const o = byNumber.get(c.number);
+      cell(tr, o ? o.where : '');
+      const next = cell(tr, undefined, 'next');
+      next.appendChild(document.createTextNode(c.next.text.charAt(0).toUpperCase() + c.next.text.slice(1)));
+      if (c.next.routine) {
+        const r = document.createElement('span');
+        r.className = 'routine';
+        r.textContent = ' ' + routineName(c.next.routine);
+        next.appendChild(r);
+      }
+      if (c.next.notes.length) {
+        const n = document.createElement('span');
+        n.className = 'note';
+        n.textContent = ' (' + c.next.notes.join('; ') + ')';
+        next.appendChild(n);
+      }
+      cell(tr, c.takesOrders ? String(c.takesOrders) : 'none', 'num');
+      body.appendChild(tr);
+    }
+  }
+
+  function drawTimers() {
+    const body = el('timers').tBodies[0];
+    body.textContent = '';
+    for (const t of state.timers) {
+      const tr = document.createElement('tr');
+      tr.classList.add(t.left ? 'running' : 'idle');
+      cell(tr, String(t.index), 'num');
+      cell(tr, t.left ? t.left + ' of ' + t.length : 'not running', 'left');
+      const then = cell(tr, undefined);
+      const r = document.createElement('span');
+      r.className = 'routine';
+      r.textContent = routineName(t.routine);
+      then.appendChild(r);
+      const warns = cell(tr, undefined);
+      if (t.warnRoutine) {
+        warns.appendChild(document.createTextNode(t.warnAt + (t.warnAt === 1 ? ' turn' : ' turns') + ' before, '));
+        const w = document.createElement('span');
+        w.className = 'routine';
+        w.textContent = routineName(t.warnRoutine);
+        warns.appendChild(w);
+      } else {
+        warns.textContent = '-';
+      }
+      body.appendChild(tr);
+    }
+  }
+
+  for (const tab of document.querySelectorAll('.tab')) {
+    tab.addEventListener('click', () => {
+      for (const other of document.querySelectorAll('.tab')) {
+        other.classList.toggle('selected', other === tab);
+        el(other.dataset.tab).hidden = other !== tab;
+      }
+      for (const extra of document.querySelectorAll('.for-objects-tab')) {
+        extra.hidden = tab.dataset.tab !== 'objects-tab';
+      }
+    });
+  }
+
   // ---- the map ----------------------------------------------------------------
 
   function svg(tag, attrs, parent) {
@@ -600,6 +696,8 @@
     el('score').textContent = 'Score ' + (state.score / 10).toFixed(1) + '%';
     el('here').textContent = 'You are at ' + state.playerAt + ': ' + roomName(state.playerAt);
     drawObjects();
+    drawCharacters();
+    drawTimers();
     relayout();
   }
 

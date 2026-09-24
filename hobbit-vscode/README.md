@@ -17,6 +17,15 @@ same with an emulator of its own:
   `c` a character, `o` open, `*` gives light, `x` dead or broken, `f` full,
   `l` a liquid, `k` locked. Filter by name or place, or show only what is
   where you are.
+- **Characters**: each one's next step, as its script has it -- "follow: you",
+  "give to: curious map, you", or the routine it runs, by its name in the
+  disassembly -- with the notes the script carries (an order cannot interrupt
+  it; its part in the story ends if it succeeds), and how many of your orders
+  it will take at once. The three the story brings in late (the butler, Bard,
+  the dragon) show as not yet in it.
+- **Timers**: the game's ten countdowns -- the wine wearing off, the magic door
+  -- with the turns left on the running ones, what each runs when it ends, and
+  when and with what it warns.
 - **Map**: every location, laid out as on the
   [disassembly's map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/reference/map.html),
   and adjusted around where you are -- or a place you click, with **Follow
@@ -79,6 +88,6 @@ New-Item -ItemType Junction -Path $dest -Target (Resolve-Path .\hobbit-vscode)
   the 79).
 - `inspector.html`, `inspector.css` and `inspector_page.js` are the page.
 
-**Not yet:** the characters' scripts -- what each is about to do -- and the
-timers; v1.0, whose addresses differ; and a way to act on the game from the
-panel, as Wilderland's command window does.
+**Not yet:** doors on the map, open, closed or locked; v1.0, whose addresses
+differ; and a way to act on the game from the panel, as Wilderland's command
+window does.

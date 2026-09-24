@@ -35,7 +35,22 @@ const ADDR = {
   /// PRINT_WORD's CALL NEW_LINE when a word will not fit on the screen's line:
   /// a break in the picture of the text, not in the text.
   WORD_WRAP: 0x7558,
+  /// The sentence patterns, 8 bytes each: an action code's words.
+  ACTION_PATTERNS: 0xAB53,
+  /// The characters' slots, 7 bytes each to an $FF: who, a limit, the script
+  /// step it has got to, its table of scripts, and its orders.
+  CHARACTERS: 0xCACB,
+  /// The timers, 7 bytes each to an $FF: its length, its count (0 when not
+  /// running), the routine it runs at the end, how many turns before that it
+  /// warns, and the routine it warns with.
+  TIMERS: 0xCA84,
 };
+const CHARACTER_SIZE = 7;
+const TIMER_SIZE = 7;
+/// The slots empty at the start, and whose they become when the story brings
+/// them in: the butler at Beorn's house, the dragon and Bard at the elvenking's
+/// cellar (the disassembly's ARRIVAL_HOOKS).
+const LATE_ARRIVALS = { 0xCAE7: 0x42, 0xCAFC: 0x46, 0xCB03: 0x3C };
 
 const ROOM_COUNT = 0x50;
 const ROOM_HEAD = 10;
@@ -59,6 +74,9 @@ const FLAGS = [
 /// and the rest -- variables, rooms, objects -- every time it looks.
 const DICTIONARY_RANGE = [0x6000, 0x7000];
 const STATE_RANGE = [0xB6E0, 0xCC00];
+/// Everything the model reads, for the host to fetch: the dictionary, the
+/// action patterns, and the variables, rooms, objects, scripts and timers.
+const READ_RANGES = [DICTIONARY_RANGE, [0xAB50, 0xAD30], STATE_RANGE];
 
 function word(mem, at) {
   return mem[at] | (mem[at + 1] << 8);
@@ -216,6 +234,103 @@ function locationOf(object, byNumber) {
   return 0;
 }
 
+/// The sentence an action code stands for -- TAKE, GO NORTH -- from its
+/// pattern: up to three words, and for the ten directions the direction first.
+function actionSentence(mem, code) {
+  const start = ADDR.ACTION_PATTERNS - 8 + 8 * code;
+  const words = [];
+  for (const k of [0, 2, 4]) {
+    const reference = word(mem, start + k);
+    if (reference & 0x0FFF) {
+      words.push(wordAt(mem, reference));
+    }
+  }
+  if (code >= 1 && code <= 10) {
+    words.unshift(wordAt(mem, word(mem, start + 6)));
+  }
+  return words.filter((w) => w).join(' ');
+}
+
+/// One step of a character's script, as CHARACTERS_ACT reads it, in words.
+/// The low four bits are the opcode: 0-3 an action with objects, or with
+/// bit 0 a routine; 4 an action with none, or a pause for $FF; $0C switch to a
+/// script by key, $0E go to, $0F switch at random; anything else back to the
+/// first script. Bit 4 adds a fallback, bit 5 ends the character's part on
+/// success, bit 6 keeps an order from interrupting. A routine is given by its
+/// address, for the host to name from the debug info.
+function describeStep(mem, address, nameOf) {
+  // A jump says nothing about what the character will do: follow it, a few
+  // at most, to the step it leads to.
+  for (let hops = 0; hops < 4 && (mem[address] & 0x0F) === 0x0E; hops++) {
+    address = word(mem, address + 1);
+  }
+  const op = mem[address];
+  const code = op & 0x0F;
+  const thing = (n) => (n === 0xFF ? null : n === 0 ? 'you' : nameOf(n));
+  const step = { address, text: '', routine: null };
+  if (code < 4 && (code & 1)) {
+    step.routine = word(mem, address + 1);
+    step.text = 'runs a routine';
+  } else if (code < 4) {
+    const objects = [thing(mem[address + 2]), thing(mem[address + 3])].filter((o) => o);
+    step.text = actionSentence(mem, mem[address + 1]) + (objects.length ? ': ' + objects.join(', ') : '');
+  } else if (code === 4) {
+    step.text = mem[address + 1] === 0xFF ? 'nothing: a pause' : actionSentence(mem, mem[address + 1]);
+  } else if (code === 0x0E) {
+    step.text = 'goes on to another part of its script';
+  } else if (code === 0x0F) {
+    step.text = 'picks one of its first ' + mem[address + 1] + ' scripts at random';
+  } else if (code === 0x0C) {
+    step.text = 'switches to its script for ' + actionSentence(mem, mem[address + 1]);
+  } else {
+    step.text = 'goes back to its first script';
+  }
+  const notes = [];
+  if (op & 0x40) {
+    notes.push('an order cannot interrupt it');
+  }
+  if (op & 0x20) {
+    notes.push('then its part in the story is over');
+  }
+  step.notes = notes;
+  return step;
+}
+
+/// Every character's slot: who, whether they are in the story, the script
+/// step they will take next, and how many of the player's orders they will
+/// take at once (byte 6: Thorin 6, the goblins none). A slot is empty before
+/// the story brings its owner in -- the three LATE_ARRIVALS -- and after a
+/// character's part is over, when who it was is gone with it.
+function readCharacters(mem, nameOf) {
+  const out = [];
+  for (let at = ADDR.CHARACTERS; mem[at] !== 0xFF && out.length < 32; at += CHARACTER_SIZE) {
+    const number = mem[at] || LATE_ARRIVALS[at] || null;
+    const slot = { slot: at, number, inStory: mem[at] !== 0, takesOrders: mem[at + 6] };
+    if (slot.inStory) {
+      slot.next = describeStep(mem, word(mem, at + 2), nameOf);
+    }
+    out.push(slot);
+  }
+  return out;
+}
+
+/// Every timer: whether it is running, the turns left, and the routines it
+/// runs at the end and to warn.
+function readTimers(mem) {
+  const out = [];
+  for (let at = ADDR.TIMERS; mem[at] !== 0xFF && out.length < 32; at += TIMER_SIZE) {
+    out.push({
+      index: out.length,
+      length: mem[at],
+      left: mem[at + 1],
+      routine: word(mem, at + 2),
+      warnAt: mem[at + 4],
+      warnRoutine: mem[at + 4] ? word(mem, at + 5) : null,
+    });
+  }
+  return out;
+}
+
 /// Whether the memory looks like The Hobbit v1.2 at all: object 0, the
 /// player, is the first entry in the object index, where v1.2 keeps it.
 function isHobbit(mem) {
@@ -238,11 +353,14 @@ function readState(mem) {
     o.flagTitle = flagWords(o.flags);
   }
   const player = byNumber.get(0);
+  const nameOf = (n) => (byNumber.has(n) ? byNumber.get(n).name : 'object ' + n);
   return {
     score: word(mem, ADDR.SCORE),
     playerAt: player ? player.at : 0,
     rooms,
     objects,
+    characters: readCharacters(mem, nameOf),
+    timers: readTimers(mem),
   };
 }
 
@@ -346,6 +464,7 @@ module.exports = {
   ADDR,
   DICTIONARY_RANGE,
   STATE_RANGE,
+  READ_RANGES,
   LOG_MESSAGE,
   LOGPOINTS,
   FLAGS,
@@ -357,5 +476,9 @@ module.exports = {
   flagLetters,
   flagWords,
   isHobbit,
+  actionSentence,
+  describeStep,
+  readCharacters,
+  readTimers,
   LogAssembler,
 };

@@ -97,6 +97,7 @@ function snapshotMemory() {
   return mem;
 }
 
+
 if (!fs.existsSync(SNAPSHOT)) {
   console.log('skip  the game itself: no ' + SNAPSHOT + ' -- run build_hobbit.py first');
 } else {
@@ -136,6 +137,29 @@ if (!fs.existsSync(SNAPSHOT)) {
     assert.deepStrictEqual(characters.map((o) => o.number), [...Array(17).keys()].map((i) => 0x3C + i));
     assert.strictEqual(state.playerAt, 1);
     assert.strictEqual(state.score, 0);
+  });
+
+  test('seventeen character slots, three of them waiting for the story to bring their owner in', () => {
+    assert.strictEqual(state.characters.length, 17);
+    const waiting = state.characters.filter((c) => !c.inStory);
+    // The butler, Bard and the dragon: ARRIVAL_HOOKS fill these slots in.
+    assert.deepStrictEqual(waiting.map((c) => c.slot), [0xCAE7, 0xCAFC, 0xCB03]);
+    assert.deepStrictEqual(waiting.map((c) => c.number), [0x42, 0x46, 0x3C]);
+    for (const c of state.characters.filter((c) => c.inStory)) {
+      assert.ok(c.next && c.next.text, 'a next step for character ' + c.number);
+    }
+  });
+
+  test('action codes read as sentences, the directions with their direction', () => {
+    // Codes 1-10 are the directions, 1 north (the disassembly's DIRECTIONS).
+    assert.ok(model.actionSentence(mem, 1).includes('north'));
+    assert.ok(model.actionSentence(mem, 3).includes('east'));
+  });
+
+  test('ten timers, none running before the game starts', () => {
+    assert.strictEqual(state.timers.length, 10);
+    assert.ok(state.timers.every((t) => t.left === 0));
+    assert.ok(state.timers.every((t) => t.routine > 0x6000));
   });
 }
 

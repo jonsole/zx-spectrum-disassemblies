@@ -156,8 +156,9 @@ async function poll() {
     // program loaded under the same session would otherwise keep the old
     // one's words.
     const mem = new Uint8Array(0x10000);
-    mem.set(await read(s, model.DICTIONARY_RANGE), model.DICTIONARY_RANGE[0]);
-    mem.set(await read(s, model.STATE_RANGE), model.STATE_RANGE[0]);
+    for (const range of model.READ_RANGES) {
+      mem.set(await read(s, range), range[0]);
+    }
     if (s !== session) {
       return;
     }
@@ -176,6 +177,7 @@ async function poll() {
       status('');
       await setLogpoint(s);
     }
+    state.names = await routineNames(s, state);
     const json = JSON.stringify(state);
     if (json !== lastState) {
       lastState = json;
@@ -186,6 +188,53 @@ async function poll() {
   } finally {
     polling = false;
   }
+}
+
+/// Names for the routines the scripts and timers run, from the debug info the
+/// session has loaded: the label at each address, as the Disassembly View
+/// shows it. Asked once per address per session, then remembered.
+const routineLabels = new Map();
+let labelsFor = null;
+
+async function routineNames(s, state) {
+  if (labelsFor !== s) {
+    routineLabels.clear();
+    labelsFor = s;
+  }
+  const wanted = new Set();
+  for (const c of state.characters) {
+    if (c.next && c.next.routine) {
+      wanted.add(c.next.routine);
+    }
+  }
+  for (const t of state.timers) {
+    wanted.add(t.routine);
+    if (t.warnRoutine) {
+      wanted.add(t.warnRoutine);
+    }
+  }
+  for (const address of wanted) {
+    if (routineLabels.has(address)) {
+      continue;
+    }
+    let label = null;
+    try {
+      const body = await s.customRequest('disassemble', {
+        memoryReference: '0x' + address.toString(16),
+        instructionCount: 1,
+      });
+      const first = body && body.instructions && body.instructions[0];
+      label = (first && first.symbol) || null;
+    } catch (e) {
+      label = null;
+    }
+    routineLabels.set(address, label);
+  }
+  const names = {};
+  for (const address of wanted) {
+    names[address] = routineLabels.get(address) || '$' + address.toString(16).toUpperCase().padStart(4, '0');
+  }
+  return names;
 }
 
 /// The log's logpoints -- PRINT_CHAR, and where words start and wrap -- set
