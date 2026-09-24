@@ -13,10 +13,11 @@ a snapshot you can debug at source level.
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 
-The Hobbit's HTML disassembly is published at
-**<https://jonsole.github.io/zx-spectrum-disassemblies/>**, with a map of the
-game and pages for its locations (with their pictures), objects, characters and
-actions.
+The Hobbit's and Atic Atac's HTML disassemblies are published at
+**<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
+page on how the game works, a map, and pages for its locations (with their
+pictures), objects, characters and actions; Atic Atac with its loader, room
+types, sprites, graphics and sounds.
 
 ## What is committed where
 
@@ -25,12 +26,13 @@ and prose &mdash; control files, ref files and the code that derives one from
 the other. Point a build script at a tape you own and it produces the game's
 bytes locally, under `game_disassembly/`, which is gitignored.
 
-The one exception is the `gh-pages` branch, which publishes The Hobbit's built
-HTML disassembly for the site above. That output does quote the game &mdash; its
+The one exception is the `gh-pages` branch, which publishes The Hobbit's and
+Atic Atac's built HTML disassemblies for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
-`scripts/build_hobbit.py --html` and copied there by `scripts/publish_pages.py`
-(`--tape` to build first, `--dry-run` to see what would change); nothing on
+the game's build script and `--html`, and copied there by
+`scripts/publish_pages.py` (`--game hobbit` or `--game aticatac`, `--tape` to
+build first, `--dry-run` to see what would change); nothing on
 `master` depends on it. The landing page's source is `pages/index.html`.
 
 The same goes for `roms/48.rom`, which several builds need and which you supply

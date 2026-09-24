@@ -5,8 +5,8 @@ built by GitHub: every build needs a tape and a ROM that are not in the
 repository. So it is built here, with a build script's --html, and this copies
 the result onto the gh-pages branch and pushes it.
 
-Only The Hobbit is published. The master branch holds no game bytes; gh-pages
-is the one place that does, and the README says so.
+The Hobbit and Atic Atac are published, each with --game. The master branch
+holds no game bytes; gh-pages is the one place that does, and the README says so.
 
 The working tree is never touched. The gh-pages branch is cloned into a
 temporary directory, the published game's directory there is replaced whole
@@ -16,6 +16,7 @@ with the master commit it was built from, and pushed.
 
     python scripts/publish_pages.py                    # publish what is built
     python scripts/publish_pages.py --tape Hobbit.tzx  # build it first
+    python scripts/publish_pages.py --game aticatac --tape "Atic Atac.tap"
     python scripts/publish_pages.py --dry-run          # show what would change
 """
 from __future__ import annotations
@@ -37,6 +38,8 @@ LANDING = ROOT / "pages" / "index.html"
 GAMES = {
     "hobbit": (ROOT / "game_disassembly" / "hobbit" / "html" / "hobbit",
                ROOT / "scripts" / "build_hobbit.py"),
+    "aticatac": (ROOT / "game_disassembly" / "aticatac" / "html" / "aticatac",
+                 ROOT / "scripts" / "build_aticatac.py"),
 }
 
 
