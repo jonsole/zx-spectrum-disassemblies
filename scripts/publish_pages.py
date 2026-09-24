@@ -5,7 +5,7 @@ built by GitHub: every build needs a tape and a ROM that are not in the
 repository. So it is built here, with a build script's --html, and this copies
 the result onto the gh-pages branch and pushes it.
 
-The Hobbit and Atic Atac are published, each with --game. The master branch
+The Hobbit, Atic Atac and Ant Attack are published, each with --game. The master branch
 holds no game bytes; gh-pages is the one place that does, and the README says so.
 
 The working tree is never touched. The gh-pages branch is cloned into a
@@ -40,6 +40,8 @@ GAMES = {
                ROOT / "scripts" / "build_hobbit.py"),
     "aticatac": (ROOT / "game_disassembly" / "aticatac" / "html" / "aticatac",
                  ROOT / "scripts" / "build_aticatac.py"),
+    "antattack": (ROOT / "game_disassembly" / "antattack" / "html" / "antattack",
+                  ROOT / "scripts" / "build_antattack.py"),
 }
 
 

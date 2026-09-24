@@ -1,0 +1,143 @@
+; Ref file for the Ant Attack HTML disassembly, used by scripts/build_antattack.py
+; --html. Like scripts/antattack_annotations.ctl this is source rather than
+; output: prose and addresses only, no game bytes, so it is committed. The
+; sprites, scripts and levels pages quote the game, so the build writes them
+; beside the disassembly instead (game_disassembly/antattack/*.ref).
+;
+; The prose pages are "box pages": [Page:X] names a SectionPrefix, and each
+; [X:anchor:Title] section below becomes one titled block on that page.
+
+[Game]
+Game=Ant Attack
+Copyright=&copy; 1983 Sandy White (Quicksilva)
+Release=Disassembled from the original tape image
+Created=Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> #VERSION, driven by <code>scripts/build_antattack.py</code>.
+LinkOperands=CALL,DEFW,DJNZ,JP,JR,LD
+
+[ImageWriter]
+; The sprites are drawn with the game's own mask, and what the mask leaves
+; clear should be clear on the page too, not SkoolKit's opaque green.
+PNGAlpha=0
+
+[Index:Reference:About this disassembly]
+HowItWorks
+City
+Levels
+Sprites
+Scripts
+
+[Titles]
+HowItWorks=How the game works
+City=The city of Antescher
+Levels=The ten levels
+Sprites=The sprites
+Scripts=The scripts: every message and sound
+
+[PageHeaders]
+HowItWorks=How the game works
+City=The city of Antescher
+Levels=The ten levels
+Sprites=The sprites
+Scripts=The scripts: every message and sound
+
+[Links]
+HowItWorks=How the game works
+City=The city of Antescher
+Levels=The ten levels
+Sprites=The sprites
+Scripts=The scripts: every message and sound
+
+[Page:City]
+PageContent=#INCLUDE(CityBody)
+
+[CityBody]
+<p>Antescher is a map of 128 by 128 cells at #R$C000, one byte a cell and one bit a height: bit 0 is a block on the ground, bit 5 a block five up, so a wall is a column of set bits. Coordinates run from $80 to $FF; anything lower is outside the walls, where nothing is solid and nothing collides.</p>
+<p>From above, the taller the darker, with the places the person to be rescued waits on each level ringed in red and numbered by level. x runs left to right, y top to bottom.</p>
+<p><img src="images/city/above.png" alt="Antescher from above"></p>
+<p>And the whole city at once, the way the game draws a corner of it: view 0, each block the picture #R$8203 paints -- captured by running that routine rather than copied -- and painted in the same order #R$8500 uses, lowest height first and then from the back, so every block hides exactly what it hides in the game.</p>
+<p><img src="images/city/city.png" alt="Antescher in the game's projection" style="max-width:100%"></p>
+
+[Page:HowItWorks]
+SectionPrefix=HowItWorks
+
+[HowItWorks:loading:Loading: one line of BASIC and the whole of memory]
+The tape holds a BASIC header, a 76-byte program and one headerless block of 41984 bytes. The program is a single line,
+<pre>1 RANDOMIZE USR (PEEK 23635+256*PEEK 23636+53)</pre>
+which is PROG plus 53: the machine code sitting after the line's own ENTER. That code loads the big block to $5C00 -- the system variables -- and everything above, to the top of memory. It replaces the running BASIC program with the game's own, 8K of it, and survives doing so because nothing returns to the old program: LD-BYTES is entered with #R$9700 pushed as its return address.
+#R$9700 checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: #R$97A0 types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header has no auto-run line; the game starts itself.
+
+[HowItWorks:break:BREAK starts it again]
+Interrupt mode 2 sends every interrupt through #R$9800 to #R$9797. That passes the interrupt on to the ROM's own routine unless ERR_NR says an error has happened -- BREAK, most likely -- in which case it drops into the same #R$97A0 that started the game, and the BASIC program runs again from the top. There is no way to stop it into BASIC.
+
+[HowItWorks:halves:Half BASIC, half machine code]
+BASIC runs everything that is not the city: the title screen, "Girl or Boy (g/b)?", the story cards, the score card, "Have another go!", and the setting up of each level, which is a matter of POKEing the object records at #R$B480 from DATA (lines 100-190) and the variables at #R$B420 (lines 200-230). The ten places the person to be rescued waits are DATA too -- see #LINK(Levels)(the levels).
+The machine code is entered through four USRs: #R$8000 (32768) to play, #R$8090 (32912) for the girl-or-boy key, #R$8097 (32919) to wait for a key, and #R$8EF2 (36594) for the ending.
+#R$8000 is called twice a level. With 2 in #R$B438 it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- five frames after time or energy runs out (#R$8ED0), one after a rescue (#R$8EA0). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (#R$B49D, BASIC's <code>w</code>) is a rescue.
+
+[HowItWorks:objects:Eight objects, one record]
+The player, the person to be rescued, the grenade and five ants are all the same 16-byte record at #R$B480, and all moved by the same code (#R$8800).
+<table class="default">
+<tr><th>Offset</th><th>What</th></tr>
+<tr><td>+$00, +$01, +$02</td><td>x, y and height</td></tr>
+<tr><td>+$03</td><td>first sprite frame: the boy $DC, the girl $6C, ants $F8</td></tr>
+<tr><td>+$04</td><td>facing, 0-3: y up, x up, y down, x down</td></tr>
+<tr><td>+$05</td><td>frames spent falling</td></tr>
+<tr><td>+$06</td><td>frames left stunned; $FF on an ant is paralysed for good</td></tr>
+<tr><td>+$07</td><td>flags: bit 0 may stand on the other person, 1 jump, 2 move, 3 never falls (never set), 4 steps up a one-block rise</td></tr>
+<tr><td>+$08</td><td>animation frame, or with bit 7 set a sprite frame outright</td></tr>
+<tr><td>+$09</td><td>explosion countdown, after which the object goes home</td></tr>
+<tr><td>+$0A-+$0C</td><td>home: x, y and height</td></tr>
+<tr><td>+$0D, +$0E</td><td>an ant's speed and its count; the rescued person's state and last distance to the player</td></tr>
+<tr><td>+$0F</td><td>what just happened to it, for #R$8F00: a step, a bad fall, a bite, a blast</td></tr>
+</table>
+The player starts every level by exploding: BASIC sets the explosion countdown to 1, and when it runs out, one frame later, #R$89D0 puts the player at home -- the city gate.
+
+[HowItWorks:collisions:The ants are part of the map]
+Nothing is solid but the map. So #R$8A00 takes an ant out of the map before moving it and puts it back afterwards (#R$8940, an XOR on its height's bit), and from then on everything else bumps into it exactly as it would into a wall. The city map in memory changes as the ants walk about.
+A bite is the other half of the same trick. #R$8800 starts every move by asking whether the object's own cell is occupied at its own height; the only way that can happen is for an ant to have walked into it. That is a bite (#R$88A0): an event for #R$8F00, a point of energy off, and the bitten object pushed up a block.
+Because it is an XOR, the map and the ants' records have to agree. Move an ant's record without its bit -- as an early version of the scenes this disassembly was checked with did -- and it leaves a phantom block where it was and, at the new place, puts a block in its own cell: it is promptly "bitten" by itself and pushed up a block.
+
+[HowItWorks:drawing:How the view is drawn]
+#R$84A0 is a painter's algorithm done with tables, eleven steps a frame.
+<ol>
+<li>#R$83B0 reads the map along diagonals from #R$B420 into #R$B180: 21 rows of 32 cells, in the order the view needs. There is one routine per view, the same apart from signs.</li>
+<li>#R$81B0 turns that into #R$B500, 512 places each saying which height of block is seen there, or $FF for none. A block one higher is drawn one row further up the screen, so height h simply reads the gathered cells h rows further on -- and the heights are done lowest first, so a higher block overwrites a lower one. That is the whole of the 3D.</li>
+<li>#R$8600 projects each object into the same places: the half-row is v - u - 2h and the column (u + v) / 2, for the object's position (u, v) relative to the view, turned for it, and h its height.</li>
+<li>#R$8580 sorts the objects by place, and #R$85D0 turns the sorted places into gaps from one to the next.</li>
+<li>#R$8500 paints: every place holding $01, then every $02, and so on, each found with CPIR. The objects are threaded in with no extra test at all: BC, CPIR's count, is the gap to the next object, so when CPIR runs out of count before it finds a block, the next object is due. An object's place counts in which pass it belongs to, so a sprite is painted after every block below its height and before any above it.</li>
+<li>#R$8100 copies rows 12-127 of the buffer to the screen.</li>
+</ol>
+The block picture itself is code: #R$8203 and #R$8703 (one for each pair of views, since turning a quarter mirrors the shading) are unrolled runs of immediate stores, each step painting one row of the outline over what is behind it and the row eight below outright. The places tile like bricks, 16 pixels wide, each half-row a byte across and four pixels down from the last.
+The pass for $40, above the six heights of block, has no blocks in it: it is there for anything standing on top of the tallest walls.
+
+[HowItWorks:moving:Falling, jumping and standing on each other]
+#R$8800 moves everything the same way. Nothing to stand on: fall -- but not on the first frame, when the object can still walk, which is what lets you step off a ledge (#R$8880). Something in your own cell: bitten. Otherwise jump if asked, and walk forward if moving and the way is clear; a blocked walker with bit 4 set steps up a one-block rise by itself, which is how the rescued person follows you up steps.
+A landing (#R$8860) after five frames' fall or more is a bad fall -- "NASTY FALL !" -- and stuns for eight frames per frame fallen; shorter ones stun briefly. Landing at height 1 means landing on something at ground level, which may be an ant's back: #R$8BD1 paralyses it for good ("PARALYSED AN ANT !").
+The player and the rescued person may stand on each other (bit 0 of the flags, #R$895D). When they share a cell a block apart, #R$84D0 clears the player's fall count and both stuns, so dropping onto each other is never a landing at all. And a fall that ends while an object is still stunned is never landed either: the stunned branch clears the fall count without a word. The rescued person starts every level stunned for four frames, which is enough to swallow a short drop.
+
+[HowItWorks:ants:The ants]
+#R$8A5D gives each ant a turn every frame but one in +$0D. The first ant's +$0D is 20 (line 140) -- nearly full speed. The other four take BASIC's <code>sp</code>, which is 2 (half speed) for the first four levels and one more for every four rescues after that.
+#R$8A00 steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within four cells turns to face the player. Not closer: it stops and turns left or right at random (#R$8360). There is no path-finding; the city's walls do the rest.
+A grenade (#R$8D00: S, D, F or G throw for 2, 4, 8 or 16 frames) explodes where it is when the time runs out. #R$87A0 blows up any ant at the same height within four cells ("GOOD SHOT!") and stuns one within seven. The grenade is checked against the player's and the rescued person's cells on every frame of its flight, not just the last: anything it meets on the way is blown up.
+
+[HowItWorks:rescue:Finding someone and leading them out]
+While the person waits, #R$8F80 colours the scanner (#R$87D0): green if the player is closer than last frame, red if not. Within three cells at the same height they are found -- "MY HERO!" -- and from then on #R$8AB6 walks them after the player, stopping beside them or when left more than five cells behind.
+The rescue is #R$8EA0: once both are outside the walls, with a coordinate below $80, it is done.
+
+[HowItWorks:scripts:Messages and sounds are one thing]
+Every message and every sound is a script in #R$9000, run by #R$8E0D: a stream to print to, then printable characters and control codes, bytes of $80 and above that play a note or a burst of noise, $7D to fill the play area with a colour and $7E to print a number from the variables. So "MY HERO!" is a tune with letters between the notes. See #LINK(Scripts)(the scripts page) for all seventeen.
+
+[HowItWorks:leftovers:Leftovers]
+<ul>
+<li>Sandy White's name is in the code three times: "SandyWhite1983" at #R$8034 (twice) and at #R$8448, in the gaps between routines.</li>
+<li>#R$8B60 is a script that nothing runs: "OWCH!", with notes, in the script format but outside #R$9000.</li>
+<li>The three bytes before each block drawer are <code>LD DE,31</code>, that routine's own first instruction; both are entered three bytes in, since #R$8500 has already set DE.</li>
+<li>Bit 3 of the flags, "never falls", is tested by #R$8880 and set by nothing. Its three instructions are the only ones in the game not seen to run.</li>
+<li>Five NOPs sit where something was taken out: three in #R$84D0, one in #R$88C0 and one in #R$8D00.</li>
+<li>#R$8DD0 decrements the time's low byte and then overwrites it with the same result worked out another way.</li>
+<li>Frames $F0-$F3 are an ant on its back, and nothing draws them.</li>
+</ul>
+
+[HowItWorks:method:How this was worked out]
+The code/data split is not a guess. The build plays the game in SkoolKit's Z80 simulator and records every instruction executed: random play, then a rescue, running out of time, the ending, and a dozen staged scenes -- an ant beside the player, a grenade thrown at an ant, a drop onto an ant's back, onto a wall, onto the rescued person's head -- each placed on the simulated machine and then left to the game's own code. Between them they run every instruction in the game but three. Branches out of executed code are followed as well, which finds nothing the scenes have not.
+The assembly is fed back through sjasmplus and compared with the tape: all 41984 bytes, from the system variables up, match byte for byte, and the build fails if they ever stop matching.

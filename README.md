@@ -1,6 +1,6 @@
 # ZX Spectrum game disassemblies
 
-Reproducible disassemblies of five Spectrum games, built with
+Reproducible disassemblies of six Spectrum games, built with
 [SkoolKit](https://skoolkit.ca). Each is a script that takes an original tape
 or snapshot and produces a commented disassembly, a browsable HTML version, and
 a snapshot you can debug at source level.
@@ -12,12 +12,14 @@ a snapshot you can debug at source level.
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
+| Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; pages on how it works, the city drawn whole in the game's own projection, the levels, sprites and scripts | `scripts/build_antattack.py` |
 
-The Hobbit's and Atic Atac's HTML disassemblies are published at
+The Hobbit's, Atic Atac's and Ant Attack's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
 page on how the game works, a map, and pages for its locations (with their
 pictures), objects, characters and actions; Atic Atac with its loader, room
-types, sprites, graphics and sounds.
+types, sprites, graphics and sounds; Ant Attack with how it works, the whole
+city drawn in the game's own projection, its levels, sprites and scripts.
 
 ## What is committed where
 
@@ -26,12 +28,12 @@ and prose &mdash; control files, ref files and the code that derives one from
 the other. Point a build script at a tape you own and it produces the game's
 bytes locally, under `game_disassembly/`, which is gitignored.
 
-The one exception is the `gh-pages` branch, which publishes The Hobbit's and
-Atic Atac's built HTML disassemblies for the site above. That output does quote the game &mdash; its
+The one exception is the `gh-pages` branch, which publishes The Hobbit's,
+Atic Atac's and Ant Attack's built HTML disassemblies for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
 the game's build script and `--html`, and copied there by
-`scripts/publish_pages.py` (`--game hobbit` or `--game aticatac`, `--tape` to
+`scripts/publish_pages.py` (`--game hobbit`, `--game aticatac` or `--game antattack`, `--tape` to
 build first, `--dry-run` to see what would change); nothing on
 `master` depends on it. The landing page's source is `pages/index.html`.
 
@@ -47,6 +49,7 @@ You need Python 3.11+, SkoolKit, a 48K ROM at `roms/48.rom`, sjasmplus at
 pip install skoolkit
 python scripts/build_aticatac.py --tape "Atic Atac.tap" --html
 python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --html
+python scripts/build_antattack.py --tape "Ant Attack.tzx" --html
 ```
 
 The build ends by reassembling what it disassembled and comparing it with the
