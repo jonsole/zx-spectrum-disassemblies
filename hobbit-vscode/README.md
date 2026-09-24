@@ -44,12 +44,13 @@ same with an emulator of its own:
 ![The Hobbit Inspector in VS Code, with the game running: the log, the objects
 and the map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/images/inspector.png)
 
-*Early in a game: Gandalf deciding what to do ("is not carrying it", in
-italics, only considered), the warg following the wood elf, and the goblins
-moving about their passages, none of it where the player can see; the map with
-Thorin beside the player at Bag End, and the trolls in their clearing. The
-screenshot quotes the game, so it is on the disassembly's site rather than
-here.*
+*Early in a game: the vicious warg working out whom it can follow (in italics:
+only considered, never done) and the goblins moving about their passages,
+none of it where the player can see; the objects, with what is where the
+player is picked out; and the map around the player at Bag End, Thorin beside
+them, the trolls in their clearing, and the heavy rock door's red bar -- locked
+-- in front of the trolls' cave. The screenshot quotes the game, so it is on
+the disassembly's site rather than here.*
 
 It needs the emulator's extension, a debug session with The Hobbit v1.2
 loaded -- `build_hobbit.py` writes `hobbit.sna`, and the fast-drawing
