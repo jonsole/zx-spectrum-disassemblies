@@ -181,6 +181,7 @@ FAST_DRAW_GIFS = [
     ("location39_side_by_side.gif", "Location 39, the front gate, the third slowest: "
      "10.4 s, and 0.76 s patched."),
 ]
+INSPECTOR_SCREENSHOT = "inspector.png"   # taken in VS Code, not by the build
 LOGO = "images/logo.png"   # hobbit.ref's LogoImage, and the landing page's
 DIVIDER_IMAGE = "images/divider.png"   # hobbit.css draws it under each box
 DIVIDER = 0x6DCC
@@ -739,6 +740,12 @@ def build(html_dir: Path, out_ref: Path) -> None:
         fast += [f'<p><img src="../videos/{name}" alt="{caption}" '
                  'style="max-width: 100%; image-rendering: pixelated"><br>'
                  f'{caption}</p>']
+    # The Hobbit Inspector's screenshot, for hobbit-vscode/README.md to show from
+    # the site: it quotes the game, so it lives here rather than on master.
+    screenshot = bh.OUT_DIR / INSPECTOR_SCREENSHOT
+    if screenshot.exists():
+        (html_dir / "hobbit" / "images").mkdir(parents=True, exist_ok=True)
+        (html_dir / "hobbit" / "images" / INSPECTOR_SCREENSHOT).write_bytes(screenshot.read_bytes())
     if fast:
         fast.append('<p>Recorded on the emulator at real speed, the original on the left and '
                     'the patched game on the right; each loops once its picture is done.</p>')

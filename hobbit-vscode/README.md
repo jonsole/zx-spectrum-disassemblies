@@ -20,8 +20,18 @@ same with an emulator of its own:
 - **Map**: every location, laid out as on the
   [disassembly's map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/reference/map.html),
   with a coloured dot for each character where it is now, the dark places
-  shaded and the ones not yet visited faded. Hover over a place for what and
+  shaded and the ones not yet visited dashed. Hover over a place for what and
   who is there, and its exits.
+
+![The Hobbit Inspector in VS Code, with the game running: the log, the objects
+and the map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/images/inspector.png)
+
+*Early in a game: Gandalf deciding what to do ("is not carrying it", in
+italics, only considered), the warg following the wood elf, and the goblins
+moving about their passages, none of it where the player can see; the map with
+Thorin beside the player at Bag End, and the trolls in their clearing. The
+screenshot quotes the game, so it is on the disassembly's site rather than
+here.*
 
 It needs the emulator's extension, a debug session with The Hobbit v1.2
 loaded -- `build_hobbit.py` writes `hobbit.sna`, and the fast-drawing
