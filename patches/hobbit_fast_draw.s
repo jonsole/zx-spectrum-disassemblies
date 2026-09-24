@@ -106,6 +106,7 @@ FILL_RIGHT:
     AND A                    ; A is the new x, not 0: NZ
     RET
 
+FILL_REGION_END:
     ASSERT $ <= ATTR_UP, "the fill's helpers have run into ATTR_UP"
     DISPLAY "fill region ends at ",/H,$," (limit ",/H,ATTR_UP,")"
 
@@ -200,6 +201,7 @@ FILL_NEXT:
     JP NZ,FILL_SEED
     JP FILL_FINISH
 
+AFTER_PICTURES_END:
     DISPLAY "fill body ends at ",/H,$," (limit ",/H,WORLD_COPY,")"
     ASSERT $ <= WORLD_COPY, "the fill has run into WORLD_COPY"
 
@@ -384,6 +386,7 @@ PLOT_INK_FLIPPED:
     POP HL
     RET
 
+LINE_REGION_END:
     ASSERT $ <= CLEAR_CANVAS, "the line drawer has run into CLEAR_CANVAS"
     DISPLAY "line region ends at ",/H,$," (limit ",/H,CLEAR_CANVAS,")"
 
@@ -500,7 +503,11 @@ FAST_ADDRESS:
     POP HL
     RET
 
+SPARE_REGION_END:
     DISPLAY "spare code ends at ",/H,$," (limit ",/H,UNREACHED_SPECIAL_ZERO+148,")"
     ASSERT $ <= UNREACHED_SPECIAL_ZERO + 148, "the spare code has run past slot 0's handler"
+
+; And the keyboard, read under interrupt so that commands can be typed ahead.
+    INCLUDE "hobbit_keyboard.s"
 
     SAVEBIN "../game_disassembly/hobbit/hobbit_fast.bin", $6000, 40000

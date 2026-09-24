@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_hobbit as bh
 import hobbit_pages as hp
 
-PATCHED = bh.FAST_DRAW_RANGES
+PATCHED = bh.PATCH_RANGES
 FAST_BIN = bh.OUT_DIR / "hobbit_fast.bin"
 STACK_TOP = hp.SCRATCH_STACK            # where the picture's call starts from
 STACK_AREA = (0x5D00, STACK_TOP)        # checked for the deepest the stack went: below
