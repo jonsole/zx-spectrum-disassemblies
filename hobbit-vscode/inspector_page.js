@@ -46,7 +46,15 @@
     }
     for (const line of lines) {
       const div = document.createElement('div');
+      if (line.kind === 'newgame') {
+        div.className = 'line newgame';
+        div.textContent = line.text;
+        logEl.appendChild(div);
+        continue;
+      }
       div.className = 'line' + (line.actor === 0 ? ' you' : '') + ' ' + (line.kind || 'shown');
+      div.dataset.actor = String(line.actor);
+      div.hidden = logWho !== '' && String(line.actor) !== logWho;
       // Only "shown" lines ever reach the screen. The rest the game composes
       // all the same, and this is the only place they are seen.
       const actor = byNumber.get(line.actor);
@@ -72,6 +80,32 @@
     }
     if (atBottom || replace) {
       logEl.scrollTop = logEl.scrollHeight;
+    }
+  }
+
+  // Only the lines about one character, or everyone's.
+  let logWho = '';
+  el('log-who').addEventListener('change', () => {
+    logWho = el('log-who').value;
+    for (const div of logEl.children) {
+      if (div.dataset.actor !== undefined) {
+        div.hidden = logWho !== '' && div.dataset.actor !== logWho;
+      }
+    }
+  });
+
+  function fillLogWho() {
+    const select = el('log-who');
+    if (select.options.length > 1) {
+      return;
+    }
+    for (const o of state.objects) {
+      if (o.character) {
+        const option = document.createElement('option');
+        option.value = String(o.number);
+        option.textContent = o.number === 0 ? 'you' : o.name;
+        select.appendChild(option);
+      }
     }
   }
 
@@ -119,7 +153,7 @@
         ['num', String(o.locations.length)],
         ['num', hex2(o.size)],
         ['num', hex2(o.weight)],
-        ['num', hex2(o.placed)],
+        ['placed', o.placedText],
         ['num', hex2(o.strength)],
         ['num', hex2(o.defence)],
         ['flags', o.flagText],
@@ -183,6 +217,7 @@
         cell(tr, '');
         cell(tr, c.number === null ? 'its part in the story is over' : 'not in the story yet', 'next');
         cell(tr, '');
+        cell(tr, '');
         body.appendChild(tr);
         continue;
       }
@@ -202,6 +237,7 @@
         n.textContent = ' (' + c.next.notes.join('; ') + ')';
         next.appendChild(n);
       }
+      cell(tr, c.carrying.length ? c.carrying.join(', ') : '-', 'next');
       cell(tr, c.takesOrders ? String(c.takesOrders) : 'none', 'num');
       body.appendChild(tr);
     }
@@ -751,6 +787,7 @@
     }
     el('score').textContent = 'Score ' + (state.score / 10).toFixed(1) + '%';
     el('here').textContent = 'You are at ' + state.playerAt + ': ' + roomName(state.playerAt);
+    fillLogWho();
     drawObjects();
     drawCharacters();
     drawTimers();

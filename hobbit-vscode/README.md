@@ -9,7 +9,8 @@ same with an emulator of its own:
   about. The game composes the other characters' sentences whether or not the
   player is there to see them -- "Thorin sits down and starts singing about
   gold" in a room the player left long ago -- and they all pass through
-  PRINT_CHAR. The log catches them there. Lines about a character somewhere
+  PRINT_CHAR. The log catches them there. Show only one character's lines, or
+  everyone's; a new game -- after dying, say -- starts with a line of its own. Lines about a character somewhere
   else than the player are shown greyed: nobody playing ever sees them.
 - **Objects**: every one of the 61, the player and the characters included --
   where it is (at a place, in something, or carried), how many places it is in
@@ -17,7 +18,7 @@ same with an emulator of its own:
   `c` a character, `o` open, `*` gives light, `x` dead or broken, `f` full,
   `l` a liquid, `k` locked. Filter by name or place, or show only what is
   where you are.
-- **Characters**: each one's next step, as its script has it -- "follow: you",
+- **Characters**: what each is carrying, and its next step, as its script has it -- "follow: you",
   "give to: curious map, you", or the routine it runs, by its name in the
   disassembly -- with the notes the script carries (an order cannot interrupt
   it; its part in the story ends if it succeeds), and how many of your orders

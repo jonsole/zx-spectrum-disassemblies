@@ -77,6 +77,20 @@ test('words get their spaces back, and a wrap on the screen is not a line end', 
   assert.deepStrictEqual(finished.map((l) => l.text), ['the troll. waits here']);
 });
 
+test('a new game starts a line of its own, cutting off what was being said', () => {
+  const log = new model.LogAssembler();
+  const finished = log.push(['0x48 0x0 0x0 0x1 0x1', 'newgame', '0x49 0x0 0x0 0x1 0x1', '0x0d 0x0 0x0 0x1 0x1']);
+  assert.deepStrictEqual(finished.map((l) => l.kind), ['shown', 'newgame', 'shown']);
+  assert.strictEqual(finished[1].actor, null);
+});
+
+test('byte 4 in words: how things are placed, and the sides', () => {
+  assert.strictEqual(model.placedWords(0x00), 'in');
+  assert.strictEqual(model.placedWords(0x04), 'tied to');
+  // Elrond is on two sides, 1 and 4: $50.
+  assert.strictEqual(model.placedWords(0x51), 'on, side 1+4');
+});
+
 test('the log keeps only its limit', () => {
   const log = new model.LogAssembler(2);
   for (let i = 0; i < 5; i++) {
@@ -154,6 +168,11 @@ if (!fs.existsSync(SNAPSHOT)) {
     // Codes 1-10 are the directions, 1 north (the disassembly's DIRECTIONS).
     assert.ok(model.actionSentence(mem, 1).includes('north'));
     assert.ok(model.actionSentence(mem, 3).includes('east'));
+  });
+
+  test('Gandalf starts out carrying the curious map', () => {
+    const gandalf = state.characters.find((c) => c.number === 0x3E);
+    assert.deepStrictEqual(gandalf.carrying, ['curious map']);
   });
 
   test('ten timers, none running before the game starts', () => {

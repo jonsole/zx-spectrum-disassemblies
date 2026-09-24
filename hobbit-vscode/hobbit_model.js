@@ -35,6 +35,8 @@ const ADDR = {
   /// PRINT_WORD's CALL NEW_LINE when a word will not fit on the screen's line:
   /// a break in the picture of the text, not in the text.
   WORD_WRAP: 0x7558,
+  /// Where every new game starts -- at loading, and after dying or quitting.
+  NEW_GAME: 0x6C27,
   /// The sentence patterns, 8 bytes each: an action code's words.
   ACTION_PATTERNS: 0xAB53,
   /// The characters' slots, 7 bytes each to an $FF: who, a limit, the script
@@ -181,6 +183,20 @@ function readObjects(mem) {
     });
   }
   return objects;
+}
+
+/// Byte 4 in words: its low four bits say how things are placed with the
+/// object, as PLACED_WORD prints it (in, on, behind, under, tied to); bits 4-6
+/// are the sides a character is on (SAME_SIDE: 1 the player's, 2 Gollum and
+/// the goblins, 4 the elves).
+const PLACINGS = ['in', 'on', 'behind', 'under', 'tied to'];
+function placedWords(byte) {
+  const parts = [PLACINGS[byte & 0x0F] || 'placing ' + (byte & 0x0F)];
+  const sides = (byte >> 4) & 7;
+  if (sides) {
+    parts.push('side ' + [1, 2, 4].filter((b) => sides & b).join('+'));
+  }
+  return parts.join(', ');
 }
 
 /// Byte 7 as the table shows it: a letter per bit that is set, '.' per bit
@@ -351,6 +367,7 @@ function readState(mem) {
     o.at = locationOf(o, byNumber);
     o.flagText = flagLetters(o.flags);
     o.flagTitle = flagWords(o.flags);
+    o.placedText = placedWords(o.placed);
   }
   const player = byNumber.get(0);
   const nameOf = (n) => (byNumber.has(n) ? byNumber.get(n).name : 'object ' + n);
@@ -359,7 +376,9 @@ function readState(mem) {
     playerAt: player ? player.at : 0,
     rooms,
     objects,
-    characters: readCharacters(mem, nameOf),
+    characters: readCharacters(mem, nameOf).map((c) => Object.assign(c, {
+      carrying: c.number === null ? [] : objects.filter((o) => o.holder === c.number).map((o) => o.name),
+    })),
     timers: readTimers(mem),
   };
 }
@@ -371,10 +390,12 @@ function readState(mem) {
 const LOG_MESSAGE = '{A} {(0xB6EA)} {(0xB701)} {(0xB6FA)} {(0xB702)}';
 const WORD_MARK = 'word';
 const WRAP_MARK = 'wrap';
+const NEW_GAME_MARK = 'newgame';
 const LOGPOINTS = [
   { address: ADDR.PRINT_CHAR, message: LOG_MESSAGE },
   { address: ADDR.WORD_START, message: WORD_MARK },
   { address: ADDR.WORD_WRAP, message: WRAP_MARK },
+  { address: ADDR.NEW_GAME, message: NEW_GAME_MARK },
 ];
 
 /// Turns logpoint reports into lines of the story, each with who it was
@@ -411,6 +432,16 @@ class LogAssembler {
       }
       if (text === WRAP_MARK) {
         this.wrapping = true;
+        continue;
+      }
+      if (text === NEW_GAME_MARK) {
+        // Whatever was being said is cut off; a line of its own marks the
+        // start, so one game's story is not read as running into the next's.
+        if (this.current) {
+          finished.push(this.current);
+          this.current = null;
+        }
+        finished.push({ actor: null, kind: 'newgame', text: 'A new game begins' });
         continue;
       }
       const parts = text.split(' ');
@@ -475,6 +506,7 @@ module.exports = {
   readState,
   flagLetters,
   flagWords,
+  placedWords,
   isHobbit,
   actionSentence,
   describeStep,
