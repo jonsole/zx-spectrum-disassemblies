@@ -412,7 +412,8 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
     graphics_text, graphics_spans = graphics_blocks(snapshot)
     rooms_text, rooms_spans = room_list_blocks(snapshot)
     shapes_text, shapes_spans = shape_blocks(snapshot)
-    generated = graphics_text + rooms_text + shapes_text
+    state_text, state_spans = initial_state_blocks(snapshot)
+    generated = graphics_text + rooms_text + shapes_text + state_text
     graphics_ctl.write_text(generated, encoding="utf-8")
     _log(f"  {graphics_text.count('label=')} sprite graphics, "
          f"{rooms_text.count('label=')} room lists and "
@@ -425,6 +426,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
         ("graphics_blocks", graphics_spans),
         ("room_list_blocks", rooms_spans),
         ("shape_blocks", shapes_spans),
+        ("initial_state_blocks", state_spans),
     ]
     check_structure(sources, generated)
     spans = [span for _, group in sources for span in group]
@@ -1058,6 +1060,139 @@ def graphics_blocks(snapshot: Path) -> tuple[str, list[Span]]:
     return NEWLINE.join(lines), spans
 
 
+INITIAL_STATE = 0x600D
+INITIAL_STATE_LENGTH = 5488
+# The template's four regions, as MAIN_LOOP and FRAME_TICK walk them once it is
+# copied to $EA90: three records filled in when a game starts, the objects,
+# the monsters, and the doors and furniture.
+STATE_SLOTS, STATE_OBJECTS, STATE_MONSTERS, STATE_PAIRS = 0x600D, 0x6025, 0x63DD, 0x645D
+STATE_SLOT_NAMES = ["The player: filled in when a game starts",
+                    "The player's weapon: filled in when one is thrown",
+                    "The sound slot: filled in when a sound plays"]
+
+
+def sprite_name(code: int) -> str:
+    """What a sprite code depicts, from the `; sprite` lines in the annotations.
+    The collectables, $80-$8E, are named there only as a group, so each is
+    called by its code."""
+    if 0x80 <= code <= 0x8E:
+        return "Collectable $%02X" % code
+    for low, high, name in sprite_names():
+        if low <= code <= high:
+            return name
+    return "sprite $%02X" % code
+
+
+def room_link(memory, room: int) -> str:
+    """A room, linked to its list: #R$76D7(room $03)."""
+    if room >= ROOM_LIST_ENTRIES:
+        return "room $%02X" % room
+    address = memory[ROOM_CONTENTS + 2 * room] | (memory[ROOM_CONTENTS + 2 * room + 1] << 8)
+    return "#R$%04X(room $%02X)" % (address, room)
+
+
+def furniture_name(kind: int) -> str:
+    """A room record's type in words: a door by its kind, anything else by the
+    picture it draws, which is sprite type + $A1."""
+    if kind in DOOR_KINDS:
+        return DOOR_KINDS[kind]
+    return _lower_first(sprite_name(kind + 0xA1).split(" -- ")[0])
+
+
+def _lower_first(name: str) -> str:
+    """A name as it reads mid-sentence: "Suit of armour" becomes "suit of
+    armour", but A.C.G. keeps its capitals."""
+    return name if name.startswith("A.C.G.") else name[0].lower() + name[1:]
+
+
+def _a(name: str) -> str:
+    """The name with its article: a table, an A.C.G. shield -- and wall
+    antlers, which are plural."""
+    if name.endswith("antlers"):
+        return name
+    return ("an " if name[0].lower() in "aeiou" else "a ") + name
+
+
+def pair_labels(memory) -> dict:
+    """A label for each sixteen-byte door or furniture record, from what it is
+    and the two rooms it is in: DOOR_R00_R07, SUIT_OF_ARMOUR_R00_R06. The rooms
+    carry an R so that no label ends in an underscore and a digit, which is how
+    skool2asm names its own."""
+    labels, used = {}, set()
+    for address in range(STATE_PAIRS, INITIAL_STATE + INITIAL_STATE_LENGTH, 16):
+        kind, first, second = memory[address], memory[address + 1], memory[address + 9]
+        if kind == 0 and memory[address + 8] == 0:
+            continue
+        word = re.sub(r"[^A-Z0-9]+", "_", re.sub(r"\(.*?\)", "", furniture_name(kind)).upper()).strip("_")
+        label = f"{word}_R{first:02X}_R{second:02X}"
+        suffix = 0
+        while label in used:
+            suffix += 1
+            label = f"{word}_R{first:02X}_R{second:02X}_{chr(ord('A') + suffix)}"
+        used.add(label)
+        labels[address] = label
+    return labels
+
+
+def initial_state_blocks(snapshot: Path) -> tuple[str, list[Span]]:
+    """INITIAL_STATE a record to a line, each said in words, and every door and
+    piece of furniture labelled -- which is what the room lists point at."""
+    memory = game_memory(snapshot)
+    labels = pair_labels(memory)
+    end = INITIAL_STATE + INITIAL_STATE_LENGTH
+    lines = ["", "; The initial-state template, record by record.", "",
+             "b $%04X" % INITIAL_STATE]
+    for i, address in enumerate(range(STATE_SLOTS, STATE_OBJECTS, 8)):
+        lines += ["B $%04X,8,8" % address, "  $%04X,8 %s" % (address, STATE_SLOT_NAMES[i])]
+    for address in range(STATE_OBJECTS, STATE_MONSTERS, 8):
+        sprite, room, x, y = memory[address], memory[address + 1], memory[address + 3], memory[address + 4]
+        text = ("An empty object slot" if sprite == 0 else
+                "%s: in %s at %d,%d" % (sprite_name(sprite), room_link(memory, room), x, y))
+        lines += ["B $%04X,8,8" % address, "  $%04X,8 %s" % (address, text)]
+    for address in range(STATE_MONSTERS, STATE_PAIRS, 16):
+        sprite, room = memory[address], memory[address + 1]
+        text = ("An empty monster slot" if sprite == 0 else
+                "%s: in %s" % (sprite_name(sprite), room_link(memory, room)))
+        lines += ["B $%04X,16,8" % address, "  $%04X,16 %s" % (address, text)]
+    for address in range(STATE_PAIRS, end, 16):
+        kind, first, second = memory[address], memory[address + 1], memory[address + 9]
+        if address in labels:
+            lines.append("@ $%04X label=%s" % (address, labels[address]))
+        if kind == 0 and memory[address + 8] == 0:
+            text = "Not used"
+        elif kind in DOOR_KINDS:
+            text = ("%s: the side in %s, then the side in %s"
+                    % (_a(DOOR_KINDS[kind]).capitalize(), room_link(memory, first),
+                       room_link(memory, second)))
+            if kind == TRAPDOOR:
+                text = ("A trapdoor in %s, and where the fall lands, in %s"
+                        % (room_link(memory, first), room_link(memory, second)))
+        else:
+            other = furniture_name(memory[address + 8])
+            text = ("%s in %s, and %s in %s"
+                    % (_a(furniture_name(kind)), room_link(memory, first), _a(other),
+                       room_link(memory, second)))
+            text = text[0].upper() + text[1:]
+        lines += ["B $%04X,16,8" % address, "  $%04X,16 %s" % (address, text)]
+    lines.append("")
+    return NEWLINE.join(lines), [(INITIAL_STATE, end)]
+
+
+def room_list_entry(memory, room: int, entry: int) -> str:
+    """One entry of a room's list in words: the half of the record that is in
+    this room, and for a door where it leads."""
+    record = entry if memory[entry + 1] == room else entry + 8
+    other_half = entry + 8 if record == entry else entry
+    kind, other = memory[record], memory[other_half + 1]
+    if kind == TRAPDOOR:
+        return "A trapdoor, falling to %s" % room_link(memory, other)
+    if memory[other_half] == TRAPDOOR:
+        return "Where the trapdoor in %s lands: %s" % (room_link(memory, other), _a(furniture_name(kind)))
+    text = (_a(DOOR_KINDS[kind]) + " to " + room_link(memory, other) if kind in DOOR_KINDS
+            else _a(furniture_name(kind)))
+    return text[0].upper() + text[1:]
+
+
 def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
     """One block per room's contents list, and the spans they cover.
 
@@ -1093,7 +1228,27 @@ def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
         else:
             lines.append("D $%04X Nothing at all: just the terminator. An empty "
                          "room." % address)
-        lines.append("W $%04X,%d,2" % (address, length))
+        # What else starts here: the objects and monsters whose room is this
+        # one, which the list does not name -- MAIN_LOOP finds them by their
+        # +$01 instead.
+        present = ["#R$%04X(%s)" % (a, _lower_first(sprite_name(memory[a]).split(" -- ")[0]))
+                   for a in range(STATE_OBJECTS, STATE_MONSTERS, 8)
+                   if memory[a] and memory[a + 1] == room]
+        present += ["#R$%04X(%s)" % (a, _lower_first(sprite_name(memory[a]).split(" -- ")[0]))
+                    for a in range(STATE_MONSTERS, STATE_PAIRS, 16)
+                    if memory[a] and memory[a + 1] == room]
+        if present:
+            lines.append("D $%04X Also here when a game starts, found by their own room "
+                         "byte rather than named in the list: %s."
+                         % (address, _and_list(present)))
+        # Each entry a word of its own, so that it assembles as the record's
+        # label; its comment says which half is in this room and where a door
+        # goes.
+        for i in range(count):
+            at = address + 2 * i
+            entry = memory[at] | (memory[at + 1] << 8)
+            lines.append("W $%04X,2,2 %s" % (at, room_list_entry(memory, room, entry)))
+        lines.append("W $%04X,2,2 End of the list" % (address + 2 * count))
         lines.append("")
     return NEWLINE.join(lines), spans
 

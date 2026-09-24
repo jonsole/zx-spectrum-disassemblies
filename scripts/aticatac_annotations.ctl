@@ -1798,17 +1798,12 @@ D $A4B0 The other of the two sounds SPIN_SPELL makes, alongside SOUND_SPELL.
 # The castle, as it starts
 # --------------------------------------------------------------------------
 
-; span $600D,5488
 @ $600D label=INITIAL_STATE
 b $600D Every record in the game, before anything has happened
 D $600D The 5488 bytes LOAD_INITIAL_STATE copies to $EA90 -- which is to say the whole of the runtime area, $EA90 to the top of memory, written out in full and moved into place with one LDIR. Nothing is built at run time; the castle is simply copied.
 D $600D It is laid out exactly as the running game reads it, in the four regions MAIN_LOOP and FRAME_TICK walk. The bytes below are grouped one record to a line.
-D $600D What is in it, read out of the data: three empty records for the player, the weapon and the sound slot, which are filled in when a game starts rather than here; 115 objects of the 119 slots, among them sixteen mushrooms and ten each of the six kinds of food; five monsters, one each of the mummy, Dracula, the devil, Frankenstein's monster and the humpback; and 274 doors.
-D $600D The doors are the surprise. Every one is sixteen bytes, not eight -- one record holding both of its sides -- and the room lists confirm it: of the 274, exactly 272 are named by two different rooms, which is what a door joining two rooms looks like from the data. The remaining two are named once each. That is also why DOOR_OTHER_SIDE flips bit 3 of an address: it is moving between the two halves of a single record.
-B $600D,24,8
-B $6025,952,8
-B $63DD,128,16
-B $645D,4384,16
+D $600D What is in it, read out of the data: three empty records for the player, the weapon and the sound slot, which are filled in when a game starts rather than here; 115 objects of the 119 slots, among them sixteen mushrooms and ten each of the six kinds of food; five monsters, one each of the mummy, Dracula, the devil, Frankenstein's monster and the humpback; and 274 sixteen-byte records for the doors and the furniture.
+D $600D The doors are the surprise. Every one is sixteen bytes, not eight -- one record holding both of its sides -- which is why DOOR_OTHER_SIDE flips bit 3 of an address: it is moving between the two halves of a single record. The last region is 274 of these sixteen-byte records: 205 doors, and 69 pairs of pieces of furniture, one in each of two rooms, stored the same way though nothing ever crosses between them -- 36 of the pairs are not even the same piece. A record's type byte says which (see DOOR_KINDS in build_aticatac.py): its handler, found by DISPATCH_FROM_LIST, is a door routine for a door and DOOR_1's draw-only tail for furniture. Each room's list names the records that are in it; the objects and monsters it names nowhere, finding them by their own room byte.
 
 # --------------------------------------------------------------------------
 # The two character sets
