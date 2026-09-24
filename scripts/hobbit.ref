@@ -245,13 +245,13 @@ Each picture is a program for #R$7FA7(RUN_PICTURE), found through the picture ta
 
 The flood fill (#R$8071(FLOOD_FILL)) keeps its queue of seed points on the machine stack and tests every pixel from each side it can be reached from, which is why the pictures fill so slowly. Holding N at the title screen turns the pictures off (#R$B707(PICTURES_ON)), and in the dark the canvas is blacked out instead of drawn (#R$820B(CLEAR_CANVAS)).
 
-The same pictures can be drawn four times faster without changing a pixel of them: see <a href="patches.html">Patches</a>.
+The same pictures can be drawn nine times faster without changing a pixel of them: see <a href="patches.html">Patches</a>.
 
 [Page:Patches]
 SectionPrefix=Patch
 
-[Patch:fastdraw:Pictures four times faster]
-Entering a new place stops the game for as long as its picture takes to draw -- nearly seven seconds for Bag End, the first thing a game shows, and almost twelve for the slowest. <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_fast_draw.s">patches/hobbit_fast_draw.s</a> draws every picture about four times faster, and draws each one exactly as the original does.
+[Patch:fastdraw:Pictures nine times faster]
+Entering a new place stops the game for as long as its picture takes to draw -- nearly seven seconds for Bag End, the first thing a game shows, and almost twelve for the slowest. <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/patches/hobbit_fast_draw.s">patches/hobbit_fast_draw.s</a> draws every picture about nine times faster -- Bag End in about half a second, the slowest in one -- and draws each one exactly as the original does.
 
 #INCLUDE(FastDraw)
 
@@ -259,37 +259,39 @@ Entering a new place stops the game for as long as its picture takes to draw -- 
 
 <b>What the patch does.</b> The same algorithms, in the same order, pushing the same fill seeds onto the stack; only the addressing changes. The screen address and the bit mask are carried along with the point and stepped with it -- a rotate of the mask to move across, the Spectrum's next-line and previous-line arithmetic to move up and down -- and worked out from scratch only where a line or a fill's sweep begins, with the mask from an eight-byte table. The line drawer keeps the address in the alternate registers, so the line's own logic is untouched. The attribute rule, that the ink is flipped where it would match the paper, is kept, with its three values written into the comparison once per line or fill.
 
-<b>Where it goes.</b> Nowhere new: the plotting code is rewritten in place, either side of the four ATTR_ routines RUN_PICTURE's paint command uses, which stay where they are, and what does not fit goes into special word slot 0's handler (#R$82FD), 148 bytes nothing can run. 427 bytes change, and the build refuses a patched game that differs anywhere else.
+<b>And then the fill.</b> With the addressing gone, the fill's own bookkeeping was most of what was left, and three more changes take most of that away. The bytes above and below the sweep are held in IX and IY, worked out once when a sweep starts and stepped along with it, rather than found again for every pixel. A cell is coloured only as the sweep enters it: colouring writes the same byte however many times it is done, so the other seven pixels of a cell only repeated it. And a whole byte is filled at once wherever doing it pixel by pixel could only have filled it -- at the start of a byte that is clear, where each row either side is either clear and already seeded, or all set and not seeded, or off the canvas. Then each of the eight pixels would push no seed and change no flag, so they can all be plotted together. That is most of the inside of every large area. Everywhere else the fill goes one pixel at a time, as before.
+
+<b>Where it goes.</b> Nowhere new: the plotting code is rewritten in place, either side of the four ATTR_ routines RUN_PICTURE's paint command uses, which stay where they are, and what does not fit goes into two places nothing else uses: special word slot 0's handler (#R$82FD), 148 bytes nothing can run, and the 165 zeros after the last picture (#R$F35B), which nothing reads or writes. The game never enables interrupts, so the fill can borrow IY. 518 bytes change, and the build refuses a patched game that differs anywhere else.
 
 <b>How it was checked.</b> Every one of the 22 pictures is drawn from the same machine in the original and the patched game, and the whole of memory is compared afterwards -- the screen, the attributes and every variable, not only what can be seen. All 22 are identical. The stack never goes deeper than the original's; it stays two to four bytes shallower in every picture.
 
-Each picture's time is the T-states #R$7F78(DRAW_LOCATION_PICTURE) takes in each game, at the Spectrum's 3.5 MHz, slowest first. The small pictures gain least: less of their time is spent plotting pixels. Location 1 is Bag End.
+Each picture's time is the T-states #R$7F78(DRAW_LOCATION_PICTURE) takes in each game, at the Spectrum's 3.5 MHz, slowest first. The small pictures gain least: less of their time is spent filling, and more on the lines and on clearing the canvas, which cost what they did. Location 1 is Bag End.
 
 <table class="default">
 <tr><th>Location</th><th>Original</th><th>Patched</th><th>Faster by</th></tr>
-<tr><td><a href="locations.html#loc6">6</a> trolls path</td><td>11.7 s</td><td>2.9 s</td><td>3.97x</td></tr>
-<tr><td><a href="locations.html#loc4">4</a> lonelands</td><td>11.5 s</td><td>2.8 s</td><td>4.17x</td></tr>
-<tr><td><a href="locations.html#loc39">39</a> front gate</td><td>10.4 s</td><td>2.6 s</td><td>4.05x</td></tr>
-<tr><td><a href="locations.html#loc41">41</a> lower halls</td><td>10.3 s</td><td>2.6 s</td><td>3.99x</td></tr>
-<tr><td><a href="locations.html#loc35">35</a> lake town</td><td>8.2 s</td><td>2.1 s</td><td>3.97x</td></tr>
-<tr><td><a href="locations.html#loc26">26</a> spider threads place</td><td>8.1 s</td><td>2.1 s</td><td>3.79x</td></tr>
-<tr><td><a href="locations.html#loc1">1</a> tunnel like hall</td><td>6.7 s</td><td>1.7 s</td><td>3.89x</td></tr>
-<tr><td><a href="locations.html#loc13">13</a> goblins dungeon</td><td>6.6 s</td><td>1.7 s</td><td>3.95x</td></tr>
-<tr><td><a href="locations.html#loc49">49</a> great river</td><td>6.5 s</td><td>1.6 s</td><td>3.93x</td></tr>
-<tr><td><a href="locations.html#loc31">31</a> dark dungeon</td><td>6.4 s</td><td>1.6 s</td><td>3.96x</td></tr>
-<tr><td><a href="locations.html#loc25">25</a> bewitched gloomy place</td><td>6.4 s</td><td>1.7 s</td><td>3.68x</td></tr>
-<tr><td><a href="locations.html#loc11">11</a> narrow place</td><td>6.3 s</td><td>1.6 s</td><td>3.91x</td></tr>
-<tr><td><a href="locations.html#loc8">8</a> running river</td><td>6.3 s</td><td>1.6 s</td><td>3.82x</td></tr>
-<tr><td><a href="locations.html#loc38">38</a> dale valley</td><td>5.6 s</td><td>1.5 s</td><td>3.75x</td></tr>
-<tr><td><a href="locations.html#loc5">5</a> trolls clearing</td><td>3.1 s</td><td>0.9 s</td><td>3.36x</td></tr>
-<tr><td><a href="locations.html#loc28">28</a> levelled elvish clearing</td><td>2.7 s</td><td>0.8 s</td><td>3.33x</td></tr>
-<tr><td><a href="locations.html#loc24">24</a> forest gate</td><td>2.4 s</td><td>0.7 s</td><td>3.24x</td></tr>
-<tr><td><a href="locations.html#loc32">32</a> elvenkings cellar</td><td>2.0 s</td><td>0.7 s</td><td>3.10x</td></tr>
-<tr><td><a href="locations.html#loc37">37</a> dragons desolation</td><td>1.8 s</td><td>0.6 s</td><td>3.05x</td></tr>
-<tr><td><a href="locations.html#loc7">7</a> trolls cave</td><td>1.5 s</td><td>0.5 s</td><td>2.90x</td></tr>
-<tr><td><a href="locations.html#loc16">16</a> big goblins cavern</td><td>1.3 s</td><td>0.5 s</td><td>2.60x</td></tr>
-<tr><td><a href="locations.html#loc43">43</a> smooth straight passage</td><td>0.3 s</td><td>0.2 s</td><td>1.67x</td></tr>
-<tr><td><b>All 22 pictures</b></td><td>126.1 s</td><td>33.1 s</td><td>3.81x</td></tr>
+<tr><td><a href="locations.html#loc6">6</a> trolls path</td><td>11.7 s</td><td>1.04 s</td><td>11.2x</td></tr>
+<tr><td><a href="locations.html#loc4">4</a> lonelands</td><td>11.5 s</td><td>0.48 s</td><td>24.1x</td></tr>
+<tr><td><a href="locations.html#loc39">39</a> front gate</td><td>10.4 s</td><td>0.76 s</td><td>13.7x</td></tr>
+<tr><td><a href="locations.html#loc41">41</a> lower halls</td><td>10.3 s</td><td>0.89 s</td><td>11.6x</td></tr>
+<tr><td><a href="locations.html#loc35">35</a> lake town</td><td>8.2 s</td><td>0.55 s</td><td>14.8x</td></tr>
+<tr><td><a href="locations.html#loc26">26</a> spider threads place</td><td>8.1 s</td><td>1.02 s</td><td>7.9x</td></tr>
+<tr><td><a href="locations.html#loc1">1</a> tunnel like hall</td><td>6.7 s</td><td>0.55 s</td><td>12.2x</td></tr>
+<tr><td><a href="locations.html#loc13">13</a> goblins dungeon</td><td>6.6 s</td><td>0.56 s</td><td>11.8x</td></tr>
+<tr><td><a href="locations.html#loc49">49</a> great river</td><td>6.5 s</td><td>0.59 s</td><td>11.0x</td></tr>
+<tr><td><a href="locations.html#loc31">31</a> dark dungeon</td><td>6.4 s</td><td>0.53 s</td><td>12.2x</td></tr>
+<tr><td><a href="locations.html#loc25">25</a> bewitched gloomy place</td><td>6.4 s</td><td>1.06 s</td><td>6.0x</td></tr>
+<tr><td><a href="locations.html#loc11">11</a> narrow place</td><td>6.3 s</td><td>0.60 s</td><td>10.5x</td></tr>
+<tr><td><a href="locations.html#loc8">8</a> running river</td><td>6.3 s</td><td>0.75 s</td><td>8.4x</td></tr>
+<tr><td><a href="locations.html#loc38">38</a> dale valley</td><td>5.6 s</td><td>0.69 s</td><td>8.1x</td></tr>
+<tr><td><a href="locations.html#loc5">5</a> trolls clearing</td><td>3.1 s</td><td>0.48 s</td><td>6.5x</td></tr>
+<tr><td><a href="locations.html#loc28">28</a> levelled elvish clearing</td><td>2.7 s</td><td>0.42 s</td><td>6.4x</td></tr>
+<tr><td><a href="locations.html#loc24">24</a> forest gate</td><td>2.4 s</td><td>0.48 s</td><td>5.0x</td></tr>
+<tr><td><a href="locations.html#loc32">32</a> elvenkings cellar</td><td>2.0 s</td><td>0.47 s</td><td>4.3x</td></tr>
+<tr><td><a href="locations.html#loc37">37</a> dragons desolation</td><td>1.8 s</td><td>0.47 s</td><td>3.8x</td></tr>
+<tr><td><a href="locations.html#loc7">7</a> trolls cave</td><td>1.5 s</td><td>0.42 s</td><td>3.5x</td></tr>
+<tr><td><a href="locations.html#loc16">16</a> big goblins cavern</td><td>1.3 s</td><td>0.44 s</td><td>2.9x</td></tr>
+<tr><td><a href="locations.html#loc43">43</a> smooth straight passage</td><td>0.3 s</td><td>0.17 s</td><td>1.7x</td></tr>
+<tr><td><b>All 22 pictures</b></td><td>126.1 s</td><td>13.4 s</td><td>9.4x</td></tr>
 </table>
 
 <b>Building it.</b> <code>python scripts/build_hobbit.py --tape "The Hobbit v1.2.tzx" --fast-draw</code> builds and verifies the disassembly, then assembles the patch on top of it into <code>hobbit_fast.sna</code>, with a source map for debugging it. <code>python scripts/check_fast_draw.py</code> runs the comparison above.

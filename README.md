@@ -67,8 +67,8 @@ data goes, the room types, the sprites, the graphics, the sounds, and the bugs.
 `build_hobbit.py --fast-draw` also assembles
 [patches/hobbit_fast_draw.s](patches/hobbit_fast_draw.s) on top of the verified
 source and writes `game_disassembly/hobbit/hobbit_fast.sna`: the same game, with
-its pictures drawn about four times faster -- Bag End in 1.7 seconds rather
-than 6.7. The patch replaces only the plotting code, and the build refuses one
+its pictures drawn about nine times faster -- Bag End in about half a second
+rather than 6.7. The patch replaces only the plotting code, and the build refuses one
 that changes a byte anywhere else. `scripts/check_fast_draw.py` then draws all
 22 pictures in both and compares the whole of memory afterwards: every one is
 identical, and the stack never goes deeper.

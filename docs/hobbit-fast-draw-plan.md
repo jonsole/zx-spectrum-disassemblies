@@ -188,5 +188,43 @@ the extra code.
   Bag End finished after 7.0 s in the original and 1.9 s patched, the last
   frames of the two the same picture.
 
+## The second pass
+
+With the addressing gone, sampling the patched drawing put nearly all of what
+was left in the fill's own loop, at about 460 T-states a pixel: finding the
+bytes above and below (a PUSH, a CALL to step the address, a POP, each way),
+colouring the cell, and stepping right. Three changes, all keeping the same
+pixels, the same order and the same seeds:
+
+- **The rows either side in IX and IY.** Worked out once when a sweep starts
+  and stepped with it -- a column never carries out of L, so INC IX and INC IY
+  step them exactly as INC L steps the sweep's own byte. The game never
+  enables interrupts, so IY is free to borrow; the caller's IX and IY are kept
+  in memory, not on the stack, so the seeds sit where they always did.
+- **Each cell coloured once.** The attribute write depends only on the ink and
+  the cell's paper, which it keeps, so doing it again changes nothing; the
+  sweep colours a cell only as it enters it.
+- **A whole byte at a time.** At the start of a byte that is clear, where each
+  row either side is clear and already seeded, or all set and not seeded, or
+  off the canvas, each of the eight pixels would push no seed and change no
+  flag: the byte is written $FF, its cell coloured, and the sweep moves on
+  eight. The first version asked for both rows clear and seeded, and rarely
+  applied -- a sweep nearly always has the row it came from, already filled,
+  on one side.
+
+It needed more room than the first pass had left. The 165 bytes of zeros after
+the last picture, $F35B-$F3FF, are free: no code refers to them, SAVE's four
+blocks and START's copy of the world ($F400 on) stop short of them, and twenty
+turns of play in the simulator left them zero. The loop along a sweep went
+there; the fill's set-up stayed at FLOOD_FILL, and its end joined slot 0's
+handler.
+
+518 bytes change now. `check_fast_draw.py`: all 22 identical, the stack as
+before. 126.1 s of drawing before the patch, 33.1 s after the first pass,
+13.4 s after the second -- 9.4x overall, from 1.7x for location 43's small
+picture to 24.1x for location 4's. Bag End 0.55 s, the slowest (location 6)
+1.04 s. What is left is spread thinly: the lines, the per-seed and per-line
+address set-up, clearing the canvas, and the fill's edges.
+
 Still not done: the two further steps under "Not in this plan", and a tape
 image of the patched game.

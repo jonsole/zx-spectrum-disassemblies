@@ -2377,11 +2377,11 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
 
 # The faster pictures: patches/hobbit_fast_draw.s, assembled on top of the
 # byte-exact source. These are the only ranges it may change -- the plotting
-# code either side of the ATTR_ routines, and special word slot 0's handler,
-# which nothing runs -- and the build refuses a patched image that differs
-# anywhere else.
+# code either side of the ATTR_ routines, special word slot 0's handler, which
+# nothing runs, and the zeros after the last picture, which nothing reads or
+# writes -- and the build refuses a patched image that differs anywhere else.
 FAST_DRAW_PATCH = Path(__file__).resolve().parent.parent / "patches" / "hobbit_fast_draw.s"
-FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0x82FD, 0x8391)]
+FAST_DRAW_RANGES = [(0x8071, 0x80F5), (0x812B, 0x820B), (0x82FD, 0x8391), (0xF35B, 0xF400)]
 
 
 def build_fast_draw(snapshot: Path) -> None:

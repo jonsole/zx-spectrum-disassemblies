@@ -173,13 +173,13 @@ def save_animation(frames, path: Path) -> float:
 # patched game side by side, made by recording on the emulator rather than by
 # the build: the file, and what it shows.
 FAST_DRAW_GIFS = [
-    ("bag_end_side_by_side.gif", "Bag End, from the title screen: 6.7 s, and 1.7 s patched."),
+    ("bag_end_side_by_side.gif", "Bag End, from the title screen: 6.7 s, and 0.55 s patched."),
     ("location6_side_by_side.gif", "Location 6, the hidden path with trolls' footprints, "
-     "the slowest picture in the game: 11.7 s, and 2.9 s patched."),
+     "the slowest picture in the game: 11.7 s, and 1.04 s patched."),
     ("location4_side_by_side.gif", "Location 4, the lonelands, the second slowest: "
-     "11.5 s, and 2.8 s patched."),
+     "11.5 s, and 0.48 s patched."),
     ("location39_side_by_side.gif", "Location 39, the front gate, the third slowest: "
-     "10.4 s, and 2.6 s patched."),
+     "10.4 s, and 0.76 s patched."),
 ]
 LOGO = "images/logo.png"   # hobbit.ref's LogoImage, and the landing page's
 DIVIDER_IMAGE = "images/divider.png"   # hobbit.css draws it under each box
