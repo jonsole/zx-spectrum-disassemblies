@@ -17,15 +17,17 @@ same with an emulator of its own:
   `c` a character, `o` open, `*` gives light, `x` dead or broken, `f` full,
   `l` a liquid, `k` locked. Filter by name or place, or show only what is
   where you are.
-- **Map**: every location, laid out around where you are -- or around a place
-  you click, with **Follow you** to go back -- so that its exits are on their
-  own sides: north above, east to the right, each labelled. No one fixed
-  layout can do that for every place, because the game's map contradicts
-  itself (the lonelands' east and north both lead to the trolls' clearing);
-  so the map is flowed out afresh from the place being looked at, and glides
-  to the new layout when that changes. A coloured dot for each character
-  where it is now, the dark places shaded and the ones not yet visited
-  dashed. Hover over a place for what and who is there, and its exits.
+- **Map**: every location, laid out as on the
+  [disassembly's map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/reference/map.html),
+  and adjusted around where you are -- or a place you click, with **Follow
+  you** to go back -- so that its exits are on their own sides: north above,
+  east to the right, each labelled. No one fixed layout can do that for every
+  place, because the game's map contradicts itself (the lonelands' east and
+  north both lead to the trolls' clearing); so the places that need it move
+  next to the one being looked at, gliding there, and the rest of the map
+  stays still. A coloured dot for each character where it is now, the dark
+  places shaded and the ones not yet visited dashed. Hover over a place for
+  what and who is there, and its exits.
 
 ![The Hobbit Inspector in VS Code, with the game running: the log, the objects
 and the map](https://jonsole.github.io/zx-spectrum-disassemblies/hobbit/images/inspector.png)
@@ -43,7 +45,9 @@ loaded -- `build_hobbit.py` writes `hobbit.sna`, and the fast-drawing
 (from September 2026 on). Everything it shows is read from the running game:
 the memory through the debug adapter's `readMemory`, a few times a second, and
 the text through a logpoint on PRINT_CHAR (`setLogpoints`, reports as `zxLog`
-events). Nothing of the game is in this folder but addresses.
+events). Nothing of the game is in this folder but addresses, and the map's
+layout, `map_layout.json`, which `scripts/hobbit_map_layout.py` writes from the
+site map's.
 
 Open it with **The Hobbit: Open Inspector** from the Command Palette.
 
@@ -67,11 +71,12 @@ New-Item -ItemType Junction -Path $dest -Target (Resolve-Path .\hobbit-vscode)
   without it).
 - `extension.js` finds the debug session, reads memory while the panel is
   open, sets and clears the logpoint, and hands everything to the page.
-- `map_flow.js` lays the map out from one place: each exit's place in the
-  cell its direction names, working outwards, and further along the same line
-  where that cell is taken. From every one of the game's places, its own
-  exits all point their own way (`tests/map_flow_test.js` checks it for each
-  of the 79), and about three quarters of its neighbours' do too.
+- `map_flow.js` adjusts the fixed layout around one place: each of its
+  exits' places into the cell its direction names, and whatever was there
+  into the nearest free cell. From every one of the game's places, its own
+  exits all point their own way, and fewer than two other places move on
+  average, seven at most (`tests/map_flow_test.js` checks both for each of
+  the 79).
 - `inspector.html`, `inspector.css` and `inspector_page.js` are the page.
 
 **Not yet:** the characters' scripts -- what each is about to do -- and the

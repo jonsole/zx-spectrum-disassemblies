@@ -89,7 +89,8 @@ function openPanel(context) {
   panel.webview.onDidReceiveMessage((message) => {
     if (message.type === 'ready') {
       pageReady = true;
-      panel.webview.postMessage({ type: 'flags', flags: model.FLAGS });
+      const layout = JSON.parse(fs.readFileSync(path.join(context.extensionPath, 'map_layout.json'), 'utf8'));
+      panel.webview.postMessage({ type: 'layout', cells: layout.cells, flags: model.FLAGS });
       for (const m of queued) {
         panel.webview.postMessage(m);
       }

@@ -1,7 +1,7 @@
 'use strict';
 // The Hobbit Inspector's page: draws what the extension host sends it -- the
 // decoded state and the log -- and asks for nothing but a cleared log. All the
-// reading of the game happens in the host; the map's layout is map_flow.js.
+// reading of the game happens in the host; the map's adjusting is map_flow.js.
 
 (function () {
   const vscode = acquireVsCodeApi();
@@ -178,21 +178,39 @@
     return lines;
   }
 
-  // The map is flowed out from one place (map_flow.js): the player's, or one
-  // clicked on. That place's exits always point their own way, and when it
-  // changes the map flows from the old layout to the new rather than jumping.
+  // The map is the fixed layout (map_layout.json), adjusted around one place
+  // -- the player's, or one clicked on -- so that its exits point their own
+  // way (map_flow.js). Only the few places that adjusting moves glide to
+  // their new cells; the rest of the map stays still.
   let following = true;
   let focus = 0;
+  /// The fixed layout, and the canvas it sits on: its top left cell, and its
+  /// size in cells, with room around it for places moved out to the edge.
+  let base = null;
+  let origin = [0, 0];
+  let span = [1, 1];
   /// The layout being shown, as it moves: location -> [x, y] in cells, which
-  /// are fractions while it flows.
+  /// are fractions while it glides.
   let shown = null;
   let target = null;
   let flowFrom = null;
   let flowStart = 0;
   let animating = false;
-  /// How far the canvas reaches from the focus, in cells, each way.
-  let reach = [1, 1];
+  /// The focus the view was last scrolled to, so it scrolls only when the
+  /// focus changes, and is otherwise left where the user put it.
+  let viewed = -1;
   const FLOW_MS = 450;
+
+  function setBase(cellsByLocation) {
+    base = new Map(Object.entries(cellsByLocation).map(([l, c]) => [Number(l), c]));
+    const xs = [...base.values()].map((c) => c[0]);
+    const ys = [...base.values()].map((c) => c[1]);
+    const margin = MapFlow.RAY + 1;
+    origin = [Math.min(...xs) - margin, Math.min(...ys) - margin];
+    span = [Math.max(...xs) - Math.min(...xs) + 1 + 2 * margin, Math.max(...ys) - Math.min(...ys) + 1 + 2 * margin];
+    shown = null;
+    target = null;
+  }
 
   function currentFocus() {
     return following ? state.playerAt : focus;
@@ -217,44 +235,33 @@
     el('follow').hidden = following;
   }
 
-  /// Lays the map out around the current focus, and flows to it if it moved.
+  /// Adjusts the map around the current focus, and glides to it if anything moved.
   function relayout() {
     const f = currentFocus();
     updateFollowUi();
-    if (!f) {
+    if (!f || !base) {
       return;
     }
-    const next = MapFlow.flow(state.rooms, f);
-    if (sameLayout(target, next)) {
-      if (!animating) {
-        drawMap();
-      }
-      return;
-    }
-    flowFrom = shown ? new Map(shown) : null;
-    target = next;
-    // The canvas is sized for both layouts at once, so it stays still while
-    // the places move across it, with the focus at its centre.
-    let rx = 1;
-    let ry = 1;
-    for (const layout of [target, flowFrom]) {
-      for (const [x, y] of layout ? layout.values() : []) {
-        rx = Math.max(rx, Math.ceil(Math.abs(x)));
-        ry = Math.max(ry, Math.ceil(Math.abs(y)));
+    const next = MapFlow.adjust(state.rooms, base, f);
+    if (!sameLayout(target, next)) {
+      flowFrom = shown ? new Map(shown) : null;
+      target = next;
+      if (!flowFrom) {
+        shown = new Map(target);
+      } else {
+        flowStart = performance.now();
+        if (!animating) {
+          animating = true;
+          requestAnimationFrame(flowStep);
+        }
       }
     }
-    reach = [rx, ry];
-    if (!flowFrom) {
-      shown = new Map(target);
-      drawMap();
-      centreView();
-      return;
-    }
-    flowStart = performance.now();
-    centreView();
     if (!animating) {
-      animating = true;
-      requestAnimationFrame(flowStep);
+      drawMap();
+    }
+    if (viewed !== f) {
+      centreView(f, viewed !== -1);
+      viewed = f;
     }
   }
 
@@ -279,12 +286,25 @@
     return Number(el('zoom').value) / 100;
   }
 
-  function centreView() {
+  function cellCentre(cell) {
+    return [(cell[0] - origin[0]) * CELL_W + 4 + CELL_W / 2, (cell[1] - origin[1]) * CELL_H + 4 + CELL_H / 2];
+  }
+
+  /// Scrolls the focus to the middle of the view: smoothly when it moves from
+  /// one place to another, at once the first time.
+  function centreView(f, smooth) {
     requestAnimationFrame(() => {
+      if (!target || !target.has(f)) {
+        return;
+      }
       const scroll = el('map-scroll');
       const z = zoom();
-      scroll.scrollLeft = ((reach[0] + 0.5) * CELL_W + 4) * z - scroll.clientWidth / 2;
-      scroll.scrollTop = ((reach[1] + 0.5) * CELL_H + 4) * z - scroll.clientHeight / 2;
+      const [cx, cy] = cellCentre(target.get(f));
+      scroll.scrollTo({
+        left: cx * z - scroll.clientWidth / 2,
+        top: cy * z - scroll.clientHeight / 2,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
     });
   }
 
@@ -294,17 +314,14 @@
     if (!shown) {
       return;
     }
-    const width = (2 * reach[0] + 1) * CELL_W + 8;
-    const height = (2 * reach[1] + 1) * CELL_H + 8;
+    const width = span[0] * CELL_W + 8;
+    const height = span[1] * CELL_H + 8;
     const z = zoom();
     map.setAttribute('width', String(width * z));
     map.setAttribute('height', String(height * z));
     map.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
-    // x east, y south: north is up, and the focus is in the middle.
-    const centre = (location) => {
-      const [x, y] = shown.get(location);
-      return [(x + reach[0]) * CELL_W + 4 + CELL_W / 2, (y + reach[1]) * CELL_H + 4 + CELL_H / 2];
-    };
+    // x east, y south: north is up.
+    const centre = (location) => cellCentre(shown.get(location));
     const f = currentFocus();
 
     // Exits first, under the rooms: one line per pair of places, dashed where
@@ -432,9 +449,9 @@
     }
   }
   el('zoom').addEventListener('input', () => {
-    if (state) {
+    if (state && shown) {
       drawMap();
-      centreView();
+      centreView(currentFocus(), false);
     }
   });
   el('follow').addEventListener('click', () => {
@@ -521,9 +538,13 @@
 
   window.addEventListener('message', (event) => {
     const m = event.data;
-    if (m.type === 'flags') {
+    if (m.type === 'layout') {
+      setBase(m.cells);
       flagInfo = m.flags;
       el('flags-head').title = flagInfo.map((f) => f[1] + ' ' + f[2]).join('\n');
+      if (state) {
+        relayout();
+      }
     } else if (m.type === 'state') {
       state = m.state;
       drawState();
