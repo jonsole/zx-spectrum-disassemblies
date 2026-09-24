@@ -195,7 +195,6 @@
   let target = null;
   let flowFrom = null;
   let flowStart = 0;
-  let animating = false;
   /// The focus the view was last scrolled to, so it scrolls only when the
   /// focus changes, and is otherwise left where the user put it.
   let viewed = -1;
@@ -243,43 +242,87 @@
       return;
     }
     const next = MapFlow.adjust(state.rooms, base, f);
+    const now = performance.now();
     if (!sameLayout(target, next)) {
       flowFrom = shown ? new Map(shown) : null;
       target = next;
       if (!flowFrom) {
         shown = new Map(target);
       } else {
-        flowStart = performance.now();
-        if (!animating) {
-          animating = true;
-          requestAnimationFrame(flowStep);
-        }
+        flowStart = now;
+        flowing = true;
       }
-    }
-    if (!animating) {
-      drawMap();
     }
     if (viewed !== f) {
       centreView(f, viewed !== -1);
       viewed = f;
     }
+    if (flowing || scrolling) {
+      animate();
+    } else {
+      drawMap();
+    }
   }
 
-  function flowStep(now) {
-    const t = Math.min(1, (now - flowStart) / FLOW_MS);
-    const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    shown = new Map();
-    for (const [loc, [x1, y1]] of target) {
-      const from = flowFrom.get(loc) || [x1, y1];
-      shown.set(loc, [from[0] + (x1 - from[0]) * ease, from[1] + (y1 - from[1]) * ease]);
+  // One animation loop moves the places and the view together, with the same
+  // easing, so the map glides as one rather than the boxes and the scroll
+  // each going their own way. The scroll is done here, a step a frame, rather
+  // than by the browser's smooth scrolling, which it may skip (Windows with
+  // animations turned off) and which keeps its own time.
+  let flowing = false;
+  let scrolling = false;
+  let scrollFrom = [0, 0];
+  let scrollTo = [0, 0];
+  let scrollStart = 0;
+  let frameRequested = false;
+
+  function ease(t) {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  }
+
+  function animate() {
+    if (!frameRequested) {
+      frameRequested = true;
+      requestAnimationFrame(frame);
     }
-    drawMap();
-    if (t < 1) {
-      requestAnimationFrame(flowStep);
-    } else {
-      animating = false;
-      shown = new Map(target);
+  }
+
+  function frame(now) {
+    frameRequested = false;
+    if (flowing) {
+      const t = Math.min(1, (now - flowStart) / FLOW_MS);
+      const e = ease(t);
+      shown = new Map();
+      for (const [loc, [x1, y1]] of target) {
+        const from = flowFrom.get(loc) || [x1, y1];
+        shown.set(loc, [from[0] + (x1 - from[0]) * e, from[1] + (y1 - from[1]) * e]);
+      }
+      if (t >= 1) {
+        flowing = false;
+        shown = new Map(target);
+      }
+      drawMap();
     }
+    if (scrolling) {
+      const t = Math.min(1, (now - scrollStart) / FLOW_MS);
+      const e = ease(t);
+      const scroll = el('map-scroll');
+      scroll.scrollLeft = scrollFrom[0] + (scrollTo[0] - scrollFrom[0]) * e;
+      scroll.scrollTop = scrollFrom[1] + (scrollTo[1] - scrollFrom[1]) * e;
+      if (t >= 1) {
+        scrolling = false;
+      }
+    }
+    if (flowing || scrolling) {
+      animate();
+    }
+  }
+
+  // A hand on the map takes the view back from the animation.
+  for (const type of ['wheel', 'pointerdown', 'keydown']) {
+    el('map-scroll').addEventListener(type, () => {
+      scrolling = false;
+    }, { passive: true });
   }
 
   function zoom() {
@@ -290,22 +333,47 @@
     return [(cell[0] - origin[0]) * CELL_W + 4 + CELL_W / 2, (cell[1] - origin[1]) * CELL_H + 4 + CELL_H / 2];
   }
 
-  /// Scrolls the focus to the middle of the view: smoothly when it moves from
-  /// one place to another, at once the first time.
+  /// Brings the focus to the middle of the view: gliding there when it moves
+  /// from one place to another, at once the first time.
   function centreView(f, smooth) {
-    requestAnimationFrame(() => {
-      if (!target || !target.has(f)) {
-        return;
-      }
-      const scroll = el('map-scroll');
-      const z = zoom();
-      const [cx, cy] = cellCentre(target.get(f));
-      scroll.scrollTo({
-        left: cx * z - scroll.clientWidth / 2,
-        top: cy * z - scroll.clientHeight / 2,
-        behavior: smooth ? 'smooth' : 'auto',
-      });
-    });
+    if (!target || !target.has(f)) {
+      return;
+    }
+    if (!smooth) {
+      // The first time, the page may not be laid out yet: a frame later it is,
+      // and there is something to scroll.
+      requestAnimationFrame(() => centreNow(f));
+      return;
+    }
+    const to = scrollTarget(f);
+    const scroll = el('map-scroll');
+    scrollFrom = [scroll.scrollLeft, scroll.scrollTop];
+    scrollTo = to;
+    scrollStart = performance.now();
+    scrolling = true;
+  }
+
+  function centreNow(f) {
+    drawMap();
+    const [x, y] = scrollTarget(f);
+    const scroll = el('map-scroll');
+    scroll.scrollLeft = x;
+    scroll.scrollTop = y;
+    scrolling = false;
+  }
+
+  /// The scroll that puts `f` in the middle of the view, as near as the map's
+  /// edges allow.
+  function scrollTarget(f) {
+    const scroll = el('map-scroll');
+    const z = zoom();
+    const [cx, cy] = cellCentre(target.get(f));
+    // Where the scroll can actually reach, so a glide towards the map's edge
+    // eases to a stop there rather than being cut off short of it.
+    const maxX = Math.max(0, scroll.scrollWidth - scroll.clientWidth);
+    const maxY = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+    return [Math.min(maxX, Math.max(0, cx * z - scroll.clientWidth / 2)),
+            Math.min(maxY, Math.max(0, cy * z - scroll.clientHeight / 2))];
   }
 
   function drawMap() {
@@ -449,9 +517,8 @@
     }
   }
   el('zoom').addEventListener('input', () => {
-    if (state && shown) {
-      drawMap();
-      centreView(currentFocus(), false);
+    if (state && shown && target && target.has(currentFocus())) {
+      centreNow(currentFocus());
     }
   });
   el('follow').addEventListener('click', () => {
