@@ -35,7 +35,9 @@ same with an emulator of its own:
   north both lead to the trolls' clearing); so the places that need it move
   next to the one being looked at, gliding there, and the rest of the map
   stays still. A coloured dot for each character where it is now, the dark
-  places shaded and the ones not yet visited dashed. Hover over a place for
+  places shaded and the ones not yet visited dashed, and a bar across a way
+  that goes through something in the way -- a shut door, a river, a web --
+  grey, or red if it is locked. Hover over a place for
   what and who is there, and its exits.
 
 ![The Hobbit Inspector in VS Code, with the game running: the log, the objects
@@ -88,6 +90,5 @@ New-Item -ItemType Junction -Path $dest -Target (Resolve-Path .\hobbit-vscode)
   the 79).
 - `inspector.html`, `inspector.css` and `inspector_page.js` are the page.
 
-**Not yet:** doors on the map, open, closed or locked; v1.0, whose addresses
-differ; and a way to act on the game from the panel, as Wilderland's command
+**Not yet:** v1.0, whose addresses differ; and a way to act on the game from the panel, as Wilderland's command
 window does.

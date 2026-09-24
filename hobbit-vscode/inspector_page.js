@@ -472,6 +472,48 @@
             Math.min(maxY, Math.max(0, cy * z - scroll.clientHeight / 2))];
   }
 
+  /// What stands in the way between two places: the objects their exits pass
+  /// through (a door, a gate, a river) that are neither open nor broken --
+  /// CAN_PASS lets nobody through otherwise. The game's own exits both ways
+  /// count, since a door is the same door from either side.
+  function doorsBetween(a, b) {
+    const doors = [];
+    for (const [from, to] of [[a, b], [b, a]]) {
+      const room = state.rooms.find((r) => r.location === from);
+      for (const e of room ? room.exits : []) {
+        if (e.to !== to || !e.via) {
+          continue;
+        }
+        const o = byNumber.get(e.via);
+        if (o && !(o.flags & 0x20) && !(o.flags & 0x08) && !doors.includes(o)) {
+          doors.push(o);
+        }
+      }
+    }
+    return doors;
+  }
+
+  /// A bar across the line from (x1,y1) to (x2,y2), at its middle: a closed
+  /// door, or a locked one.
+  function drawDoors(parent, x1, y1, x2, y2, doors) {
+    if (!doors.length) {
+      return;
+    }
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+    // Across the line: its direction turned a quarter.
+    const nx = -(y2 - y1) / length * 7;
+    const ny = (x2 - x1) / length * 7;
+    const locked = doors.some((o) => o.flags & 0x01);
+    const bar = svg('line', {
+      class: 'door' + (locked ? ' locked' : ''),
+      x1: mx - nx, y1: my - ny, x2: mx + nx, y2: my + ny,
+    }, parent);
+    const title = svg('title', {}, bar);
+    title.textContent = doors.map((o) => 'the ' + o.name + ': ' + (o.flags & 0x01 ? 'locked' : 'in the way')).join('\n');
+  }
+
   function drawMap() {
     const map = el('map');
     map.textContent = '';
@@ -493,6 +535,7 @@
     // top, with their directions.
     const exits = svg('g', {}, map);
     const drawn = new Set();
+    const doorLines = [];
     const leadsTo = new Map(state.rooms.map((r) => [r.location, new Set(r.exits.map((e) => e.to))]));
     for (const r of state.rooms) {
       if (r.location === f || !shown.has(r.location)) {
@@ -511,6 +554,7 @@
         const [x2, y2] = centre(e.to);
         const back = leadsTo.get(e.to);
         svg('line', { class: 'exit' + (back && back.has(r.location) ? '' : ' oneway'), x1, y1, x2, y2 }, exits);
+        doorLines.push([x1, y1, x2, y2, doorsBetween(r.location, e.to)]);
       }
     }
     const focusRoom = state.rooms.find((r) => r.location === f);
@@ -534,12 +578,14 @@
             && r.exits.some((e) => e.to === f)) {
           const [x2, y2] = centre(r.location);
           svg('line', { class: 'exit oneway', x1, y1, x2, y2 }, exits);
+          doorLines.push([x1, y1, x2, y2, doorsBetween(f, r.location)]);
         }
       }
       for (const [to, directions] of ways) {
         const [x2, y2] = centre(to);
         const back = leadsTo.get(to);
         svg('line', { class: 'exit focus' + (back && back.has(f) ? '' : ' oneway'), x1, y1, x2, y2 }, exits);
+        doorLines.push([x1, y1, x2, y2, doorsBetween(f, to)]);
         // The label just outside the focus's box, on its line.
         const dx = x2 - x1;
         const dy = y2 - y1;
@@ -582,7 +628,11 @@
         + (r.visited ? '' : ' (not yet visited)')
         + (here.length ? '\n' + here.map((o) => o.name).join(', ') : '')
         + (stuff.length ? '\nHere: ' + stuff.map((o) => o.name).join(', ') : '')
-        + '\nExits: ' + (r.exits.map((e) => e.direction + ' ' + e.to).join(', ') || 'none')
+        + '\nExits: ' + (r.exits.map((e) => {
+          const o = e.via ? byNumber.get(e.via) : null;
+          const state = !o ? '' : o.flags & 0x01 ? ', locked' : !(o.flags & 0x20) && !(o.flags & 0x08) ? ', in the way' : ', open';
+          return e.direction + ' ' + e.to + (o ? ' (through the ' + o.name + state + ')' : '');
+        }).join(', ') || 'none')
         + '\nClick to centre the map here';
       const lines = wrapName(r.name);
       lines.forEach((text, i) => {
@@ -604,6 +654,12 @@
         focus = r.location;
         relayout();
       });
+    }
+
+    // The doors, over the lines and the boxes' edges.
+    const doorLayer = svg('g', {}, map);
+    for (const [x1, y1, x2, y2, doors] of doorLines) {
+      drawDoors(doorLayer, x1, y1, x2, y2, doors);
     }
 
     // The focus's directions, over everything.
