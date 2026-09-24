@@ -286,6 +286,70 @@
   }
   el('zoom').addEventListener('input', () => state && drawMap());
 
+  // ---- resizing the panes ------------------------------------------------------
+
+  // Sizes are kept as percentages of the page, so they still fit when the
+  // panel is resized, and in the webview's own state, so they survive the
+  // panel being hidden and shown again.
+  const main = document.querySelector('main');
+  /// How small a pane may be dragged, in percent of the page.
+  const MIN_PERCENT = 15;
+
+  function applySizes(sizes) {
+    for (const [key, prop] of [['left', '--left'], ['top', '--top']]) {
+      if (sizes[key]) {
+        main.style.setProperty(prop, sizes[key] + '%');
+      } else {
+        main.style.removeProperty(prop);
+      }
+    }
+  }
+
+  function sizes() {
+    return (vscode.getState() || {}).sizes || {};
+  }
+
+  function saveSizes(s) {
+    vscode.setState(Object.assign({}, vscode.getState() || {}, { sizes: s }));
+    applySizes(s);
+  }
+
+  function splitter(id, key, horizontal) {
+    const bar = el(id);
+    bar.addEventListener('pointerdown', (down) => {
+      down.preventDefault();
+      bar.setPointerCapture(down.pointerId);
+      bar.classList.add('dragging');
+      const box = main.getBoundingClientRect();
+      const move = (e) => {
+        const at = horizontal ? (e.clientY - box.top) / box.height : (e.clientX - box.left) / box.width;
+        const percent = Math.min(100 - MIN_PERCENT, Math.max(MIN_PERCENT, at * 100));
+        const s = sizes();
+        s[key] = Math.round(percent * 10) / 10;
+        saveSizes(s);
+      };
+      const up = () => {
+        bar.classList.remove('dragging');
+        bar.removeEventListener('pointermove', move);
+        bar.removeEventListener('pointerup', up);
+        bar.removeEventListener('pointercancel', up);
+      };
+      bar.addEventListener('pointermove', move);
+      bar.addEventListener('pointerup', up);
+      bar.addEventListener('pointercancel', up);
+    });
+    // Back to where it started.
+    bar.addEventListener('dblclick', () => {
+      const s = sizes();
+      delete s[key];
+      saveSizes(s);
+    });
+  }
+
+  splitter('split-x', 'left', false);
+  splitter('split-y', 'top', true);
+  applySizes(sizes());
+
   // ---- from the host ----------------------------------------------------------
 
   function drawState() {

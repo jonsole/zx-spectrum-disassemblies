@@ -22,14 +22,21 @@ header {
 #score { font-weight: bold; }
 #status { color: var(--vscode-descriptionForeground); font-style: italic; }
 
+/* The panes, with a drag handle between the log and the objects and another
+   above the map. The page sets --left and --top as percentages when a handle
+   is dragged (inspector_page.js). */
 main {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(260px, 35%) 1fr;
-  grid-template-rows: 45% 55%;
-  grid-template-areas: "log objects" "map map";
+  grid-template-columns: var(--left, 35%) 5px 1fr;
+  grid-template-rows: var(--top, 45%) 5px 1fr;
+  grid-template-areas: "log split-x objects" "split-y split-y split-y" "map map map";
 }
+#split-x { grid-area: split-x; cursor: col-resize; }
+#split-y { grid-area: split-y; cursor: row-resize; }
+.splitter { background: var(--vscode-panel-border); touch-action: none; }
+.splitter:hover, .splitter.dragging { background: var(--vscode-sash-hoverBorder, var(--vscode-focusBorder)); }
 #log-pane { grid-area: log; }
 #objects-pane { grid-area: objects; }
 #map-pane { grid-area: map; }
@@ -39,8 +46,6 @@ section {
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  border-right: 1px solid var(--vscode-panel-border);
-  border-bottom: 1px solid var(--vscode-panel-border);
 }
 h2 {
   font-size: 1em;
