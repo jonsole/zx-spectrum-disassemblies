@@ -33,7 +33,7 @@ Next: <a href="38601.html">96C9</a>
 Sets one bit in the 19-byte map at $5E40, one bit per room, 152 rooms in all. The bit number is not known until run time, and rather than shift a mask into place the routine assembles the instruction it needs and stores it over the one below.
 </div>
 <div class="paragraph">
-SET b,(HL) is $CB followed by $C6 + b * 8, so ORing the room's low three bits (already shifted up by the three RLCAs) with $C6 gives exactly the operand byte required, and it is written into $96C7 -- the second byte of the SET at $96C6.
+SET b,(HL) is $CB followed by $C6 + b * 8, so ORing the room's low three bits (already shifted up by the three RLCAs) with $C6 gives exactly the operand byte required, and it is written into SET_BIT_OP+1 -- the second byte of the SET at <a href="38575.html#38598">SET_BIT_OP</a>.
 </div>
 <div class="paragraph">
 Checked by calling it directly with a series of room numbers and reading both the map and the patched bytes back: $2A set bit 42 and left SET 2,(HL) in place, $07 set bit 7 as SET 7, $08 set bit 8 as SET 0, $4B set bit 75 as SET 3, and $97 set bit 151 as SET 7 -- the last bit the map has room for.
@@ -81,7 +81,7 @@ Checked by calling it directly with a series of room numbers and reading both th
 <td class="asm-label"></td>
 <td class="address-1"><span id="38584"></span>96B8</td>
 <td class="instruction">LD HL,$5E40</td>
-<td class="comment-1" rowspan="2">The map itself. It sits below $6000, so it is not part of this disassembly.</td>
+<td class="comment-1" rowspan="2">The map itself. It sits below <a href="24576.html">ENTRY</a>, so it is not part of this disassembly.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -121,7 +121,7 @@ Checked by calling it directly with a series of room numbers and reading both th
 <td class="comment-1" rowspan="1">Overwrite the operand of the instruction on the next line.</td>
 </tr>
 <tr>
-<td class="asm-label"></td>
+<td class="asm-label">SET_BIT_OP</td>
 <td class="address-1"><span id="38598"></span>96C6</td>
 <td class="instruction">SET 0,(HL)</td>
 <td class="comment-1" rowspan="1">Reads as SET 0 here, but by the time it runs it is SET (room AND 7).</td>

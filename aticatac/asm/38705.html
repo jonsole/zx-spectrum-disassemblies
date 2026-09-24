@@ -24,13 +24,13 @@ Next: <a href="38825.html">97A9</a>
 </td>
 </tr>
 </table>
-<div class="description">9731: The sequence played when the player gets out</div>
+<div class="description">9731: Fall through a trapdoor</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Runs 128 times: each pass beeps a note whose pitch comes from the frame counter at $5C78, picks black or white from bit 3 of it, writes that into two cells of the attribute file and then floods the rest outwards with SPIRAL_FILL. So the screen flashes in and out from the middle while the note climbs. It ends by jumping straight back into the main loop at $9117.
+Reached only from the trapdoor's handler, <a href="37308.html#37317">TRAPDOOR</a>, and only while the player is standing on it -- PLAYER_AT_DOOR with a tolerance of $1818. It draws room $96, which is not a room but the trapdoor fall's twelve nested rectangles (see the room types), then runs 128 times: each pass beeps a note whose pitch comes from the frame counter at $5C78 and walks down as the loop counts up, picks black or white from bit 3 of it, writes that into two cells of the attribute file and floods the rest outwards with SPIRAL_FILL. It ends in ENTER_ROOM, which takes the player to the trapdoor's other half -- the landing in the room below.
 </div>
 <div class="paragraph">
 Never reached in any of the recorded playthroughs, which is why the code map left it as data until it was disassembled by hand.
@@ -39,7 +39,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 </td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE</td>
+<td class="asm-label">TRAPDOOR_FALL</td>
 <td class="address-2"><span id="38705"></span>9731</td>
 <td class="instruction">LD BC,$1818</td>
 <td class="comment-1" rowspan="1"></td>
@@ -53,7 +53,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38711"></span>9737</td>
-<td class="instruction">JP NC,<a href="37362.html#37374">DOOR_1</a></td>
+<td class="instruction">JP NC,<a href="37362.html#37374">DRAW_DOOR</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -77,7 +77,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38721"></span>9741</td>
-<td class="instruction">CALL <a href="39914.html#39921">DRAW_ROOM_0</a></td>
+<td class="instruction">CALL <a href="39914.html#39921">DRAW_ROOM_A</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -93,7 +93,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_0</td>
+<td class="asm-label">TRAPDOOR_FALL_0</td>
 <td class="address-2"><span id="38728"></span>9748</td>
 <td class="instruction">LD A,($5C78)</td>
 <td class="comment-1" rowspan="1">The frame counter, so the pitch follows real time rather than a count of its own.</td>
@@ -105,7 +105,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_1</td>
+<td class="asm-label">TRAPDOOR_FALL_1</td>
 <td class="address-2"><span id="38732"></span>974C</td>
 <td class="instruction">PUSH BC</td>
 <td class="comment-1" rowspan="1"></td>
@@ -155,7 +155,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38744"></span>9758</td>
-<td class="instruction">JR Z,<a href="38705.html#38732">ESCAPE_SEQUENCE_1</a></td>
+<td class="instruction">JR Z,<a href="38705.html#38732">TRAPDOOR_FALL_1</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -172,7 +172,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38750"></span>975E</td>
-<td class="instruction">JR NZ,<a href="38705.html#38754">ESCAPE_SEQUENCE_2</a></td>
+<td class="instruction">JR NZ,<a href="38705.html#38754">TRAPDOOR_FALL_2</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -180,7 +180,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="instruction">LD A,$47</td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_2</td>
+<td class="asm-label">TRAPDOOR_FALL_2</td>
 <td class="address-2"><span id="38754"></span>9762</td>
 <td class="instruction">LD L,A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -224,7 +224,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38767"></span>976F</td>
-<td class="instruction">DJNZ <a href="38705.html#38728">ESCAPE_SEQUENCE_0</a></td>
+<td class="instruction">DJNZ <a href="38705.html#38728">TRAPDOOR_FALL_0</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -251,7 +251,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="instruction">LD DE,$0020</td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_3</td>
+<td class="asm-label">TRAPDOOR_FALL_3</td>
 <td class="address-2"><span id="38781"></span>977D</td>
 <td class="instruction">PUSH HL</td>
 <td class="comment-1" rowspan="1"></td>
@@ -293,7 +293,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_4</td>
+<td class="asm-label">TRAPDOOR_FALL_4</td>
 <td class="address-2"><span id="38789"></span>9785</td>
 <td class="instruction">LD (HL),A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -307,7 +307,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38791"></span>9787</td>
-<td class="instruction">DJNZ <a href="38705.html#38789">ESCAPE_SEQUENCE_4</a></td>
+<td class="instruction">DJNZ <a href="38705.html#38789">TRAPDOOR_FALL_4</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -323,7 +323,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_5</td>
+<td class="asm-label">TRAPDOOR_FALL_5</td>
 <td class="address-2"><span id="38795"></span>978B</td>
 <td class="instruction">LD (HL),A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -343,7 +343,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38799"></span>978F</td>
-<td class="instruction">DJNZ <a href="38705.html#38795">ESCAPE_SEQUENCE_5</a></td>
+<td class="instruction">DJNZ <a href="38705.html#38795">TRAPDOOR_FALL_5</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -359,7 +359,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_6</td>
+<td class="asm-label">TRAPDOOR_FALL_6</td>
 <td class="address-2"><span id="38803"></span>9793</td>
 <td class="instruction">LD (HL),A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -373,7 +373,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38805"></span>9795</td>
-<td class="instruction">DJNZ <a href="38705.html#38803">ESCAPE_SEQUENCE_6</a></td>
+<td class="instruction">DJNZ <a href="38705.html#38803">TRAPDOOR_FALL_6</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -389,7 +389,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ESCAPE_SEQUENCE_7</td>
+<td class="asm-label">TRAPDOOR_FALL_7</td>
 <td class="address-2"><span id="38809"></span>9799</td>
 <td class="instruction">LD (HL),A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -403,7 +403,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38811"></span>979B</td>
-<td class="instruction">DJNZ <a href="38705.html#38809">ESCAPE_SEQUENCE_7</a></td>
+<td class="instruction">DJNZ <a href="38705.html#38809">TRAPDOOR_FALL_7</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -455,7 +455,7 @@ Never reached in any of the recorded playthroughs, which is why the code map lef
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38822"></span>97A6</td>
-<td class="instruction">JR NZ,<a href="38705.html#38781">ESCAPE_SEQUENCE_3</a></td>
+<td class="instruction">JR NZ,<a href="38705.html#38781">TRAPDOOR_FALL_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>

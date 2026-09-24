@@ -99,7 +99,7 @@ This is what makes the threshold in <a href="asm/34226.html">CHECK_HIT</a> meani
 <div class="box-title">What is in a room</div>
 <div class="paragraph">
 A room's furniture is not searched for. <a href="asm/30077.html">ROOM_CONTENTS</a> holds one pointer per room to a $0000-terminated list of the records that belong to it, and <a href="asm/36907.html">POPULATE_ROOM</a> walks that list when the room is set up. Room $00's list names $EEE0, $EEF0 and $EF00, which are the three door records a running game really does have there.
-The addresses in the lists are stored with $757D added to them, so each has to have it taken off again. That looks like obfuscation and is not: BC still holds $757D from the lookup two instructions earlier, so both the bias and its removal are free. It is the same habit as the tile source at $5E01 and the sprite bases at $A600 &mdash; a pointer's base made to carry information rather than a separate field doing it.
+The addresses in the lists are stored with <a href="asm/30077.html">ROOM_CONTENTS</a> added to them, so each has to have it taken off again. That looks like obfuscation and is not: BC still holds <a href="asm/30077.html">ROOM_CONTENTS</a> from the lookup two instructions earlier, so both the bias and its removal are free. It is the same habit as the tile source at $5E01 and the sprite bases at <a href="asm/42174.html#42496">FURNITURE_SPRITES</a> &mdash; a pointer's base made to carry information rather than a separate field doing it.
 </div>
 </div>
 <div><span id="doors"></span></div>
@@ -109,7 +109,7 @@ The addresses in the lists are stored with $757D added to them, so each has to h
 Every door exists twice, once in each room it joins, and the two halves are put eight bytes apart on purpose. Finding the far side is then one instruction:
 <pre>LD A,L / XOR $08 / LD L,A     ; IX now points at the other half</pre>
 No pointer and no lookup. Each half carries the destination room and the position you arrive at going that way, so stepping through a door means reading the half you did <em>not</em> touch &mdash; which is the first thing <a href="asm/37143.html">ENTER_ROOM</a> does.
-The open-or-shut state is bit 3 of the drawing mode, and <a href="asm/38221.html">954D</a> and <a href="asm/38245.html">9565</a> always set or clear it on both halves at once, so the two sides can never disagree. A locked door is not a separate kind of thing: it is an ordinary door whose handler shuts it again unless the player is carrying a key of the matching colour.
+The open-or-shut state is bit 3 of the drawing mode, and <a href="asm/38221.html">OPEN_DOOR</a> and <a href="asm/38245.html">SHUT_DOOR</a> always set or clear it on both halves at once, so the two sides can never disagree. A locked door is not a separate kind of thing: it is an ordinary door whose handler shuts it again unless the player is carrying a key of the matching colour.
 </div>
 </div>
 <div><span id="characterdoors"></span></div>
