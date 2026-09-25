@@ -257,7 +257,7 @@ D $8B78 About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so wh
 
 @ $969A label=WAIT_FOR_ANY_KEY
 c $969A Wait until any key is pressed
-D $969A Polls the whole keyboard through port $FE and returns once something is held, setting the border white on the way out. The game drops into it once the opening picture is finished, before its first prompt -- and a key pressed there is taken as "carry on" and not as a letter, which is why the first letter of the first command typed after the picture always went missing. (The title screen does not use this: it waits in its own loop at #R$6C6D.)
+D $969A Polls the whole keyboard through port $FE and returns once something is held, setting the border white on the way out. The game drops into it whenever a picture is finished -- the opening one, and each new location's after that -- before the next prompt, and a key pressed there is taken as "carry on" and not as a letter, which is why the first letter of a command typed while a picture was drawing went missing. (The title screen does not use this: it waits in its own loop at #R$6C6D.)
   $969A,9 Wait until any key is down
   $96A3,4 White border
 
