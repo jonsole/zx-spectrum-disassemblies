@@ -1729,6 +1729,59 @@ def check_rooms(memory, rooms: dict[int, dict]) -> None:
          f"is an object")
 
 
+VISIT_SCORES = 0x8D6E       # [location, score word] triples, ending at $FF
+
+
+def location_constant(memory, rooms: dict[int, dict], location: int) -> str:
+    """LOC_ and the room's name -- with its number where the name is shared,
+    as the fourteen dark stuffy passages' is."""
+    name = name_of(memory, rooms[location]["start"] + 2)
+    shared = sum(1 for other in rooms if other and other != location
+                 and name_of(memory, rooms[other]["start"] + 2) == name)
+    constant = "LOC_" + re.sub(r"[^A-Z0-9]+", "_", name.upper()).strip("_")
+    return f"{constant}_{location}" if shared else constant
+
+
+def visit_score_constants(memory) -> list[tuple[int, str]]:
+    """Each location VISIT_SCORES names, with its constant, in table order."""
+    rooms = room_records(memory)
+    out, address = [], VISIT_SCORES
+    while memory[address] != 0xFF:
+        out.append((memory[address], location_constant(memory, rooms, memory[address])))
+        address += 3
+    return out
+
+
+def visit_score_lines(memory, rooms: dict[int, dict]) -> list[str]:
+    """VISIT_SCORES' entries: each location as a byte, written in the source as
+    a constant named after the room, and its score as a word, in decimal.
+
+    In the HTML the byte stays a number, since SkoolKit substitutes only in
+    the assembler source; the comment names the room and links to it. The
+    constants' EQUs are written into the source by build_asm.
+    """
+    out = [f"; VISIT_SCORES, laid out from the game's own table.", ""]
+    address = VISIT_SCORES
+    while memory[address] != 0xFF:
+        location = memory[address]
+        points = memory[address + 1] | (memory[address + 2] << 8)
+        name = name_of(memory, rooms[location]["start"] + 2)
+        constant = location_constant(memory, rooms, location)
+        out.append(f"@ ${address:04X} isub=DEFB {constant}")
+        out.append(f"B ${address:04X},1 Location {location}, "
+                   f"#R${rooms[location]['start']:04X}({name})")
+        # A comment line of its own would turn the word back into bytes
+        # (see SPECIAL_WORDS), so each score is a W sub-block with its text.
+        # Decimal in the HTML; skool2asm -H writes every number in hex, so the
+        # source has it in the comment too.
+        out.append(f"W ${address + 1:04X},d2 {points} points: "
+                   f"{points // 10}.{points % 10}% of the game")
+        address += 3
+    out.append(f"B ${address:04X},1,1 End of the table")
+    out.append("")
+    return out
+
+
 def room_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
     """Control-file blocks for the room pointers and every room record."""
     rooms = room_records(memory)
@@ -1800,6 +1853,7 @@ def room_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
         out.append(f"  ${room['end'] - 1:04X},1 End of the exits")
         out.append("")
         spans.append((start, room["end"]))
+    out += visit_score_lines(memory, rooms)
     return NEWLINE.join(out) + NEWLINE, spans
 
 
@@ -2330,7 +2384,12 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path,
     # than a build-only copy so that the .sld sjasmplus produces refers to this
     # file, at these line numbers -- which is what makes source-level debugging
     # against it work.
-    asm.write_text("    DEVICE ZXSPECTRUM48\n" + text, encoding="utf-8")
+    # The location constants VISIT_SCORES' @isubs name. Not SkoolKit's @equ:
+    # that makes each value a label too, and every LD DE,7 stepping over a
+    # 7-byte record then read LD DE,LOC_TROLLS_CAVE.
+    equates = "".join(f"{constant} EQU ${location:02X}\n"
+                      for location, constant in visit_score_constants(game_memory(snapshot)))
+    asm.write_text("    DEVICE ZXSPECTRUM48\n" + equates + text, encoding="utf-8")
 
 
 # --------------------------------------------------------------------------

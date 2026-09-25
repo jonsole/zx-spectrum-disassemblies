@@ -1884,8 +1884,6 @@ D $C7EA Out of the barrel, the player is swept against the portcullis and dies: 
 @ $8D6E label=VISIT_SCORES
 b $8D6E The score for reaching each place
 D $8D6E A FIND_RECORD table keyed by location, of the points MOVE adds to the score at #R$B6F7 the first time the player gets there -- the first time being told by bit 6 of byte 0 of the room's record, which MOVE sets. Fourteen places, 750 points between them, 200 of those for the lower halls.
-B $8D6E,42,3
-B $8D98,1,1 End of the table
 
 # --------------------------------------------------------------------------
 # What changes from game to game: a closed road and Gollum's riddle
