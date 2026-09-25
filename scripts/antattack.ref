@@ -141,3 +141,56 @@ Every message and every sound is a script in #R$9000, run by #R$8E0D: a stream t
 [HowItWorks:method:How this was worked out]
 The code/data split is not a guess. The build plays the game in SkoolKit's Z80 simulator and records every instruction executed: random play, then a rescue, running out of time, the ending, and a dozen staged scenes -- an ant beside the player, a grenade thrown at an ant, a drop onto an ant's back, onto a wall, onto the rescued person's head -- each placed on the simulated machine and then left to the game's own code. Between them they run every instruction in the game but three. Branches out of executed code are followed as well, which finds nothing the scenes have not.
 The assembly is fed back through sjasmplus and compared with the tape: all 41984 bytes, from the system variables up, match byte for byte, and the build fails if they ever stop matching.
+
+; The routines list names each routine after its address: SkoolKit's own
+; LabelColumn puts the label first, so the memory map template is SkoolKit
+; 10.1's with the Label column moved after Address, and nothing else changed.
+[MemoryMap:RoutinesMap]
+EntryTypes=c
+LabelColumn=1
+
+[Template:memory_map]
+<div class="map-intro">{MemoryMap[Intro]}</div>
+<table class="map">
+<tr>
+<# if({MemoryMap[PageByteColumns]}) #>
+<th class="map-page">Page</th>
+<th class="map-byte">Byte</th>
+<# endif #>
+<th>Address</th>
+<# if({MemoryMap[LabelColumn]}) #>
+<th>Label</th>
+<# endif #>
+<# if({MemoryMap[LengthColumn]}) #>
+<th class="map-length">Length</th>
+<# endif #>
+<th>Description</th>
+</tr>
+<# foreach($entry,entries) #>
+<tr>
+<# if({MemoryMap[PageByteColumns]}) #>
+<td class="map-page">{$entry[page]}</td>
+<td class="map-byte">{$entry[byte]}</td>
+<# endif #>
+<td class="map-{$entry[type]}"><span id="{$entry[anchor]}"></span><a href="{$entry[href]}">{$entry[address]}</a></td>
+<# if({MemoryMap[LabelColumn]}) #>
+<td class="map-label"><a href="{$entry[href]}">{$entry[label]}</a></td>
+<# endif #>
+<# if({MemoryMap[LengthColumn]}) #>
+<td class="map-length">{$entry[length]}</td>
+<# endif #>
+<td class="map-{$entry[type]}-desc">
+<div class="map-entry-title-1{MemoryMap[EntryDescriptions]}"><a class="map-entry-title" href="{$entry[href]}">{$entry[title]}</a></div>
+<# if({MemoryMap[EntryDescriptions]}) #>
+<div class="map-entry-desc">
+<# foreach($paragraph,$entry[description]) #>
+<div class="paragraph">
+{$paragraph}
+</div>
+<# endfor #>
+</div>
+<# endif #>
+</td>
+</tr>
+<# endfor #>
+</table>

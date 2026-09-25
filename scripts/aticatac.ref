@@ -358,3 +358,56 @@ An earlier version of this page claimed 556 bytes of unreferenced artwork on top
 of that. There is none: those bytes were the tails of the room furniture, read
 in the sprite format instead of their own and so cut to a fraction of their real
 length. See the note beside GFX_FIRST.
+
+; The routines list names each routine after its address: SkoolKit's own
+; LabelColumn puts the label first, so the memory map template is SkoolKit
+; 10.1's with the Label column moved after Address, and nothing else changed.
+[MemoryMap:RoutinesMap]
+EntryTypes=c
+LabelColumn=1
+
+[Template:memory_map]
+<div class="map-intro">{MemoryMap[Intro]}</div>
+<table class="map">
+<tr>
+<# if({MemoryMap[PageByteColumns]}) #>
+<th class="map-page">Page</th>
+<th class="map-byte">Byte</th>
+<# endif #>
+<th>Address</th>
+<# if({MemoryMap[LabelColumn]}) #>
+<th>Label</th>
+<# endif #>
+<# if({MemoryMap[LengthColumn]}) #>
+<th class="map-length">Length</th>
+<# endif #>
+<th>Description</th>
+</tr>
+<# foreach($entry,entries) #>
+<tr>
+<# if({MemoryMap[PageByteColumns]}) #>
+<td class="map-page">{$entry[page]}</td>
+<td class="map-byte">{$entry[byte]}</td>
+<# endif #>
+<td class="map-{$entry[type]}"><span id="{$entry[anchor]}"></span><a href="{$entry[href]}">{$entry[address]}</a></td>
+<# if({MemoryMap[LabelColumn]}) #>
+<td class="map-label"><a href="{$entry[href]}">{$entry[label]}</a></td>
+<# endif #>
+<# if({MemoryMap[LengthColumn]}) #>
+<td class="map-length">{$entry[length]}</td>
+<# endif #>
+<td class="map-{$entry[type]}-desc">
+<div class="map-entry-title-1{MemoryMap[EntryDescriptions]}"><a class="map-entry-title" href="{$entry[href]}">{$entry[title]}</a></div>
+<# if({MemoryMap[EntryDescriptions]}) #>
+<div class="map-entry-desc">
+<# foreach($paragraph,$entry[description]) #>
+<div class="paragraph">
+{$paragraph}
+</div>
+<# endfor #>
+</div>
+<# endif #>
+</td>
+</tr>
+<# endfor #>
+</table>
