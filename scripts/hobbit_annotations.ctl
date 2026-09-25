@@ -1894,7 +1894,7 @@ B $8D98,1,1 End of the table
 @ $97AD label=NEW_GAME_CHOICES
 c $97AD Make the choices that differ from one game to the next
 D $97AD Called by START for every new game. One of HIDDEN_ROADS is picked at random and its exit wiped from the room, so a different way is shut each time until Elrond reads the curious map (ELROND_READS_MAP); and one of RIDDLES is picked for Gollum.
-  $97AD,10 The player acts; the map not yet read (#R$B6F1); no riddle asked yet (#R$B6F9)
+  $97AD,10 The player acts; #R$B6F1 cleared, which nothing ever sets again; no riddle asked yet (#R$B6F9)
   $97B7,6 The player's record
   $97BD,18 IY = one of HIDDEN_ROADS at random
   $97CF,4 Kept in the operand of ELROND_READS_MAP's LD IY
@@ -1922,11 +1922,12 @@ B $C82C,1,1 End of the table
 
 @ $A7C4 label=ELROND_READS_MAP
 c $A7C4 The curious map's own EXAMINE: Elrond reads it
-D $A7C4 Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut -- unless #R$B6F1 says it has been done -- and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at #R$A7CF, which NEW_GAME_CHOICES writes.
+D $A7C4 Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at #R$A7CF, which NEW_GAME_CHOICES writes.
+D $A7C4 The put-back is skipped if #R$B6F1 is not zero, but nothing ever makes it so: NEW_GAME_CHOICES clears it and no instruction writes it otherwise (the only other F1 B6 in memory is in the picture code, where it is POP AF and then OR (HL)). So the road is put back again, to the same three bytes, every time Elrond reads the map. Watched: the treeless opening's west exit, wiped to zeros by NEW_GAME_CHOICES, came back as $04 $00 $14, written by the LD (HL),A in the loop above, when Elrond examined the map, and #R$B6F1 was still 0 afterwards.
   $A7C4,8 Not Elrond: the ordinary EXAMINE
   $A7CC,3 Not yet worked out
   $A7CF,10 IY = the road that was shut; HL = its exit in the room record
-  $A7D9,7 Already put back? Just say the way
+  $A7D9,7 Already put back? Just say the way -- never taken: nothing sets #R$B6F1
   $A7E0,11 Put the exit back
   $A7EB,4 IY = the road again
   $A7EF,12 The destination's name, from its room record, on the stack
@@ -3257,7 +3258,7 @@ B $B6F0,1,1
   $B6F0,1 A timer has fired this turn
 @ $B6F1 label=ROAD_OPEN
 B $B6F1,1,1
-  $B6F1,1 Elrond has read the map and the shut road is open again
+  $B6F1,1 Meant to say Elrond has put the shut road back, so it is not done twice; cleared for each new game and never set
 @ $B6F2 label=TO_PRINTER
 B $B6F2,1,1
   $B6F2,1 PRINT is on: the story goes to the ZX Printer too
