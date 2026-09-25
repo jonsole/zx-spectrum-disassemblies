@@ -1175,34 +1175,32 @@ c $7850 Put PHRASE into the frame's first noun phrase
 @ $8271 label=SPECIAL_WORDS
 b $8271 The special words, and what PARSE_SPECIAL does with each
 D $8271 Thirteen word references, then a handler for each, reached through JP (HL) -- so the handlers are code seeds. Among them are the game's own commands: SAVE and LOAD, which the playthrough never types, QUIT, PAUSE, HELP, SCORE, and PRINT and NOPRINT. Slot 0 holds no word -- the reference zero -- and that is what a quote mark comes through the tokeniser as: its handler is SPECIAL_QUOTE's. ONE's handler just goes on to the next word.
-W $8271,26,2
-  $8271,2 NO WORD
-  $8273,2 ALL
-  $8275,2 EXCEPT
-  $8277,2 IT
-  $8279,2 ONE
-  $827B,2 PRINT
-  $827D,2 NOPRINT
-  $827F,2 LOAD
-  $8281,2 SAVE
-  $8283,2 QUIT
-  $8285,2 HELP
-  $8287,2 SCORE
-  $8289,2 PAUSE
-W $828B,26,2
-  $828B,2 Handler for SLOT 0
-  $828D,2 Handler for ALL
-  $828F,2 Handler for EXCEPT
-  $8291,2 Handler for IT
-  $8293,2 Handler for ONE
-  $8295,2 Handler for PRINT
-  $8297,2 Handler for NOPRINT
-  $8299,2 Handler for LOAD
-  $829B,2 Handler for SAVE
-  $829D,2 Handler for QUIT
-  $829F,2 Handler for HELP
-  $82A1,2 Handler for SCORE
-  $82A3,2 Handler for PAUSE
+W $8271,2 NO WORD
+W $8273,2 ALL
+W $8275,2 EXCEPT
+W $8277,2 IT
+W $8279,2 ONE
+W $827B,2 PRINT
+W $827D,2 NOPRINT
+W $827F,2 LOAD
+W $8281,2 SAVE
+W $8283,2 QUIT
+W $8285,2 HELP
+W $8287,2 SCORE
+W $8289,2 PAUSE
+W $828B,2 Handler for SLOT 0
+W $828D,2 Handler for ALL
+W $828F,2 Handler for EXCEPT
+W $8291,2 Handler for IT
+W $8293,2 Handler for ONE
+W $8295,2 Handler for PRINT
+W $8297,2 Handler for NOPRINT
+W $8299,2 Handler for LOAD
+W $829B,2 Handler for SAVE
+W $829D,2 Handler for QUIT
+W $829F,2 Handler for HELP
+W $82A1,2 Handler for SCORE
+W $82A3,2 Handler for PAUSE
 
 @ $78B7 label=COPY_VERB_ON
 c $78B7 Give the frame at IY the verb of the frame at IX
