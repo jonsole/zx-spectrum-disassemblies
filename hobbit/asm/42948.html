@@ -30,7 +30,10 @@ Next: <a href="43028.html">A814</a>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut -- unless <a href="46810.html#46833">ROAD_OPEN</a> says it has been done -- and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at <a href="42948.html#42959">SHUT_ROAD</a>, which NEW_GAME_CHOICES writes.
+Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at <a href="42948.html#42959">SHUT_ROAD</a>, which NEW_GAME_CHOICES writes.
+</div>
+<div class="paragraph">
+The put-back is skipped if <a href="46810.html#46833">ROAD_OPEN</a> is not zero, but nothing ever makes it so: NEW_GAME_CHOICES clears it and no instruction writes it otherwise (the only other F1 B6 in memory is in the picture code, where it is POP AF and then OR (HL)). So the road is put back again, to the same three bytes, every time Elrond reads the map. Watched: the treeless opening's west exit, wiped to zeros by NEW_GAME_CHOICES, came back as $04 $00 $14, written by the LD (HL),A in the loop above, when Elrond examined the map, and <a href="46810.html#46833">ROAD_OPEN</a> was still 0 afterwards.
 </div>
 </div>
 </td>
@@ -77,7 +80,7 @@ Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back 
 <td class="asm-label"></td>
 <td class="address-1"><span id="42969"></span>A7D9</td>
 <td class="instruction">LD A,(<a href="46810.html#46833">ROAD_OPEN</a>)</td>
-<td class="comment-1" rowspan="3">Already put back? Just say the way</td>
+<td class="comment-1" rowspan="3">Already put back? Just say the way -- never taken: nothing sets <a href="46810.html#46833">ROAD_OPEN</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>

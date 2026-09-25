@@ -1,4 +1,18 @@
     DEVICE ZXSPECTRUM48
+LOC_LONELANDS EQU $04
+LOC_TROLLS_CAVE EQU $07
+LOC_NARROW_PLACE EQU $0B
+LOC_BEORNS_HOUSE EQU $16
+LOC_GOBLINS_DUNGEON EQU $0D
+LOC_DARK_STUFFY_PASSAGE_65 EQU $41
+LOC_SMOTHERING_FOREST EQU $1B
+LOC_LEVELLED_ELVISH_CLEARING EQU $1C
+LOC_DARK_DUNGEON EQU $1F
+LOC_LONG_LAKE EQU $22
+LOC_DALE_VALLEY EQU $26
+LOC_SIDEDOOR EQU $2A
+LOC_SMOOTH_STRAIGHT_PASSAGE EQU $2B
+LOC_LOWER_HALLS EQU $29
   ORG $6000
 
 ; Dictionary: index by initial letter
@@ -6772,20 +6786,34 @@ DO_TAKE_1:
 ; bit 6 of byte 0 of the room's record, which MOVE sets. Fourteen places, 750
 ; points between them, 200 of those for the lower halls.
 VISIT_SCORES:
-  DEFB $04,$19,$00
-  DEFB $07,$32,$00
-  DEFB $0B,$19,$00
-  DEFB $16,$19,$00
-  DEFB $0D,$4B,$00
-  DEFB $41,$32,$00
-  DEFB $1B,$19,$00
-  DEFB $1C,$19,$00
-  DEFB $1F,$32,$00
-  DEFB $22,$64,$00
-  DEFB $26,$19,$00
-  DEFB $2A,$19,$00
-  DEFB $2B,$32,$00
-  DEFB $29,$C8,$00
+  DEFB LOC_LONELANDS      ; Location 4, lonelands
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_TROLLS_CAVE    ; Location 7, trolls cave
+  DEFW $0032              ; 50 points: 5.0% of the game
+  DEFB LOC_NARROW_PLACE   ; Location 11, narrow place
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_BEORNS_HOUSE   ; Location 22, beorns house
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_GOBLINS_DUNGEON ; Location 13, goblins dungeon
+  DEFW $004B              ; 75 points: 7.5% of the game
+  DEFB LOC_DARK_STUFFY_PASSAGE_65 ; Location 65, dark stuffy passage
+  DEFW $0032              ; 50 points: 5.0% of the game
+  DEFB LOC_SMOTHERING_FOREST ; Location 27, smothering forest
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_LEVELLED_ELVISH_CLEARING ; Location 28, levelled elvish clearing
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_DARK_DUNGEON   ; Location 31, dark dungeon
+  DEFW $0032              ; 50 points: 5.0% of the game
+  DEFB LOC_LONG_LAKE      ; Location 34, long lake
+  DEFW $0064              ; 100 points: 10.0% of the game
+  DEFB LOC_DALE_VALLEY    ; Location 38, dale valley
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_SIDEDOOR       ; Location 42, sidedoor
+  DEFW $0019              ; 25 points: 2.5% of the game
+  DEFB LOC_SMOOTH_STRAIGHT_PASSAGE ; Location 43, smooth straight passage
+  DEFW $0032              ; 50 points: 5.0% of the game
+  DEFB LOC_LOWER_HALLS    ; Location 41, lower halls
+  DEFW $00C8              ; 200 points: 20.0% of the game
   DEFB $FF                ; End of the table
 
 ; MOVE's working bytes
@@ -8435,8 +8463,8 @@ KILL_0:
 ; Elrond reads the curious map (ELROND_READS_MAP); and one of RIDDLES is picked
 ; for Gollum.
 NEW_GAME_CHOICES:
-  SUB A                   ; The player acts; the map not yet read (ROAD_OPEN);
-  LD (ACTING),A           ; no riddle asked yet (RIDDLE_ASKED)
+  SUB A                   ; The player acts; ROAD_OPEN cleared, which nothing
+  LD (ACTING),A           ; ever sets again; no riddle asked yet (RIDDLE_ASKED)
   LD (ROAD_OPEN),A        ;
   LD (RIDDLE_ASKED),A     ;
   LD HL,PLAYER            ; The player's record
@@ -11497,10 +11525,19 @@ SINKING_IN_BOG_0:
 ; The curious map's own EXAMINE: Elrond reads it
 ;
 ; Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts
-; back the road NEW_GAME_CHOICES shut -- unless ROAD_OPEN says it has been done
-; -- and tells the way along it: "go ... from the ... to get to the ...", with
-; the direction and the two places' names. The entry is found through the
-; operand of the LD IY at SHUT_ROAD, which NEW_GAME_CHOICES writes.
+; back the road NEW_GAME_CHOICES shut and tells the way along it: "go ... from
+; the ... to get to the ...", with the direction and the two places' names. The
+; entry is found through the operand of the LD IY at SHUT_ROAD, which
+; NEW_GAME_CHOICES writes.
+;
+; The put-back is skipped if ROAD_OPEN is not zero, but nothing ever makes it
+; so: NEW_GAME_CHOICES clears it and no instruction writes it otherwise (the
+; only other F1 B6 in memory is in the picture code, where it is POP AF and
+; then OR (HL)). So the road is put back again, to the same three bytes, every
+; time Elrond reads the map. Watched: the treeless opening's west exit, wiped
+; to zeros by NEW_GAME_CHOICES, came back as $04 $00 $14, written by the LD
+; (HL),A in the loop above, when Elrond examined the map, and ROAD_OPEN was
+; still 0 afterwards.
 ELROND_READS_MAP:
   LD A,(ACTING)           ; Not Elrond: the ordinary EXAMINE
   CP $41                  ;
@@ -11510,8 +11547,8 @@ SHUT_ROAD:
   LD IY,$0000             ; IY = the road that was shut; HL = its exit in the
   LD L,(IY+$01)           ; room record
   LD H,(IY+$02)           ;
-  LD A,(ROAD_OPEN)         ; Already put back? Just say the way
-  CP $00                   ;
+  LD A,(ROAD_OPEN)         ; Already put back? Just say the way -- never taken:
+  CP $00                   ; nothing sets ROAD_OPEN
   JR NZ,ELROND_READS_MAP_1 ;
   LD B,$03                ; Put the exit back
 ELROND_READS_MAP_0:
@@ -13551,8 +13588,9 @@ RIDDLE:
 TIMER_FIRED:
   DEFB $00                ; A timer has fired this turn
 ROAD_OPEN:
-  DEFB $00                ; Elrond has read the map and the shut road is open
-                          ; again
+  DEFB $00                ; Meant to say Elrond has put the shut road back, so
+                          ; it is not done twice; cleared for each new game and
+                          ; never set
 TO_PRINTER:
   DEFB $00                ; PRINT is on: the story goes to the ZX Printer too
 FOREST_ENTRY:
