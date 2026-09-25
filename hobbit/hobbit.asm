@@ -5182,32 +5182,32 @@ PARSE_SPECIAL_2:
 ; what a quote mark comes through the tokeniser as: its handler is
 ; SPECIAL_QUOTE's. ONE's handler just goes on to the next word.
 SPECIAL_WORDS:
-  DEFB $00,$00            ; NO WORD
-  DEFB $4E,$00            ; ALL
-  DEFB $45,$02            ; EXCEPT
-  DEFB $9E,$03            ; IT
-  DEFB $AD,$04            ; ONE
-  DEFB $FB,$04            ; PRINT
-  DEFB $79,$04            ; NOPRINT
-  DEFB $EE,$03            ; LOAD
-  DEFB $80,$05            ; SAVE
-  DEFB $18,$05            ; QUIT
-  DEFB $1E,$03            ; HELP
-  DEFB $8A,$05            ; SCORE
-  DEFB $D8,$04            ; PAUSE
-  DEFB $15,$83            ; Handler for SLOT 0
-  DEFB $D2,$82            ; Handler for ALL
-  DEFB $BA,$82            ; Handler for EXCEPT
-  DEFB $E2,$82            ; Handler for IT
-  DEFB $B4,$75            ; Handler for ONE
-  DEFB $A5,$82            ; Handler for PRINT
-  DEFB $AF,$82            ; Handler for NOPRINT
-  DEFB $51,$84            ; Handler for LOAD
-  DEFB $CC,$84            ; Handler for SAVE
-  DEFB $91,$83            ; Handler for QUIT
-  DEFB $A0,$83            ; Handler for HELP
-  DEFB $EF,$83            ; Handler for SCORE
-  DEFB $3A,$84            ; Handler for PAUSE
+  DEFW $0000              ; NO WORD
+  DEFW $004E              ; ALL
+  DEFW $0245              ; EXCEPT
+  DEFW $039E              ; IT
+  DEFW $04AD              ; ONE
+  DEFW $04FB              ; PRINT
+  DEFW $0479              ; NOPRINT
+  DEFW $03EE              ; LOAD
+  DEFW $0580              ; SAVE
+  DEFW $0518              ; QUIT
+  DEFW $031E              ; HELP
+  DEFW $058A              ; SCORE
+  DEFW $04D8              ; PAUSE
+  DEFW SPECIAL_QUOTE      ; Handler for SLOT 0
+  DEFW WORD_ALL           ; Handler for ALL
+  DEFW WORD_EXCEPT        ; Handler for EXCEPT
+  DEFW WORD_IT            ; Handler for IT
+  DEFW NEW_NOUN_PHRASE    ; Handler for ONE
+  DEFW PRINTER_ON         ; Handler for PRINT
+  DEFW WORD_NOPRINT       ; Handler for NOPRINT
+  DEFW DO_LOAD            ; Handler for LOAD
+  DEFW DO_SAVE            ; Handler for SAVE
+  DEFW DO_QUIT            ; Handler for QUIT
+  DEFW DO_HELP            ; Handler for HELP
+  DEFW DO_SCORE           ; Handler for SCORE
+  DEFW DO_PAUSE           ; Handler for PAUSE
 
 ; PRINT: copy the game's text to a ZX Printer, if there is one
 ;
