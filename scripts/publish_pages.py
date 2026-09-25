@@ -11,6 +11,8 @@ holds no game bytes; gh-pages is the one place that does, and the README says so
 The working tree is never touched. The gh-pages branch is cloned into a
 temporary directory, the published game's directory there is replaced whole
 with the fresh build -- so a page that no longer exists does not linger -- the
+game's commented source (the build's .asm, which reassembles with sjasmplus to
+the original bytes) goes in beside it for the landing page to link to, the
 landing page is copied from pages/index.html, and the result is committed
 with the master commit it was built from, and pushed.
 
@@ -34,14 +36,17 @@ SITE = "https://jonsole.github.io/zx-spectrum-disassemblies/"
 LANDING = ROOT / "pages" / "index.html"
 
 # What is published: the directory name on the site, where its build puts the
-# HTML, and the build script that makes it.
+# HTML, the build script that makes it, and the commented source it writes.
 GAMES = {
     "hobbit": (ROOT / "game_disassembly" / "hobbit" / "html" / "hobbit",
-               ROOT / "scripts" / "build_hobbit.py"),
+               ROOT / "scripts" / "build_hobbit.py",
+               ROOT / "game_disassembly" / "hobbit" / "hobbit.asm"),
     "aticatac": (ROOT / "game_disassembly" / "aticatac" / "html" / "aticatac",
-                 ROOT / "scripts" / "build_aticatac.py"),
+                 ROOT / "scripts" / "build_aticatac.py",
+                 ROOT / "game_disassembly" / "aticatac" / "aticatac.asm"),
     "antattack": (ROOT / "game_disassembly" / "antattack" / "html" / "antattack",
-                  ROOT / "scripts" / "build_antattack.py"),
+                  ROOT / "scripts" / "build_antattack.py",
+                  ROOT / "game_disassembly" / "antattack" / "antattack.asm"),
 }
 
 
@@ -65,13 +70,17 @@ def main() -> None:
                         help="show what would change, and do not commit or push")
     args = parser.parse_args()
 
-    html, build = GAMES[args.game]
+    html, build, asm = GAMES[args.game]
     if args.tape:
         print(f"Building {args.game} from {args.tape}...", flush=True)
         subprocess.run([sys.executable, str(build), "--tape", str(args.tape), "--html"],
                        cwd=ROOT, check=True)
     if not (html / "index.html").exists():
         sys.exit(f"error: nothing built at {html} -- run {build.name} --html, "
+                 f"or pass --tape")
+    # The landing page links to it, so a site without it has a dead link.
+    if not asm.exists():
+        sys.exit(f"error: no {asm.name} at {asm.parent} -- run {build.name}, "
                  f"or pass --tape")
 
     source = git("rev-parse", "--short", "HEAD")
@@ -91,6 +100,7 @@ def main() -> None:
         if target.exists():
             shutil.rmtree(target)
         shutil.copytree(html, target)
+        shutil.copy2(asm, target / asm.name)
         shutil.copy2(LANDING, site / "index.html")
         (site / ".nojekyll").touch()
 
