@@ -464,8 +464,11 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
         ctls += ["-c", str(ANNOTATIONS)]
     else:
         _log(f"  (no annotations file at {ANNOTATIONS} -- output will be bare)")
+    # ListRefs=2: every entry gets its "Used by the routines at ..." line.
+    # sna2skool's default writes it only for an entry with no comment of its
+    # own, and nearly every entry here has one, so the callers went missing.
     skool.write_text(_capture(sna2skool.main, [
-        "-H", *ctls, str(snapshot),
+        "-H", "-I", "ListRefs=2", *ctls, str(snapshot),
     ]), encoding="utf-8")
 
     _log("Generating assembly...")
