@@ -10,7 +10,7 @@ a snapshot you can debug at source level.
 | Atic Atac (1983, Ultimate) | **100%** &mdash; 30208 of 30208 bytes, every routine, table and variable named, every address the code or the comments use a label or an equate, a map of the castle and every room drawn with what is in it | `scripts/build_aticatac.py` |
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
-| Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, 844 named entries (map credited below) | `scripts/build_knightlore.py` |
+| Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, all 844 entries titled and described, no placeholder names, the rooms laid out record by record from the game at build time (map credited below) | `scripts/build_knightlore.py` |
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 | Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; pages on how it works, the city drawn whole in the game's own projection, the levels, sprites and scripts | `scripts/build_antattack.py` |
 

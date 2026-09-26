@@ -392,9 +392,32 @@ calls the ROM once it is running and reads the keyboard itself at `$B5F7`. And
 all 103 sprites share one format: a width, a height, then a mask byte and a
 bitmap byte per cell. The check that proves it is arithmetic rather than
 inspection — for every one of them the gap to the next label is exactly
-`2 + 2 * (width AND $7F) * height`. Carrying the mask with the artwork is what
+`2 + 2 * (width AND $0F) * height`. (It was first written `AND $7F`, from the one
+sprite with bit 7 set; describing the drawing code later showed that bits 6 and 7
+record whether the stored sprite is currently mirrored or upside down -- the game
+flips sprites in place -- and only bits 0-3 are the width.) Carrying the mask with the artwork is what
 lets the game overlap objects in depth without drawing back to front, which is
 the whole trick of the isometric view.
+
+**Describing it.** The map gave every byte a block and most routines a name,
+but at first only about thirty entries had a description. The rest were
+described in one pass by eight agents working in parallel, one subsystem
+each, from a shared brief. Each wrote a control-file fragment and a draft of
+the notes. Three of them independently wrote their instruction comments as
+ranges (`$A-$B`) with a script to count the bytes; that is
+`scripts/ctl_tools.py` now, with the checks every fragment passed before it
+was merged. The drafts became `notes/knightlore/`. Several of their findings
+corrected what had been written here before (the sprite width, the sprite
+table's indexing, what `read_port`'s `OUT` does), and each correction was
+checked against the code before it was accepted. Where two agents disagreed
+-- whether the block the game calls moveable can be pushed -- the emulator
+settled it.
+
+The level data is described record by record -- each room's backgrounds and
+objects, each background piece's position, each charm's place -- but those
+lines are the level design in other words, so they are not committed:
+`scripts/knightlore_data.py` generates them from the snapshot on every build
+and hands them to sna2skool between the map and the annotations.
 
 Same copyright treatment as the others — `game_disassembly/` is gitignored and
 never committed, and no bytes of the game are in this repository. Load

@@ -185,9 +185,10 @@ def check_alignment(skool_text: str) -> None:
 
 
 _CTL_SUBBLOCK = re.compile(r"^([BCSTW]) \$([0-9A-F]{4}),")
+_CTL_DATA = re.compile(r"^([BW]) \$([0-9A-F]{4}),(\d+)")
 
 
-def trim_overlaps(ctl_text: str) -> tuple[str, int]:
+def trim_overlaps(ctl_text: str, generated: str = "") -> tuple[str, int]:
     """Drop map sub-blocks that a hand-written comment cuts across.
 
     The map describes runs of instructions in one directive, carrying the
@@ -201,6 +202,11 @@ def trim_overlaps(ctl_text: str) -> tuple[str, int]:
     spans = [(int(m.group(1), 16), int(m.group(1), 16) + int(m.group(2)))
              for m in (_CTL_COMMENT.match(line) for line in _lines(ANNOTATIONS))
              if m]
+    # The generated level data lays its tables out a record per line, which
+    # cuts across the map's rows the same way a comment does.
+    spans += [(int(m.group(2), 16), int(m.group(2), 16) + int(m.group(3)))
+              for m in (_CTL_DATA.match(line) for line in generated.splitlines())
+              if m]
     if not spans:
         return ctl_text, 0
     commented = {start for start, _ in spans}
@@ -311,17 +317,28 @@ def build_asm(snapshot: Path, skool: Path, asm: Path) -> None:
 
     _log("Generating skool file...")
     merged = OUT_DIR / "knightlore-map.ctl"
-    trimmed, dropped = trim_overlaps(STRUCTURE.read_text(encoding="utf-8"))
+    # The rooms, the background pieces and the charms' places, a record per
+    # line, generated from the snapshot rather than committed: see
+    # knightlore_data.py.
+    from knightlore_data import data_blocks
+    data_ctl = OUT_DIR / "knightlore-data.ctl"
+    generated = data_blocks(game_memory(snapshot))
+    data_ctl.write_text(generated, encoding="utf-8")
+    trimmed, dropped = trim_overlaps(STRUCTURE.read_text(encoding="utf-8"), generated)
     merged.write_text(trimmed + NEWLINE, encoding="utf-8")
     if dropped:
         _log(f"  dropped {dropped} map sub-block(s) that an annotation "
              f"comments across")
-    ctls = ["-c", str(merged)]
+    ctls = ["-c", str(merged), "-c", str(data_ctl)]
     if ANNOTATIONS.exists():
         ctls += ["-c", str(ANNOTATIONS)]
     else:
         _log(f"  (no annotations file at {ANNOTATIONS} -- output will be bare)")
-    skool_text = _capture(sna2skool.main, ["-H", *ctls, str(snapshot)])
+    # ListRefs=2: every entry gets its "Used by the routines at ..." line.
+    # sna2skool's default writes it only for an entry with no comment of its
+    # own, so each routine described here would lose its callers.
+    skool_text = _capture(sna2skool.main,
+                          ["-H", "-I", "ListRefs=2", *ctls, str(snapshot)])
     skool.write_text(skool_text, encoding="utf-8")
     check_alignment(skool_text)
 
