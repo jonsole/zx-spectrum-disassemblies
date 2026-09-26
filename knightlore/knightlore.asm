@@ -123,6 +123,13 @@ location_tbl:
   DEFB $4A                             ;
   DEFB $06,$8A,$02,$42,$82,$C8,$C1,$C0 ; Block x7
   DEFB $A8,$C9            ; Block (type $5B)
+; The comments give each record's room number, its square in the grid (row,
+; column), its shape and colour, then what it contains. Where the listing's
+; rows do not line up with the records, a comment covers the parts that begin
+; in its row.
+
+; Room $01 (row 0, column 1): narrow in y, green
+room01:
   DEFB $01,$14,$14        ; Room $01 (row 0, column 1): narrow in y, green
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -130,9 +137,15 @@ location_tbl:
   DEFB $23,$6B,$6C,$53,$54 ; Gargoyle x4
   DEFB $40,$1C            ; Guard (type $96)
   DEFB $48,$28            ; Ghost
+
+; Room $02 (row 0, column 2): square, magenta
+room02:
   DEFB $02,$06,$03        ; Room $02 (row 0, column 2): square, magenta
   DEFB $00,$01,$03,$0C    ; Backgrounds: arch N, arch E, arch W, walls (square
                           ; room); no objects
+
+; Room $03 (row 0, column 3): narrow in y, yellow
+room03:
   DEFB $03,$1A,$16        ; Room $03 (row 0, column 3): narrow in y, yellow
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -140,11 +153,17 @@ location_tbl:
   DEFB $2B,$23,$1B,$24,$1C ; Spikes x4
   DEFB $93,$2B,$2C,$13,$14 ; Spiked ball x4
   DEFB $B3,$63,$64,$5B,$5C ; Block (type $8F) x4
+
+; Room $04 (row 0, column 4): square, cyan
+room04:
   DEFB $04,$13,$05        ; Room $04 (row 0, column 4): square, cyan
   DEFB $00,$03,$0C,$FF    ; Backgrounds: arch N, arch W, walls (square room)
   DEFB $2B,$23,$1A,$1C,$13 ; Spikes x4
   DEFB $B2,$5A,$5C,$53    ; Block (type $8F) x3
   DEFB $02,$63,$9B,$DB    ; Block x3
+
+; Room $08 (row 0, column 8): square, magenta
+room08:
   DEFB $08,$1A,$03        ; Room $08 (row 0, column 8): square, magenta
   DEFB $04,$05,$0F,$10,$FF ; Backgrounds: forest exit N, forest exit E, forest
                            ; walls, trees closing the W gap
@@ -153,11 +172,17 @@ location_tbl:
   DEFB $93,$63,$5A,$5C,$53 ; Spiked ball x4
   DEFB $B8,$09            ; Ball (type $B6)
   DEFB $80,$49            ; Block (type $3E)
+
+; Room $09 (row 0, column 9): square, yellow
+room09:
   DEFB $09,$0B,$06        ; Room $09 (row 0, column 9): square, yellow
   DEFB $05,$07,$0F,$11,$09,$0B,$FF ; Backgrounds: forest exit E, forest exit W,
                                    ; forest walls, trees closing the N gap,
                                    ; portcullis E, portcullis W
   DEFB $48,$23            ; Ghost
+
+; Room $0A (row 0, column 10): square, magenta
+room0A:
   DEFB $0A,$19,$03        ; Room $0A (row 0, column 10): square, magenta
   DEFB $05,$07,$0F,$11,$FF ; Backgrounds: forest exit E, forest exit W, forest
                            ; walls, trees closing the N gap
@@ -165,9 +190,15 @@ location_tbl:
   DEFB $2F,$2A,$2B,$6B,$2C,$1A,$1B,$5B ; Spikes x8
   DEFB $1C                             ;
   DEFB $38,$0E            ; Table
+
+; Room $0B (row 0, column 11): square, yellow
+room0B:
   DEFB $0B,$06,$06        ; Room $0B (row 0, column 11): square, yellow
   DEFB $05,$07,$0F,$11    ; Backgrounds: forest exit E, forest exit W, forest
                           ; walls, trees closing the N gap; no objects
+
+; Room $0C (row 0, column 12): square, magenta
+room0C:
   DEFB $0C,$17,$03        ; Room $0C (row 0, column 12): square, magenta
   DEFB $05,$07,$0F,$11,$FF ; Backgrounds: forest exit E, forest exit W, forest
                            ; walls, trees closing the N gap
@@ -175,13 +206,22 @@ location_tbl:
   DEFB $10                             ;
   DEFB $2B,$12,$17,$0D,$04 ; Spikes x4
   DEFB $B8,$24            ; Ball (type $B6)
+
+; Room $0D (row 0, column 13): square, green
+room0D:
   DEFB $0D,$06,$04        ; Room $0D (row 0, column 13): square, green
   DEFB $00,$01,$03,$0C    ; Backgrounds: arch N, arch E, arch W, walls (square
                           ; room); no objects
+
+; Room $0E (row 0, column 14): narrow in y, cyan
+room0E:
   DEFB $0E,$0B,$15        ; Room $0E (row 0, column 14): narrow in y, cyan
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $53,$12,$1D,$2C,$23 ; Fire (type $B5) x4
+
+; Room $0F (row 0, column 15): square, green
+room0F:
   DEFB $0F,$1C,$04        ; Room $0F (row 0, column 15): square, green
   DEFB $00,$03,$0C,$FF    ; Backgrounds: arch N, arch W, walls (square room)
   DEFB $07,$23,$25,$13,$15,$63,$64,$65 ; Block x8
@@ -189,6 +229,9 @@ location_tbl:
   DEFB $04,$5D,$53,$54,$55,$1C ; Block x5
   DEFB $9B,$A4,$9B,$9D,$94 ; Raised spiked ball x4
   DEFB $B0,$9C            ; Block (type $8F)
+
+; Room $10 (row 1, column 0): narrow in x, cyan
+room10:
   DEFB $10,$18,$0D        ; Room $10 (row 1, column 0): narrow in x, cyan
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -197,6 +240,9 @@ location_tbl:
   DEFB $9B,$45,$4C,$4B,$4A ; Raised spiked ball x4
   DEFB $A8,$C2            ; Block (type $5B)
   DEFB $50,$5A            ; Fire (type $B5)
+
+; Room $12 (row 1, column 2): narrow in x, green
+room12:
   DEFB $12,$18,$0C        ; Room $12 (row 1, column 2): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -204,6 +250,9 @@ location_tbl:
   DEFB $E4                             ;
   DEFB $97,$DB,$DC,$D3,$D4,$CB,$CC,$C2 ; Spiked ball x8
   DEFB $C5                             ;
+
+; Room $14 (row 1, column 4): narrow in x, yellow
+room14:
   DEFB $14,$1A,$0E        ; Room $14 (row 1, column 4): narrow in x, yellow
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -211,12 +260,18 @@ location_tbl:
   DEFB $AD,$C2,$CA,$D2,$DA,$DB,$DC ; Block (type $5B) x6
   DEFB $AC,$DD,$E5,$AD,$75,$3D ; Block (type $5B) x5
   DEFB $29,$0B,$0C        ; Spikes x2
+
+; Room $18 (row 1, column 8): narrow in x, cyan
+room18:
   DEFB $18,$11,$0D        ; Room $18 (row 1, column 8): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $2F,$2A,$2B,$2C,$2D,$12,$13,$14 ; Spikes x8
   DEFB $15                             ;
   DEFB $B8,$1B            ; Ball (type $B6)
+
+; Room $1D (row 1, column 13): narrow in x, yellow
+room1D:
   DEFB $1D,$1B,$0E        ; Room $1D (row 1, column 13): narrow in x, yellow
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -226,6 +281,9 @@ location_tbl:
   DEFB $29,$14,$1C        ; Spikes x2
   DEFB $58,$0C            ; Raised block
   DEFB $78,$54            ; Block (type $37)
+
+; Room $1F (row 1, column 15): narrow in x, magenta
+room1F:
   DEFB $1F,$17,$0B        ; Room $1F (row 1, column 15): narrow in x, magenta
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -233,12 +291,18 @@ location_tbl:
   DEFB $2F,$52,$13,$14,$55,$6A,$2B,$2C ; Spikes x8
   DEFB $6D                             ;
   DEFB $E1,$93,$6B        ; Ball (half a cell along x) x2
+
+; Room $20 (row 2, column 0): square, magenta
+room20:
   DEFB $20,$12,$03        ; Room $20 (row 2, column 0): square, magenta
   DEFB $00,$01,$15,$17,$0C,$FF ; Backgrounds: arch N, arch E, high arch S, step
                                ; to high arch S, walls (square room)
   DEFB $02,$18,$C3,$C4    ; Block x3
   DEFB $AA,$50,$88,$C0    ; Block (type $5B) x3
   DEFB $28,$02            ; Spikes
+
+; Room $21 (row 2, column 1): narrow in y, yellow
+room21:
   DEFB $21,$1C,$16        ; Room $21 (row 2, column 1): narrow in y, yellow
   DEFB $14,$16,$03,$0D,$FF ; Backgrounds: high arch E, step to high arch E,
                            ; arch W, walls (room narrow in y)
@@ -248,6 +312,9 @@ location_tbl:
   DEFB $29,$A4,$A6        ; Spikes x2
   DEFB $30,$E2            ; Chest
   DEFB $C0,$A5            ; Ball
+
+; Room $22 (row 2, column 2): square, magenta
+room22:
   DEFB $22,$1A,$03        ; Room $22 (row 2, column 2): square, magenta
   DEFB $02,$03,$0C,$FF    ; Backgrounds: arch S, arch W, walls (square room)
   DEFB $03,$30,$78,$B9,$FA ; Block x4
@@ -255,22 +322,34 @@ location_tbl:
   DEFB $23                             ;
   DEFB $2A,$34,$2C,$24    ; Spikes x3
   DEFB $A8,$FB            ; Block (type $5B)
+
+; Room $24 (row 2, column 4): square, magenta
+room24:
   DEFB $24,$18,$03        ; Room $24 (row 2, column 4): square, magenta
   DEFB $00,$02,$0C,$FF    ; Backgrounds: arch N, arch S, walls (square room)
   DEFB $2F,$02,$05,$0A,$0F,$10,$15,$19 ; Spikes x8
   DEFB $1B                             ;
   DEFB $2F,$1C,$1F,$28,$2A,$2C,$2E,$3A ; Spikes x8
   DEFB $3D                             ;
+
+; Room $27 (row 2, column 7): square, yellow
+room27:
   DEFB $27,$0F,$06        ; Room $27 (row 2, column 7): square, yellow
   DEFB $00,$0C,$FF        ; Backgrounds: arch N, walls (square room)
   DEFB $03,$1B,$1C,$23,$24 ; Block x4
   DEFB $4B,$12,$15,$2A,$2D ; Ghost x4
+
+; Room $28 (row 2, column 8): narrow in x, yellow
+room28:
   DEFB $28,$10,$0E        ; Room $28 (row 2, column 8): narrow in x, yellow
   DEFB $00,$15,$0E,$17,$FF ; Backgrounds: arch N, high arch S, walls (room
                            ; narrow in x), step to high arch S
   DEFB $39,$23,$63        ; Table x2
   DEFB $29,$0B,$0C        ; Spikes x2
   DEFB $01,$C3,$C4        ; Block x2
+
+; Room $2D (row 2, column 13): square, green
+room2D:
   DEFB $2D,$17,$04        ; Room $2D (row 2, column 13): square, green
   DEFB $14,$02,$16,$0C,$FF ; Backgrounds: high arch E, arch S, step to high
                            ; arch E, walls (square room)
@@ -278,15 +357,24 @@ location_tbl:
   DEFB $A3                             ;
   DEFB $2B,$1E,$26,$22,$24 ; Spikes x4
   DEFB $70,$E3            ; Block (type $36)
+
+; Room $2E (row 2, column 14): narrow in y, cyan
+room2E:
   DEFB $2E,$11,$15        ; Room $2E (row 2, column 14): narrow in y, cyan
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $2F,$2B,$2C,$22,$25,$1A,$1D,$13 ; Spikes x8
   DEFB $14                             ;
   DEFB $68,$23            ; Guard (type $1E)
+
+; Room $2F (row 2, column 15): square, green
+room2F:
   DEFB $2F,$06,$04        ; Room $2F (row 2, column 15): square, green
   DEFB $00,$02,$03,$0C    ; Backgrounds: arch N, arch S, arch W, walls (square
                           ; room); no objects
+
+; Room $30 (row 3, column 0): narrow in x, cyan
+room30:
   DEFB $30,$16,$0D        ; Room $30 (row 3, column 0): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -294,6 +382,9 @@ location_tbl:
   DEFB $1D                             ;
   DEFB $2B,$12,$15,$0B,$0C ; Spikes x4
   DEFB $B8,$1B            ; Ball (type $B6)
+
+; Room $34 (row 3, column 4): narrow in x, yellow
+room34:
   DEFB $34,$18,$0E        ; Room $34 (row 3, column 4): narrow in x, yellow
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -301,18 +392,27 @@ location_tbl:
   DEFB $5D                             ;
   DEFB $97,$9A,$9B,$9C,$9D,$DA,$DB,$DC ; Spiked ball x8
   DEFB $DD                             ;
+
+; Room $37 (row 3, column 7): narrow in x, cyan
+room37:
   DEFB $37,$0D,$0D        ; Room $37 (row 3, column 7): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $78,$14            ; Block (type $37)
   DEFB $00,$2C            ; Block
   DEFB $49,$25,$1A        ; Ghost x2
+
+; Room $38 (row 3, column 8): narrow in x, magenta
+room38:
   DEFB $38,$19,$0B        ; Room $38 (row 3, column 8): narrow in x, magenta
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
   DEFB $05,$7A,$F2,$DA,$C2,$C3,$C4 ; Block x6
   DEFB $B3,$EA,$E2,$D2,$CA ; Block (type $8F) x4
   DEFB $2C,$2A,$22,$1A,$12,$0A ; Spikes x5
+
+; Room $3F (row 3, column 15): square, magenta
+room3F:
   DEFB $3F,$19,$03        ; Room $3F (row 3, column 15): square, magenta
   DEFB $04,$06,$0F,$10,$FF ; Backgrounds: forest exit N, forest exit S, forest
                            ; walls, trees closing the W gap
@@ -320,6 +420,9 @@ location_tbl:
   DEFB $1F                             ;
   DEFB $2D,$58,$59,$9A,$9D,$5E,$5F ; Spikes x6
   DEFB $D0,$1B            ; Portcullis along x
+
+; Room $40 (row 4, column 0): square, yellow
+room40:
   DEFB $40,$13,$06        ; Room $40 (row 4, column 0): square, yellow
   DEFB $14,$15,$16,$17,$0C,$FF ; Backgrounds: high arch E, high arch S, step to
                                ; high arch E, step to high arch S, walls
@@ -327,18 +430,27 @@ location_tbl:
   DEFB $05,$3F,$06,$C3,$C4,$DF,$E7 ; Block x6
   DEFB $68,$38            ; Guard (type $1E)
   DEFB $80,$B8            ; Block (type $3E)
+
+; Room $41 (row 4, column 1): narrow in y, green
+room41:
   DEFB $41,$17,$14        ; Room $41 (row 4, column 1): narrow in y, green
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $05,$12,$14,$16,$2A,$2C,$2E ; Block x6
   DEFB $25,$52,$54,$56,$6A,$6C,$6E ; Gargoyle x6
   DEFB $51,$15,$2B        ; Fire (type $B5) x2
+
+; Room $42 (row 4, column 2): square, cyan
+room42:
   DEFB $42,$15,$05        ; Room $42 (row 4, column 2): square, cyan
   DEFB $01,$03,$0C,$FF    ; Backgrounds: arch E, arch W, walls (square room)
   DEFB $01,$1B,$DC        ; Block x2
   DEFB $A9,$63,$A4        ; Block (type $5B) x2
   DEFB $2F,$12,$1A,$22,$2B,$2C,$25,$1D ; Spikes x8
   DEFB $14                             ;
+
+; Room $43 (row 4, column 3): narrow in y, yellow
+room43:
   DEFB $43,$1B,$16        ; Room $43 (row 4, column 3): narrow in y, yellow
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -347,9 +459,15 @@ location_tbl:
   DEFB $03,$2B,$2C,$13,$14 ; Block x4
   DEFB $2B,$6B,$6C,$53,$54 ; Spikes x4
   DEFB $60,$1B            ; Ball (half a cell along x and y)
+
+; Room $44 (row 4, column 4): square, green
+room44:
   DEFB $44,$07,$04        ; Room $44 (row 4, column 4): square, green
   DEFB $00,$01,$02,$03,$0C ; Backgrounds: arch N, arch E, arch S, arch W, walls
                            ; (square room); no objects
+
+; Room $45 (row 4, column 5): square, cyan
+room45:
   DEFB $45,$1D,$05        ; Room $45 (row 4, column 5): square, cyan
   DEFB $01,$03,$0C,$FF    ; Backgrounds: arch E, arch W, walls (square room)
   DEFB $07,$23,$25,$13,$15,$63,$64,$65 ; Block x8
@@ -358,6 +476,9 @@ location_tbl:
   DEFB $9B,$A4,$9B,$9D,$94 ; Raised spiked ball x4
   DEFB $B0,$9C            ; Block (type $8F)
   DEFB $28,$1C            ; Spikes
+
+; Room $46 (row 4, column 6): narrow in y, yellow
+room46:
   DEFB $46,$1C,$16        ; Room $46 (row 4, column 6): narrow in y, yellow
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -366,9 +487,15 @@ location_tbl:
   DEFB $23,$65,$5D,$63,$5B ; Gargoyle x4
   DEFB $91,$24,$1C        ; Spiked ball x2
   DEFB $B3,$A4,$E4,$9C,$DC ; Block (type $8F) x4
+
+; Room $47 (row 4, column 7): square, magenta
+room47:
   DEFB $47,$06,$03        ; Room $47 (row 4, column 7): square, magenta
   DEFB $00,$02,$03,$0C    ; Backgrounds: arch N, arch S, arch W, walls (square
                           ; room); no objects
+
+; Room $48 (row 4, column 8): narrow in x, yellow
+room48:
   DEFB $48,$17,$0E        ; Room $48 (row 4, column 8): narrow in x, yellow
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -377,12 +504,18 @@ location_tbl:
   DEFB $00,$AC            ; Block
   DEFB $29,$0B,$14        ; Spikes x2
   DEFB $78,$8C            ; Block (type $37)
+
+; Room $4F (row 4, column 15): square, yellow
+room4F:
   DEFB $4F,$15,$06        ; Room $4F (row 4, column 15): square, yellow
   DEFB $04,$06,$0F,$10,$FF ; Backgrounds: forest exit N, forest exit S, forest
                            ; walls, trees closing the W gap
   DEFB $9F,$D8,$D9,$DA,$DB,$DC,$DD,$DE ; Raised spiked ball x8
   DEFB $DF                             ;
   DEFB $9B,$C3,$C4,$FB,$FC ; Raised spiked ball x4
+
+; Room $54 (row 5, column 4): narrow in x, cyan
+room54:
   DEFB $54,$16,$0D        ; Room $54 (row 5, column 4): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -390,32 +523,50 @@ location_tbl:
   DEFB $2B,$1A,$5A,$25,$65 ; Spikes x4
   DEFB $93,$13,$0B,$2C,$24 ; Spiked ball x4
   DEFB $79,$14,$23        ; Block (type $37) x2
+
+; Room $57 (row 5, column 7): narrow in x, cyan
+room57:
   DEFB $57,$14,$0D        ; Room $57 (row 5, column 7): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $07,$2D,$6D,$AD,$24,$64,$A4,$1B ; Block x8
   DEFB $5B                             ;
   DEFB $03,$9B,$12,$52,$92 ; Block x4
+
+; Room $58 (row 5, column 8): narrow in x, cyan
+room58:
   DEFB $58,$0B,$0D        ; Room $58 (row 5, column 8): narrow in x, cyan
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
   DEFB $48,$1D            ; Ghost
   DEFB $80,$5D            ; Block (type $3E)
+
+; Room $5E (row 5, column 14): square, yellow
+room5E:
   DEFB $5E,$12,$06        ; Room $5E (row 5, column 14): square, yellow
   DEFB $04,$05,$0F,$10,$FF ; Backgrounds: forest exit N, forest exit E, forest
                            ; walls, trees closing the W gap
   DEFB $1F,$32,$35,$29,$2E,$11,$16,$0A ; Rock x8
   DEFB $0D                             ;
   DEFB $C8,$2D            ; Sparkle (type $A4)
+
+; Room $5F (row 5, column 15): square, magenta
+room5F:
   DEFB $5F,$06,$03        ; Room $5F (row 5, column 15): square, magenta
   DEFB $04,$06,$07,$0F    ; Backgrounds: forest exit N, forest exit S, forest
                           ; exit W, forest walls; no objects
+
+; Room $64 (row 6, column 4): narrow in x, yellow
+room64:
   DEFB $64,$12,$0E        ; Room $64 (row 6, column 4): narrow in x, yellow
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
   DEFB $07,$03,$04,$0B,$0C,$23,$24,$2B ; Block x8
   DEFB $2C                             ;
   DEFB $30,$63            ; Chest
+
+; Room $67 (row 6, column 7): narrow in x, green
+room67:
   DEFB $67,$12,$0C        ; Room $67 (row 6, column 7): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -423,6 +574,9 @@ location_tbl:
   DEFB $2B,$6A,$6D,$1A,$1D ; Spikes x4
   DEFB $D0,$2B            ; Portcullis along x
   DEFB $68,$25            ; Guard (type $1E)
+
+; Room $68 (row 6, column 8): narrow in x, magenta
+room68:
   DEFB $68,$19,$0B        ; Room $68 (row 6, column 8): narrow in x, magenta
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -431,14 +585,23 @@ location_tbl:
   DEFB $03,$32,$33,$34,$35 ; Block x4
   DEFB $29,$72,$75        ; Spikes x2
   DEFB $60,$A3            ; Ball (half a cell along x and y)
+
+; Room $6A (row 6, column 10): square, yellow
+room6A:
   DEFB $6A,$05,$06        ; Room $6A (row 6, column 10): square, yellow
   DEFB $00,$01,$0C        ; Backgrounds: arch N, arch E, walls (square room);
                           ; no objects
+
+; Room $6B (row 6, column 11): narrow in y, green
+room6B:
   DEFB $6B,$11,$14        ; Room $6B (row 6, column 11): narrow in y, green
   DEFB $14,$03,$16,$0D,$FF ; Backgrounds: high arch E, arch W, step to high
                            ; arch E, walls (room narrow in y)
   DEFB $05,$24,$1C,$64,$5C,$E7,$DF ; Block x6
   DEFB $51,$D6,$ED        ; Fire (type $B5) x2
+
+; Room $6C (row 6, column 12): narrow in y, magenta
+room6C:
   DEFB $6C,$18,$13        ; Room $6C (row 6, column 12): narrow in y, magenta
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -446,6 +609,9 @@ location_tbl:
   DEFB $53                             ;
   DEFB $9F,$AB,$A3,$9B,$93,$EB,$E3,$DB ; Raised spiked ball x8
   DEFB $D3                             ;
+
+; Room $6D (row 6, column 13): square, yellow
+room6D:
   DEFB $6D,$17,$06        ; Room $6D (row 6, column 13): square, yellow
   DEFB $05,$07,$0F,$11,$FF ; Backgrounds: forest exit E, forest exit W, forest
                            ; walls, trees closing the N gap
@@ -454,36 +620,57 @@ location_tbl:
   DEFB $21,$D4,$EC        ; Gargoyle x2
   DEFB $38,$09            ; Table
   DEFB $40,$1E            ; Guard (type $96)
+
+; Room $6E (row 6, column 14): square, magenta
+room6E:
   DEFB $6E,$07,$03        ; Room $6E (row 6, column 14): square, magenta
   DEFB $05,$06,$07,$0F,$11 ; Backgrounds: forest exit E, forest exit S, forest
                            ; exit W, forest walls, trees closing the N gap; no
                            ; objects
+
+; Room $6F (row 6, column 15): square, yellow
+room6F:
   DEFB $6F,$14,$06        ; Room $6F (row 6, column 15): square, yellow
   DEFB $06,$07,$0F,$11,$FF ; Backgrounds: forest exit S, forest exit W, forest
                            ; walls, trees closing the N gap
   DEFB $1A,$2D,$2E,$2F    ; Rock x3
   DEFB $22,$6D,$6E,$6F    ; Gargoyle x3
   DEFB $9B,$3D,$35,$7D,$75 ; Raised spiked ball x4
+
+; Room $74 (row 7, column 4): square, green
+room74:
   DEFB $74,$18,$04        ; Room $74 (row 7, column 4): square, green
   DEFB $01,$02,$0C,$FF    ; Backgrounds: arch E, arch S, walls (square room)
   DEFB $2A,$39,$30,$31    ; Spikes x3
   DEFB $07,$3A,$7A,$32,$72,$28,$68,$29 ; Block x8
   DEFB $69                             ;
   DEFB $B3,$B8,$B9,$B0,$B1 ; Block (type $8F) x4
+
+; Room $75 (row 7, column 5): narrow in y, magenta
+room75:
   DEFB $75,$0E,$13        ; Room $75 (row 7, column 5): narrow in y, magenta
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $01,$23,$1C        ; Block x2
   DEFB $29,$24,$1B        ; Spikes x2
   DEFB $C8,$2B            ; Sparkle (type $A4)
+
+; Room $76 (row 7, column 6): narrow in y, yellow
+room76:
   DEFB $76,$16,$16        ; Room $76 (row 7, column 6): narrow in y, yellow
   DEFB $14,$03,$16,$0D,$FF ; Backgrounds: high arch E, arch W, step to high
                            ; arch E, walls (room narrow in y)
   DEFB $06,$DF,$E7,$EF,$AE,$6D,$2C,$D7 ; Block x7
   DEFB $2D,$16,$1E,$26,$15,$1D,$25 ; Spikes x6
+
+; Room $77 (row 7, column 7): square, magenta
+room77:
   DEFB $77,$07,$03        ; Room $77 (row 7, column 7): square, magenta
   DEFB $00,$01,$02,$03,$0C ; Backgrounds: arch N, arch E, arch S, arch W, walls
                            ; (square room); no objects
+
+; Room $78 (row 7, column 8): square, green
+room78:
   DEFB $78,$19,$04        ; Room $78 (row 7, column 8): square, green
   DEFB $00,$01,$02,$03,$0C,$FF ; Backgrounds: arch N, arch E, arch S, arch W,
                                ; walls (square room)
@@ -491,6 +678,9 @@ location_tbl:
   DEFB $1D                             ;
   DEFB $2C,$11,$13,$0A,$0D,$0E ; Spikes x5
   DEFB $68,$17            ; Guard (type $1E)
+
+; Room $79 (row 7, column 9): narrow in y, magenta
+room79:
   DEFB $79,$16,$13        ; Room $79 (row 7, column 9): narrow in y, magenta
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -498,14 +688,23 @@ location_tbl:
   DEFB $2F,$2B,$2C,$23,$24,$1B,$1C,$13 ; Spikes x8
   DEFB $14                             ;
   DEFB $60,$DB            ; Ball (half a cell along x and y)
+
+; Room $7A (row 7, column 10): square, cyan
+room7A:
   DEFB $7A,$16,$05        ; Room $7A (row 7, column 10): square, cyan
   DEFB $02,$03,$0C,$FF    ; Backgrounds: arch S, arch W, walls (square room)
   DEFB $04,$28,$70,$B8,$B9,$FF ; Block x5
   DEFB $2D,$BA,$BC,$BE,$37,$2F,$27 ; Spikes x6
   DEFB $A9,$FB,$FD        ; Block (type $5B) x2
+
+; Room $83 (row 8, column 3): square, yellow
+room83:
   DEFB $83,$05,$06        ; Room $83 (row 8, column 3): square, yellow
   DEFB $00,$01,$0C        ; Backgrounds: arch N, arch E, walls (square room);
                           ; no objects
+
+; Room $84 (row 8, column 4): narrow in y, cyan
+room84:
   DEFB $84,$17,$15        ; Room $84 (row 8, column 4): narrow in y, cyan
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -513,6 +712,9 @@ location_tbl:
   DEFB $55                             ;
   DEFB $23,$AA,$AD,$92,$95 ; Gargoyle x4
   DEFB $11,$1D,$9A        ; Ball (half a cell along y) x2
+
+; Room $85 (row 8, column 5): narrow in y, green
+room85:
   DEFB $85,$19,$14        ; Room $85 (row 8, column 5): narrow in y, green
   DEFB $14,$03,$16,$0D,$FF ; Backgrounds: high arch E, arch W, step to high
                            ; arch E, walls (room narrow in y)
@@ -520,11 +722,17 @@ location_tbl:
   DEFB $2F,$1B,$23,$1C,$24,$1D,$25,$1E ; Spikes x8
   DEFB $26                             ;
   DEFB $78,$DB            ; Block (type $37)
+
+; Room $86 (row 8, column 6): narrow in y, magenta
+room86:
   DEFB $86,$0B,$13        ; Room $86 (row 8, column 6): narrow in y, magenta
   DEFB $14,$03,$16,$0D,$FF ; Backgrounds: high arch E, arch W, step to high
                            ; arch E, walls (room narrow in y)
   DEFB $80,$63            ; Block (type $3E)
   DEFB $B8,$23            ; Ball (type $B6)
+
+; Room $87 (row 8, column 7): square, cyan
+room87:
   DEFB $87,$18,$05        ; Room $87 (row 8, column 7): square, cyan
   DEFB $00,$01,$02,$03,$0C,$FF ; Backgrounds: arch N, arch E, arch S, arch W,
                                ; walls (square room)
@@ -532,12 +740,18 @@ location_tbl:
   DEFB $2B,$6A,$6D,$52,$55 ; Spikes x4
   DEFB $D1,$2B,$13        ; Portcullis along x x2
   DEFB $D9,$1A,$1D        ; Portcullis along y x2
+
+; Room $88 (row 8, column 8): square, yellow
+room88:
   DEFB $88,$13,$06        ; Room $88 (row 8, column 8): square, yellow
   DEFB $00,$01,$02,$03,$12,$13,$0C,$FF ; Backgrounds: arch N, arch E, arch S,
                                        ; arch W, the wizard, the cauldron,
                                        ; walls (square room)
   DEFB $07,$32,$29,$35,$2E,$16,$0D,$11 ; Block x8
   DEFB $0A                             ;
+
+; Room $89 (row 8, column 9): narrow in y, cyan
+room89:
   DEFB $89,$14,$15        ; Room $89 (row 8, column 9): narrow in y, cyan
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -545,6 +759,9 @@ location_tbl:
   DEFB $94                             ;
   DEFB $21,$EC,$D4        ; Gargoyle x2
   DEFB $50,$64            ; Fire (type $B5)
+
+; Room $8A (row 8, column 10): narrow in y, magenta
+room8A:
   DEFB $8A,$18,$13        ; Room $8A (row 8, column 10): narrow in y, magenta
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -552,9 +769,15 @@ location_tbl:
   DEFB $15                             ;
   DEFB $97,$EA,$E2,$DA,$D2,$ED,$E5,$DD ; Spiked ball x8
   DEFB $D5                             ;
+
+; Room $8B (row 8, column 11): square, cyan
+room8B:
   DEFB $8B,$06,$05        ; Room $8B (row 8, column 11): square, cyan
   DEFB $00,$01,$03,$0C    ; Backgrounds: arch N, arch E, arch W, walls (square
                           ; room); no objects
+
+; Room $8C (row 8, column 12): narrow in y, green
+room8C:
   DEFB $8C,$19,$14        ; Room $8C (row 8, column 12): narrow in y, green
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
@@ -563,6 +786,9 @@ location_tbl:
   DEFB $2B,$AA,$AD,$92,$95 ; Spikes x4
   DEFB $D9,$1A,$1D        ; Portcullis along y x2
   DEFB $40,$1B            ; Guard (type $96)
+
+; Room $8D (row 8, column 13): square, cyan
+room8D:
   DEFB $8D,$1A,$05        ; Room $8D (row 8, column 13): square, cyan
   DEFB $01,$03,$0C,$FF    ; Backgrounds: arch E, arch W, walls (square room)
   DEFB $07,$34,$74,$6C,$B4,$BC,$FB,$FD ; Block x8
@@ -571,14 +797,23 @@ location_tbl:
   DEFB $58,$3C            ; Raised block
   DEFB $28,$24            ; Spikes
   DEFB $10,$E4            ; Ball (half a cell along y)
+
+; Room $8E (row 8, column 14): narrow in y, magenta
+room8E:
   DEFB $8E,$0C,$13        ; Room $8E (row 8, column 14): narrow in y, magenta
   DEFB $14,$03,$16,$0D,$FF ; Backgrounds: high arch E, arch W, step to high
                            ; arch E, walls (room narrow in y)
   DEFB $39,$23,$63        ; Table x2
   DEFB $48,$2B            ; Ghost
+
+; Room $8F (row 8, column 15): square, yellow
+room8F:
   DEFB $8F,$05,$06        ; Room $8F (row 8, column 15): square, yellow
   DEFB $00,$03,$0C        ; Backgrounds: arch N, arch W, walls (square room);
                           ; no objects
+
+; Room $93 (row 9, column 3): narrow in x, green
+room93:
   DEFB $93,$14,$0C        ; Room $93 (row 9, column 3): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -586,11 +821,17 @@ location_tbl:
   DEFB $9D                             ;
   DEFB $21,$DA,$DD        ; Gargoyle x2
   DEFB $A0,$5B            ; Fire (type $56)
+
+; Room $97 (row 9, column 7): narrow in x, green
+room97:
   DEFB $97,$10,$0C        ; Room $97 (row 9, column 7): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $03,$1A,$1B,$1C,$1D ; Block x4
   DEFB $23,$5A,$5B,$5C,$5D ; Gargoyle x4
+
+; Room $98 (row 9, column 8): narrow in x, magenta
+room98:
   DEFB $98,$1A,$0B        ; Room $98 (row 9, column 8): narrow in x, magenta
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -599,6 +840,9 @@ location_tbl:
   DEFB $2F,$22,$23,$24,$25,$1A,$1B,$1C ; Spikes x8
   DEFB $1D                             ;
   DEFB $B3,$A3,$A4,$9B,$9C ; Block (type $8F) x4
+
+; Room $9B (row 9, column 11): narrow in x, magenta
+room9B:
   DEFB $9B,$17,$0B        ; Room $9B (row 9, column 11): narrow in x, magenta
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -607,6 +851,9 @@ location_tbl:
   DEFB $78,$DD            ; Block (type $37)
   DEFB $70,$DB            ; Block (type $36)
   DEFB $29,$1C,$1D        ; Spikes x2
+
+; Room $9F (row 9, column 15): narrow in x, cyan
+room9F:
   DEFB $9F,$18,$0D        ; Room $9F (row 9, column 15): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -614,6 +861,9 @@ location_tbl:
   DEFB $5D                             ;
   DEFB $03,$9A,$9B,$9C,$9D ; Block x4
   DEFB $2A,$DB,$DC,$DD    ; Spikes x3
+
+; Room $A3 (row 10, column 3): narrow in x, magenta
+roomA3:
   DEFB $A3,$1C,$0B        ; Room $A3 (row 10, column 3): narrow in x, magenta
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
@@ -622,15 +872,24 @@ location_tbl:
   DEFB $93,$52,$54,$63,$65 ; Spiked ball x4
   DEFB $B8,$35            ; Ball (type $B6)
   DEFB $80,$75            ; Block (type $3E)
+
+; Room $A7 (row 10, column 7): square, magenta
+roomA7:
   DEFB $A7,$05,$03        ; Room $A7 (row 10, column 7): square, magenta
   DEFB $00,$02,$0C        ; Backgrounds: arch N, arch S, walls (square room);
                           ; no objects
+
+; Room $A8 (row 10, column 8): square, yellow
+roomA8:
   DEFB $A8,$18,$06        ; Room $A8 (row 10, column 8): square, yellow
   DEFB $02,$0C,$FF        ; Backgrounds: arch S, walls (square room)
   DEFB $07,$2A,$6A,$32,$72,$B2,$F2,$36 ; Block x8
   DEFB $76                             ;
   DEFB $05,$B6,$F6,$16,$56,$96,$D6 ; Block x6
   DEFB $29,$35,$1E        ; Spikes x2
+
+; Room $AA (row 10, column 10): square, magenta
+roomAA:
   DEFB $AA,$18,$03        ; Room $AA (row 10, column 10): square, magenta
   DEFB $00,$01,$0C,$FF    ; Backgrounds: arch N, arch E, walls (square room)
   DEFB $07,$00,$48,$90,$18,$58,$98,$D8 ; Block x8
@@ -638,38 +897,62 @@ location_tbl:
   DEFB $02,$61,$28,$68    ; Block x3
   DEFB $29,$A8,$A1        ; Spikes x2
   DEFB $A8,$E0            ; Block (type $5B)
+
+; Room $AB (row 10, column 11): square, green
+roomAB:
   DEFB $AB,$06,$04        ; Room $AB (row 10, column 11): square, green
   DEFB $00,$02,$03,$0C    ; Backgrounds: arch N, arch S, arch W, walls (square
                           ; room); no objects
+
+; Room $AF (row 10, column 15): narrow in x, green
+roomAF:
   DEFB $AF,$0E,$0C        ; Room $AF (row 10, column 15): narrow in x, green
   DEFB $00,$15,$17,$0E,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (room narrow in x)
   DEFB $03,$1B,$1C,$33,$34 ; Block x4
   DEFB $30,$74            ; Chest
+
+; Room $B3 (row 11, column 3): square, yellow
+roomB3:
   DEFB $B3,$06,$06        ; Room $B3 (row 11, column 3): square, yellow
   DEFB $00,$01,$02,$0C    ; Backgrounds: arch N, arch E, arch S, walls (square
                           ; room); no objects
+
+; Room $B4 (row 11, column 4): square, green
+roomB4:
   DEFB $B4,$13,$04        ; Room $B4 (row 11, column 4): square, green
   DEFB $03,$0C,$FF        ; Backgrounds: arch W, walls (square room)
   DEFB $07,$13,$14,$15,$1B,$23,$63,$A3 ; Block x8
   DEFB $E3                             ;
   DEFB $30,$55            ; Chest
   DEFB $39,$2E,$6E        ; Table x2
+
+; Room $B7 (row 11, column 7): narrow in x, green
+roomB7:
   DEFB $B7,$0E,$0C        ; Room $B7 (row 11, column 7): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $03,$33,$34,$0B,$0C ; Block x4
   DEFB $49,$23,$1C        ; Ghost x2
+
+; Room $BA (row 11, column 10): square, cyan
+roomBA:
   DEFB $BA,$19,$05        ; Room $BA (row 11, column 10): square, cyan
   DEFB $01,$02,$0C,$FF    ; Backgrounds: arch E, arch S, walls (square room)
   DEFB $05,$2B,$6B,$AB,$1B,$5B,$9B ; Block x6
   DEFB $2F,$2A,$22,$62,$A2,$1A,$2C,$24 ; Spikes x8
   DEFB $64                             ;
   DEFB $29,$A4,$1C        ; Spikes x2
+
+; Room $BB (row 11, column 11): square, yellow
+roomBB:
   DEFB $BB,$0B,$06        ; Room $BB (row 11, column 11): square, yellow
   DEFB $02,$03,$0C,$FF    ; Backgrounds: arch S, arch W, walls (square room)
   DEFB $48,$24            ; Ghost
   DEFB $81,$64,$A4        ; Block (type $3E) x2
+
+; Room $BF (row 11, column 15): square, magenta
+roomBF:
   DEFB $BF,$1D,$03        ; Room $BF (row 11, column 15): square, magenta
   DEFB $00,$15,$17,$0C,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (square room)
@@ -679,39 +962,60 @@ location_tbl:
   DEFB $29,$14,$0C        ; Spikes x2
   DEFB $B8,$7F            ; Ball (type $B6)
   DEFB $80,$BF            ; Block (type $3E)
+
+; Room $C3 (row 12, column 3): narrow in x, magenta
+roomC3:
   DEFB $C3,$14,$0B        ; Room $C3 (row 12, column 3): narrow in x, magenta
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $07,$1A,$1B,$1C,$1D,$5A,$5B,$5C ; Block x8
   DEFB $5D                             ;
   DEFB $03,$9A,$9B,$9C,$9D ; Block x4
+
+; Room $C7 (row 12, column 7): square, cyan
+roomC7:
   DEFB $C7,$0B,$05        ; Room $C7 (row 12, column 7): square, cyan
   DEFB $00,$15,$17,$0C,$FF ; Backgrounds: arch N, high arch S, step to high
                            ; arch S, walls (square room)
   DEFB $80,$5B            ; Block (type $3E)
   DEFB $48,$1B            ; Ghost
+
+; Room $CF (row 12, column 15): narrow in x, green
+roomCF:
   DEFB $CF,$0A,$0C        ; Room $CF (row 12, column 15): narrow in x, green
   DEFB $00,$02,$08,$0A,$0E,$FF ; Backgrounds: arch N, arch S, portcullis N,
                                ; portcullis S, walls (room narrow in x)
   DEFB $48,$1C            ; Ghost
+
+; Room $D0 (row 13, column 0): square, cyan
+roomD0:
   DEFB $D0,$19,$05        ; Room $D0 (row 13, column 0): square, cyan
   DEFB $00,$01,$0C,$FF    ; Backgrounds: arch N, arch E, walls (square room)
   DEFB $07,$03,$42,$81,$C0,$C8,$D0,$D8 ; Block x8
   DEFB $E0                             ;
   DEFB $03,$1C,$5C,$9C,$DC ; Block x4
   DEFB $2B,$1B,$24,$1D,$14 ; Spikes x4
+
+; Room $D1 (row 13, column 1): narrow in y, green
+roomD1:
   DEFB $D1,$11,$14        ; Room $D1 (row 13, column 1): narrow in y, green
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $68,$16            ; Guard (type $1E)
   DEFB $2F,$1E,$26,$1B,$1C,$23,$24,$19 ; Spikes x8
   DEFB $21                             ;
+
+; Room $D2 (row 13, column 2): square, cyan
+roomD2:
   DEFB $D2,$15,$05        ; Room $D2 (row 13, column 2): square, cyan
   DEFB $00,$03,$0C,$FF    ; Backgrounds: arch N, arch W, walls (square room)
   DEFB $07,$03,$27,$44,$5F,$85,$97,$C6 ; Block x8
   DEFB $CF                             ;
   DEFB $01,$CE,$C7        ; Block x2
   DEFB $99,$0F,$06        ; Raised spiked ball x2
+
+; Room $D3 (row 13, column 3): narrow in x, cyan
+roomD3:
   DEFB $D3,$12,$0D        ; Room $D3 (row 13, column 3): narrow in x, cyan
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -719,6 +1023,9 @@ location_tbl:
   DEFB $2B,$6A,$6D,$1A,$1D ; Spikes x4
   DEFB $D0,$2B            ; Portcullis along x
   DEFB $68,$25            ; Guard (type $1E)
+
+; Room $D6 (row 13, column 6): square, yellow
+roomD6:
   DEFB $D6,$15,$06        ; Room $D6 (row 13, column 6): square, yellow
   DEFB $04,$05,$0F,$10,$FF ; Backgrounds: forest exit N, forest exit E, forest
                            ; walls, trees closing the W gap
@@ -726,44 +1033,71 @@ location_tbl:
   DEFB $54                             ;
   DEFB $18,$94            ; Rock
   DEFB $11,$5D,$1B        ; Ball (half a cell along y) x2
+
+; Room $D7 (row 13, column 7): square, magenta
+roomD7:
   DEFB $D7,$0E,$03        ; Room $D7 (row 13, column 7): square, magenta
   DEFB $04,$05,$06,$07,$0F,$FF ; Backgrounds: forest exit N, forest exit E,
                                ; forest exit S, forest exit W, forest walls
   DEFB $51,$1B,$24        ; Fire (type $B5) x2
   DEFB $A1,$23,$1C        ; Fire (type $56) x2
+
+; Room $D8 (row 13, column 8): square, magenta
+roomD8:
   DEFB $D8,$06,$03        ; Room $D8 (row 13, column 8): square, magenta
   DEFB $04,$05,$07,$0F    ; Backgrounds: forest exit N, forest exit E, forest
                           ; exit W, forest walls; no objects
+
+; Room $D9 (row 13, column 9): square, yellow
+roomD9:
   DEFB $D9,$05,$06        ; Room $D9 (row 13, column 9): square, yellow
   DEFB $04,$07,$0F        ; Backgrounds: forest exit N, forest exit W, forest
                           ; walls; no objects
+
+; Room $DD (row 13, column 13): square, yellow
+roomDD:
   DEFB $DD,$14,$06        ; Room $DD (row 13, column 13): square, yellow
   DEFB $00,$14,$16,$0C,$FF ; Backgrounds: arch N, high arch E, step to high
                            ; arch E, walls (square room)
   DEFB $01,$E7,$DF        ; Block x2
   DEFB $5B,$2F,$26,$1E,$17 ; Raised block x4
   DEFB $3B,$1A,$5A,$9A,$DA ; Table x4
+
+; Room $DE (row 13, column 14): narrow in y, magenta
+roomDE:
   DEFB $DE,$05,$13        ; Room $DE (row 13, column 14): narrow in y, magenta
   DEFB $01,$03,$0D        ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y); no objects
+
+; Room $DF (row 13, column 15): square, yellow
+roomDF:
   DEFB $DF,$16,$06        ; Room $DF (row 13, column 15): square, yellow
   DEFB $00,$02,$03,$0C,$FF ; Backgrounds: arch N, arch S, arch W, walls (square
                            ; room)
   DEFB $04,$1B,$5B,$9B,$DB,$E2 ; Block x5
   DEFB $2B,$13,$1C,$23,$1A ; Spikes x4
   DEFB $B2,$12,$54,$A4    ; Block (type $8F) x3
+
+; Room $E0 (row 14, column 0): narrow in x, yellow
+roomE0:
   DEFB $E0,$11,$0E        ; Room $E0 (row 14, column 0): narrow in x, yellow
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $2F,$3A,$3D,$2B,$2C,$13,$14,$02 ; Spikes x8
   DEFB $05                             ;
   DEFB $C8,$24            ; Sparkle (type $A4)
+
+; Room $E2 (row 14, column 2): narrow in x, yellow
+roomE2:
   DEFB $E2,$16,$0E        ; Room $E2 (row 14, column 2): narrow in x, yellow
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $97,$05,$0A,$0C,$13,$15,$1A,$1C ; Spiked ball x8
   DEFB $23                             ;
   DEFB $95,$25,$2A,$2C,$33,$35,$3A ; Spiked ball x6
+
+; Room $E3 (row 14, column 3): narrow in x, yellow
+roomE3:
   DEFB $E3,$1B,$0E        ; Room $E3 (row 14, column 3): narrow in x, yellow
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
@@ -772,33 +1106,54 @@ location_tbl:
   DEFB $AB,$72,$75,$3A,$3D ; Block (type $5B) x4
   DEFB $B3,$DA,$DD,$E2,$E5 ; Block (type $8F) x4
   DEFB $60,$1B            ; Ball (half a cell along x and y)
+
+; Room $E6 (row 14, column 6): square, magenta
+roomE6:
   DEFB $E6,$07,$03        ; Room $E6 (row 14, column 6): square, magenta
   DEFB $04,$05,$06,$0F,$10 ; Backgrounds: forest exit N, forest exit E, forest
                            ; exit S, forest walls, trees closing the W gap; no
                            ; objects
+
+; Room $E7 (row 14, column 7): square, yellow
+roomE7:
   DEFB $E7,$11,$06        ; Room $E7 (row 14, column 7): square, yellow
   DEFB $04,$05,$06,$07,$0F,$FF ; Backgrounds: forest exit N, forest exit E,
                                ; forest exit S, forest exit W, forest walls
   DEFB $2F,$33,$34,$21,$19,$26,$1E,$0B ; Spikes x8
   DEFB $0C                             ;
+
+; Room $E8 (row 14, column 8): square, yellow
+roomE8:
   DEFB $E8,$16,$06        ; Room $E8 (row 14, column 8): square, yellow
   DEFB $04,$05,$06,$07,$0F,$FF ; Backgrounds: forest exit N, forest exit E,
                                ; forest exit S, forest exit W, forest walls
   DEFB $1F,$33,$21,$23,$63,$A3,$E3,$25 ; Rock x8
   DEFB $13                             ;
   DEFB $2B,$2B,$24,$1B,$22 ; Spikes x4
+
+; Room $E9 (row 14, column 9): square, magenta
+roomE9:
   DEFB $E9,$06,$03        ; Room $E9 (row 14, column 9): square, magenta
   DEFB $04,$06,$07,$0F    ; Backgrounds: forest exit N, forest exit S, forest
                           ; exit W, forest walls; no objects
+
+; Room $ED (row 14, column 13): narrow in x, green
+roomED:
   DEFB $ED,$14,$0C        ; Room $ED (row 14, column 13): narrow in x, green
   DEFB $00,$02,$0E,$FF    ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x)
   DEFB $07,$1A,$1B,$1C,$1D,$5A,$5B,$5C ; Block x8
   DEFB $5D                             ;
   DEFB $03,$9A,$9B,$9C,$9D ; Block x4
+
+; Room $EF (row 14, column 15): narrow in x, cyan
+roomEF:
   DEFB $EF,$05,$0D        ; Room $EF (row 14, column 15): narrow in x, cyan
   DEFB $00,$02,$0E        ; Backgrounds: arch N, arch S, walls (room narrow in
                           ; x); no objects
+
+; Room $F0 (row 15, column 0): square, cyan
+roomF0:
   DEFB $F0,$1B,$05        ; Room $F0 (row 15, column 0): square, cyan
   DEFB $14,$15,$16,$17,$0C,$FF ; Backgrounds: high arch E, high arch S, step to
                                ; high arch E, step to high arch S, walls
@@ -808,13 +1163,22 @@ location_tbl:
   DEFB $03,$C1,$C2,$C3,$C4 ; Block x4
   DEFB $29,$39,$3B        ; Spikes x2
   DEFB $70,$FB            ; Block (type $36)
+
+; Room $F1 (row 15, column 1): narrow in y, magenta
+roomF1:
   DEFB $F1,$0A,$13        ; Room $F1 (row 15, column 1): narrow in y, magenta
   DEFB $01,$03,$09,$0B,$0D,$FF ; Backgrounds: arch E, arch W, portcullis E,
                                ; portcullis W, walls (room narrow in y)
   DEFB $B8,$23            ; Ball (type $B6)
+
+; Room $F2 (row 15, column 2): square, cyan
+roomF2:
   DEFB $F2,$06,$05        ; Room $F2 (row 15, column 2): square, cyan
   DEFB $01,$02,$03,$0C    ; Backgrounds: arch E, arch S, arch W, walls (square
                           ; room); no objects
+
+; Room $F3 (row 15, column 3): square, magenta
+roomF3:
   DEFB $F3,$17,$03        ; Room $F3 (row 15, column 3): square, magenta
   DEFB $02,$03,$0C,$FF    ; Backgrounds: arch S, arch W, walls (square room)
   DEFB $07,$32,$3A,$72,$7A,$34,$3C,$74 ; Block x8
@@ -822,6 +1186,9 @@ location_tbl:
   DEFB $01,$B3,$BB        ; Block x2
   DEFB $48,$33            ; Ghost
   DEFB $31,$2B,$6B        ; Chest x2
+
+; Room $F6 (row 15, column 6): square, yellow
+roomF6:
   DEFB $F6,$13,$06        ; Room $F6 (row 15, column 6): square, yellow
   DEFB $05,$06,$0F,$10,$11,$FF ; Backgrounds: forest exit E, forest exit S,
                                ; forest walls, trees closing the W gap, trees
@@ -830,6 +1197,9 @@ location_tbl:
   DEFB $B0,$1C            ; Block (type $8F)
   DEFB $30,$12            ; Chest
   DEFB $38,$34            ; Table
+
+; Room $F7 (row 15, column 7): square, magenta
+roomF7:
   DEFB $F7,$15,$03        ; Room $F7 (row 15, column 7): square, magenta
   DEFB $05,$06,$07,$0F,$11,$FF ; Backgrounds: forest exit E, forest exit S,
                                ; forest exit W, forest walls, trees closing the
@@ -838,34 +1208,45 @@ location_tbl:
   DEFB $14                             ;
   DEFB $B8,$1B            ; Ball (type $B6)
   DEFB $30,$5B            ; Chest
+
+; Room $F8 (row 15, column 8): square, magenta
+roomF8:
   DEFB $F8,$07,$03        ; Room $F8 (row 15, column 8): square, magenta
   DEFB $05,$06,$07,$0F,$11 ; Backgrounds: forest exit E, forest exit S, forest
                            ; exit W, forest walls, trees closing the N gap; no
                            ; objects
+
+; Room $F9 (row 15, column 9): square, yellow
+roomF9:
   DEFB $F9,$13,$06        ; Room $F9 (row 15, column 9): square, yellow
   DEFB $06,$07,$0F,$11,$FF ; Backgrounds: forest exit S, forest exit W, forest
                            ; walls, trees closing the N gap
   DEFB $9F,$FF,$FE,$F6,$F7,$FD,$EF,$C3 ; Raised spiked ball x8
   DEFB $C4                             ;
   DEFB $99,$D8,$E0        ; Raised spiked ball x2
+
+; Room $FD (row 15, column 13): square, yellow
+roomFD:
   DEFB $FD,$11,$06        ; Room $FD (row 15, column 13): square, yellow
   DEFB $01,$02,$0C,$FF    ; Backgrounds: arch E, arch S, walls (square room)
   DEFB $07,$28,$29,$2A,$32,$3A,$70,$71 ; Block x8
   DEFB $79                             ;
   DEFB $00,$B8            ; Block
+
+; Room $FE (row 15, column 14): narrow in y, magenta
+roomFE:
   DEFB $FE,$12,$13        ; Room $FE (row 15, column 14): narrow in y, magenta
   DEFB $01,$03,$0D,$FF    ; Backgrounds: arch E, arch W, walls (room narrow in
                           ; y)
   DEFB $2B,$25,$1D,$22,$1A ; Spikes x4
   DEFB $23,$2B,$2C,$13,$14 ; Gargoyle x4
   DEFB $60,$5B            ; Ball (half a cell along x and y)
+
+; Room $FF (row 15, column 15): square, yellow
+roomFF:
   DEFB $FF,$0B,$06        ; Room $FF (row 15, column 15): square, yellow
   DEFB $02,$03,$0C,$FF    ; Backgrounds: arch S, arch W, walls (square room)
   DEFB $2B,$2E,$35,$37,$3E ; Spikes x4
-; The comments give each record's room number, its square in the grid (row,
-; column), its shape and colour, then what it contains. Where the listing's
-; rows do not line up with the records, a comment covers the parts that begin
-; in its row.
 
 ; Block types
 ;
