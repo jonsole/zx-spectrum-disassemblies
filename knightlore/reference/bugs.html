@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#moveable">The moveable block cannot be moved</a></li>
+<li><a href="#livesdigits">Ten lives would print as a letter</a></li>
+<li><a href="#chain">The depth sort's chain has no length check</a></li>
+</ul>
+<div><span id="moveable"></span></div>
+<div class="box box-1">
+<div class="box-title">The moveable block cannot be moved</div>
+<div class="paragraph">
+Type $3E, the block type the game builds as moveable (<a href="../asm/27687.html">moveable_block</a>), is pushable in
+its flags like the table and the chest: when the player walks into it, the
+collision code (<a href="../asm/52122.html">adj_dX_for_obj_intersect</a>) copies his velocity into the block's. But the block's
+handler, <a href="../asm/50346.html">upd_62</a>, clears that velocity before it moves -- and the player is
+object 0, so his push always comes earlier in the same frame. The push is
+cancelled every time, and the block can only ever fall.
+The table's handler does the same two things the other way round: it moves by
+its velocity, then clears it (<a href="../asm/50371.html">upd_84</a>), so a table steps along once for every
+frame it is pushed. The chest's keeps its velocity, and slides on.
+Watched in the emulator: a table placed in the player's path in room $8E was
+pushed 28 units in 20 frames; the same table with its type changed to $3E did
+not move at all, and the player stopped against it. See the pokes for a block
+that moves.
+</div>
+</div>
+<div><span id="livesdigits"></span></div>
+<div class="box box-2">
+<div class="box-title">Ten lives would print as a letter</div>
+<div class="paragraph">
+The lives at $5BBA are counted in binary -- <a href="../asm/53546.html">lose_life</a> takes one with DEC, and the
+extra-life charm (<a href="../asm/49579.html">upd_103</a>) adds one with INC -- but <a href="../asm/48291.html">print_lives</a> prints the byte as
+two BCD digits through <a href="../asm/48302.html">print_BCD_number</a>. Ten lives would come out as 0 and the font's
+character 10, which is the letter A.
+It cannot happen in a normal game: the first life is taken as play starts,
+leaving four, and there are only four extra-life charms in the castle (see
+<a href="../asm/28658.html">special_objs_tbl</a>), so eight is the most there can ever be. With the infinite lives poke
+it cannot happen either, since the count never goes up from the start.
+</div>
+</div>
+<div><span id="chain"></span></div>
+<div class="box box-1">
+<div class="box-title">The depth sort's chain has no length check</div>
+<div class="paragraph">
+When <a href="../asm/52923.html">calc_display_order_and_render</a> finds that an object must be drawn before the one it is
+considering, it switches to it, and records the one it left in
+<a href="../asm/53274.html">candidate_chain</a> so that it can tell when the order has gone round in a circle. That
+list has room for seven entries, and nothing checks how many it holds: an
+eighth switch in one search would write its end marker over the first byte of
+<a href="../asm/53282.html">check_user_input</a>, the routine that reads the controls.
+No room is known to need eight: it would take eight objects each overlapping
+and in front of the last. So it is a fault the castle's rooms never bring out,
+as far as has been looked.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

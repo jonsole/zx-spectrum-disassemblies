@@ -16,10 +16,105 @@
 </tr>
 </table>
 <ul class="contents">
+<li><a href="#unusedtemplates">Two templates no room uses</a></li>
+<li><a href="#wrongcharm">A wrong charm is destroyed, not returned</a></li>
+<li><a href="#percentage">The percentage without a divide</a></li>
+<li><a href="#wantedlist">The wanted list is never reset</a></li>
+<li><a href="#menuseed">Time on the menu picks the start</a></li>
+<li><a href="#balls">The balls chase the werewolf and flee the man</a></li>
+<li><a href="#flipinplace">Sprites are turned round in place</a></li>
+<li><a href="#dayslength">A day is 392 frames</a></li>
 <li><a href="#objects">Forty objects, thirty-two bytes each</a></li>
 <li><a href="#threesizes">Every room is one of three sizes</a></li>
 <li><a href="#mirror">Facing west is facing east, reversed</a></li>
 </ul>
+<div><span id="unusedtemplates"></span></div>
+<div class="box box-1">
+<div class="box-title">Two templates no room uses</div>
+<div class="paragraph">
+Of the 29 block types in <a href="../asm/27601.html">block_type_tbl</a>, number 1 -- a fire that stands still -- and
+number 17 -- spikes raised four levels -- are named by no room in the castle;
+the rooms use the moving fires and the ordinary spikes instead. Both are drawn
+on the templates page.
+</div>
+</div>
+<div><span id="wrongcharm"></span></div>
+<div class="box box-2">
+<div class="box-title">A wrong charm is destroyed, not returned</div>
+<div class="paragraph">
+Anything dropped into the wizard's cauldron is taken out of the game. When a
+charm lands in it, <a href="../asm/49733.html">add_obj_to_cauldron</a> counts it towards the fourteen only if it is the
+kind the cauldron is asking for; either way its place in <a href="../asm/28658.html">special_objs_tbl</a> is cleared
+and the object disappears. There are four of each kind, so a mistake costs one
+of them, not the game.
+</div>
+</div>
+<div><span id="percentage"></span></div>
+<div class="box box-1">
+<div class="box-title">The percentage without a divide</div>
+<div class="paragraph">
+The score at the end is rooms visited plus twice the charms delivered, out of
+128 rooms and 14 charms: 156 points. <a href="../asm/48144.html">calc_and_display_percent</a> turns that into a percentage
+without dividing: it adds 100/156 as a 16-bit fraction once per point and
+counts the carries out of the top in BCD. A last small addition makes a
+perfect game come out at 100 rather than 99.
+</div>
+</div>
+<div><span id="wantedlist"></span></div>
+<div class="box box-2">
+<div class="box-title">The wanted list is never reset</div>
+<div class="paragraph">
+The order in which the cauldron asks for the charms is a list of fourteen at
+<a href="../asm/49789.html">objects_required</a>, two of each kind. At the start of every game <a href="../asm/46404.html">shuffle_objects_required</a> rotates it in
+place by four to seven places, from the seed -- and nothing ever puts it back.
+So the first game after loading can ask in only four orders, and each game
+after that rotates on from where the last one left it.
+</div>
+</div>
+<div><span id="menuseed"></span></div>
+<div class="box box-1">
+<div class="box-title">Time on the menu picks the start</div>
+<div class="paragraph">
+The seed at $5BA0 goes up by one on every pass of the menu's loop (<a href="../asm/48419.html">menu_loop</a>),
+and its bottom two bits choose both the start room -- one of four, in
+<a href="../asm/53730.html">start_locations</a> -- and how far the wanted list is rotated. How long a player waits on
+the menu before pressing 0 decides where the game begins.
+</div>
+</div>
+<div><span id="balls"></span></div>
+<div class="box box-2">
+<div class="box-title">The balls chase the werewolf and flee the man</div>
+<div class="paragraph">
+The bouncing balls (types $B6 and $B7) move by rewriting their own code: each
+frame <a href="../asm/46591.html">upd_182_183</a> writes JR C or JR NC into two of its jumps, depending on whether
+the player's legs are Sabreman's or Sabrewulf's. So the same balls hop away
+from the knight and towards the werewolf.
+</div>
+</div>
+<div><span id="flipinplace"></span></div>
+<div class="box box-1">
+<div class="box-title">Sprites are turned round in place</div>
+<div class="paragraph">
+A sprite is stored once. When an object wants it facing the other way or
+upside down, <a href="../asm/55397.html">vflip_sprite_data</a> rewrites the sprite's own bytes -- rows swapped end for
+end, or each row's bytes reversed through the bit-reversal table at <a href="../asm/61696.html">reverse_bits_tbl</a> --
+and toggles a bit in its header to remember which way round the data now
+lies. So a snapshot catches each sprite as it was last drawn: spr_014 is
+stored upside down in this one, because the last thing drawn with it was the
+fourth corner of the menu's border, which <a href="../asm/53910.html">print_border</a> draws flipped.
+</div>
+</div>
+<div><span id="dayslength"></span></div>
+<div class="box box-2">
+<div class="box-title">A day is 392 frames</div>
+<div class="paragraph">
+The sun or moon crosses the panel's window a pixel every eight frames, and
+changes over after 49 steps: 392 frames of daylight, then 392 of night, so
+the forty days are 31360 of the game's frames. How long that is in minutes
+depends on the rooms: a frame waits out whatever time its drawing left over,
+and a busy room's frames take longer.
+</div>
+</div>
 <div><span id="objects"></span></div>
 <div class="box box-1">
 <div class="box-title">Forty objects, thirty-two bytes each</div>

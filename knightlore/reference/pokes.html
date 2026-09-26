@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#time">Endless time</a></li>
+<li><a href="#immunity">Immunity</a></li>
+<li><a href="#moveable">A moveable block that moves</a></li>
+</ul>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/53546.html">lose_life</a> takes a life with DEC (HL) at $D13F; make it a NOP. The lives shown
+stay at five from the start, and dying costs nothing. Tested: a death took the
+lives from 4 to 3 without the poke, and left them at 4 with it.
+POKE 53567,0
+</div>
+</div>
+<div><span id="time"></span></div>
+<div class="box box-2">
+<div class="box-title">Endless time</div>
+<div class="paragraph">
+<a href="../asm/50201.html">inc_days</a> ends the game when the day count reaches $40, forty days. Make the
+comparison $FF, which a BCD count never reaches: the days still pass and are
+shown, but they never run out. Tested: with the day count set to $39 and run
+on to the next dawn, the game ended without the poke and carried on with it.
+POKE 50210,255
+</div>
+</div>
+<div><span id="immunity"></span></div>
+<div class="box box-1">
+<div class="box-title">Immunity</div>
+<div class="paragraph">
+<a href="../asm/51243.html">upd_player_bottom</a> checks, every frame, whether anything harmful has touched the player,
+and starts his death if so. Make its JR Z at $C82F an unconditional JR, and
+spikes, fire, guards and ghosts pass him by. Tested: flagging the player as
+touched cost a life without the poke, and nothing with it.
+POKE 51247,24
+</div>
+</div>
+<div><span id="moveable"></span></div>
+<div class="box box-2">
+<div class="box-title">A moveable block that moves</div>
+<div class="paragraph">
+The block type the game calls moveable clears its velocity before it moves,
+which cancels every push (see the bug). Take out that CALL, at $C4AD: pushed
+blocks then keep the push, and slide on -- as the chest does -- until
+something stops them. Tested: a moveable block in the player's path did not
+move in 20 frames without the poke, and was pushed 47 units with it.
+POKE 50349,0: POKE 50350,0: POKE 50351,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>
