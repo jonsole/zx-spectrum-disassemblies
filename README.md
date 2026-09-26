@@ -103,6 +103,17 @@ genuinely cannot be derived &mdash; which way the player's four walk cycles
 face, say &mdash; it is written down as told rather than dressed up as
 measured.
 
+## Notes
+
+[notes/](notes/) holds a written account of each game, kept while it is being
+worked out rather than written up afterwards: an overview to start from, a
+note per subject answering one question each -- how it works, how that was
+found, how sure it is and what is still open -- a journal, and how to drive
+the game in the emulator. The HTML's prose pages are the polished form; the
+notes keep the evidence and the dead ends. Like the control files they are
+prose and addresses only, with no bytes of the game. So far:
+[The Hobbit](notes/hobbit/README.md) and [Knight Lore](notes/knightlore/README.md).
+
 ## Debugging
 
 Each build writes a `.sna` and a `.sld`. Load the ROM, then the snapshot and the
