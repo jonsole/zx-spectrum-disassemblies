@@ -82,3 +82,12 @@ were placeholders (`loc_B000`), and 20 of 8685 instructions had a comment.
   only the rectangle is copied. The first trace hung on a different room -- the
   player's records had been emptied for the room pictures, and
   `next_frame_or_die` took that for a death.
+- **The castle map** now looks like the classic ones (World of Spectrum's
+  KnightLore_3): every room, drawn by the game, placed where the game's own
+  projection puts it -- east is +X, down to the right, and north +Y, up to the
+  right (`screen_east` adds 1 to the room number, `screen_north` 16) -- 128
+  units apart, back to front, each on its floor diamond. Clickable on the
+  page, and linked at full size.
+- **`location_tbl` split into rooms.** Each room record is its own entry,
+  `room8E` and so on, titled with its square, shape and colour -- generated
+  with the rest of the level data, since the titles are the game's.

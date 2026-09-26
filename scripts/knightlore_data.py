@@ -69,9 +69,14 @@ def _room_lines(memory) -> list[str]:
     while address < ROOMS_END:
         room, length, attribute = memory[address:address + 3]
         end = address + 1 + length
-        out.append(f"B ${address:04X},3 Room ${room:02X} (row {room >> 4}, "
-                   f"column {room & 15}): {SHAPES[attribute >> 3]}, "
-                   f"{COLOURS[attribute & 7]}")
+        where = (f"Room ${room:02X} (row {room >> 4}, column {room & 15}): "
+                 f"{SHAPES[attribute >> 3]}, {COLOURS[attribute & 7]}")
+        # Each room its own entry, named for its number -- except the first,
+        # which is the table's entry, location_tbl, with its description.
+        if address != ROOMS:
+            out.append(f"@ ${address:04X} label=room{room:02X}")
+            out.append(f"b ${address:04X} {where}")
+        out.append(f"B ${address:04X},3 {where}")
         part = address + 3
         backgrounds = []
         while part < end and memory[part] != 0xFF:

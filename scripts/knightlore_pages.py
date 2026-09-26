@@ -451,31 +451,101 @@ def _scenery_page(memory, castle, titles, all_rooms, image_dir: Path) -> str:
     return "\n".join(lines)
 
 
+# The castle map: each room's picture placed where the game's own projection
+# puts it. A room is ROOM_SPACING units across (its walls stand 64 either side
+# of its centre), east is +X and north +Y (screen_east adds 1 to the room
+# number, screen_north 16), and a step of X is a pixel right and half down, of
+# Y a pixel right and half up.
+ROOM_SPACING = 128
+MAP_GROUND = (7, 7, 28)          # aticatac.css's page colour
+MAP_FLOOR = (16, 16, 60)
+MAP_FLOOR_EDGE = (40, 40, 110)
+MAP_MARGIN = 16                  # ground left round the castle
+MAP_OVERVIEW_WIDTH = 1200        # the picture on the page; the full one is linked
+
+
+def _project(x: int, y: int, z: int) -> tuple:
+    """calc_pixel_XY: pixel x, and pixel y counted from the top of the screen."""
+    return x + y - 128, 191 - ((y - x + 128) // 2 + z - 104)
+
+
+def castle_map(all_rooms, pictures: dict, sizes) -> tuple:
+    """The whole castle as one picture, and each room's floor as a polygon on
+    it, for the page's clickable map. Floors first, so each room reads as a
+    tile; then the rooms from the back to the front, black left transparent,
+    so nearer rooms stand in front of farther ones."""
+    from PIL import Image, ImageDraw
+
+    place = {}
+    for room in all_rooms:
+        number = room["number"]
+        x_world, y_world = (number & 15) * ROOM_SPACING, (number >> 4) * ROOM_SPACING
+        place[number] = (x_world + y_world, (x_world - y_world) // 2)
+    left = min(x for x, _ in place.values())
+    top = min(y for _, y in place.values())
+    width = max(x for x, _ in place.values()) + 256 - left
+    height = max(y for _, y in place.values()) + 192 - top
+    image = Image.new("RGB", (width, height), MAP_GROUND)
+    draw = ImageDraw.Draw(image)
+    floors = {}
+    for room in all_rooms:
+        number = room["number"]
+        half_x, half_y, floor = sizes[room["shape"]]
+        ox, oy = place[number][0] - left, place[number][1] - top
+        corners = [_project(128 + sx * half_x, 128 + sy * half_y, floor)
+                   for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        floors[number] = [(ox + x, oy + y) for x, y in corners]
+        draw.polygon(floors[number], fill=MAP_FLOOR, outline=MAP_FLOOR_EDGE)
+    for number in sorted(pictures, key=lambda n: ((n & 15) - (n >> 4), (n & 15) + (n >> 4))):
+        picture = pictures[number]
+        mask = picture.convert("L").point(lambda v: 255 if v else 0)
+        image.paste(picture, (place[number][0] - left, place[number][1] - top), mask)
+    # Cut it down to the castle, with a margin of ground.
+    ground = Image.new("RGB", image.size, MAP_GROUND)
+    from PIL import ImageChops
+    box = ImageChops.difference(image, ground).getbbox()
+    x0, y0 = max(0, box[0] - MAP_MARGIN), max(0, box[1] - MAP_MARGIN)
+    x1, y1 = min(image.width, box[2] + MAP_MARGIN), min(image.height, box[3] + MAP_MARGIN)
+    image = image.crop((x0, y0, x1, y1))
+    floors = {n: [(x - x0, y - y0) for x, y in corners] for n, corners in floors.items()}
+    return image, floors
+
+
 def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
     sizes = [memory[SIZES + 3 * s:SIZES + 3 * s + 3] for s in range(3)]
-    by_number = {room["number"]: room for room in all_rooms}
+    pictures = {}
+    for room in all_rooms:
+        pictures[room["number"]] = castle.draw(room["number"])
+        pictures[room["number"]].save(image_dir / f"room{room['number']:02x}.png")
+    from PIL import Image
+
+    whole, floors = castle_map(all_rooms, pictures, sizes)
+    whole.save(image_dir / "castle.png")
+    # The page shows it scaled to fit, with the clickable floors scaled alike;
+    # the full-size picture is a link away.
+    scale = MAP_OVERVIEW_WIDTH / whole.width
+    overview = whole.resize((MAP_OVERVIEW_WIDTH, round(whole.height * scale)), Image.LANCZOS)
+    overview.save(image_dir / "castle_overview.png")
+    areas = "".join(
+        '<area shape="poly" coords="'
+        + ",".join(f"{round(x * scale)},{round(y * scale)}" for x, y in corners)
+        + f'" href="#room{number:02x}" title="Room ${number:02X}" alt="Room ${number:02X}">'
+        for number, corners in sorted(floors.items()))
     lines = ['<div class="kl-list">',
              "<h3>The castle</h3>",
              "<p>The castle is a grid of 16 by 16 squares, and a room's number is its "
-             "square's row times 16 plus its column: leaving by the east or west side "
-             "changes only the low four bits, and north or south adds or takes 16 "
-             "(#R$CA9A to #R$CB29). 128 of the 256 squares are rooms. The map below "
-             "shows each where it lies, as the game draws it on entering; click one "
-             "for its record.</p>",
-             '<table class="kl-map">']
-    for row in range(16):
-        cells = []
-        for column in range(16):
-            number = row * 16 + column
-            if number in by_number:
-                cells.append(f'<td><a href="#room{number:02x}"><img src="images/rooms/'
-                             f'room{number:02x}.png" alt="${number:02X}" '
-                             f'title="${number:02X}"></a></td>')
-            else:
-                cells.append("<td></td>")
-        lines.append("<tr>" + "".join(cells) + "</tr>")
-    lines += ["</table>",
-              "<h3>A room record</h3>",
+             "square's row times 16 plus its column: leaving by the east side adds 1 "
+             "and by the west side takes 1, north adds 16 and south takes 16 "
+             "(#R$CA9A to #R$CB29). 128 of the 256 squares are rooms. Below, every "
+             "room is drawn by the game and put where the game's own projection "
+             "places it -- east down to the right, north up to the right -- on its "
+             "floor, so the castle can be seen whole. Click a room for its record, or "
+             '<a href="images/rooms/castle.png">see the whole castle at full size</a>.</p>',
+             '<div class="kl-castle">'
+             f'<img src="images/rooms/castle_overview.png" usemap="#castle" alt="The castle" '
+             f'width="{overview.width}" height="{overview.height}">'
+             f'<map name="castle">{areas}</map></div>']
+    lines += ["<h3>A room record</h3>",
               "<p>A room is a record of a few dozen bytes in #R$6251, and the records "
               "are packed end to end with no index: #R$D3CF finds a room by walking "
               "them from the start. In order:</p>",
@@ -512,8 +582,6 @@ def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
               "<h3>Every room</h3>"]
     for room in all_rooms:
         number = room["number"]
-        image = castle.draw(number)
-        image.save(image_dir / f"room{number:02x}.png")
         backgrounds = ", ".join(
             f'<a href="Scenery.html#scenery{b}">{_esc(kd.BACKGROUND_NAMES[b])}</a>'
             for b in room["backgrounds"]) or "none"
