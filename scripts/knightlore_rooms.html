@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knight Lore Room Editor</title>
+<!--
+  The Knight Lore room editor: one page, no server, nothing running but the
+  browser. knightlore_rooms.py page writes it from this template, once,
+  putting in what the @-markers name:
+
+    the Filmation room designer and templates editor (room_view.html and
+      templates_view.html, their models inlined), each as a string -- they
+      run unchanged in the two frames below, with a host of this page's own
+      in place of VS Code's or room_designer.py's;
+    knightlore_rooms.js, which reads a snapshot, paints the sprite sheet out
+      of it, decodes the castle and packs it back;
+    the remake's sprites.json and graphics.json: names, rectangles, boxes and
+      pixel nudges, and not one byte of the game. Every pixel, room and
+      template comes from the copy of the game you give it.
+-->
+<style>
+  :root {
+    --bg: #1e1e1e; --panel: #252526; --edge: #3a3a3a; --text: #cccccc;
+    --muted: #8f8f8f; --accent: #0e639c; --accent-hover: #1177bb;
+    --good: #89d185; --bad: #f48771;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg); color: var(--text);
+         font: 14px system-ui, -apple-system, "Segoe UI", sans-serif;
+         display: flex; flex-direction: column; }
+  button { font: inherit; font-size: 13px; padding: 5px 12px; border: 0; border-radius: 3px;
+           cursor: pointer; color: var(--text); background: #3a3d41; }
+  button:hover:not(:disabled) { background: #45494e; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { color: #fff; background: var(--accent); }
+  button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+  button.link { background: none; padding: 0; color: var(--muted); text-decoration: underline; }
+  a { color: #4fc1ff; }
+
+  /* --- before a snapshot --- */
+  #landing { flex: 1 1 auto; overflow: auto; display: flex; justify-content: center;
+             padding: 48px 16px; box-sizing: border-box; }
+  #landing .column { max-width: 620px; width: 100%; }
+  h1 { font-size: 26px; font-weight: 600; margin: 0 0 6px; }
+  .lede { color: var(--muted); margin: 0 0 28px; line-height: 1.5; }
+  #drop { border: 2px dashed var(--edge); border-radius: 8px; padding: 40px 20px;
+          text-align: center; background: var(--panel); cursor: pointer;
+          transition: border-color .15s, background .15s; }
+  #drop:hover, #drop.over { border-color: var(--accent-hover); background: #2a2d2e; }
+  #drop strong { display: block; font-size: 16px; margin-bottom: 6px; color: #e0e0e0; }
+  #drop span { color: var(--muted); font-size: 13px; }
+  #resume { margin-top: 16px; padding: 14px 16px; background: var(--panel);
+            border: 1px solid var(--edge); border-radius: 6px; display: none;
+            align-items: center; gap: 12px; flex-wrap: wrap; }
+  #resume .what { flex: 1 1 auto; }
+  #resume .when { color: var(--muted); font-size: 12px; }
+  #problem { margin-top: 16px; color: var(--bad); line-height: 1.5; min-height: 1em; }
+  .notes { margin-top: 32px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .notes h2 { font-size: 13px; color: var(--text); margin: 20px 0 6px; font-weight: 600; }
+  .notes ul { margin: 0; padding-left: 18px; }
+
+  /* --- with one --- */
+  #bar { display: none; flex: none; align-items: center; gap: 8px; padding: 7px 14px;
+         background: var(--panel); border-bottom: 1px solid var(--edge); flex-wrap: wrap; }
+  #bar .name { font-weight: 600; margin-right: 6px; }
+  #bar .file { color: var(--muted); font-size: 13px; }
+  #bar .spacer { flex: 1 1 auto; }
+  #bar .divider { width: 1px; align-self: stretch; background: var(--edge); margin: 0 4px; }
+  .views { display: flex; border-radius: 3px; overflow: hidden; }
+  .views button { border-radius: 0; }
+  .views button.on { color: #fff; background: var(--accent); }
+  #unsaved { font-size: 12px; color: var(--muted); }
+  #status { font-size: 13px; color: var(--muted); flex: 1 1 100%; order: 10;
+            min-height: 0; }
+  #status:empty { display: none; }
+  #status.good { color: var(--good); }
+  #status.bad { color: var(--bad); }
+  iframe { display: none; flex: 1 1 auto; border: 0; width: 100%; background: var(--bg); }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+
+<div id="landing">
+  <div class="column">
+    <h1>Knight Lore room editor</h1>
+    <p class="lede">Rearrange the castle of Ultimate&rsquo;s Knight Lore (1984) and play it: open a
+      snapshot of your own copy of the game, edit its rooms, and download the game again with
+      your rooms in it. Nothing leaves this page &mdash; there is no server.</p>
+    <div id="drop" tabindex="0">
+      <strong>Open a snapshot of Knight Lore</strong>
+      <span>Drop a 48K <code>.sna</code> or <code>.z80</code> here, or click to choose one.
+        Take it at the menu, before a game has started.</span>
+    </div>
+    <div id="resume">
+      <div class="what">Continue with <strong id="resume-name"></strong>
+        <div class="when" id="resume-when"></div></div>
+      <button class="primary" id="resume-go">Continue</button>
+      <button class="link" id="resume-forget">Forget it</button>
+    </div>
+    <div id="problem" role="alert"></div>
+    <div class="notes">
+      <h2>What you can change</h2>
+      <ul>
+        <li><strong>Rooms:</strong> each room&rsquo;s colour and floor shape, its scenery and every
+          object in it; add a room by clicking an empty square on the map, or delete one.</li>
+        <li><strong>Templates:</strong> what each piece of scenery and each kind of object is made
+          of &mdash; an arch, a wall, a block &mdash; which every room using it follows.</li>
+        <li>Where each of the 32 collectables starts.</li>
+      </ul>
+      <h2>What the original will hold</h2>
+      <ul>
+        <li><strong>No spare bytes.</strong> The game&rsquo;s room tables are 3,498 bytes and
+          full, so adding something costs bytes that must come from somewhere else &mdash; take
+          an object out of another room. Download says how many are free.</li>
+        <li><strong>36 pieces a room</strong>, counting every piece of every template it places.
+          The room busiest in the original already has 36; the editor marks a room over it.</li>
+        <li>Eight objects a group, 32 kinds of object, and a room has to have something in it.</li>
+      </ul>
+      <h2>Keeping your work</h2>
+      <ul>
+        <li><strong>Save</strong> keeps it in this browser, and it is offered back when you
+          return. <strong>Export</strong> writes it to a file you can <strong>Import</strong>
+          into any copy.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div id="bar">
+  <span class="name">Knight Lore room editor</span>
+  <span class="views" role="tablist">
+    <button id="view-rooms" class="on" role="tab">Rooms</button>
+    <button id="view-templates" role="tab">Templates</button>
+  </span>
+  <span class="file" id="file"></span>
+  <span class="spacer"></span>
+  <span id="unsaved"></span>
+  <button id="undo" title="undo (ctrl+Z)">Undo</button>
+  <button id="redo" title="redo (ctrl+shift+Z)">Redo</button>
+  <button id="save">Save</button>
+  <button class="primary" id="download">Download .sna</button>
+  <span class="divider"></span>
+  <button id="export">Export</button>
+  <button id="import">Import</button>
+  <button id="close">Close</button>
+  <div id="status" aria-live="polite"></div>
+</div>
+<iframe id="rooms-frame" title="Rooms"></iframe>
+<iframe id="templates-frame" title="Templates"></iframe>
+
+<input type="file" id="pick-snapshot" accept=".sna,.z80">
+<input type="file" id="pick-castle" accept=".json,application/json">
+
+<script>
+/*@knightlore_rooms.js@*/
+</script>
+<script>
+(function () {
+  'use strict';
+
+  const DESIGNER = /*@designer@*/"";
+  const TEMPLATES_PAGE = /*@templates@*/"";
+  const SPRITES = /*@sprites@*/null;
+  const GRAPHICS = /*@graphics@*/null;
+  const STORE = 'knightlore-room-editor';
+  const CASTLE_FORMAT = 'knightlore-rooms';
+  const UNDO_DEPTH = 60;
+
+  // The two pages' hosts, in place of VS Code's. Each is the body of a
+  // function so that it reads as code here, and becomes text to put into the
+  // page where its /*@host@*/ marker is. They send every change out, and take
+  // a fresh castle when the other page has changed it.
+  //
+  // The designer's own Undo, Save, Build and Templates... are not offered: the
+  // bar above has one of each for both pages, and the tabs that switch
+  // between them. Its undo keys come out here, as the templates page's do.
+  const ROOMS_HOST = String(function () {
+    window.roomHost = (function () {
+      const boot = __BOOT__;
+      let reload = null;
+      let goTo = null;
+      function send(message) {
+        message.klRooms = true;
+        window.parent.postMessage(message, '*');
+      }
+      window.addEventListener('message', function (event) {
+        const m = event.data;
+        if (!m || !m.klRooms) return;
+        if (m.type === 'reload' && reload) reload(m.boot);
+        if (m.type === 'goto' && goTo) goTo(m.room);
+      });
+      window.addEventListener('keydown', function (event) {
+        if (!(event.ctrlKey || event.metaKey)) return;
+        const key = event.key.toLowerCase();
+        if (key === 's') {
+          event.preventDefault();
+          send({ type: 'save' });
+          return;
+        }
+        const tag = event.target && event.target.tagName;
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+        if (key === 'z' || key === 'y') {
+          event.preventDefault();
+          send({ type: key === 'y' || event.shiftKey ? 'redo' : 'undo' });
+        }
+      });
+      return {
+        boot: boot,
+        save: function (text) { send({ type: 'rooms', text: text }); },
+        saveSpecials: function (text) { send({ type: 'specials', text: text }); },
+        roomChanged: function (n) { send({ type: 'room', room: n }); },
+        onReload: function (fn) { reload = fn; },
+        onGoto: function (fn) { goTo = fn; }
+      };
+    })();
+  });
+
+  // The templates editor leaves undo to its host -- in VS Code it is the text
+  // editor's -- so here the keys come out to this page, which keeps the one
+  // stack both pages share.
+  const TEMPLATES_HOST = String(function () {
+    window.templatesHost = (function () {
+      const boot = __BOOT__;
+      let reload = null;
+      function send(message) {
+        message.klRooms = true;
+        window.parent.postMessage(message, '*');
+      }
+      window.addEventListener('message', function (event) {
+        const m = event.data;
+        if (m && m.klRooms && m.type === 'reload' && reload) reload(m.boot);
+      });
+      window.addEventListener('keydown', function (event) {
+        if (!(event.ctrlKey || event.metaKey)) return;
+        if (event.key.toLowerCase() === 's') {
+          event.preventDefault();
+          send({ type: 'save' });
+          return;
+        }
+        const tag = event.target && event.target.tagName;
+        if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+        const key = event.key.toLowerCase();
+        if (key === 'z' || key === 'y') {
+          event.preventDefault();
+          send({ type: key === 'y' || event.shiftKey ? 'redo' : 'undo' });
+        }
+      });
+      return {
+        boot: boot,
+        save: function (text) { send({ type: 'templates', text: text }); },
+        rename: function (templates, rooms) { send({ type: 'rename', templates: templates, rooms: rooms }); },
+        showRoom: function (n) { send({ type: 'show', room: n }); },
+        picked: function () {},
+        onReload: function (fn) { reload = fn; }
+      };
+    })();
+  });
+
+  const el = {};
+  for (const id of ['landing', 'drop', 'resume', 'resume-name', 'resume-when', 'resume-go',
+                    'resume-forget', 'problem', 'bar', 'file', 'status', 'unsaved', 'save',
+                    'download', 'export', 'import', 'close', 'undo', 'redo',
+                    'view-rooms', 'view-templates', 'rooms-frame', 'templates-frame',
+                    'pick-snapshot', 'pick-castle']) {
+    el[id] = document.getElementById(id);
+  }
+
+  // The session: the snapshot as given (always the pristine original), and
+  // the castle as the pages last said -- three texts, the same three files
+  // knightlore_rooms.py extract writes.
+  //
+  // Each page is told of the other's changes when it is next shown, not as
+  // they happen: `seen` is the change count each one last loaded, and a page
+  // behind the count is reloaded as it comes to the front.
+  let session = null;
+
+  function say(text, kind) {
+    el.status.textContent = text;
+    el.status.className = kind || '';
+  }
+
+  // --- storage: a convenience, never relied on -----------------------------
+
+  function toBase64(bytes) {
+    let s = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    }
+    return btoa(s);
+  }
+  function fromBase64(text) {
+    const s = atob(text);
+    const out = new Uint8Array(s.length);
+    for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i);
+    return out;
+  }
+  function stored() {
+    try { return JSON.parse(localStorage.getItem(STORE) || 'null'); } catch (err) { return null; }
+  }
+  function castleNow() {
+    return { rooms: session.roomsText, templates: session.templatesText, specials: session.specialsText };
+  }
+  function store() {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(Object.assign({
+        name: session.name, when: new Date().toISOString(), sna: toBase64(session.original)
+      }, castleNow())));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+  function forget() {
+    try { localStorage.removeItem(STORE); } catch (err) { /* nothing kept, nothing to forget */ }
+  }
+
+  // --- opening --------------------------------------------------------------
+
+  function sheetDataUrl(sna) {
+    const painted = sheetPixels(sna, SPRITES, GRAPHICS);
+    const canvas = document.createElement('canvas');
+    canvas.width = painted.width;
+    canvas.height = painted.height;
+    canvas.getContext('2d').putImageData(new ImageData(painted.pixels, painted.width, painted.height), 0, 0);
+    return canvas.toDataURL('image/png');
+  }
+
+  // A snapshot, and optionally the castle to open it with instead of its own
+  // -- a saved or imported one. A castle saved before templates could be
+  // edited has none of its own, and takes the snapshot's.
+  function open(name, bytes, kept) {
+    const sna = readSnapshot(bytes, name);
+    try {
+      checkOriginal(sna);
+    } catch (err) {
+      if (word(sna, BLOCK_TYPE_OPERANDS[0]) !== BLOCK_TYPE_TBL) {
+        throw new CastleError('This copy has had its rooms changed already -- perhaps by this ' +
+          'editor. Open the original snapshot instead; to carry on with a castle, Export it ' +
+          'first and Import it again once the original is open.');
+      }
+      throw err;
+    }
+    const castle = decodeCastle(sna, GRAPHICS);
+    session = {
+      name: name,
+      original: sna,
+      sheetPng: sheetDataUrl(sna),
+      roomsText: kept && kept.rooms ? withStarts(kept.rooms, castle) : JSON.stringify(castle.rooms),
+      templatesText: (kept && kept.templates) || JSON.stringify(castle.templates),
+      specialsText: (kept && kept.specials) || JSON.stringify(castle.specials),
+      changes: 0,
+      seen: { rooms: -1, templates: -1 },
+      savedAt: 0,
+      view: 'rooms',
+      room: null,
+      past: [],
+      future: []
+    };
+    session.savedText = JSON.stringify(castleNow());
+    el.file.textContent = name;
+    el.landing.style.display = 'none';
+    el.bar.style.display = 'flex';
+    say('');
+    show('rooms');
+  }
+
+  // A castle saved or exported before the rooms listed where a game starts
+  // takes the snapshot's, so the list under the map is there for it too.
+  function withStarts(roomsText, castle) {
+    const rooms = JSON.parse(roomsText);
+    if (rooms.startRooms !== undefined) return roomsText;
+    const out = { meta: rooms.meta, roomDimensions: rooms.roomDimensions,
+                  startRooms: castle.rooms.startRooms };
+    for (const key of Object.keys(rooms)) if (!(key in out)) out[key] = rooms[key];
+    return JSON.stringify(out);
+  }
+
+  function roomsBoot() {
+    return {
+      atlas: JSON.parse(session.roomsText),
+      eol: '\n',
+      sheet: SPRITES,
+      sheetPng: session.sheetPng,
+      graphics: GRAPHICS,
+      templates: JSON.parse(session.templatesText),
+      specials: JSON.parse(session.specialsText),
+      room: session.room,
+      showSave: false,
+      game: 'knightlore',
+      games: [],
+      ownUndo: false
+    };
+  }
+
+  function templatesBoot() {
+    return {
+      templates: JSON.parse(session.templatesText),
+      rooms: JSON.parse(session.roomsText),
+      eol: '\n',
+      roomsEol: '\n',
+      sheet: SPRITES,
+      graphics: GRAPHICS,
+      sheetPng: session.sheetPng,
+      codeRefs: null
+    };
+  }
+
+  // A page with its host put in: the boot is JSON inside a <script>, so
+  // anything that could end the script early is escaped.
+  function withHost(page, host, boot) {
+    const shim = host.replace(/^function \(\) \{|\}$/g, '').replace('__BOOT__', function () {
+      return JSON.stringify(boot).replace(/<\//g, '<\\/');
+    });
+    return page.replace('/*@host@*/', function () { return shim; });
+  }
+
+  // Bring one page to the front, loading or reloading it if the castle has
+  // changed since it last looked.
+  function show(view) {
+    session.view = view;
+    const frame = el[view + '-frame'];
+    const other = el[(view === 'rooms' ? 'templates' : 'rooms') + '-frame'];
+    const behind = session.seen[view] !== session.changes;
+    if (session.seen[view] < 0) {
+      frame.srcdoc = view === 'rooms'
+        ? withHost(DESIGNER, ROOMS_HOST, roomsBoot())
+        : withHost(TEMPLATES_PAGE, TEMPLATES_HOST, templatesBoot());
+    } else if (behind) {
+      frame.contentWindow.postMessage({ klRooms: true, type: 'reload',
+        boot: view === 'rooms' ? roomsBoot() : templatesBoot() }, '*');
+    }
+    session.seen[view] = session.changes;
+    frame.style.display = 'block';
+    other.style.display = 'none';
+    el['view-rooms'].classList.toggle('on', view === 'rooms');
+    el['view-templates'].classList.toggle('on', view === 'templates');
+    renderBar();
+  }
+
+  function openFile(file) {
+    el.problem.textContent = '';
+    file.arrayBuffer().then(function (buffer) {
+      open(file.name, new Uint8Array(buffer));
+      store();
+      session.savedText = JSON.stringify(castleNow());
+      renderBar();
+    }).catch(function (err) {
+      el.problem.textContent = err instanceof CastleError ? err.message : 'Could not open it: ' + err;
+    });
+  }
+
+  function close() {
+    session = null;
+    for (const view of ['rooms', 'templates']) {
+      el[view + '-frame'].srcdoc = '';
+      el[view + '-frame'].style.display = 'none';
+    }
+    el.bar.style.display = 'none';
+    el.landing.style.display = 'flex';
+    offerResume();
+  }
+
+  function offerResume() {
+    const kept = stored();
+    el.resume.style.display = kept ? 'flex' : 'none';
+    if (!kept) return;
+    el['resume-name'].textContent = kept.name;
+    el['resume-when'].textContent = 'saved ' + new Date(kept.when).toLocaleString();
+  }
+
+  function unsaved() {
+    return Boolean(session) && JSON.stringify(castleNow()) !== session.savedText;
+  }
+
+  function renderBar() {
+    if (!session) return;
+    el.undo.disabled = !session.past.length;
+    el.redo.disabled = !session.future.length;
+    el.unsaved.textContent = unsaved() ? 'unsaved' : '';
+  }
+
+  // --- what the pages say ---------------------------------------------------
+
+  // Something changed, from the page in front: that page already has it, and
+  // the other will be reloaded when it is next shown.
+  function changed(from) {
+    session.changes++;
+    session.seen[from] = session.changes;
+    renderBar();
+  }
+
+  // Undo, for both pages at once: whole copies of the castle's three texts,
+  // one for every change either page reports, as the designer keeps its own
+  // in a browser. One history rather than one a page, so that undo steps back
+  // through what you did in the order you did it, whichever page it was on.
+  function remember() {
+    session.past.push(castleNow());
+    if (session.past.length > UNDO_DEPTH) session.past.shift();
+    session.future.length = 0;
+  }
+  function step(from, to) {
+    if (!from.length) return;
+    to.push(castleNow());
+    const back = from.pop();
+    session.roomsText = back.rooms;
+    session.templatesText = back.templates;
+    session.specialsText = back.specials;
+    session.changes++;
+    show(session.view);
+  }
+
+  window.addEventListener('message', function (event) {
+    const m = event.data;
+    if (!session || !m || !m.klRooms) return;
+    const from = event.source === el['rooms-frame'].contentWindow ? 'rooms'
+      : event.source === el['templates-frame'].contentWindow ? 'templates' : null;
+    if (!from) return;
+    if (m.type === 'rooms') {
+      if (m.text === session.roomsText) return;
+      remember();
+      session.roomsText = m.text;
+      changed(from);
+    } else if (m.type === 'specials') {
+      if (m.text === session.specialsText) return;
+      remember();
+      session.specialsText = m.text;
+      changed(from);
+    } else if (m.type === 'templates') {
+      remember();
+      session.templatesText = m.text;
+      changed(from);
+    } else if (m.type === 'rename') {
+      remember();
+      session.templatesText = m.templates;
+      session.roomsText = m.rooms;
+      changed(from);
+    } else if (m.type === 'room') {
+      session.room = m.room;
+    } else if (m.type === 'show') {
+      session.room = m.room;
+      show('rooms');
+      el['rooms-frame'].contentWindow.postMessage({ klRooms: true, type: 'goto', room: m.room }, '*');
+    } else if (m.type === 'save') {
+      save();
+    } else if (m.type === 'undo') {
+      step(session.past, session.future);
+    } else if (m.type === 'redo') {
+      step(session.future, session.past);
+    }
+  });
+
+  // --- out ------------------------------------------------------------------
+
+  function save() {
+    if (store()) {
+      session.savedText = JSON.stringify(castleNow());
+      say('Saved in this browser.', 'good');
+    } else {
+      say('This browser would not keep it -- use Export instead.', 'bad');
+    }
+    renderBar();
+  }
+
+  function saveAs(name, bytes, type) {
+    const url = URL.createObjectURL(new Blob([bytes], { type: type }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function stem() {
+    return session.name.replace(/\.[^.]*$/, '');
+  }
+
+  function download() {
+    try {
+      const atlas = JSON.parse(session.roomsText);
+      const templates = JSON.parse(session.templatesText);
+      atlas.sceneryTemplates = templates.sceneryTemplates;
+      atlas.objectTemplates = templates.objectTemplates;
+      const packed = packCastle(session.original, atlas, JSON.parse(session.specialsText), GRAPHICS);
+      const built = applyWrites(session.original, packed.writes);
+      saveAs(stem() + '-rooms.sna', built.sna, 'application/octet-stream');
+      say(describe(packed.report) + ' ' + built.changed + ' bytes differ from the original.', 'good');
+    } catch (err) {
+      if (!(err instanceof CastleError)) throw err;
+      say('Not built: ' + err.message, 'bad');
+    }
+  }
+
+  function exportCastle() {
+    const bundle = {
+      format: CASTLE_FORMAT,
+      version: 2,
+      rooms: JSON.parse(session.roomsText),
+      templates: JSON.parse(session.templatesText),
+      specials: JSON.parse(session.specialsText)
+    };
+    saveAs(stem() + '-castle.json', JSON.stringify(bundle, null, 1) + '\n', 'application/json');
+    say('Exported the castle.', 'good');
+  }
+
+  // A castle exported before templates could be edited has none, and keeps
+  // the ones open now.
+  function importCastle(file) {
+    file.text().then(function (text) {
+      const bundle = JSON.parse(text);
+      if (!bundle || bundle.format !== CASTLE_FORMAT || !bundle.rooms || !bundle.specials) {
+        throw new CastleError('That is not a castle this editor exported.');
+      }
+      session.roomsText = withStarts(JSON.stringify(bundle.rooms), decodeCastle(session.original, GRAPHICS));
+      if (bundle.templates) session.templatesText = JSON.stringify(bundle.templates);
+      session.specialsText = JSON.stringify(bundle.specials);
+      session.past.length = 0;
+      session.future.length = 0;
+      session.changes++;
+      show(session.view);
+      say('Imported ' + file.name + '. Save to keep it here.', 'good');
+    }).catch(function (err) {
+      say(err instanceof CastleError ? err.message : 'Could not import it: ' + err, 'bad');
+    });
+  }
+
+  // --- wiring ---------------------------------------------------------------
+
+  el.drop.addEventListener('click', function () { el['pick-snapshot'].click(); });
+  el.drop.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); el['pick-snapshot'].click(); }
+  });
+  el['pick-snapshot'].addEventListener('change', function () {
+    if (this.files[0]) openFile(this.files[0]);
+    this.value = '';
+  });
+  ['dragenter', 'dragover'].forEach(function (kind) {
+    el.drop.addEventListener(kind, function (event) { event.preventDefault(); el.drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (kind) {
+    el.drop.addEventListener(kind, function () { el.drop.classList.remove('over'); });
+  });
+  el.drop.addEventListener('drop', function (event) {
+    event.preventDefault();
+    if (event.dataTransfer.files[0]) openFile(event.dataTransfer.files[0]);
+  });
+  el['resume-go'].addEventListener('click', function () {
+    const kept = stored();
+    if (!kept) { offerResume(); return; }
+    try {
+      open(kept.name, fromBase64(kept.sna), kept);
+    } catch (err) {
+      el.problem.textContent = err.message;
+    }
+  });
+  el['resume-forget'].addEventListener('click', function () { forget(); offerResume(); });
+  el['view-rooms'].addEventListener('click', function () { show('rooms'); });
+  el['view-templates'].addEventListener('click', function () { show('templates'); });
+  el.undo.addEventListener('click', function () { step(session.past, session.future); });
+  el.redo.addEventListener('click', function () { step(session.future, session.past); });
+  el.save.addEventListener('click', save);
+  el.download.addEventListener('click', download);
+  el.export.addEventListener('click', exportCastle);
+  el.import.addEventListener('click', function () { el['pick-castle'].click(); });
+  el['pick-castle'].addEventListener('change', function () {
+    if (this.files[0]) importCastle(this.files[0]);
+    this.value = '';
+  });
+  el.close.addEventListener('click', function () {
+    if (!unsaved() || confirm('Close without saving the changes since you last saved?')) close();
+  });
+  window.addEventListener('keydown', function (event) {
+    if (session && (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      save();
+    }
+  });
+  window.addEventListener('beforeunload', function (event) {
+    if (!unsaved()) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  offerResume();
+})();
+</script>
+</body>
+</html>
