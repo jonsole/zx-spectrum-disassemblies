@@ -531,6 +531,238 @@ def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
     return "\n".join(lines)
 
 
+# The worked example: a frame of room $01, where the ghost drifts and the
+# guard marks time, with the player still materialising by the door. The
+# first frame of a room draws everything; frame 3 is an ordinary one.
+EXAMPLE_ROOM = 0x01
+EXAMPLE_FRAME = 3
+MATERIALISING = 0x78        # the type the player is given on arriving (lose_life)
+END_OF_FRAME = 0xB000
+DRAW_AND_COPY_RECTS = 0xD653
+RENDER_OBJ = 0xD003
+COPY_NEXT_RECT = 0xD666
+COPY_RECTS_DONE = 0xD679
+OBJECTS_TO_DRAW = 0xCE8B
+RECT_COUNT = 0x5BA8
+BUFFER = 0xD8F3
+
+
+def _screen(memory):
+    from PIL import Image
+
+    image = Image.new("RGB", (256, 192))
+    pixels = image.load()
+    for y in range(192):
+        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
+        for column in range(32):
+            byte = memory[row + column]
+            attr = memory[0x5800 + (y >> 3) * 32 + column]
+            palette = SPECTRUM_BRIGHT if attr & 0x40 else SPECTRUM
+            ink, paper = palette[attr & 7], palette[(attr >> 3) & 7]
+            for bit in range(8):
+                pixels[column * 8 + bit, y] = ink if byte & (0x80 >> bit) else paper
+    return image
+
+
+def _buffer(memory):
+    """The room buffer as a picture: 192 rows of 32 bytes, bottom line first."""
+    from PIL import Image
+
+    image = Image.new("RGB", (256, 192))
+    pixels = image.load()
+    for y in range(192):
+        row = BUFFER + (191 - y) * 32
+        for column in range(32):
+            byte = memory[row + column]
+            for bit in range(8):
+                pixels[column * 8 + bit, y] = ((255, 255, 255) if byte & (0x80 >> bit)
+                                               else (0, 0, 0))
+    return image
+
+
+def _outlined(image, rects, scale: int = 2):
+    """The picture at twice the size, each copied rectangle outlined in red."""
+    from PIL import Image, ImageDraw
+
+    big = image.resize((image.width * scale, image.height * scale), Image.NEAREST)
+    draw = ImageDraw.Draw(big)
+    for column, top, width, height in rects:
+        draw.rectangle([column * 8 * scale, top * scale,
+                        (column + width) * 8 * scale - 1, (top + height) * scale - 1],
+                       outline=(255, 64, 64), width=2)
+    return big
+
+
+def trace_frame(castle):
+    """Run the example room to its example frame, and follow that frame
+    through the renderer: what each stage leaves, and in what order things
+    are drawn."""
+    from skoolkit.simutils import IXh, IXl, PC, SP
+
+    memory = list(castle.memory)
+    # The player alive this time: next_frame_or_die takes empty types in
+    # records 0 and 1 for a death and would start the life again elsewhere.
+    memory[PLAYER] = memory[PLAYER_TOP] = MATERIALISING
+    memory[PLAYER + ROOM_OFFSET] = memory[PLAYER_TOP + ROOM_OFFSET] = EXAMPLE_ROOM
+    memory, registers = castle._call(memory, BUILD_SCREEN_OBJECTS, castle.registers)
+    sim = castle._machine(memory)
+    for index, value in enumerate(registers):
+        sim.registers[index] = value
+    sim.registers[SP] = OBJECT_STACK
+    sim.run(ONSCREEN_LOOP, ONSCREEN_LOOP)          # the room's first frame
+    for _ in range(EXAMPLE_FRAME - 2):
+        sim.run(ONSCREEN_LOOP, ONSCREEN_LOOP)
+
+    def record(i):
+        return PLAYER + 32 * i
+
+    before = _screen(sim.memory)
+    start = {i: list(sim.memory[record(i):record(i) + 4]) for i in range(40)
+             if sim.memory[record(i)]}
+    sim.run(ONSCREEN_LOOP, END_OF_FRAME)
+    objects = []
+    for i in range(40):
+        flags = sim.memory[record(i) + 7]
+        if sim.memory[record(i)] and flags & 0x30:
+            now = list(sim.memory[record(i):record(i) + 4])
+            objects.append({"record": i, "type": now[0], "was": start.get(i, [0])[0],
+                            "moved": now[1:] != start.get(i, now)[1:],
+                            "wipe": bool(flags & 0x20)})
+    sim.run(END_OF_FRAME, DRAW_AND_COPY_RECTS)
+    rects = []
+    stack = sim.registers[SP]
+    for k in range(sim.memory[RECT_COUNT]):
+        base = stack + 6 * k
+        buffer_address = sim.memory[base] | (sim.memory[base + 1] << 8)
+        size = sim.memory[base + 4] | (sim.memory[base + 5] << 8)
+        width, height = size >> 8, size & 0xFF
+        offset = buffer_address - BUFFER
+        bottom = 191 - offset // 32
+        rects.append((offset % 32, bottom - height + 1, width, height))
+    wiped = _buffer(sim.memory)
+    listed = []
+    address = OBJECTS_TO_DRAW
+    while sim.memory[address] != 0xFF:
+        listed.append(sim.memory[address])
+        address += 1
+    order = []
+    for _ in listed:
+        sim.run(sim.registers[PC], RENDER_OBJ)
+        ix = (sim.registers[IXh] << 8) | sim.registers[IXl]
+        order.append((ix - PLAYER) // 32)
+    sim.run(sim.registers[PC], COPY_NEXT_RECT)
+    drawn = _buffer(sim.memory)
+    sim.run(COPY_NEXT_RECT, COPY_RECTS_DONE)
+    after = _screen(sim.memory)
+    return {"before": before, "wiped": wiped, "drawn": drawn, "after": after,
+            "objects": objects, "rects": rects, "order": order}
+
+
+def _moving_page(castle, comments, image_dir: Path) -> str:
+    frame = trace_frame(castle)
+    rects = frame["rects"]
+    for name in ("before", "wiped", "drawn", "after"):
+        _outlined(frame[name], rects).save(image_dir / f"moving_{name}.png")
+
+    def what(t):
+        return _esc(re.sub(r"^Type \d+:\s*", "", comments.get(HANDLER_TABLE + 2 * t, "")))
+
+    by_record = {o["record"]: o for o in frame["objects"]}
+    moved = [o for o in frame["objects"] if o["wipe"]]
+    rows = []
+    for position, i in enumerate(frame["order"], 1):
+        o = by_record.get(i, {"type": 0, "wipe": False, "moved": False, "was": 0})
+        why = ("moved" if o["moved"] else "changed picture" if o["type"] != o["was"]
+               else "changed") if o["wipe"] else "overlaps a change"
+        rows.append(f"<tr><td>{position}</td><td>{i}</td><td>{o['type']}</td>"
+                    f"<td>{what(o['type'])}</td><td>{why}</td></tr>")
+    rect_rows = "".join(f"<tr><td>{c * 8}</td><td>{top}</td><td>{w * 8}</td><td>{h}</td></tr>"
+                        for c, top, w, h in rects)
+    figure = ('<div class="kl-item"><img class="kl-stage" src="images/rooms/moving_{0}.png" '
+              'alt=""><p>{1}</p></div>')
+    return "\n".join([
+        '<div class="kl-list">',
+        "<p>Knight Lore never redraws the room. Everything on the screen stays as it "
+        "is until something changes, and then only the rectangle the change covers "
+        "is rebuilt -- off screen, in depth order -- and copied across. This page "
+        "follows one moving object through a frame, from its handler moving it to "
+        "the pixels reaching the display, and then shows a real frame of the game "
+        "doing it, traced in the game's own code.</p>",
+        "<h3>1. Every object gets a turn</h3>",
+        "<p>Each frame #R$AFBD walks the forty object records. Before an object's "
+        "handler runs, #R$CE49 keeps a copy of where its picture was on the screen "
+        "(bytes $18-$1B, the width and height and the pixel position, go to "
+        "$1C-$1F): that is the image that may have to be wiped. The handler is "
+        "chosen by the object's type, through #R$B096.</p>",
+        "<h3>2. The handler moves it</h3>",
+        "<p>An object's velocity is in bytes $09-$0B. Gravity is one "
+        "<code>DEC</code> of dZ (#R$C700); #R$CB45 then shortens the move against "
+        "the room's walls and every other object, one axis at a time -- Z, then X, "
+        "then Y -- a unit at a time, so a blocked move slides along what blocks it; "
+        "and #R$C706 adds what is left to the position. An object that animates "
+        "changes its own type, which is also its sprite: there is no frame number.</p>",
+        "<h3>3. It marks itself, and everything it touches</h3>",
+        "<p>A handler whose object moved or changed calls #R$C692. That sets two "
+        "flags in byte $07 -- bit 5, <i>wipe my old picture</i>, and bit 4, "
+        "<i>draw me</i> -- and calls #R$CD4D, which projects the new position "
+        "(#R$CD33, through #R$D6C9: pixel x = X + Y - 128, pixel y = (Y - X + 128)/2 "
+        "+ Z - 104, counted up from the bottom) and takes the rectangle covering "
+        "both the old picture and the new one. Every live object whose picture "
+        "overlaps that rectangle gets bit 4 too: it will have to be drawn again, "
+        "because the wipe is going to take a bite out of it.</p>",
+        "<h3>4. The wipe</h3>",
+        "<p>At the end of the frame, #R$CE62 lists every object with bit 4, and "
+        "#R$D59F takes each one with bit 5: it clears the rectangle of its old and "
+        "new pictures, in whole bytes across and pixel rows up, in the room's "
+        "buffer at #R$D8F3 -- never on the screen -- and pushes the rectangle on "
+        "the stack to copy later.</p>",
+        "<h3>5. Drawing in depth order</h3>",
+        "<p>#R$CEBB then draws every listed object into the buffer, back to front. "
+        "It picks a candidate, and compares it with each other undrawn object: each "
+        "axis is classified as clear one way, overlapping, or clear the other way, "
+        "and the 27 combinations are looked up in the table at #R$CF69, which says "
+        "whether the other one must go first. If it must, it becomes the candidate; "
+        "when a candidate survives the whole list it is drawn. The projection hides "
+        "a step of (+1, -1, +1), so further back means smaller X, larger Y and lower "
+        "Z. Each object is drawn whole by #R$D718, through its own mask -- the "
+        "background is cleared under the mask and the image laid in -- and turned "
+        "the way it faces by flipping the sprite's own bytes in place (#R$D865).</p>",
+        "<h3>6. Copying the rectangles</h3>",
+        "<p>Finally #R$D666 pops each rectangle and #R$D67C copies just that part of "
+        "the buffer to the display. Nothing is erased on the display and nothing is "
+        "drawn there piece by piece, so nothing flickers; and nothing outside the "
+        "rectangles changes. The objects were drawn whole into the buffer, but only "
+        "the rectangles are copied, so what lies outside them in the buffer does "
+        "not matter -- which is also why marking only the objects that overlap the "
+        "rectangle is enough: anything else could not put a pixel inside it.</p>",
+        "<h3>7. Pacing</h3>",
+        "<p>$5BBE counts the frame's work, objects drawn plus rectangles copied, and "
+        "#R$B000 waits six units less that, so a room with little changing runs at "
+        "an even speed and a busy one slows down. On entering a room (#R$D1E6) "
+        "there is no wipe: every object is drawn into a cleared buffer and the whole "
+        "of it is copied, once.</p>",
+        f"<h3>A frame of room ${EXAMPLE_ROOM:02X}</h3>",
+        f"<p>Frame {EXAMPLE_FRAME} after entering room ${EXAMPLE_ROOM:02X}, run by the "
+        "game's own code in a simulator when this page was built. The ghost drifts, "
+        "the guard marks time, and the player is still materialising by the door. "
+        f"{len(moved)} objects changed, so there are {len(rects)} rectangles, outlined "
+        f"in red; {len(frame['order'])} objects are drawn to fill them.</p>",
+        figure.format("before", "The screen as the frame begins."),
+        figure.format("wiped", "The buffer after the wipe: the rectangles are "
+                      "cleared. Around them are leftovers of earlier frames, which "
+                      "are never copied."),
+        figure.format("drawn", "The buffer after drawing: every flagged object, "
+                      "drawn whole, back to front."),
+        figure.format("after", "The screen after the rectangles are copied."),
+        "<p>The objects drawn, in the order the depth sort chose:</p>",
+        '<table class="kl-table"><tr><th>Order</th><th>Record</th><th>Type</th>'
+        "<th>What</th><th>Why it is drawn</th></tr>" + "".join(rows) + "</table>",
+        "<p>The rectangles copied, in pixels:</p>",
+        '<table class="kl-table"><tr><th>x</th><th>y from the top</th><th>Width</th>'
+        "<th>Height</th></tr>" + rect_rows + "</table>",
+        "</div>"])
+
+
 def build(memory, skool: Path, html_dir: Path, out_ref: Path, log=print) -> None:
     """Draw the pictures into html_dir/images and write the pages' sections."""
     labels, titles, comments = read_listing(skool)
@@ -550,6 +782,7 @@ def build(memory, skool: Path, html_dir: Path, out_ref: Path, log=print) -> None
         "Templates": _templates_page(memory, castle, titles, all_rooms, room_dir),
         "Scenery": _scenery_page(memory, castle, titles, all_rooms, room_dir),
         "RoomStructure": _rooms_page(memory, castle, all_rooms, room_dir),
+        "MovingObjects": _moving_page(castle, comments, room_dir),
     }
     out_ref.write_text("\n\n".join(f"[{name}]\n{body}" for name, body in sections.items())
                        + "\n", encoding="utf-8")

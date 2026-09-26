@@ -14,6 +14,16 @@ separate frame number, so an object animates by changing its own type.
 [`main-loop.md`](main-loop.md), [`object-types.md`](object-types.md),
 [`memory-map.md`](memory-map.md)
 
+## A moving object is redrawn in a rectangle, off screen
+
+The room is never redrawn. An object that moves flags itself and marks every
+object whose picture overlaps the rectangle covering its old and new pictures;
+at the end of the frame that rectangle is cleared in an off-screen buffer,
+every marked object is drawn into it whole, back to front, and only the
+rectangle is copied to the display -- so nothing flickers and nothing else
+changes. A frame of room $01, traced in the game's own code, shows each stage.
+[`moving-objects.md`](moving-objects.md)
+
 ## The depth sort is an exact rule for this projection
 
 Objects are drawn back to front by a comparison that codes each axis as

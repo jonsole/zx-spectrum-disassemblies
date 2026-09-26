@@ -34,6 +34,7 @@ what is still open. The disassembly itself is the build's output.
 | [`journal.md`](journal.md) | What was investigated when, and what turned out wrong |
 | [`driving.md`](driving.md) | Running the game from a script: breakpoints, keys, traps |
 | [`memory-map.md`](memory-map.md) | Regions, the object record, every variable |
+| [`moving-objects.md`](moving-objects.md) | **How a moving object is drawn**: the whole pipeline, and a traced frame |
 | [`main-loop.md`](main-loop.md) | Start-up, the object walk, the end of a frame and its timing |
 | [`object-types.md`](object-types.md) | The 188 object types and their handlers |
 | [`object-behaviours.md`](object-behaviours.md) | What the moving things do each frame: blocks, balls, guards, the wizard |

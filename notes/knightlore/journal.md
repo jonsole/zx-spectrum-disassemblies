@@ -74,3 +74,11 @@ were placeholders (`loc_B000`), and 20 of 8685 instructions had a comment.
   room 0, which brought its charm along.
 - **Found on the way:** template 1, the fire standing still, and 17, the
   raised spikes, are used by no room -- as the remake's notes had said.
+- **How a moving object is drawn**, end to end: a note and a site page that
+  follow one object from its handler to the display, with frame 3 of room $01
+  traced stage by stage in the simulator (3 rectangles, 14 objects redrawn).
+  Reading the copy code settled an open question in `depth-order.md`:
+  marking only the objects that overlap a mover's rectangle is enough, since
+  only the rectangle is copied. The first trace hung on a different room -- the
+  player's records had been emptied for the room pictures, and
+  `next_frame_or_die` took that for a death.

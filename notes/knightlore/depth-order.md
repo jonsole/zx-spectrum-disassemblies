@@ -181,7 +181,8 @@ Everything above is read from the code except: the claim that "free" pairs
 cannot overlap on screen, which is worked out from the projection formula
 (sound for the formula as written; the per-sprite pixel offsets at +$12/+$13
 and sprite artwork that spills outside its box are not accounted for); and
-the consequence of one-level marking (see open questions), which is inferred.
+the consequence of one-level marking, which turned out harmless: see
+[`moving-objects.md`](moving-objects.md).
 
 ## Renamed routines
 
@@ -232,9 +233,10 @@ The input, lives and room renames are listed under those subjects.
 - Can a real room produce a candidate chain longer than seven? If so the
   terminator lands on the first byte of `check_user_input` (`$D022`). Not
   measured.
-- One-level marking: if A moves, B overlaps A's union and is redrawn, and C
-  overlaps B but not A's union and is in front of B, B's full sprite is drawn
-  over C without C being redrawn. Whether this shows in play (or whether room
-  design avoids it) has not been tested.
+- ~~One-level marking: B, redrawn because it overlaps A's union, is drawn
+  whole over C, which is not redrawn.~~ Settled, *read*: that happens only in
+  the buffer. Only A's union is copied to the display, and C, not overlapping
+  the union, has no pixels inside it -- so nothing wrong reaches the screen.
+  See [`moving-objects.md`](moving-objects.md).
 - The candidate chain lookup in `break_order_cycle` re-finds an entry that
   `$5BCF - 1` already addresses; its "not found" exit looks unreachable.
