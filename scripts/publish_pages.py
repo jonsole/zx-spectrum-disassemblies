@@ -5,7 +5,7 @@ built by GitHub: every build needs a tape and a ROM that are not in the
 repository. So it is built here, with a build script's --html, and this copies
 the result onto the gh-pages branch and pushes it.
 
-The Hobbit, Atic Atac and Ant Attack are published, each with --game. The master branch
+The Hobbit, Atic Atac, Ant Attack and Knight Lore are published, each with --game. The master branch
 holds no game bytes; gh-pages is the one place that does, and the README says so.
 
 The working tree is never touched. The gh-pages branch is cloned into a
@@ -47,7 +47,13 @@ GAMES = {
     "antattack": (ROOT / "game_disassembly" / "antattack" / "html" / "antattack",
                   ROOT / "scripts" / "build_antattack.py",
                   ROOT / "game_disassembly" / "antattack" / "antattack.asm"),
+    "knightlore": (ROOT / "game_disassembly" / "knightlore" / "html" / "knightlore",
+                   ROOT / "scripts" / "build_knightlore.py",
+                   ROOT / "game_disassembly" / "knightlore" / "knightlore.asm"),
 }
+# What each build is given to build from. Knight Lore is built from a snapshot
+# of the loaded game, not a tape; --tape passes it on under its own name.
+SOURCE_OPTION = {"knightlore": "--snapshot"}
 
 
 def git(*args: str, cwd: Path = ROOT, capture: bool = True) -> str:
@@ -73,7 +79,8 @@ def main() -> None:
     html, build, asm = GAMES[args.game]
     if args.tape:
         print(f"Building {args.game} from {args.tape}...", flush=True)
-        subprocess.run([sys.executable, str(build), "--tape", str(args.tape), "--html"],
+        option = SOURCE_OPTION.get(args.game, "--tape")
+        subprocess.run([sys.executable, str(build), option, str(args.tape), "--html"],
                        cwd=ROOT, check=True)
     if not (html / "index.html").exists():
         sys.exit(f"error: nothing built at {html} -- run {build.name} --html, "

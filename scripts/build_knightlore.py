@@ -390,6 +390,36 @@ def build_html(skool: Path, out: Path) -> None:
     _log(f"  {out / 'knightlore' / 'index.html'}")
 
 
+# The Spectrum's colours, normal and BRIGHT, for drawing the screen.
+SPECTRUM = [(0, 0, 0), (0, 0, 0xD7), (0xD7, 0, 0), (0xD7, 0, 0xD7),
+            (0, 0xD7, 0), (0, 0xD7, 0xD7), (0xD7, 0xD7, 0), (0xD7, 0xD7, 0xD7)]
+SPECTRUM_BRIGHT = [(0, 0, 0), (0, 0, 0xFF), (0xFF, 0, 0), (0xFF, 0, 0xFF),
+                   (0, 0xFF, 0), (0, 0xFF, 0xFF), (0xFF, 0xFF, 0), (0xFF, 0xFF, 0xFF)]
+
+
+def render_menu(snapshot: Path, out_dir: Path) -> None:
+    """The picture on the site's landing page: the control-method menu, which
+    is what the snapshot holds on the screen -- the game's own drawing, read
+    out of screen memory, not a capture."""
+    from PIL import Image
+
+    memory = game_memory(snapshot)
+    image = Image.new("RGB", (256, 192))
+    pixels = image.load()
+    for y in range(192):
+        row = 0x4000 | ((y & 0xC0) << 5) | ((y & 7) << 8) | ((y & 0x38) << 2)
+        for column in range(32):
+            byte = memory[row + column]
+            attr = memory[0x5800 + (y >> 3) * 32 + column]
+            palette = SPECTRUM_BRIGHT if attr & 0x40 else SPECTRUM
+            ink, paper = palette[attr & 7], palette[(attr >> 3) & 7]
+            for bit in range(8):
+                pixels[column * 8 + bit, y] = ink if byte & (0x80 >> bit) else paper
+    out_dir.mkdir(parents=True, exist_ok=True)
+    image.resize((512, 384), Image.NEAREST).save(out_dir / "menu.png")
+    _log(f"  {out_dir / 'menu.png'}")
+
+
 def verify(game_bytes: bytes, snapshot: Path) -> None:
     """The whole point: what came out must be what went in."""
     reference = bytes(game_memory(snapshot)[ENTRY:GAME_END])
@@ -482,6 +512,7 @@ def main() -> None:
     write_snapshot(game_bytes, args.snapshot, sna)
     if args.html:
         build_html(skool, OUT_DIR / "html")
+        render_menu(args.snapshot, OUT_DIR / "html" / "knightlore" / "images")
     _log(f"{NEWLINE}Wrote {asm}, {sld} and {sna}")
 
 

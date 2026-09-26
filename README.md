@@ -14,12 +14,13 @@ a snapshot you can debug at source level.
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 | Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; pages on how it works, the city drawn whole in the game's own projection, the levels, sprites and scripts | `scripts/build_antattack.py` |
 
-The Hobbit's, Atic Atac's and Ant Attack's HTML disassemblies are published at
+The Hobbit's, Atic Atac's, Ant Attack's and Knight Lore's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
 page on how the game works, a map, and pages for its locations (with their
 pictures), objects, characters and actions; Atic Atac with its loader, room
 types, sprites, graphics and sounds; Ant Attack with how it works, the whole
-city drawn in the game's own projection, its levels, sprites and scripts.
+city drawn in the game's own projection, its levels, sprites and scripts;
+Knight Lore with how it is put together and where its code map comes from.
 
 ## What is committed where
 
@@ -29,12 +30,12 @@ the other. Point a build script at a tape you own and it produces the game's
 bytes locally, under `game_disassembly/`, which is gitignored.
 
 The one exception is the `gh-pages` branch, which publishes The Hobbit's,
-Atic Atac's and Ant Attack's built HTML disassemblies for the site above. That output does quote the game &mdash; its
+Atic Atac's, Ant Attack's and Knight Lore's built HTML disassemblies for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
 the game's build script and `--html`, and copied there by
-`scripts/publish_pages.py` (`--game hobbit`, `--game aticatac` or `--game antattack`, `--tape` to
-build first, `--dry-run` to see what would change); nothing on
+`scripts/publish_pages.py` (`--game hobbit`, `aticatac`, `antattack` or `knightlore`, `--tape` to
+build first -- Knight Lore's snapshot, for it -- `--dry-run` to see what would change); nothing on
 `master` depends on it. The landing page's source is `pages/index.html`.
 
 The same goes for `roms/48.rom`, which several builds need and which you supply
