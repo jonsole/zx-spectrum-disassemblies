@@ -6860,16 +6860,19 @@ D $D8DE Twenty-one characters of plain text: the year and the initials of
 . in the listing refers to its address; it sits between the last routine and
 . the screen buffer for anyone who looks through the memory.
 
+@ $D8F3 label=screen_buffer
 b $D8F3 The screen buffer
 D $D8F3 6144 bytes -- one screen's worth of bitmap, no attributes. The drawing
 . code composes a whole room here and then copies it to the display in one go,
 . so a half-drawn room is never visible.
 
+@ $F0F3 label=spare_bytes
 b $F0F3 Thirteen bytes nothing uses
 D $F0F3 Zeros between the end of the screen buffer and the page-aligned tables
 . at #R$F100. Nothing in the code refers to them: the tables start on a page
 . boundary, and these are what is left of the page the buffer ends in.
 
+@ $F100 label=reverse_bits_tbl
 b $F100 Bit reversal, built at run time
 D $F100 A page holding every byte value with its bits reversed, which is how
 . a sprite is mirrored left to right (#R$D8A2). Empty in a freshly loaded game
@@ -6877,6 +6880,7 @@ D $F100 A page holding every byte value with its bits reversed, which is how
 . covers the region anyway: it is part of the map, and a snapshot taken during
 . play catches it holding real values.
 
+@ $F200 label=shift_tbls
 b $F200 Shift tables, built at run time
 D $F200 Fourteen pages, a pair for each shift from 1 to 7: page $F0 + 2s holds
 . every byte shifted right s places and the page above it the bits that fall
