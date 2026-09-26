@@ -20,8 +20,11 @@ what is still open. The disassembly itself is the build's output.
 - **Checked live:** driving, the input byte, the pause, the room variable,
   and pushing (the table moves, the "moveable" block does not). Most else is
   *read*; each note says which.
-- **Not yet:** the HTML's prose pages still say little beyond the
-  architecture; the notes are ahead of them.
+- **Pages:** besides the architecture, the site has the castle's room
+  structure (with a map and all 128 rooms drawn by the game), the scenery,
+  the templates, the objects and the sprites, all generated from the game at
+  build time (`scripts/knightlore_pages.py`).
+- **Not yet:** a "how it works" page drawing on these notes.
 
 ## Index
 

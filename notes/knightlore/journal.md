@@ -59,3 +59,18 @@ were placeholders (`loc_B000`), and 20 of 8685 instructions had a comment.
 - **Warnings.** From 65 to none: plain addresses in comments became links or
   label references, the shift tables at $F200 got an entry of their own, and
   twelve instructions that load constants got `nowarn`.
+
+- **Graphics and castle pages** for the site: sprites (drawn from their bytes,
+  flips undone), objects (all 188 types with their handler and sprite),
+  templates (the 29 block types), scenery (the 24 backgrounds), and room
+  structure (the record format, a 16 by 16 map of the castle, and all 128
+  rooms). The rooms, scenery and templates are drawn by the game's own code,
+  run in SkoolKit's simulator by `scripts/knightlore_pages.py`. Getting there:
+  the first pictures were black because each routine ran on a fresh simulator
+  and `build_screen_objects` finds the room through IX, which `lose_life`
+  leaves on the player; the frame had been stopped before the new-room copy;
+  the panel is drawn into the room's own buffer, so the picture is read from
+  the buffer just before the panel goes in; and the one-off rooms borrowed
+  room 0, which brought its charm along.
+- **Found on the way:** template 1, the fire standing still, and 17, the
+  raised spikes, are used by no room -- as the remake's notes had said.

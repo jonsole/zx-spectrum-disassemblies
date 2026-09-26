@@ -371,7 +371,7 @@ def assemble(asm: Path, sld: Path) -> bytes:
     return game_bytes
 
 
-def build_html(skool: Path, out: Path) -> None:
+def build_html(skool: Path, out: Path, snapshot: Path) -> None:
     """Render the skool file as a browsable HTML disassembly.
 
     -a makes the pages use the labels from the code map rather than bare
@@ -380,12 +380,23 @@ def build_html(skool: Path, out: Path) -> None:
     """
     from skoolkit import skool2html
 
+    import knightlore_pages
+
+    # The graphics and castle pages carry the game's own pictures and room
+    # lists, so they are generated into the output rather than committed
+    # (see knightlore_pages.py); knightlore.ref only #INCLUDEs them.
+    pages = OUT_DIR / "knightlore-pages.ref"
+    knightlore_pages.build(game_memory(snapshot), skool, out / "knightlore", pages, _log)
+
     _log("Writing HTML disassembly...")
-    args = ["-H", "-a", "-d", str(out), str(skool)]
+    # knightlore.css, which knightlore.ref's StyleSheet names, lives beside this.
+    args = ["-H", "-a", "-d", str(out), "-S", str(Path(__file__).resolve().parent),
+            str(skool)]
     if REF.exists():
         args.append(str(REF))
     else:
         _log(f"  (no ref file at {REF} -- pages will be untitled)")
+    args.append(str(pages))
     _capture(skool2html.main, args)
     _log(f"  {out / 'knightlore' / 'index.html'}")
 
@@ -511,7 +522,7 @@ def main() -> None:
     verify(game_bytes, args.snapshot)
     write_snapshot(game_bytes, args.snapshot, sna)
     if args.html:
-        build_html(skool, OUT_DIR / "html")
+        build_html(skool, OUT_DIR / "html", args.snapshot)
         render_menu(args.snapshot, OUT_DIR / "html" / "knightlore" / "images")
     _log(f"{NEWLINE}Wrote {asm}, {sld} and {sna}")
 
