@@ -2239,11 +2239,11 @@ sprite_tbl:
 ; Mirroring is done to the sprite itself. Before drawing, vflip_sprite_data
 ; compares bits 6 and 7 of the header with bits 6 and 7 of the object's flags
 ; (+7); where they differ it reverses the rows, or the pairs in each row
-; (bit-reversing each byte through LF100), in place, and toggles the header
-; bit. So one set of pixels serves both ways round, and a snapshot catches each
-; sprite in whichever way it was last drawn: of the 103, only spr_014, the
-; border corner, was caught upside down. The header bits are state, not part of
-; the width.
+; (bit-reversing each byte through reverse_bits_tbl), in place, and toggles the
+; header bit. So one set of pixels serves both ways round, and a snapshot
+; catches each sprite in whichever way it was last drawn: of the 103, only
+; spr_014, the border corner, was caught upside down. The header bits are
+; state, not part of the width.
 ;
 ; This first one is empty: its width is 0, and flip_sprite, seeing the 0,
 ; returns from its caller without drawing anything. Types $00 and $01 use it.
@@ -5551,7 +5551,8 @@ start_menu:
 ; you the order the cauldron will ask in. The charms' placing adds the refresh
 ; register, so that one is not tied.
 main:
-  CALL build_lookup_tbls  ; the tables at LF100 -- see build_lookup_tbls
+  CALL build_lookup_tbls  ; the tables at reverse_bits_tbl -- see
+                          ; build_lookup_tbls
   XOR A                   ; no room has been played yet, so the first room
   LD ($5BB2),A            ; entry has nothing to save back
   LD (flags12_1),A        ; clear byte 12 of the player record saved at
@@ -5728,7 +5729,8 @@ end_of_frame:
   CALL init_cauldron_bubbles ; bubbles in the cauldron room
   CALL list_objects_to_draw ; list the objects flagged to be drawn
   CALL render_dynamic_objects ; wipe, draw in depth order into the buffer at
-                              ; LD8F3, and copy the changes to the screen
+                              ; screen_buffer, and copy the changes to the
+                              ; screen
   LD A,($5BC5)               ; during the finale, a tone pitched by the last
   AND A                      ; spark's height
   CALL NZ,sound_pitch_from_a ;
@@ -8263,9 +8265,9 @@ game_over:
 ;
 ; Clears the screen and its buffer and writes the six-line summary -- time
 ; taken, percentage of the quest completed, charms collected and an overall
-; rating -- then fills in the numbers. The text goes into the buffer at LD8F3
-; while the attributes go straight to the screen, so nothing shows until
-; print_charms_and_show copies the buffer across.
+; rating -- then fills in the numbers. The text goes into the buffer at
+; screen_buffer while the attributes go straight to the screen, so nothing
+; shows until print_charms_and_show copies the buffer across.
 ;
 ; The rating is one of eight words from rating_tbl. Bit 0 of $5BC3 (the quest
 ; finished) picks the better four; bits 5 and 6 of $5BC6, the number of rooms
@@ -8708,7 +8710,7 @@ print_lives:
 ;
 ; DE the first byte of the number
 ; B how many bytes: two digits each, high digit first
-; HL where in the buffer at LD8F3 the first digit's top row goes
+; HL where in the buffer at screen_buffer the first digit's top row goes
 print_BCD_number:
   PUSH HL
   LD HL,font
@@ -9019,7 +9021,8 @@ print_text_std_font:
 ; in $5BC7 selects the glyphs, and each character is an index into that font.
 ; The first byte is the attribute for every cell the string covers; the
 ; characters follow, and bit 7 marks the last. Glyphs go into the buffer at
-; LD8F3 and the colours straight into attribute memory, one cell per character.
+; screen_buffer and the colours straight into attribute memory, one cell per
+; character.
 ;
 ; The position is a pixel (x, y) with y counting up from the bottom of the
 ; screen, the same convention as the rest of the drawing code, so a string's
@@ -10725,7 +10728,7 @@ adj_p3_m12:
 ; Used by the routines at display_object, show_carried_slot, display_frame,
 ; colour_panel, fill_sun_moon_colour and wipe_rect.
 ;
-; Rows are 32 bytes apart, which suits both the buffer at LD8F3 and the
+; Rows are 32 bytes apart, which suits both the buffer at screen_buffer and the
 ; attribute file.
 ;
 ; HL the top-left byte, in the screen buffer or the attributes
@@ -15512,10 +15515,10 @@ clear_scrn:
 ; Used by the routines at game_over_summary, game_complete_msg,
 ; clear_menu_flash and build_room.
 ;
-; Blanks all of LD8F3 before a room is built into it.
+; Blanks all of screen_buffer before a room is built into it.
 clear_scrn_buffer:
   LD BC,$1800
-  LD HL,LD8F3
+  LD HL,screen_buffer
   JR clr_mem
 
 ; Copy the whole buffer to the display, clearing it as it goes
@@ -15523,17 +15526,17 @@ clear_scrn_buffer:
 ; Used by the routines at no_delay, print_charms_and_show and
 ; display_text_list.
 ;
-; Used when a new room is shown: the whole room is composed in LD8F3 first and
-; then appears at once. The buffer runs the other way up from the display --
-; its first row is the bottom line of the screen -- because the game's pixel y
-; counts up from the bottom; so the copy starts at the display's bottom-left
-; byte, $57E0, and works up a line at a time.
+; Used when a new room is shown: the whole room is composed in screen_buffer
+; first and then appears at once. The buffer runs the other way up from the
+; display -- its first row is the bottom line of the screen -- because the
+; game's pixel y counts up from the bottom; so the copy starts at the display's
+; bottom-left byte, $57E0, and works up a line at a time.
 ;
 ; Clearing as it copies leaves the buffer blank. That is safe because from here
 ; on only the areas render_dynamic_objects wipes and redraws are ever copied
 ; out of it, so what the rest of the buffer holds does not matter.
 update_screen:
-  LD HL,LD8F3             ; from the start of the buffer to the bottom-left of
+  LD HL,screen_buffer     ; from the start of the buffer to the bottom-left of
                           ; the display; B = 32 bytes a row, C = 192 rows
   LD DE,$57E0
   LD BC,$20C0
@@ -15835,17 +15838,17 @@ blit_next_row:
 ;
 ; Used by the routine at main.
 ;
-; Fills LF100 and the fourteen pages above it at start-up with tables the
-; drawing code needs every frame and would otherwise have to compute. At LF100
-; itself is the bit-reversal of every byte value. Reversing bits is how a
-; sprite is mirrored horizontally, which is how the game gets a knight facing
-; west out of one facing east.
+; Fills reverse_bits_tbl and the fourteen pages above it at start-up with
+; tables the drawing code needs every frame and would otherwise have to
+; compute. At reverse_bits_tbl itself is the bit-reversal of every byte value.
+; Reversing bits is how a sprite is mirrored horizontally, which is how the
+; game gets a knight facing west out of one facing east.
 ;
-; The fourteen pages from LF200 up are the shifted bytes, in pairs: for each
-; shift s from 1 to 7, page $F0 + 2s holds every byte shifted right s places,
-; and the page above it the bits that fall out into the next byte. Both are
-; stored complemented. sprite_row_jump uses one value from such a table to do
-; two jobs: ANDed with the background it clears the bits under the mask, and
+; The fourteen pages from shift_tbls up are the shifted bytes, in pairs: for
+; each shift s from 1 to 7, page $F0 + 2s holds every byte shifted right s
+; places, and the page above it the bits that fall out into the next byte. Both
+; are stored complemented. sprite_row_jump uses one value from such a table to
+; do two jobs: ANDed with the background it clears the bits under the mask, and
 ; XORed with the result and then complemented it adds the image.
 build_lookup_tbls:
   LD L,$00                ; every byte value, L from 0
@@ -15875,7 +15878,7 @@ shift_tbl_entry:
   DJNZ shift_tbl_entry
   INC L                   ; the next value
   JR NZ,shift_tbl_value   ;
-  LD HL,LF100             ; from here up: reverse_bits(n) for n = 0 to 255
+  LD HL,reverse_bits_tbl  ; from here up: reverse_bits(n) for n = 0 to 255
 
 ; Start reversing one byte value
 ;
@@ -16002,8 +16005,8 @@ project_and_draw:
 ; operand of the ADD at sprite_next_row how far BC must then move to reach the
 ; next row up. There are two unrolled runs. A sprite whose pixel x is a
 ; multiple of 8 uses the plain one; any other uses the shifted one, which reads
-; its bytes through the tables from LF200 up and so touches one byte more per
-; row.
+; its bytes through the tables from shift_tbls up and so touches one byte more
+; per row.
 ;
 ; The stack pointer is borrowed to read the sprite: SP is pointed at the data
 ; and each POP DE fetches a mask byte into E and its image byte into D. The
@@ -16278,7 +16281,7 @@ sprite_next_row:
 ;
 ; C the pixel x
 ; B the pixel y, counted up from the bottom of the screen
-; BC on exit, the address in LD8F3
+; BC on exit, the address in screen_buffer
 calc_vidbuf_addr:
   PUSH HL                 ; BC / 8 = y * 32 + x / 8
   SRL B                   ;
@@ -16287,7 +16290,7 @@ calc_vidbuf_addr:
   RR C                    ;
   SRL B                   ;
   RR C                    ;
-  LD HL,LD8F3             ; plus the start of the buffer
+  LD HL,screen_buffer     ; plus the start of the buffer
   ADD HL,BC               ;
   LD C,L                  ;
   LD B,H                  ;
@@ -16442,8 +16445,9 @@ vflip_sprite_line_pair:
 ;
 ; Mirroring a row is two things at once: the order of its bytes is reversed,
 ; and so are the bits of each byte. The bytes of a row are pushed as mask and
-; image pairs, each byte reversed through the table at LF100 on the way; popped
-; off again they come back last first, and are written over the same row.
+; image pairs, each byte reversed through the table at reverse_bits_tbl on the
+; way; popped off again they come back last first, and are written over the
+; same row.
 hflip_sprite_data:
   POP DE                  ; the header's bit 6 against the object's
   PUSH DE                 ;
@@ -16522,7 +16526,7 @@ copyright_notice:
 ; 6144 bytes -- one screen's worth of bitmap, no attributes. The drawing code
 ; composes a whole room here and then copies it to the display in one go, so a
 ; half-drawn room is never visible.
-LD8F3:
+screen_buffer:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
@@ -17295,9 +17299,9 @@ LD8F3:
 ; Thirteen bytes nothing uses
 ;
 ; Zeros between the end of the screen buffer and the page-aligned tables at
-; LF100. Nothing in the code refers to them: the tables start on a page
-; boundary, and these are what is left of the page the buffer ends in.
-LF0F3:
+; reverse_bits_tbl. Nothing in the code refers to them: the tables start on a
+; page boundary, and these are what is left of the page the buffer ends in.
+spare_bytes:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00
 
@@ -17308,7 +17312,7 @@ LF0F3:
 ; and filled by build_lookup_tbls. The disassembly covers the region anyway: it
 ; is part of the map, and a snapshot taken during play catches it holding real
 ; values.
-LF100:
+reverse_bits_tbl:
   DEFB $00,$80,$40,$C0,$20,$A0,$60,$E0
   DEFB $10,$90,$50,$D0,$30,$B0,$70,$F0
   DEFB $08,$88,$48,$C8,$28,$A8,$68,$E8
@@ -17349,7 +17353,7 @@ LF100:
 ; the next byte, both stored complemented, so that one lookup serves to clear
 ; the bits under a sprite's mask and to add its image (sprite_row_jump). Filled
 ; by build_lookup_tbls; empty in a freshly loaded game.
-LF200:
+shift_tbls:
   DEFB $FF,$FF,$FE,$FE,$FD,$FD,$FC,$FC
   DEFB $FB,$FB,$FA,$FA,$F9,$F9,$F8,$F8
   DEFB $F7,$F7,$F6,$F6,$F5,$F5,$F4,$F4
