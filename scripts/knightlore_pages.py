@@ -115,6 +115,12 @@ def read_listing(skool: Path) -> tuple[dict[int, str], dict[int, str], dict[int,
 # Sprites, from their bytes.
 # --------------------------------------------------------------------------
 
+def sprite_picture_name(address: int) -> str:
+    """By address, so the level-data control file can name it before there
+    is a listing to take a label from."""
+    return f"sprite{address:04x}.png"
+
+
 def _reverse_bits(byte: int) -> int:
     return int(f"{byte:08b}"[::-1], 2)
 
@@ -341,7 +347,7 @@ def _sprite_pages(memory, labels, titles, image_dir: Path) -> tuple[str, dict[in
         types = ", ".join(f"{t} (${t:02X})" for t in by_sprite[address])
         lines.append(f'<div class="kl-item" id="{label}">')
         if image is not None:
-            name = f"{label}.png"
+            name = sprite_picture_name(address)
             image.save(image_dir / name)
             pictures[address] = f"images/sprites/{name}"
             lines.append(f'<img class="kl-sprite" src="{pictures[address]}" alt="{label}">')

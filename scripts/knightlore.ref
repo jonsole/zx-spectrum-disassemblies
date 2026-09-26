@@ -42,7 +42,9 @@ Sprites
 [Index:Reference:About this disassembly]
 Architecture
 Provenance
+Bugs
 Facts
+Pokes
 
 [Titles]
 MovingObjects=How a moving object is drawn
@@ -154,6 +156,125 @@ wrong place shows up as a mismatch rather than as quiet nonsense. The build
 also checks that every label and every hand-written comment lands on an
 instruction boundary, because SkoolKit will silently resume decoding from the
 middle of an instruction if one does not.
+
+[Bug:moveable:The moveable block cannot be moved]
+Type $3E, the block type the game builds as moveable (#R$6C27), is pushable in
+its flags like the table and the chest: when the player walks into it, the
+collision code (#R$CB9A) copies his velocity into the block's. But the block's
+handler, #R$C4AA, clears that velocity before it moves -- and the player is
+object 0, so his push always comes earlier in the same frame. The push is
+cancelled every time, and the block can only ever fall.
+The table's handler does the same two things the other way round: it moves by
+its velocity, then clears it (#R$C4C3), so a table steps along once for every
+frame it is pushed. The chest's keeps its velocity, and slides on.
+Watched in the emulator: a table placed in the player's path in room $8E was
+pushed 28 units in 20 frames; the same table with its type changed to $3E did
+not move at all, and the player stopped against it. See the pokes for a block
+that moves.
+
+[Bug:livesdigits:Ten lives would print as a letter]
+The lives at $5BBA are counted in binary -- #R$D12A takes one with DEC, and the
+extra-life charm (#R$C1AB) adds one with INC -- but #R$BCA3 prints the byte as
+two BCD digits through #R$BCAE. Ten lives would come out as 0 and the font's
+character 10, which is the letter A.
+It cannot happen in a normal game: the first life is taken as play starts,
+leaving four, and there are only four extra-life charms in the castle (see
+#R$6FF2), so eight is the most there can ever be. With the infinite lives poke
+it cannot happen either, since the count never goes up from the start.
+
+[Bug:chain:The depth sort's chain has no length check]
+When #R$CEBB finds that an object must be drawn before the one it is
+considering, it switches to it, and records the one it left in
+#R$D01A so that it can tell when the order has gone round in a circle. That
+list has room for seven entries, and nothing checks how many it holds: an
+eighth switch in one search would write its end marker over the first byte of
+#R$D022, the routine that reads the controls.
+No room is known to need eight: it would take eight objects each overlapping
+and in front of the last. So it is a fault the castle's rooms never bring out,
+as far as has been looked.
+
+[Poke:lives:Infinite lives]
+#R$D12A takes a life with DEC (HL) at $D13F; make it a NOP. The lives shown
+stay at five from the start, and dying costs nothing. Tested: a death took the
+lives from 4 to 3 without the poke, and left them at 4 with it.
+POKE 53567,0
+
+[Poke:time:Endless time]
+#R$C419 ends the game when the day count reaches $40, forty days. Make the
+comparison $FF, which a BCD count never reaches: the days still pass and are
+shown, but they never run out. Tested: with the day count set to $39 and run
+on to the next dawn, the game ended without the poke and carried on with it.
+POKE 50210,255
+
+[Poke:immunity:Immunity]
+#R$C82B checks, every frame, whether anything harmful has touched the player,
+and starts his death if so. Make its JR Z at $C82F an unconditional JR, and
+spikes, fire, guards and ghosts pass him by. Tested: flagging the player as
+touched cost a life without the poke, and nothing with it.
+POKE 51247,24
+
+[Poke:moveable:A moveable block that moves]
+The block type the game calls moveable clears its velocity before it moves,
+which cancels every push (see the bug). Take out that CALL, at $C4AD: pushed
+blocks then keep the push, and slide on -- as the chest does -- until
+something stops them. Tested: a moveable block in the player's path did not
+move in 20 frames without the poke, and was pushed 47 units with it.
+POKE 50349,0: POKE 50350,0: POKE 50351,0
+
+[Fact:unusedtemplates:Two templates no room uses]
+Of the 29 block types in #R$6BD1, number 1 -- a fire that stands still -- and
+number 17 -- spikes raised four levels -- are named by no room in the castle;
+the rooms use the moving fires and the ordinary spikes instead. Both are drawn
+on the templates page.
+
+[Fact:wrongcharm:A wrong charm is destroyed, not returned]
+Anything dropped into the wizard's cauldron is taken out of the game. When a
+charm lands in it, #R$C245 counts it towards the fourteen only if it is the
+kind the cauldron is asking for; either way its place in #R$6FF2 is cleared
+and the object disappears. There are four of each kind, so a mistake costs one
+of them, not the game.
+
+[Fact:percentage:The percentage without a divide]
+The score at the end is rooms visited plus twice the charms delivered, out of
+128 rooms and 14 charms: 156 points. #R$BC10 turns that into a percentage
+without dividing: it adds 100/156 as a 16-bit fraction once per point and
+counts the carries out of the top in BCD. A last small addition makes a
+perfect game come out at 100 rather than 99.
+
+[Fact:wantedlist:The wanted list is never reset]
+The order in which the cauldron asks for the charms is a list of fourteen at
+#R$C27D, two of each kind. At the start of every game #R$B544 rotates it in
+place by four to seven places, from the seed -- and nothing ever puts it back.
+So the first game after loading can ask in only four orders, and each game
+after that rotates on from where the last one left it.
+
+[Fact:menuseed:Time on the menu picks the start]
+The seed at $5BA0 goes up by one on every pass of the menu's loop (#R$BD23),
+and its bottom two bits choose both the start room -- one of four, in
+#R$D1E2 -- and how far the wanted list is rotated. How long a player waits on
+the menu before pressing 0 decides where the game begins.
+
+[Fact:balls:The balls chase the werewolf and flee the man]
+The bouncing balls (types $B6 and $B7) move by rewriting their own code: each
+frame #R$B5FF writes JR C or JR NC into two of its jumps, depending on whether
+the player's legs are Sabreman's or Sabrewulf's. So the same balls hop away
+from the knight and towards the werewolf.
+
+[Fact:flipinplace:Sprites are turned round in place]
+A sprite is stored once. When an object wants it facing the other way or
+upside down, #R$D865 rewrites the sprite's own bytes -- rows swapped end for
+end, or each row's bytes reversed through the bit-reversal table at #R$F100 --
+and toggles a bit in its header to remember which way round the data now
+lies. So a snapshot catches each sprite as it was last drawn: spr_014 is
+stored upside down in this one, because the last thing drawn with it was the
+fourth corner of the menu's border, which #R$D296 draws flipped.
+
+[Fact:dayslength:A day is 392 frames]
+The sun or moon crosses the panel's window a pixel every eight frames, and
+changes over after 49 steps: 392 frames of daylight, then 392 of night, so
+the forty days are 31360 of the game's frames. How long that is in minutes
+depends on the rooms: a frame waits out whatever time its drawing left over,
+and a busy room's frames take longer.
 
 [Fact:objects:Forty objects, thirty-two bytes each]
 The object table is exactly $5C08 to $6108, and $6108 is the first byte of the

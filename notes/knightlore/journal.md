@@ -91,3 +91,22 @@ were placeholders (`loc_B000`), and 20 of 8685 instructions had a comment.
 - **`location_tbl` split into rooms.** Each room record is its own entry,
   `room8E` and so on, titled with its square, shape and colour -- generated
   with the rest of the level data, since the titles are the game's.
+- **Pictures in the entries.** Every room's entry shows the room as the game
+  draws it, every background's and template's record its picture, and every
+  sprite its sprite -- `#HTML` paragraphs the level-data generator adds, so the
+  .asm stays text. Sprite pictures are named by address now, since the
+  generator runs before there is a listing to take labels from.
+- **Pokes, each tested live against the same trial without it** (private
+  emulator, fresh load each time): infinite lives, `POKE 53567,0` (a death left
+  the lives at 4 rather than 3); endless time, `POKE 50210,255` (day $39 to $40
+  carried on instead of ending); immunity, `POKE 51247,24` (flagged harm cost
+  nothing instead of a life); and a moveable block that moves,
+  `POKE 50349,0` to `50351,0` (pushed 47 units instead of none). The block
+  trial first ran without immunity and the ghost killed the player on the way
+  in; the rerun kept immunity on in both halves. The cauldron's count
+  (`CP $0E` in `add_obj_to_cauldron`) was left out: not testable without
+  delivering a charm.
+- **Bugs and trivia pages** from what the notes had established: the
+  moveable block, ten lives printing as a letter (latent: eight is the most
+  there can be), the depth sort's unchecked chain (latent); and eight facts,
+  each with its routine.
