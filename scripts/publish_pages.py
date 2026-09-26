@@ -55,6 +55,20 @@ GAMES = {
 # of the loaded game, not a tape; --tape passes it on under its own name.
 SOURCE_OPTION = {"knightlore": "--snapshot"}
 
+# Pages a game's directory carries besides its disassembly, each written fresh
+# by a command as it is published: the directory is replaced whole, so a page
+# put there any other way is gone the next time the game is published -- which
+# is how the room editor was lost once. The command is run from ROOT with
+# "{out}" standing for where the page goes. Knight Lore's room editor holds
+# none of the game's bytes; it is made from scripts and the emulator
+# repository's room designer, and the landing page links to it.
+EXTRA_PAGES = {
+    "knightlore": [
+        ("room-editor.html",
+         [sys.executable, "scripts/knightlore_rooms.py", "page", "--out", "{out}"]),
+    ],
+}
+
 
 def git(*args: str, cwd: Path = ROOT, capture: bool = True) -> str:
     result = subprocess.run(["git", *args], cwd=cwd, text=True,
@@ -108,6 +122,16 @@ def main() -> None:
             shutil.rmtree(target)
         shutil.copytree(html, target)
         shutil.copy2(asm, target / asm.name)
+        for leaf, command in EXTRA_PAGES.get(args.game, []):
+            out = target / leaf
+            done = subprocess.run([str(out) if part == "{out}" else part for part in command],
+                                  cwd=ROOT, text=True, capture_output=True)
+            # The landing page links to it, so publishing without it would be
+            # publishing a dead link.
+            if done.returncode != 0 or not out.exists():
+                sys.exit(f"error: could not write {args.game}/{leaf}:\n"
+                         f"{done.stdout}{done.stderr}")
+            print(f"Wrote {args.game}/{leaf}", flush=True)
         shutil.copy2(LANDING, site / "index.html")
         (site / ".nojekyll").touch()
 
