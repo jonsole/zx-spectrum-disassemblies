@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B5F7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46563.html">B5E3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46583">Map</a></td>
+<td class="next">
+Next: <a href="46591.html">B5FF</a>
+</td>
+</tr>
+</table>
+<div class="description">B5F7: Read one or more keyboard half-rows</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="45758.html">play_audio_until_keypress</a>, <a href="47751.html">await_restart</a>, <a href="47774.html">wait_key_poll</a>, <a href="48419.html">menu_loop</a>, <a href="48492.html">check_for_start_game</a>, <a href="53310.html">interface_ii</a>, <a href="53318.html">reverse_if2_bits</a>, <a href="53404.html">cursor</a>, <a href="53417.html">cursor_second_row</a>, <a href="53448.html">keyboard</a>, <a href="53494.html">keyboard_forward</a>, <a href="53503.html">keyboard_jump</a>, <a href="53512.html">keyboard_pickup</a>, <a href="53521.html">finished_input</a>, <a href="54542.html">handle_pause</a>, <a href="54553.html">debounce_space_press</a>, <a href="54565.html">wait_for_space</a> and <a href="54574.html">debounce_space_release</a>.
+</div>
+<div class="paragraph">
+The IN does the selecting on its own: IN A,($FE) puts A on the top half of the address bus, so each 0 bit in A selects one half-row, and A=0 reads all eight at once -- which is how the "press any key" waits call it. Callers also pass $7E, $99, $BD and so on to read several rows in one go. The CPL turns the Spectrum's active-low keys the right way up, and the AND keeps the five that mean anything.
+</div>
+<div class="paragraph">
+The OUT before it is not needed for the read. It writes A to port A*256+$FD, which nothing on a 48K Spectrum answers because address line 0 is high. A 128K machine's paging port would decode it whenever A has bit 7 clear, and 0, $7E and $7F are all among the values callers pass.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the half-rows to select, a 0 bit for each</td>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">on exit, the five key bits, 1 for pressed</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">read_port</td>
+<td class="address-2"><span id="46583"></span>B5F7</td>
+<td class="instruction">OUT ($FD),A</td>
+<td class="comment-1" rowspan="1">not what selects the row: see above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46585"></span>B5F9</td>
+<td class="instruction">IN A,($FE)</td>
+<td class="comment-1" rowspan="1">reads port A*256+$FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46587"></span>B5FB</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="2">set bits now mean pressed keys; keep the five</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46588"></span>B5FC</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46590"></span>B5FE</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46563.html">B5E3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46583">Map</a></td>
+<td class="next">
+Next: <a href="46591.html">B5FF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

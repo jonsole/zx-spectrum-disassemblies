@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CEDB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52934.html">CEC6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52955">Map</a></td>
+<td class="next">
+Next: <a href="53013.html">CF15</a>
+</td>
+</tr>
+</table>
+<div class="description">CEDB: Compare the candidate with the next undrawn object</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="53151.html">order_unconstrained</a>, <a href="53154.html">candidate_already_first</a>, <a href="53176.html">iy_becomes_candidate</a> and <a href="53245.html">coincide_done</a>.
+</div>
+<div class="paragraph">
+IY is each other undrawn object in turn. If the end of the list is reached nothing has to be drawn before the candidate, and it is drawn by <a href="53248.html">render_obj_no1</a>.
+</div>
+<div class="paragraph">
+C collects the comparison. On the Z axis (base +$03, height +$06): 0 if the candidate's base is at or above IY's top, 2 if IY's base is at or above the candidate's top, otherwise 1.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the candidate</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the next entry to compare with</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">compare_next_obj</td>
+<td class="address-2"><span id="52955"></span>CEDB</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="4">end of the list: nothing is behind the candidate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52956"></span>CEDC</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52957"></span>CEDD</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52959"></span>CEDF</td>
+<td class="instruction">JP Z,<a href="53248.html">render_obj_no1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52962"></span>CEE2</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="2">already drawn: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52964"></span>CEE4</td>
+<td class="instruction">JR NZ,<a href="52955.html#52955">compare_next_obj</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52966"></span>CEE6</td>
+<td class="instruction">CALL <a href="54197.html">get_ptr_object</a></td>
+<td class="comment-1" rowspan="6">IY = this object; $5BCF points just past its entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52969"></span>CEE9</td>
+<td class="instruction">LD ($5BCF),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52973"></span>CEED</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52974"></span>CEEE</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52976"></span>CEF0</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52978"></span>CEF2</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52979"></span>CEF3</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="3">the candidate itself: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52980"></span>CEF4</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52982"></span>CEF6</td>
+<td class="instruction">JR Z,<a href="52955.html#52955">compare_next_obj</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52984"></span>CEF8</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="3">L = IY's top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52986"></span>CEFA</td>
+<td class="instruction">LD A,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52989"></span>CEFD</td>
+<td class="instruction">ADD A,(IY+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52992"></span>CF00</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="4">candidate's base at or above IY's top: Z code 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52993"></span>CF01</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52996"></span>CF04</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52997"></span>CF05</td>
+<td class="instruction">JR NC,<a href="53014.html">compare_along_y</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52999"></span>CF07</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="1">L = the candidate's top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53002"></span>CF0A</td>
+<td class="instruction">ADD A,(IX+$06)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53005"></span>CF0D</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53006"></span>CF0E</td>
+<td class="instruction">LD A,(IY+$03)</td>
+<td class="comment-1" rowspan="1">IY's base at or above it: Z code 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53009"></span>CF11</td>
+<td class="instruction">SUB L</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53010"></span>CF12</td>
+<td class="instruction">JR C,<a href="53013.html">z_code_overlap</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53012"></span>CF14</td>
+<td class="instruction">INC C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52934.html">CEC6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52955">Map</a></td>
+<td class="next">
+Next: <a href="53013.html">CF15</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

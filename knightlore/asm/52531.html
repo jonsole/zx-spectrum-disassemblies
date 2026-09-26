@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CD33</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52530.html">CD32</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52531">Map</a></td>
+<td class="next">
+Next: <a href="52547.html">CD43</a>
+</td>
+</tr>
+</table>
+<div class="description">CD33: Work out an object's screen rectangle</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52557.html">set_draw_objs_overlapped</a>.
+</div>
+<div class="paragraph">
+Fills in the four bytes that say where an object's sprite lands in the screen buffer: the pixel position at +$1A and +$1B (from <a href="54985.html">calc_pixel_XY</a>) and the size at +$18 (width in bytes) and +$19 (height in pixel rows). The width is the sprite's own, plus one byte when the x position is not a multiple of eight, because a sprite shifted across a byte boundary spills into the next byte.
+</div>
+<div class="paragraph">
+<a href="55023.html">flip_sprite</a> also turns the sprite the way the object's flip bits ask for. When the object's sprite is the empty one (types 0 and 1 both use it), <a href="55023.html">flip_sprite</a> discards this routine's return address and goes straight back to the caller, so the size bytes keep their previous values. That is what an object that is vanishing wants: the area it last covered is still the area to clear.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">calc_2d_info</td>
+<td class="address-2"><span id="52531"></span>CD33</td>
+<td class="instruction">CALL <a href="54985.html">calc_pixel_XY</a></td>
+<td class="comment-1" rowspan="2">pixel position into +$1A/+$1B; DE = the sprite, flipped to match</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52534"></span>CD36</td>
+<td class="instruction">CALL <a href="55023.html">flip_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52537"></span>CD39</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="1">Z set if the sprite starts on a byte boundary</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52540"></span>CD3C</td>
+<td class="instruction">AND $07</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52542"></span>CD3E</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="2">the sprite's width byte (flip flags in the top bits)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52543"></span>CD3F</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52544"></span>CD40</td>
+<td class="instruction">JR Z,<a href="52547.html">store_2d_size</a></td>
+<td class="comment-1" rowspan="1">one byte wider when shifted</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52546"></span>CD42</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52530.html">CD32</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52531">Map</a></td>
+<td class="next">
+Next: <a href="52547.html">CD43</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

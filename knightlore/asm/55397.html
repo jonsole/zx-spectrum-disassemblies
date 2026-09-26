@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D865</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55368.html">D848</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55397">Map</a></td>
+<td class="next">
+Next: <a href="55436.html">D88C</a>
+</td>
+</tr>
+</table>
+<div class="description">D865: Turn a sprite's stored data to face the way its object wants</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55023.html">flip_sprite</a>.
+</div>
+<div class="paragraph">
+Sprites are flipped in place, and the header remembers which way round the data now is: bit 7 of its first byte for upside down, bit 6 for mirrored. Bits 7 and 6 of the object's byte 7 say which way it wants to be drawn. Where they disagree the data is turned and the header bit toggled. An object that keeps facing one way therefore costs nothing after the first frame; two objects that share a sprite but face opposite ways turn it back and forth every time each is drawn.
+</div>
+<div class="paragraph">
+This part does the vertical flip, swapping whole rows end for end; <a href="55458.html">hflip_sprite_data</a> does the mirror. DE is kept.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the sprite's header</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">vflip_sprite_data</td>
+<td class="address-2"><span id="55397"></span>D865</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="5">the header's bit 7 against the object's: the same means no vertical flip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55398"></span>D866</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55399"></span>D867</td>
+<td class="instruction">XOR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55402"></span>D86A</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55404"></span>D86C</td>
+<td class="instruction">JR Z,<a href="55458.html">hflip_sprite_data</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55406"></span>D86E</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">toggle the header's bit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55407"></span>D86F</td>
+<td class="instruction">XOR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55409"></span>D871</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55410"></span>D872</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="3">B = bytes per row: the width in bits 0 to 3, times two for the mask and image bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55411"></span>D873</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55413"></span>D875</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55414"></span>D876</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="4">C = the height in rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55415"></span>D877</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55416"></span>D878</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55417"></span>D879</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55418"></span>D87A</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="7">HL = the data's length; DE = one past the end of the data, and HL its start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55419"></span>D87B</td>
+<td class="instruction">LD E,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55420"></span>D87C</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55422"></span>D87E</td>
+<td class="instruction">CALL <a href="54521.html">HL_equals_DE_x_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55425"></span>D881</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55426"></span>D882</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55427"></span>D883</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55428"></span>D884</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">DE on the last byte of the last row, HL on the last byte of the first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55429"></span>D885</td>
+<td class="instruction">CALL <a href="54514.html">add_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55432"></span>D888</td>
+<td class="instruction">DEC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55433"></span>D889</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55434"></span>D88A</td>
+<td class="instruction">SRL C</td>
+<td class="comment-1" rowspan="1">swap rows in pairs: half the height</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55368.html">D848</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55397">Map</a></td>
+<td class="next">
+Next: <a href="55436.html">D88C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at BC10</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48133.html">BC05</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48144">Map</a></td>
+<td class="next">
+Next: <a href="48152.html">BC18</a>
+</td>
+</tr>
+</table>
+<div class="description">BC10: Count the rooms visited and print the percentage of the quest</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="47657.html">game_over_summary</a>.
+</div>
+<div class="paragraph">
+Counts the set bits in the 32-byte visited-room map at $5BE8 -- one bit per room number, set by <a href="53785.html">flag_room_visited</a> whenever a room is entered -- and keeps that count less one in $5BC6 for the rating.
+</div>
+<div class="paragraph">
+The percentage is (rooms + 2 x charms) x 100 / 156, and 156 is 128 rooms plus 14 charms counted twice, so visiting every room and filling the cauldron is exactly 100. There is no divide: HL is a 16-bit fraction and A a BCD whole part, and adding 100/156 as a 16-bit fraction once per point carries into A, with DAA keeping A decimal. The final $28 is exactly what a perfect score falls short of 100 x 65536, so the maximum comes out as 100 rather than 99; it is also the only step that can carry into the hundreds.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">on exit, rooms + 2 x charms</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">calc_and_display_percent</td>
+<td class="address-2"><span id="48144"></span>BC10</td>
+<td class="instruction">LD E,$00</td>
+<td class="comment-1" rowspan="1">E = the count; B = 8 bits, C = 32 bytes, from $5BE8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48146"></span>BC12</td>
+<td class="instruction">LD BC,$0820</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48149"></span>BC15</td>
+<td class="instruction">LD HL,$5BE8</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48133.html">BC05</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48144">Map</a></td>
+<td class="next">
+Next: <a href="48152.html">BC18</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

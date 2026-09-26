@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CDEF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52706.html">CDE2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52719">Map</a></td>
+<td class="next">
+Next: <a href="52756.html">CE14</a>
+</td>
+</tr>
+</table>
+<div class="description">CDEF: The head follows the legs</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52706.html">upd_player_top</a>.
+</div>
+<div class="paragraph">
+Copies the legs' position, size and flags into the head -- so the head inherits the legs' redraw, wipe and flip bits and is wiped and redrawn with them -- then gives the head a height of zero and sets its bit 1, which takes it out of every collision test. The legs' record carries the whole body's height, so the head never needs to collide with anything.
+</div>
+<div class="paragraph">
+Then the choice of head sprite. The low nibble of +$0D is a countdown: while it is running the head keeps the sprite it has.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">head_follows_legs</td>
+<td class="address-2"><span id="52719"></span>CDEF</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">DE = the head; IY = HL = the legs, one record below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52721"></span>CDF1</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52722"></span>CDF2</td>
+<td class="instruction">LD HL,<a href="61952.html#65504">$FFE0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52725"></span>CDF5</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52726"></span>CDF6</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52727"></span>CDF7</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52729"></span>CDF9</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="4">copy +$01 to +$07: X, Y, Z, the three half-sizes, flags</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52730"></span>CDFA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52731"></span>CDFB</td>
+<td class="instruction">LD BC,$0007</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52734"></span>CDFE</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52736"></span>CE00</td>
+<td class="instruction">LD (IX+$06),$00</td>
+<td class="comment-1" rowspan="1">height 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52740"></span>CE04</td>
+<td class="instruction">SET 1,(IX+$07)</td>
+<td class="comment-1" rowspan="1">bit 1: ignored by collision tests</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52744"></span>CE08</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">countdown running?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52747"></span>CE0B</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52749"></span>CE0D</td>
+<td class="instruction">JR Z,<a href="52756.html">choose_head_sprite</a></td>
+<td class="comment-1" rowspan="1">yes: count it down and keep the current head</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52751"></span>CE0F</td>
+<td class="instruction">DEC (IX+$0D)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52754"></span>CE12</td>
+<td class="instruction">JR <a href="52775.html">head_on_shoulders</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52706.html">CDE2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52719">Map</a></td>
+<td class="next">
+Next: <a href="52756.html">CE14</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D022</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53274.html">D01A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53282">Map</a></td>
+<td class="next">
+Next: <a href="53310.html">D03E</a>
+</td>
+</tr>
+</table>
+<div class="description">D022: Read the controls</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51262.html">player_controls</a>.
+</div>
+<div class="paragraph">
+Reads whichever control method the menu chose (bits 1 and 2 of $5BA4: 0 keyboard, 1 Kempston, 2 cursor keys, 3 Interface II) into one byte of bits that means the same whichever it came from, and stores it at $5BB5. The legs' handler at <a href="51243.html">upd_player_bottom</a> calls this every frame and also uses the byte as it is returned, in C.
+</div>
+<div class="paragraph">
+The bits: 0 turn left, 1 turn right, 2 walk forward, 3 jump, 4 pick up or drop, 5 any key but the number keys, Caps Shift and Space. On a joystick with the menu's directional option set (bit 3 of $5BA4), bits 0, 1, 2 and 4 are instead the four directions of the stick, and bit 5 takes over picking up and dropping -- see <a href="49147.html">chk_pickup_drop</a> and <a href="51359.html">handle_left_right</a>. The directional option has no effect with the keyboard method.
+</div>
+<div class="paragraph">
+While the game is won ($5BC3) or an object is falling into the cauldron ($5BC4) the controls are ignored: the byte is 0 apart from bit 5.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">on exit, the control bits (also at $5BB5)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">check_user_input</td>
+<td class="address-2"><span id="53282"></span>D022</td>
+<td class="instruction">LD A,($5BC3)</td>
+<td class="comment-1" rowspan="5">C = 0; A non-zero if the controls are frozen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53285"></span>D025</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53286"></span>D026</td>
+<td class="instruction">LD A,($5BC4)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53289"></span>D029</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53290"></span>D02A</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53292"></span>D02C</td>
+<td class="instruction">JP NZ,<a href="53521.html">finished_input</a></td>
+<td class="comment-1" rowspan="1">frozen: straight to the end, where only bit 5 is read</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53295"></span>D02F</td>
+<td class="instruction">LD A,($5BA4)</td>
+<td class="comment-1" rowspan="3">A = the control method, 0 to 3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53298"></span>D032</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53299"></span>D033</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53301"></span>D035</td>
+<td class="instruction">JP Z,<a href="53448.html">keyboard</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53304"></span>D038</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53305"></span>D039</td>
+<td class="instruction">JR Z,<a href="53367.html">kempston</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53307"></span>D03B</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53308"></span>D03C</td>
+<td class="instruction">JR Z,<a href="53404.html">cursor</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53274.html">D01A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53282">Map</a></td>
+<td class="next">
+Next: <a href="53310.html">D03E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

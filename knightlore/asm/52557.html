@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CD4D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52547.html">CD43</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52557">Map</a></td>
+<td class="next">
+Next: <a href="52588.html">CD6C</a>
+</td>
+</tr>
+</table>
+<div class="description">CD4D: Mark every object the moving object's old or new rectangle touches</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50834.html">set_wipe_and_draw_flags</a> and <a href="52775.html">head_on_shoulders</a>.
+</div>
+<div class="paragraph">
+Called once an object has moved or changed sprite. It works out the object's new screen rectangle, forms the smallest rectangle that covers both that and the one it had at the start of the frame (saved at +$1C to +$1F by <a href="52809.html">save_2d_info</a>), and then walks all forty object records setting the redraw flag, bit 4 of +$07, on every live object whose current rectangle overlaps it -- including the moving object itself, if it is not marked already.
+</div>
+<div class="paragraph">
+Horizontally the rectangles are measured in byte columns (pixel x divided by 8), vertically in pixel rows counted up from the bottom. At the end of this entry E is the union's first column and D its width in columns; <a href="52588.html">union_right_edge</a> to <a href="52633.html">union_height</a> go on to put its lowest row in L and its height in H.
+</div>
+<div class="paragraph">
+Only the moving object's own rectangle is used. An object that is redrawn because it overlaps it does not in turn mark the objects that overlap it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object that has moved</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">set_draw_objs_overlapped</td>
+<td class="address-2"><span id="52557"></span>CD4D</td>
+<td class="instruction">LD IY,$5C08</td>
+<td class="comment-1" rowspan="2">IY = object 0; new rectangle into +$18 to +$1B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52561"></span>CD51</td>
+<td class="instruction">CALL <a href="52531.html">calc_2d_info</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52564"></span>CD54</td>
+<td class="instruction">LD B,$28</td>
+<td class="comment-1" rowspan="1">forty objects to test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52566"></span>CD56</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="1">L = the new first column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52569"></span>CD59</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52570"></span>CD5A</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52571"></span>CD5B</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52572"></span>CD5C</td>
+<td class="instruction">AND $1F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52574"></span>CD5E</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52575"></span>CD5F</td>
+<td class="instruction">LD A,(IX+$1E)</td>
+<td class="comment-1" rowspan="1">H = the old first column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52578"></span>CD62</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52579"></span>CD63</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52580"></span>CD64</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52581"></span>CD65</td>
+<td class="instruction">AND $1F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52583"></span>CD67</td>
+<td class="instruction">LD H,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52584"></span>CD68</td>
+<td class="instruction">CP L</td>
+<td class="comment-1" rowspan="3">A = whichever is further left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52585"></span>CD69</td>
+<td class="instruction">JR C,<a href="52588.html">union_right_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52587"></span>CD6B</td>
+<td class="instruction">LD A,L</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52547.html">CD43</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52557">Map</a></td>
+<td class="next">
+Next: <a href="52588.html">CD6C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

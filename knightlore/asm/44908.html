@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at AF6C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44696.html">AE98</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44908">Map</a></td>
+<td class="next">
+Next: <a href="44927.html">AF7F</a>
+</td>
+</tr>
+</table>
+<div class="description">AF6C: Cold start</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Wipes the game's whole RAM -- $5BA0 to $6107, 1384 bytes -- and falls into <a href="44936.html">main</a>. The one thing it keeps is the ROM's frame counter, which it reads before the wipe and writes back afterwards as the first random seed. A machine that has been switched on for a different length of time therefore gets a different castle.
+</div>
+<div class="paragraph">
+The read has to come first for a second reason: FRAMES, at $5C78, lies inside the object table (it is byte 16 of object 3), so the wipe destroys it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">START</td>
+<td class="address-2"><span id="44908"></span>AF6C</td>
+<td class="instruction">LD HL,$5BA0</td>
+<td class="comment-1" rowspan="1">$5BA0 to $6107: the variables and all 40 object records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44911"></span>AF6F</td>
+<td class="instruction">LD BC,$0568</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44914"></span>AF72</td>
+<td class="instruction">LD A,($5C78)</td>
+<td class="comment-1" rowspan="1">FRAMES, the ROM's 50Hz counter, as the seed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44917"></span>AF75</td>
+<td class="instruction">PUSH AF</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44918"></span>AF76</td>
+<td class="instruction">CALL <a href="54586.html">clr_mem</a></td>
+<td class="comment-1" rowspan="2">clear them, and take the seed back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44921"></span>AF79</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44922"></span>AF7A</td>
+<td class="instruction">LD ($5BA0),A</td>
+<td class="comment-1" rowspan="1">put it back where the wipe cannot reach it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44925"></span>AF7D</td>
+<td class="instruction">JR <a href="44936.html">main</a></td>
+<td class="comment-1" rowspan="1">and set up a game</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44696.html">AE98</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44908">Map</a></td>
+<td class="next">
+Next: <a href="44927.html">AF7F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

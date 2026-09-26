@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B6F9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46831.html">B6EF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46841">Map</a></td>
+<td class="next">
+Next: <a href="46870.html">B716</a>
+</td>
+</tr>
+</table>
+<div class="description">B6F9: Walking legs (types 144 to 149 and 152 to 157)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The lower half of a guard or of the wizard: the second record in the guard_ew (<a href="27806.html">guard_ew</a>), guard_square (<a href="27819.html">guard_square</a>) and wizard (<a href="28590.html">wizard</a>) layouts. It is 6 pixels lower on the screen than the body it goes with (compare <a href="50397.html">adj_m6_m12</a> with <a href="50448.html">adj_p3_m12</a>), has no height and is not solid, and uses the same sprites as the player's own legs, types 16 to 29.
+</div>
+<div class="paragraph">
+The legs never move themselves: the body's handler, which runs just before, copies its X, Y and deltas into this record (at IX+33 onwards from its point of view). This handler only animates. Standing still, it does nothing at all. Walking, it plays a footstep, chooses one of two views -- types 144-149 or 152-157, bit 3 of the type -- and whether to mirror it, from the direction of travel, and steps the six-frame walk cycle (<a href="51583.html">animate_human_legs</a>).
+</div>
+<div class="paragraph">
+The direction test compares dX and dY as unsigned bytes, which works because only one of them is ever non-zero and a negative step is a large number. +X and -Y use the second view, -X and +Y the first; +Y and -Y are drawn mirrored.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_144_to_149_152_to_157</td>
+<td class="address-2"><span id="46841"></span>B6F9</td>
+<td class="instruction">CALL <a href="50397.html">adj_m6_m12</a></td>
+<td class="comment-1" rowspan="1">pixel offsets</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46844"></span>B6FC</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="1">not moving: no step, no redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46847"></span>B6FF</td>
+<td class="instruction">OR (IX+$0A)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46850"></span>B702</td>
+<td class="instruction">RET Z</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46851"></span>B703</td>
+<td class="instruction">CALL <a href="46253.html">audio_guard_wizard</a></td>
+<td class="comment-1" rowspan="1">footstep</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46854"></span>B706</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="1">moving along Y?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46857"></span>B709</td>
+<td class="instruction">CP (IX+$0A)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46860"></span>B70C</td>
+<td class="instruction">JR C,<a href="46886.html">legs_moving_in_y</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46862"></span>B70E</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="2">moving -X?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46864"></span>B710</td>
+<td class="instruction">JR NZ,<a href="46880.html">legs_face_minus_x</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46866"></span>B712</td>
+<td class="instruction">SET 3,(IX+$00)</td>
+<td class="comment-1" rowspan="1">+X: second view</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46831.html">B6EF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46841">Map</a></td>
+<td class="next">
+Next: <a href="46870.html">B716</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

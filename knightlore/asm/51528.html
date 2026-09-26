@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C948</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51520.html">C940</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51528">Map</a></td>
+<td class="next">
+Next: <a href="51561.html">C969</a>
+</td>
+</tr>
+</table>
+<div class="description">C948: Start a jump</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51262.html">player_controls</a>.
+</div>
+<div class="paragraph">
+Jump starts only when the jump control is held, the room-entry walk is over, no jump is already in progress (bit 3 of +$0C, cleared on landing by <a href="51661.html">move_player_apply</a>), and the player is not already falling. The launch speed is 8 units up; <a href="51649.html">apply_gravity</a> then takes it away again frame by frame.
+</div>
+<div class="paragraph">
+The test is on the speed, not on standing: a dZ of -1 or more is enough, and the collision code leaves dZ at 0 for a player on the ground.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">handle_jump</td>
+<td class="address-2"><span id="51528"></span>C948</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="2">jump not held</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51530"></span>C94A</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51531"></span>C94B</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">not during the room-entry walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51534"></span>C94E</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51536"></span>C950</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51537"></span>C951</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">not while a jump is in progress</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51541"></span>C955</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51542"></span>C956</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="1">dZ -2 or less: already falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51545"></span>C959</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51546"></span>C95A</td>
+<td class="instruction">RET M</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51547"></span>C95B</td>
+<td class="instruction">SET 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">jumping, 8 units a frame upwards</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51551"></span>C95F</td>
+<td class="instruction">LD (IX+$0B),$08</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51555"></span>C963</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="4">the jump sound; C, the controls, kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51556"></span>C964</td>
+<td class="instruction">CALL <a href="46145.html">sound_jump</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51559"></span>C967</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51560"></span>C968</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51520.html">C940</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51528">Map</a></td>
+<td class="next">
+Next: <a href="51561.html">C969</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

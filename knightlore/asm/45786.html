@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B2DA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45785.html">B2D9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45786">Map</a></td>
+<td class="next">
+Next: <a href="45817.html">B2F9</a>
+</td>
+</tr>
+</table>
+<div class="description">B2DA: Play one note</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="45765.html">keypress_tune_note</a> and <a href="45775.html">play_audio</a>.
+</div>
+<div class="paragraph">
+Looks up the note's three bytes in <a href="45874.html">freq_tbl</a>: two loop counts that set how long each half of a wave lasts, and how many waves make one unit. The length bits multiply the wave count by one to four. It then drives the speaker directly, off for one half-wave and on for the other, with the border held black.
+</div>
+<div class="paragraph">
+The wave count in the table rises with the pitch, which keeps every unit close to 0.155 seconds whatever the note.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the note byte</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the address of the note byte; on exit, the next one</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">play_note</td>
+<td class="address-2"><span id="45786"></span>B2DA</td>
+<td class="instruction">AND $3F</td>
+<td class="comment-1" rowspan="1">index 0 is a rest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45788"></span>B2DC</td>
+<td class="instruction">JR Z,<a href="45852.html">snd_delay</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45790"></span>B2DE</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="6">HL = <a href="45874.html">freq_tbl</a> + 3 * index</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45791"></span>B2DF</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45793"></span>B2E1</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45794"></span>B2E2</td>
+<td class="instruction">CALL <a href="54514.html">add_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45797"></span>B2E5</td>
+<td class="instruction">LD BC,<a href="45874.html">freq_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45800"></span>B2E8</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45801"></span>B2E9</td>
+<td class="instruction">LD B,(HL)</td>
+<td class="comment-1" rowspan="6">B and C time the half-wave; HL = the number of waves in one unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45802"></span>B2EA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45803"></span>B2EB</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45804"></span>B2EC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45805"></span>B2ED</td>
+<td class="instruction">LD L,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45806"></span>B2EE</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45808"></span>B2F0</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="5">the top two bits: the length, one to four units</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45809"></span>B2F1</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45810"></span>B2F2</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45811"></span>B2F3</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45813"></span>B2F5</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45814"></span>B2F6</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="3">DE = the waves in one unit, to add up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45815"></span>B2F7</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45816"></span>B2F8</td>
+<td class="instruction">LD D,H</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45785.html">B2D9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45786">Map</a></td>
+<td class="next">
+Next: <a href="45817.html">B2F9</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

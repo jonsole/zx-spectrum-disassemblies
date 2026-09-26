@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C530</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50469.html">C525</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50480">Map</a></td>
+<td class="next">
+Next: <a href="50546.html">C572</a>
+</td>
+</tr>
+</table>
+<div class="description">C530: Check one special-object entry</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50546.html">next_spec_obj_slot</a>.
+</div>
+<div class="paragraph">
+If the entry is still in play and in this room, copy it into the next special-object record: type; x, y and z from where it is now; size 5 by 5 by 12 and flags $14 (drawn, and can be pushed); the room; nothing moving; and at +$10 the address of the table entry, so the record can be written back to it by <a href="50577.html">update_special_objs</a> when the room is left.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">find_spec_obj_loop</td>
+<td class="address-2"><span id="50480"></span>C530</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="1">collected: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50483"></span>C533</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50484"></span>C534</td>
+<td class="instruction">JR Z,<a href="50546.html">next_spec_obj_slot</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50486"></span>C536</td>
+<td class="instruction">LD A,(IY+$08)</td>
+<td class="comment-1" rowspan="1">in another room: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50489"></span>C539</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50490"></span>C53A</td>
+<td class="instruction">JR NZ,<a href="50546.html">next_spec_obj_slot</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50492"></span>C53C</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">HL = the entry; its address is kept on the stack</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50494"></span>C53E</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50495"></span>C53F</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50496"></span>C540</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50497"></span>C541</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">the type</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50498"></span>C542</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50499"></span>C543</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50500"></span>C544</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50501"></span>C545</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="6">x, y and z from +5..+7, where it is now</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50502"></span>C546</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50503"></span>C547</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50504"></span>C548</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50505"></span>C549</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50508"></span>C54C</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50510"></span>C54E</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="10">5 by 5 by 12, flags $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50511"></span>C54F</td>
+<td class="instruction">LD (HL),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50513"></span>C551</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50514"></span>C552</td>
+<td class="instruction">LD (HL),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50516"></span>C554</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50517"></span>C555</td>
+<td class="instruction">LD (HL),$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50519"></span>C557</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50520"></span>C558</td>
+<td class="instruction">LD (HL),$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50522"></span>C55A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50523"></span>C55B</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50524"></span>C55C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50525"></span>C55D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50526"></span>C55E</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50527"></span>C55F</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50528"></span>C560</td>
+<td class="instruction">LD B,$07</td>
+<td class="comment-1" rowspan="2">+$09..+$0F: no velocity or status</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50530"></span>C562</td>
+<td class="instruction">CALL <a href="54536.html">zero_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50533"></span>C565</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="7">+$10: the address of the table entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50534"></span>C566</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50535"></span>C567</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50536"></span>C568</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50537"></span>C569</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50538"></span>C56A</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50539"></span>C56B</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50540"></span>C56C</td>
+<td class="instruction">LD B,$0E</td>
+<td class="comment-1" rowspan="2">+$12..+$1F cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50542"></span>C56E</td>
+<td class="instruction">CALL <a href="54536.html">zero_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50545"></span>C571</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">back to the scan's registers</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50469.html">C525</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50480">Map</a></td>
+<td class="next">
+Next: <a href="50546.html">C572</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D57B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54648.html">D578</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54651">Map</a></td>
+<td class="next">
+Next: <a href="54682.html">D59A</a>
+</td>
+</tr>
+</table>
+<div class="description">D57B: Copy and clear a row, then step to the display line above</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_screen_byte</td>
+<td class="address-2"><span id="54651"></span>D57B</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">copy a byte and clear it behind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54652"></span>D57C</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54653"></span>D57D</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54655"></span>D57F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54656"></span>D580</td>
+<td class="instruction">INC E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54657"></span>D581</td>
+<td class="instruction">DJNZ <a href="54651.html#54651">update_screen_byte</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54659"></span>D583</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">the next buffer row is 32 bytes on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54660"></span>D584</td>
+<td class="instruction">LD BC,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54663"></span>D587</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54664"></span>D588</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54665"></span>D589</td>
+<td class="instruction">DEC D</td>
+<td class="comment-1" rowspan="5">up a display line: DEC D is enough unless the low three bits of D have wrapped round to 7, which means the line crossed into the character row above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54666"></span>D58A</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54667"></span>D58B</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54668"></span>D58C</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54670"></span>D58E</td>
+<td class="instruction">JR NZ,<a href="54682.html">update_screen_next_row</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54672"></span>D590</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="7">crossing a character row: back 32 in E; if that borrows the line is the bottom of the third above, which is where DEC D left it; if not, D goes back up by 8 to stay in this third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54673"></span>D591</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54675"></span>D593</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54676"></span>D594</td>
+<td class="instruction">JR C,<a href="54682.html">update_screen_next_row</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54678"></span>D596</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54679"></span>D597</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54681"></span>D599</td>
+<td class="instruction">LD D,A</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54648.html">D578</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54651">Map</a></td>
+<td class="next">
+Next: <a href="54682.html">D59A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

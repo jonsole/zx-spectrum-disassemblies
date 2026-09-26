@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C89F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51357.html">C89D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51359">Map</a></td>
+<td class="next">
+Next: <a href="51390.html">C8BE</a>
+</td>
+</tr>
+</table>
+<div class="description">C89F: Turn the player</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51262.html">player_controls</a>.
+</div>
+<div class="paragraph">
+Two control schemes. Rotational control, the only one the keyboard has, uses left and right to turn a quarter at a time: see <a href="51442.html">left_right_rotational</a>. Directional control, which a joystick gets when option 5 on the menu is on (bit 3 of $5BA4), treats the stick as four compass points: pushing one turns the player towards it and, once facing it, walks that way.
+</div>
+<div class="paragraph">
+In directional mode nothing happens during the room-entry walk or in the air -- bit 2 of +$0C, set by the collision code when a downward move is stopped, is what "standing on something" means here. Otherwise the stick is read in the order up (unless left is also held), right, down, left.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls: bit 0 left, 1 right, 2 up, 3 jump, 4 down</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">on exit, bit 2 set if the player should walk forward</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">handle_left_right</td>
+<td class="address-2"><span id="51359"></span>C89F</td>
+<td class="instruction">LD HL,$5BA4</td>
+<td class="comment-1" rowspan="1">bits 1-2 of $5BA4 are the control method; 0, the keyboard, is always rotational</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51362"></span>C8A2</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51363"></span>C8A3</td>
+<td class="instruction">AND $06</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51365"></span>C8A5</td>
+<td class="instruction">JR Z,<a href="51442.html">left_right_rotational</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51367"></span>C8A7</td>
+<td class="instruction">BIT 3,(HL)</td>
+<td class="comment-1" rowspan="2">directional control switched off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51369"></span>C8A9</td>
+<td class="instruction">JR Z,<a href="51442.html">left_right_rotational</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51371"></span>C8AB</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">not during the room-entry walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51374"></span>C8AE</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51376"></span>C8B0</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51377"></span>C8B1</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">not in the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51381"></span>C8B5</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51382"></span>C8B6</td>
+<td class="instruction">BIT 0,C</td>
+<td class="comment-1" rowspan="4">left pressed: skip the test for up; up: face N</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51384"></span>C8B8</td>
+<td class="instruction">JR NZ,<a href="51390.html">directional_pick</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51386"></span>C8BA</td>
+<td class="instruction">BIT 2,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51388"></span>C8BC</td>
+<td class="instruction">JR NZ,<a href="51405.html">chk_facing_N</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51357.html">C89D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51359">Map</a></td>
+<td class="next">
+Next: <a href="51390.html">C8BE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

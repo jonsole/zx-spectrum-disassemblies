@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B566</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46421.html">B555</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46438">Map</a></td>
+<td class="next">
+Next: <a href="46475.html">B58B</a>
+</td>
+</tr>
+</table>
+<div class="description">B566: Handler: the finale sparks (types 131 to 133)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+When the fourteenth object goes into the cauldron, <a href="49868.html">prepare_final_animation</a> clears away objects 3 to 13 and turns every plain block from object 14 on into one of these. Below height $A4 a spark rises two a frame while moving four a frame round the middle of the room: which quarter of the room it is in picks a direction from <a href="46475.html">dX_dY_tbl</a>, and each direction carries it into the next quarter round. Once it is high enough it flies at Sabreman instead, and when it comes within 6 of him on both X and Y the game ends -- through <a href="47650.html">game_over</a>, which sees the finale flag at $5BC3 and shows the closing message.
+</div>
+<div class="paragraph">
+Every frame each spark takes a random one of the three frames, and leaves its height at $5BC5 for <a href="45056.html">end_of_frame</a> to turn into a tone.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the spark</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_131_to_133</td>
+<td class="address-2"><span id="46438"></span>B566</td>
+<td class="instruction">CALL <a href="50392.html">adj_m4_m12</a></td>
+<td class="comment-1" rowspan="1">drawing offsets</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46441"></span>B569</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="1">high enough: go for Sabreman</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46444"></span>B56C</td>
+<td class="instruction">CP $A4</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46446"></span>B56E</td>
+<td class="instruction">JR NC,<a href="46532.html">spark_near_player</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46448"></span>B570</td>
+<td class="instruction">LD (IX+$0B),$03</td>
+<td class="comment-1" rowspan="1">dZ = 3; gravity takes one, so it rises two a frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46452"></span>B574</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="1">L = which quarter: bit 1 from X, bit 0 from Y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46455"></span>B577</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46456"></span>B578</td>
+<td class="instruction">AND $01</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46458"></span>B57A</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46459"></span>B57B</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46462"></span>B57E</td>
+<td class="instruction">AND $80</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46464"></span>B580</td>
+<td class="instruction">OR L</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46465"></span>B581</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46466"></span>B582</td>
+<td class="instruction">AND $03</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46468"></span>B584</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46469"></span>B585</td>
+<td class="instruction">LD BC,<a href="46475.html">dX_dY_tbl</a></td>
+<td class="comment-1" rowspan="2">go and set that quarter's direction</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46472"></span>B588</td>
+<td class="instruction">JP <a href="45019.html">jump_to_tbl_entry</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46421.html">B555</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46438">Map</a></td>
+<td class="next">
+Next: <a href="46475.html">B58B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B000</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45028.html">AFE4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45056">Map</a></td>
+<td class="next">
+Next: <a href="45109.html">B035</a>
+</td>
+</tr>
+</table>
+<div class="description">B000: End of frame</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45028.html">ret_from_tbl_jp</a>.
+</div>
+<div class="paragraph">
+Draws everything the object walk decided on and then burns whatever time is left, so the game runs at an even speed rather than at whatever speed the room happens to allow.
+</div>
+<div class="paragraph">
+The time is counted in units of drawing. The renderer counts at $5BBE every object it draws and every rectangle it wipes, and this waits for six units less that count. One unit of waiting is 1280 turns of a 26-cycle loop, about 33,300 T-states, just under half a 50Hz frame. So a room where fewer than six things change runs at the same speed as one where six do, and a room busier than that runs slower -- the delay can only pad, never take time back.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">end_of_frame</td>
+<td class="address-2"><span id="45056"></span>B000</td>
+<td class="instruction">LD HL,($5BA2)</td>
+<td class="comment-1" rowspan="3">the 16-bit frame counter</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45059"></span>B003</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45060"></span>B004</td>
+<td class="instruction">LD ($5BA2),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45063"></span>B007</td>
+<td class="instruction">LD A,($5BA5)</td>
+<td class="comment-1" rowspan="5">stir it into the random byte, with whatever memory it happens to address</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45066"></span>B00A</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45067"></span>B00B</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45068"></span>B00C</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45069"></span>B00D</td>
+<td class="instruction">LD ($5BA5),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45072"></span>B010</td>
+<td class="instruction">LD HL,$5BB2</td>
+<td class="comment-1" rowspan="2">a frame has been played: the next room entry saves the charms' places back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45075"></span>B013</td>
+<td class="instruction">SET 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45077"></span>B015</td>
+<td class="instruction">CALL <a href="54542.html">handle_pause</a></td>
+<td class="comment-1" rowspan="1">SPACE pauses</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45080"></span>B018</td>
+<td class="instruction">CALL <a href="47273.html">init_cauldron_bubbles</a></td>
+<td class="comment-1" rowspan="1">bubbles in the cauldron room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45083"></span>B01B</td>
+<td class="instruction">CALL <a href="52834.html">list_objects_to_draw</a></td>
+<td class="comment-1" rowspan="1">list the objects flagged to be drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45086"></span>B01E</td>
+<td class="instruction">CALL <a href="54687.html">render_dynamic_objects</a></td>
+<td class="comment-1" rowspan="1">wipe, draw in depth order into the buffer at <a href="55539.html">D8F3</a>, and copy the changes to the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45089"></span>B021</td>
+<td class="instruction">LD A,($5BC5)</td>
+<td class="comment-1" rowspan="3">during the finale, a tone pitched by the last spark's height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45092"></span>B024</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45093"></span>B025</td>
+<td class="instruction">CALL NZ,<a href="46164.html">sound_pitch_from_a</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45096"></span>B028</td>
+<td class="instruction">LD A,($5BBE)</td>
+<td class="comment-1" rowspan="3">six units, less what this frame already used</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45099"></span>B02B</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45101"></span>B02D</td>
+<td class="instruction">ADD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45103"></span>B02F</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="3">none left to wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45104"></span>B030</td>
+<td class="instruction">JP M,<a href="45119.html">no_delay</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45107"></span>B033</td>
+<td class="instruction">JR Z,<a href="45119.html">no_delay</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45028.html">AFE4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45056">Map</a></td>
+<td class="next">
+Next: <a href="45109.html">B035</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

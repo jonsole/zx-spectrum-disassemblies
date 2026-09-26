@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C489</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50302.html">C47E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50313">Map</a></td>
+<td class="next">
+Next: <a href="50346.html">C4AA</a>
+</td>
+</tr>
+</table>
+<div class="description">C489: Set up one special-object entry</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+A table entry is nine bytes: +0 the type, 0 once the object has been collected; +1 to +4 where it starts, as x, y, z and room; +5 to +8 where it is now, in the same order. Here the type is written and the starting position copied to the current one.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the entry</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">the rotating kind</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">init_obj_loop</td>
+<td class="address-2"><span id="50313"></span>C489</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="4">type 96 + (kind mod 8)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50314"></span>C48A</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50316"></span>C48C</td>
+<td class="instruction">OR $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50318"></span>C48E</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50319"></span>C48F</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="2">on to +1, and the next kind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50320"></span>C490</td>
+<td class="instruction">INC E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50321"></span>C491</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="8">copy +1..+4, where it starts, to +5..+8, where it is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50322"></span>C492</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50323"></span>C493</td>
+<td class="instruction">LD HL,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50326"></span>C496</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50327"></span>C497</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50328"></span>C498</td>
+<td class="instruction">LD BC,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50331"></span>C49B</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50333"></span>C49D</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50334"></span>C49E</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="7">until the sprite table at <a href="28946.html">sprite_tbl</a>, which follows the last entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50335"></span>C49F</td>
+<td class="instruction">LD BC,<a href="28946.html">sprite_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50338"></span>C4A2</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50339"></span>C4A3</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50341"></span>C4A5</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50342"></span>C4A6</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50343"></span>C4A7</td>
+<td class="instruction">JR C,<a href="50313.html#50313">init_obj_loop</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50345"></span>C4A9</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50302.html">C47E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50313">Map</a></td>
+<td class="next">
+Next: <a href="50346.html">C4AA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

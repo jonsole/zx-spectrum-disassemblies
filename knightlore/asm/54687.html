@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D59F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54682.html">D59A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54687">Map</a></td>
+<td class="next">
+Next: <a href="54706.html">D5B2</a>
+</td>
+</tr>
+</table>
+<div class="description">D59F: Redraw what changed and copy it to the display</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45056.html">end_of_frame</a>.
+</div>
+<div class="paragraph">
+Called at the end of every frame. The list at <a href="52875.html">objects_to_draw</a> holds every object that is to be drawn this frame: those that moved or changed, which <a href="50834.html">set_wipe_and_draw_flags</a> flagged with bits 4 and 5 of byte 7, and those whose picture overlaps them, which <a href="52557.html">set_draw_objs_overlapped</a> flagged with bit 4 only. First, for each object that moved, the rectangle covering both where it was last frame and where it is now is cleared in the buffer and remembered on the stack. Then every flagged object is drawn into the buffer in depth order, and finally the remembered rectangles -- and only those -- are copied to the display.
+</div>
+<div class="paragraph">
+Nothing is ever erased on the display itself, so nothing flickers; and since the background is made of objects too, a wall behind a moving knight is simply drawn again.
+</div>
+<div class="paragraph">
+In the frame a room is entered the wiping is skipped altogether: the buffer has just been cleared, and <a href="45056.html">end_of_frame</a> copies all of it to the display with <a href="54639.html">update_screen</a> once the objects are drawn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">render_dynamic_objects</td>
+<td class="address-2"><span id="54687"></span>D59F</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">no rectangles yet: $5BA8 counts them</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54688"></span>D5A0</td>
+<td class="instruction">LD ($5BA8),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54691"></span>D5A3</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54693"></span>D5A5</td>
+<td class="instruction">LD A,($5BB7)</td>
+<td class="comment-1" rowspan="3">a room just built ($5BB7 set by <a href="53743.html">build_room</a>): nothing to wipe</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54696"></span>D5A8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54697"></span>D5A9</td>
+<td class="instruction">JP NZ,<a href="54867.html">draw_and_copy_rects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54700"></span>D5AC</td>
+<td class="instruction">LD HL,<a href="52875.html">objects_to_draw</a></td>
+<td class="comment-1" rowspan="2">walk the list that <a href="52834.html">list_objects_to_draw</a> made; $5BCB is the place in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54703"></span>D5AF</td>
+<td class="instruction">LD ($5BCB),HL</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54682.html">D59A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54687">Map</a></td>
+<td class="next">
+Next: <a href="54706.html">D5B2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CEBB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52875.html">CE8B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52923">Map</a></td>
+<td class="next">
+Next: <a href="52931.html">CEC3</a>
+</td>
+</tr>
+</table>
+<div class="description">CEBB: Draw the listed objects, back to front</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="54867.html">draw_and_copy_rects</a>.
+</div>
+<div class="paragraph">
+This is where Knight Lore decides what is in front of what. Every listed object is an axis-aligned box in the room: centre X and Y with half-sizes at +$04 and +$05, and a base Z with a height at +$06. On the screen +X runs down and to the right and +Y up and to the right, so the far side of anything is towards smaller X, larger Y and smaller Z.
+</div>
+<div class="paragraph">
+It repeatedly takes the first object in <a href="52875.html">objects_to_draw</a> not yet drawn as the candidate (IX) and compares it with every other undrawn one (IY). If some IY has to be drawn before the candidate, IY becomes the candidate and the comparison starts again from the top of the list; when a candidate survives a full pass it is drawn, marked done, and the whole thing starts over. So each draw is of an object with nothing undrawn behind it.
+</div>
+<div class="paragraph">
+The comparison classifies the two boxes on each axis into IX clear on the near side, overlapping, or IY clear on the near side, and combines the three into an index 0 to 26 into <a href="53097.html">depth_order_tbl</a>. The rule the table encodes: IY must go first when, on every axis, IY is either further back than IX or overlapping it, and is further back on at least one. Any other arrangement places no constraint on the pair.
+</div>
+<div class="paragraph">
+The order found need not be consistent -- three boxes can each be behind the next -- so the chain of candidates is recorded in <a href="53274.html">candidate_chain</a>, and meeting an object already in it breaks the cycle by drawing that object at once (<a href="53198.html">break_order_cycle</a>).
+</div>
+<div class="paragraph">
+$5BBE counts the objects drawn; <a href="45056.html">end_of_frame</a> uses it to pace the frame.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">calc_display_order_and_render</td>
+<td class="address-2"><span id="52923"></span>CEBB</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">no objects drawn yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52924"></span>CEBC</td>
+<td class="instruction">LD ($5BBE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52927"></span>CEBF</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52929"></span>CEC1</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52875.html">CE8B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52923">Map</a></td>
+<td class="next">
+Next: <a href="52931.html">CEC3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

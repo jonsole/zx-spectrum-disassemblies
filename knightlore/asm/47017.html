@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B7A9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47011.html">B7A3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47017">Map</a></td>
+<td class="next">
+Next: <a href="47053.html">B7CD</a>
+</td>
+</tr>
+</table>
+<div class="description">B7A9: Spiked ball (type 63)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The spike_ball_fall block (<a href="27778.html">spike_ball_fall</a>). Deadly to touch. It hangs where the room put it until it is let go, then falls under gravity to whatever is below and stays there.
+</div>
+<div class="paragraph">
+Only one spiked ball in a room falls at a time: $5BBF is set while one is on its way down, and a waiting ball lets go with a chance of 1 in 16 each frame when it is clear. None falls at all while $5BC0 is non-zero. That byte is set on entering a room to bit 0 of the room number and is cleared when the player picks something up, so in odd-numbered rooms the balls wait until then.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_63</td>
+<td class="address-2"><span id="47017"></span>B7A9</td>
+<td class="instruction">CALL <a href="47196.html">set_both_deadly_flags</a></td>
+<td class="comment-1" rowspan="2">deadly both ways; pixel offsets</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47020"></span>B7AC</td>
+<td class="instruction">CALL <a href="50403.html">upd_6_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47023"></span>B7AF</td>
+<td class="instruction">LD A,($5BC0)</td>
+<td class="comment-1" rowspan="3">held in this room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47026"></span>B7B2</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47027"></span>B7B3</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47028"></span>B7B4</td>
+<td class="instruction">BIT 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">already falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47032"></span>B7B8</td>
+<td class="instruction">JR NZ,<a href="47053.html">spiked_ball_drop</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47034"></span>B7BA</td>
+<td class="instruction">LD HL,$5BBF</td>
+<td class="comment-1" rowspan="4">another ball is falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47037"></span>B7BD</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47038"></span>B7BE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47039"></span>B7BF</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47040"></span>B7C0</td>
+<td class="instruction">LD A,($5BA5)</td>
+<td class="comment-1" rowspan="1">1 in 16: let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47043"></span>B7C3</td>
+<td class="instruction">CP $10</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47045"></span>B7C5</td>
+<td class="instruction">RET NC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47046"></span>B7C6</td>
+<td class="instruction">SET 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">falling, and claim the one-at-a-time flag</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47050"></span>B7CA</td>
+<td class="instruction">LD (HL),$01</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47052"></span>B7CC</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47011.html">B7A3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47017">Map</a></td>
+<td class="next">
+Next: <a href="47053.html">B7CD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

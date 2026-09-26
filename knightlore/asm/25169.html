@@ -1,0 +1,3782 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Data at 6251</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="25160.html">6248</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#25169">Map</a></td>
+<td class="next">
+Next: <a href="27601.html">6BD1</a>
+</td>
+</tr>
+</table>
+<div class="description">6251: The rooms</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Every room in the castle: 128 records of varying length packed end to end, the last ending where <a href="27601.html">block_type_tbl</a> begins. There is no index and no terminator. <a href="54223.html">find_screen</a> finds a room by walking the records from the start, comparing each room number with the player's; byte 1 of a record is the distance from itself to the next record, and the walk gives up when it reaches the address of <a href="27601.html">block_type_tbl</a>.
+</div>
+<div class="paragraph">
+Byte 0 is the room number. The castle is a grid of 16 by 16 squares, and the number is the square's row times 16 plus its column: walking out through the east or west side adds or subtracts 1 in the low four bits only, and north or south adds or subtracts 16 (<a href="51866.html">screen_west</a> to <a href="52009.html">screen_south</a>). Only 128 of the 256 squares are rooms. Byte 1 is the record's length less one. Byte 2 holds the room's ink colour in bits 0 to 2 -- magenta, green, cyan or yellow -- which <a href="54256.html">found_screen</a> makes into bright ink on black paper at $5BAD, and its shape in bits 3 to 7, an index into <a href="25160.html">room_size_tbl</a>.
+</div>
+<div class="paragraph">
+Next come the room's backgrounds, one byte each, indexes into <a href="27874.html">background_type_tbl</a>: walls, arches, doorways and the other fixed scenery. A byte of $FF ends them. A room with nothing more in it has no $FF and simply ends; 24 rooms are like that.
+</div>
+<div class="paragraph">
+After the $FF come groups of objects. A group begins with a byte whose bits 3 to 7 are an index into <a href="27601.html">block_type_tbl</a> and whose bits 0 to 2 are the number of copies less one, and carries one position byte per copy. A position byte names a cell in the room's grid of 8 by 8 cells on four levels: bits 0 to 2 the x cell, bits 3 to 5 the y cell and bits 6 and 7 the level. <a href="54380.html">next_fg_obj_sprite</a> turns it into coordinates: x is $48 plus 16 times the x cell, y likewise, and z is the floor height plus 12 times the level, to which the block type can add half a cell in x or y and extra height.
+</div>
+<div class="paragraph">
+<a href="54214.html">retrieve_screen</a> builds the room as object records, 32 bytes each, from $5C88 upwards, and clears whatever is left up to <a href="24840.html">font</a>. That is room for 36 objects, and six rooms in this table need exactly 36.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">location_tbl</td>
+<td class="address-1"><span id="25169"></span>6251</td>
+<td class="instruction">DEFB $00,$19,$03</td>
+<td class="comment-1" rowspan="1">Room $00 (row 0, column 0): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25172"></span>6254</td>
+<td class="instruction">DEFB $00,$01,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25176"></span>6258</td>
+<td class="instruction">DEFB $07,$10,$50,$90,$11,$51,$91,$0A</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25184"></span>6260</td>
+<td class="instruction">DEFB $4A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25185"></span>6261</td>
+<td class="instruction">DEFB $06,$8A,$02,$42,$82,$C8,$C1,$C0</td>
+<td class="comment-1" rowspan="1">Block x7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25193"></span>6269</td>
+<td class="instruction">DEFB $A8,$C9</td>
+<td class="comment-1" rowspan="1">Block (type $5B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25195"></span>626B</td>
+<td class="instruction">DEFB $01,$14,$14</td>
+<td class="comment-1" rowspan="1">Room $01 (row 0, column 1): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25198"></span>626E</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25202"></span>6272</td>
+<td class="instruction">DEFB $03,$2B,$2C,$13,$14</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25207"></span>6277</td>
+<td class="instruction">DEFB $23,$6B,$6C,$53,$54</td>
+<td class="comment-1" rowspan="1">Gargoyle x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25212"></span>627C</td>
+<td class="instruction">DEFB $40,$1C</td>
+<td class="comment-1" rowspan="1">Guard (type $96)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25214"></span>627E</td>
+<td class="instruction">DEFB $48,$28</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25216"></span>6280</td>
+<td class="instruction">DEFB $02,$06,$03</td>
+<td class="comment-1" rowspan="1">Room $02 (row 0, column 2): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25219"></span>6283</td>
+<td class="instruction">DEFB $00,$01,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25223"></span>6287</td>
+<td class="instruction">DEFB $03,$1A,$16</td>
+<td class="comment-1" rowspan="1">Room $03 (row 0, column 3): narrow in y, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25226"></span>628A</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25230"></span>628E</td>
+<td class="instruction">DEFB $03,$22,$1A,$25,$1D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25235"></span>6293</td>
+<td class="instruction">DEFB $2B,$23,$1B,$24,$1C</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25240"></span>6298</td>
+<td class="instruction">DEFB $93,$2B,$2C,$13,$14</td>
+<td class="comment-1" rowspan="1">Spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25245"></span>629D</td>
+<td class="instruction">DEFB $B3,$63,$64,$5B,$5C</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25250"></span>62A2</td>
+<td class="instruction">DEFB $04,$13,$05</td>
+<td class="comment-1" rowspan="1">Room $04 (row 0, column 4): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25253"></span>62A5</td>
+<td class="instruction">DEFB $00,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25257"></span>62A9</td>
+<td class="instruction">DEFB $2B,$23,$1A,$1C,$13</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25262"></span>62AE</td>
+<td class="instruction">DEFB $B2,$5A,$5C,$53</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25266"></span>62B2</td>
+<td class="instruction">DEFB $02,$63,$9B,$DB</td>
+<td class="comment-1" rowspan="1">Block x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25270"></span>62B6</td>
+<td class="instruction">DEFB $08,$1A,$03</td>
+<td class="comment-1" rowspan="1">Room $08 (row 0, column 8): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25273"></span>62B9</td>
+<td class="instruction">DEFB $04,$05,$0F,$10,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest walls, trees closing the W gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25278"></span>62BE</td>
+<td class="instruction">DEFB $1B,$1B,$5B,$9B,$DB</td>
+<td class="comment-1" rowspan="1">Rock x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25283"></span>62C3</td>
+<td class="instruction">DEFB $2B,$23,$1A,$1C,$13</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25288"></span>62C8</td>
+<td class="instruction">DEFB $93,$63,$5A,$5C,$53</td>
+<td class="comment-1" rowspan="1">Spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25293"></span>62CD</td>
+<td class="instruction">DEFB $B8,$09</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25295"></span>62CF</td>
+<td class="instruction">DEFB $80,$49</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25297"></span>62D1</td>
+<td class="instruction">DEFB $09,$0B,$06</td>
+<td class="comment-1" rowspan="1">Room $09 (row 0, column 9): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25300"></span>62D4</td>
+<td class="instruction">DEFB $05,$07,$0F,$11,$09,$0B,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit W, forest walls, trees closing the N gap, portcullis E, portcullis W</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25307"></span>62DB</td>
+<td class="instruction">DEFB $48,$23</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25309"></span>62DD</td>
+<td class="instruction">DEFB $0A,$19,$03</td>
+<td class="comment-1" rowspan="1">Room $0A (row 0, column 10): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25312"></span>62E0</td>
+<td class="instruction">DEFB $05,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25317"></span>62E5</td>
+<td class="instruction">DEFB $1D,$22,$62,$A2,$24,$64,$A4</td>
+<td class="comment-1" rowspan="1">Rock x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25324"></span>62EC</td>
+<td class="instruction">DEFB $2F,$2A,$2B,$6B,$2C,$1A,$1B,$5B</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25332"></span>62F4</td>
+<td class="instruction">DEFB $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25333"></span>62F5</td>
+<td class="instruction">DEFB $38,$0E</td>
+<td class="comment-1" rowspan="1">Table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25335"></span>62F7</td>
+<td class="instruction">DEFB $0B,$06,$06</td>
+<td class="comment-1" rowspan="1">Room $0B (row 0, column 11): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25338"></span>62FA</td>
+<td class="instruction">DEFB $05,$07,$0F,$11</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit W, forest walls, trees closing the N gap; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25342"></span>62FE</td>
+<td class="instruction">DEFB $0C,$17,$03</td>
+<td class="comment-1" rowspan="1">Room $0C (row 0, column 12): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25345"></span>6301</td>
+<td class="instruction">DEFB $05,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25350"></span>6306</td>
+<td class="instruction">DEFB $2F,$3D,$32,$28,$2C,$2F,$22,$1C</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25358"></span>630E</td>
+<td class="instruction">DEFB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25359"></span>630F</td>
+<td class="instruction">DEFB $2B,$12,$17,$0D,$04</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25364"></span>6314</td>
+<td class="instruction">DEFB $B8,$24</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25366"></span>6316</td>
+<td class="instruction">DEFB $0D,$06,$04</td>
+<td class="comment-1" rowspan="1">Room $0D (row 0, column 13): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25369"></span>6319</td>
+<td class="instruction">DEFB $00,$01,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25373"></span>631D</td>
+<td class="instruction">DEFB $0E,$0B,$15</td>
+<td class="comment-1" rowspan="1">Room $0E (row 0, column 14): narrow in y, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25376"></span>6320</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25380"></span>6324</td>
+<td class="instruction">DEFB $53,$12,$1D,$2C,$23</td>
+<td class="comment-1" rowspan="1">Fire (type $B5) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25385"></span>6329</td>
+<td class="instruction">DEFB $0F,$1C,$04</td>
+<td class="comment-1" rowspan="1">Room $0F (row 0, column 15): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25388"></span>632C</td>
+<td class="instruction">DEFB $00,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25392"></span>6330</td>
+<td class="instruction">DEFB $07,$23,$25,$13,$15,$63,$64,$65</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25400"></span>6338</td>
+<td class="instruction">DEFB $5B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25401"></span>6339</td>
+<td class="instruction">DEFB $04,$5D,$53,$54,$55,$1C</td>
+<td class="comment-1" rowspan="1">Block x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25407"></span>633F</td>
+<td class="instruction">DEFB $9B,$A4,$9B,$9D,$94</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25412"></span>6344</td>
+<td class="instruction">DEFB $B0,$9C</td>
+<td class="comment-1" rowspan="1">Block (type $8F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25414"></span>6346</td>
+<td class="instruction">DEFB $10,$18,$0D</td>
+<td class="comment-1" rowspan="1">Room $10 (row 1, column 0): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25417"></span>6349</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25422"></span>634E</td>
+<td class="instruction">DEFB $01,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25425"></span>6351</td>
+<td class="instruction">DEFB $5B,$05,$0C,$0B,$0A</td>
+<td class="comment-1" rowspan="1">Raised block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25430"></span>6356</td>
+<td class="instruction">DEFB $9B,$45,$4C,$4B,$4A</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25435"></span>635B</td>
+<td class="instruction">DEFB $A8,$C2</td>
+<td class="comment-1" rowspan="1">Block (type $5B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25437"></span>635D</td>
+<td class="instruction">DEFB $50,$5A</td>
+<td class="comment-1" rowspan="1">Fire (type $B5)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25439"></span>635F</td>
+<td class="instruction">DEFB $12,$18,$0C</td>
+<td class="comment-1" rowspan="1">Room $12 (row 1, column 2): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25442"></span>6362</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25446"></span>6366</td>
+<td class="instruction">DEFB $97,$FA,$FD,$F3,$F4,$EB,$EC,$E3</td>
+<td class="comment-1" rowspan="2">Spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25454"></span>636E</td>
+<td class="instruction">DEFB $E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25455"></span>636F</td>
+<td class="instruction">DEFB $97,$DB,$DC,$D3,$D4,$CB,$CC,$C2</td>
+<td class="comment-1" rowspan="2">Spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25463"></span>6377</td>
+<td class="instruction">DEFB $C5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25464"></span>6378</td>
+<td class="instruction">DEFB $14,$1A,$0E</td>
+<td class="comment-1" rowspan="1">Room $14 (row 1, column 4): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25467"></span>637B</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25472"></span>6380</td>
+<td class="instruction">DEFB $01,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25475"></span>6383</td>
+<td class="instruction">DEFB $AD,$C2,$CA,$D2,$DA,$DB,$DC</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25482"></span>638A</td>
+<td class="instruction">DEFB $AC,$DD,$E5,$AD,$75,$3D</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25488"></span>6390</td>
+<td class="instruction">DEFB $29,$0B,$0C</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25491"></span>6393</td>
+<td class="instruction">DEFB $18,$11,$0D</td>
+<td class="comment-1" rowspan="1">Room $18 (row 1, column 8): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25494"></span>6396</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25498"></span>639A</td>
+<td class="instruction">DEFB $2F,$2A,$2B,$2C,$2D,$12,$13,$14</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25506"></span>63A2</td>
+<td class="instruction">DEFB $15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25507"></span>63A3</td>
+<td class="instruction">DEFB $B8,$1B</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25509"></span>63A5</td>
+<td class="instruction">DEFB $1D,$1B,$0E</td>
+<td class="comment-1" rowspan="1">Room $1D (row 1, column 13): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25512"></span>63A8</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25517"></span>63AD</td>
+<td class="instruction">DEFB $07,$C3,$C4,$0C,$4C,$8C,$CC,$24</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25525"></span>63B5</td>
+<td class="instruction">DEFB $64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25526"></span>63B6</td>
+<td class="instruction">DEFB $02,$2C,$6C,$34</td>
+<td class="comment-1" rowspan="1">Block x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25530"></span>63BA</td>
+<td class="instruction">DEFB $29,$14,$1C</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25533"></span>63BD</td>
+<td class="instruction">DEFB $58,$0C</td>
+<td class="comment-1" rowspan="1">Raised block</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25535"></span>63BF</td>
+<td class="instruction">DEFB $78,$54</td>
+<td class="comment-1" rowspan="1">Block (type $37)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25537"></span>63C1</td>
+<td class="instruction">DEFB $1F,$17,$0B</td>
+<td class="comment-1" rowspan="1">Room $1F (row 1, column 15): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25540"></span>63C4</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25544"></span>63C8</td>
+<td class="instruction">DEFB $03,$12,$15,$2A,$2D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25549"></span>63CD</td>
+<td class="instruction">DEFB $2F,$52,$13,$14,$55,$6A,$2B,$2C</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25557"></span>63D5</td>
+<td class="instruction">DEFB $6D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25558"></span>63D6</td>
+<td class="instruction">DEFB $E1,$93,$6B</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25561"></span>63D9</td>
+<td class="instruction">DEFB $20,$12,$03</td>
+<td class="comment-1" rowspan="1">Room $20 (row 2, column 0): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25564"></span>63DC</td>
+<td class="instruction">DEFB $00,$01,$15,$17,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, high arch S, step to high arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25570"></span>63E2</td>
+<td class="instruction">DEFB $02,$18,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25574"></span>63E6</td>
+<td class="instruction">DEFB $AA,$50,$88,$C0</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25578"></span>63EA</td>
+<td class="instruction">DEFB $28,$02</td>
+<td class="comment-1" rowspan="1">Spikes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25580"></span>63EC</td>
+<td class="instruction">DEFB $21,$1C,$16</td>
+<td class="comment-1" rowspan="1">Room $21 (row 2, column 1): narrow in y, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25583"></span>63EF</td>
+<td class="instruction">DEFB $14,$16,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, step to high arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25588"></span>63F4</td>
+<td class="instruction">DEFB $07,$21,$61,$A2,$A3,$24,$64,$25</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25596"></span>63FC</td>
+<td class="instruction">DEFB $65</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25597"></span>63FD</td>
+<td class="instruction">DEFB $03,$26,$66,$E7,$DF</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25602"></span>6402</td>
+<td class="instruction">DEFB $29,$A4,$A6</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25605"></span>6405</td>
+<td class="instruction">DEFB $30,$E2</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25607"></span>6407</td>
+<td class="instruction">DEFB $C0,$A5</td>
+<td class="comment-1" rowspan="1">Ball</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25609"></span>6409</td>
+<td class="instruction">DEFB $22,$1A,$03</td>
+<td class="comment-1" rowspan="1">Room $22 (row 2, column 2): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25612"></span>640C</td>
+<td class="instruction">DEFB $02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25616"></span>6410</td>
+<td class="instruction">DEFB $03,$30,$78,$B9,$FA</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25621"></span>6415</td>
+<td class="instruction">DEFB $2F,$39,$3A,$3D,$3E,$3F,$33,$2B</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25629"></span>641D</td>
+<td class="instruction">DEFB $23</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25630"></span>641E</td>
+<td class="instruction">DEFB $2A,$34,$2C,$24</td>
+<td class="comment-1" rowspan="1">Spikes x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25634"></span>6422</td>
+<td class="instruction">DEFB $A8,$FB</td>
+<td class="comment-1" rowspan="1">Block (type $5B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25636"></span>6424</td>
+<td class="instruction">DEFB $24,$18,$03</td>
+<td class="comment-1" rowspan="1">Room $24 (row 2, column 4): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25639"></span>6427</td>
+<td class="instruction">DEFB $00,$02,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25643"></span>642B</td>
+<td class="instruction">DEFB $2F,$02,$05,$0A,$0F,$10,$15,$19</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25651"></span>6433</td>
+<td class="instruction">DEFB $1B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25652"></span>6434</td>
+<td class="instruction">DEFB $2F,$1C,$1F,$28,$2A,$2C,$2E,$3A</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25660"></span>643C</td>
+<td class="instruction">DEFB $3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25661"></span>643D</td>
+<td class="instruction">DEFB $27,$0F,$06</td>
+<td class="comment-1" rowspan="1">Room $27 (row 2, column 7): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25664"></span>6440</td>
+<td class="instruction">DEFB $00,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25667"></span>6443</td>
+<td class="instruction">DEFB $03,$1B,$1C,$23,$24</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25672"></span>6448</td>
+<td class="instruction">DEFB $4B,$12,$15,$2A,$2D</td>
+<td class="comment-1" rowspan="1">Ghost x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25677"></span>644D</td>
+<td class="instruction">DEFB $28,$10,$0E</td>
+<td class="comment-1" rowspan="1">Room $28 (row 2, column 8): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25680"></span>6450</td>
+<td class="instruction">DEFB $00,$15,$0E,$17,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, walls (room narrow in x), step to high arch S</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25685"></span>6455</td>
+<td class="instruction">DEFB $39,$23,$63</td>
+<td class="comment-1" rowspan="1">Table x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25688"></span>6458</td>
+<td class="instruction">DEFB $29,$0B,$0C</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25691"></span>645B</td>
+<td class="instruction">DEFB $01,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25694"></span>645E</td>
+<td class="instruction">DEFB $2D,$17,$04</td>
+<td class="comment-1" rowspan="1">Room $2D (row 2, column 13): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25697"></span>6461</td>
+<td class="instruction">DEFB $14,$02,$16,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch S, step to high arch E, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25702"></span>6466</td>
+<td class="instruction">DEFB $07,$DF,$E7,$13,$1B,$23,$5B,$63</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25710"></span>646E</td>
+<td class="instruction">DEFB $A3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25711"></span>646F</td>
+<td class="instruction">DEFB $2B,$1E,$26,$22,$24</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25716"></span>6474</td>
+<td class="instruction">DEFB $70,$E3</td>
+<td class="comment-1" rowspan="1">Block (type $36)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25718"></span>6476</td>
+<td class="instruction">DEFB $2E,$11,$15</td>
+<td class="comment-1" rowspan="1">Room $2E (row 2, column 14): narrow in y, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25721"></span>6479</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25725"></span>647D</td>
+<td class="instruction">DEFB $2F,$2B,$2C,$22,$25,$1A,$1D,$13</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25733"></span>6485</td>
+<td class="instruction">DEFB $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25734"></span>6486</td>
+<td class="instruction">DEFB $68,$23</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25736"></span>6488</td>
+<td class="instruction">DEFB $2F,$06,$04</td>
+<td class="comment-1" rowspan="1">Room $2F (row 2, column 15): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25739"></span>648B</td>
+<td class="instruction">DEFB $00,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25743"></span>648F</td>
+<td class="instruction">DEFB $30,$16,$0D</td>
+<td class="comment-1" rowspan="1">Room $30 (row 3, column 0): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25746"></span>6492</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25750"></span>6496</td>
+<td class="instruction">DEFB $2F,$33,$34,$2A,$2D,$22,$25,$1A</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25758"></span>649E</td>
+<td class="instruction">DEFB $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25759"></span>649F</td>
+<td class="instruction">DEFB $2B,$12,$15,$0B,$0C</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25764"></span>64A4</td>
+<td class="instruction">DEFB $B8,$1B</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25766"></span>64A6</td>
+<td class="instruction">DEFB $34,$18,$0E</td>
+<td class="comment-1" rowspan="1">Room $34 (row 3, column 4): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25769"></span>64A9</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25773"></span>64AD</td>
+<td class="instruction">DEFB $3F,$1A,$1B,$1C,$1D,$5A,$5B,$5C</td>
+<td class="comment-1" rowspan="2">Table x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25781"></span>64B5</td>
+<td class="instruction">DEFB $5D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25782"></span>64B6</td>
+<td class="instruction">DEFB $97,$9A,$9B,$9C,$9D,$DA,$DB,$DC</td>
+<td class="comment-1" rowspan="2">Spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25790"></span>64BE</td>
+<td class="instruction">DEFB $DD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25791"></span>64BF</td>
+<td class="instruction">DEFB $37,$0D,$0D</td>
+<td class="comment-1" rowspan="1">Room $37 (row 3, column 7): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25794"></span>64C2</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25798"></span>64C6</td>
+<td class="instruction">DEFB $78,$14</td>
+<td class="comment-1" rowspan="1">Block (type $37)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25800"></span>64C8</td>
+<td class="instruction">DEFB $00,$2C</td>
+<td class="comment-1" rowspan="1">Block</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25802"></span>64CA</td>
+<td class="instruction">DEFB $49,$25,$1A</td>
+<td class="comment-1" rowspan="1">Ghost x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25805"></span>64CD</td>
+<td class="instruction">DEFB $38,$19,$0B</td>
+<td class="comment-1" rowspan="1">Room $38 (row 3, column 8): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25808"></span>64D0</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25813"></span>64D5</td>
+<td class="instruction">DEFB $05,$7A,$F2,$DA,$C2,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25820"></span>64DC</td>
+<td class="instruction">DEFB $B3,$EA,$E2,$D2,$CA</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25825"></span>64E1</td>
+<td class="instruction">DEFB $2C,$2A,$22,$1A,$12,$0A</td>
+<td class="comment-1" rowspan="1">Spikes x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25831"></span>64E7</td>
+<td class="instruction">DEFB $3F,$19,$03</td>
+<td class="comment-1" rowspan="1">Room $3F (row 3, column 15): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25834"></span>64EA</td>
+<td class="instruction">DEFB $04,$06,$0F,$10,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit S, forest walls, trees closing the W gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25839"></span>64EF</td>
+<td class="instruction">DEFB $1F,$18,$19,$1A,$5A,$1D,$5D,$1E</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25847"></span>64F7</td>
+<td class="instruction">DEFB $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25848"></span>64F8</td>
+<td class="instruction">DEFB $2D,$58,$59,$9A,$9D,$5E,$5F</td>
+<td class="comment-1" rowspan="1">Spikes x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25855"></span>64FF</td>
+<td class="instruction">DEFB $D0,$1B</td>
+<td class="comment-1" rowspan="1">Portcullis along x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25857"></span>6501</td>
+<td class="instruction">DEFB $40,$13,$06</td>
+<td class="comment-1" rowspan="1">Room $40 (row 4, column 0): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25860"></span>6504</td>
+<td class="instruction">DEFB $14,$15,$16,$17,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, high arch S, step to high arch E, step to high arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25866"></span>650A</td>
+<td class="instruction">DEFB $05,$3F,$06,$C3,$C4,$DF,$E7</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25873"></span>6511</td>
+<td class="instruction">DEFB $68,$38</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25875"></span>6513</td>
+<td class="instruction">DEFB $80,$B8</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25877"></span>6515</td>
+<td class="instruction">DEFB $41,$17,$14</td>
+<td class="comment-1" rowspan="1">Room $41 (row 4, column 1): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25880"></span>6518</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25884"></span>651C</td>
+<td class="instruction">DEFB $05,$12,$14,$16,$2A,$2C,$2E</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25891"></span>6523</td>
+<td class="instruction">DEFB $25,$52,$54,$56,$6A,$6C,$6E</td>
+<td class="comment-1" rowspan="1">Gargoyle x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25898"></span>652A</td>
+<td class="instruction">DEFB $51,$15,$2B</td>
+<td class="comment-1" rowspan="1">Fire (type $B5) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25901"></span>652D</td>
+<td class="instruction">DEFB $42,$15,$05</td>
+<td class="comment-1" rowspan="1">Room $42 (row 4, column 2): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25904"></span>6530</td>
+<td class="instruction">DEFB $01,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25908"></span>6534</td>
+<td class="instruction">DEFB $01,$1B,$DC</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25911"></span>6537</td>
+<td class="instruction">DEFB $A9,$63,$A4</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25914"></span>653A</td>
+<td class="instruction">DEFB $2F,$12,$1A,$22,$2B,$2C,$25,$1D</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25922"></span>6542</td>
+<td class="instruction">DEFB $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25923"></span>6543</td>
+<td class="instruction">DEFB $43,$1B,$16</td>
+<td class="comment-1" rowspan="1">Room $43 (row 4, column 3): narrow in y, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25926"></span>6546</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25930"></span>654A</td>
+<td class="instruction">DEFB $07,$1E,$26,$5D,$65,$19,$21,$5A</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25938"></span>6552</td>
+<td class="instruction">DEFB $62</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25939"></span>6553</td>
+<td class="instruction">DEFB $03,$2B,$2C,$13,$14</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25944"></span>6558</td>
+<td class="instruction">DEFB $2B,$6B,$6C,$53,$54</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25949"></span>655D</td>
+<td class="instruction">DEFB $60,$1B</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x and y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25951"></span>655F</td>
+<td class="instruction">DEFB $44,$07,$04</td>
+<td class="comment-1" rowspan="1">Room $44 (row 4, column 4): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25954"></span>6562</td>
+<td class="instruction">DEFB $00,$01,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25959"></span>6567</td>
+<td class="instruction">DEFB $45,$1D,$05</td>
+<td class="comment-1" rowspan="1">Room $45 (row 4, column 5): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25962"></span>656A</td>
+<td class="instruction">DEFB $01,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25966"></span>656E</td>
+<td class="instruction">DEFB $07,$23,$25,$13,$15,$63,$64,$65</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25974"></span>6576</td>
+<td class="instruction">DEFB $5B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25975"></span>6577</td>
+<td class="instruction">DEFB $03,$5D,$53,$54,$55</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25980"></span>657C</td>
+<td class="instruction">DEFB $9B,$A4,$9B,$9D,$94</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25985"></span>6581</td>
+<td class="instruction">DEFB $B0,$9C</td>
+<td class="comment-1" rowspan="1">Block (type $8F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25987"></span>6583</td>
+<td class="instruction">DEFB $28,$1C</td>
+<td class="comment-1" rowspan="1">Spikes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25989"></span>6585</td>
+<td class="instruction">DEFB $46,$1C,$16</td>
+<td class="comment-1" rowspan="1">Room $46 (row 4, column 6): narrow in y, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25992"></span>6588</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="25996"></span>658C</td>
+<td class="instruction">DEFB $07,$23,$1B,$2C,$6C,$14,$54,$25</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26004"></span>6594</td>
+<td class="instruction">DEFB $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26005"></span>6595</td>
+<td class="instruction">DEFB $23,$65,$5D,$63,$5B</td>
+<td class="comment-1" rowspan="1">Gargoyle x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26010"></span>659A</td>
+<td class="instruction">DEFB $91,$24,$1C</td>
+<td class="comment-1" rowspan="1">Spiked ball x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26013"></span>659D</td>
+<td class="instruction">DEFB $B3,$A4,$E4,$9C,$DC</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26018"></span>65A2</td>
+<td class="instruction">DEFB $47,$06,$03</td>
+<td class="comment-1" rowspan="1">Room $47 (row 4, column 7): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26021"></span>65A5</td>
+<td class="instruction">DEFB $00,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26025"></span>65A9</td>
+<td class="instruction">DEFB $48,$17,$0E</td>
+<td class="comment-1" rowspan="1">Room $48 (row 4, column 8): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26028"></span>65AC</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26033"></span>65B1</td>
+<td class="instruction">DEFB $07,$C3,$C4,$CC,$2C,$2D,$25,$6C</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26041"></span>65B9</td>
+<td class="instruction">DEFB $6D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26042"></span>65BA</td>
+<td class="instruction">DEFB $00,$AC</td>
+<td class="comment-1" rowspan="1">Block</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26044"></span>65BC</td>
+<td class="instruction">DEFB $29,$0B,$14</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26047"></span>65BF</td>
+<td class="instruction">DEFB $78,$8C</td>
+<td class="comment-1" rowspan="1">Block (type $37)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26049"></span>65C1</td>
+<td class="instruction">DEFB $4F,$15,$06</td>
+<td class="comment-1" rowspan="1">Room $4F (row 4, column 15): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26052"></span>65C4</td>
+<td class="instruction">DEFB $04,$06,$0F,$10,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit S, forest walls, trees closing the W gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26057"></span>65C9</td>
+<td class="instruction">DEFB $9F,$D8,$D9,$DA,$DB,$DC,$DD,$DE</td>
+<td class="comment-1" rowspan="2">Raised spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26065"></span>65D1</td>
+<td class="instruction">DEFB $DF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26066"></span>65D2</td>
+<td class="instruction">DEFB $9B,$C3,$C4,$FB,$FC</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26071"></span>65D7</td>
+<td class="instruction">DEFB $54,$16,$0D</td>
+<td class="comment-1" rowspan="1">Room $54 (row 5, column 4): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26074"></span>65DA</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26078"></span>65DE</td>
+<td class="instruction">DEFB $01,$0C,$33</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26081"></span>65E1</td>
+<td class="instruction">DEFB $2B,$1A,$5A,$25,$65</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26086"></span>65E6</td>
+<td class="instruction">DEFB $93,$13,$0B,$2C,$24</td>
+<td class="comment-1" rowspan="1">Spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26091"></span>65EB</td>
+<td class="instruction">DEFB $79,$14,$23</td>
+<td class="comment-1" rowspan="1">Block (type $37) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26094"></span>65EE</td>
+<td class="instruction">DEFB $57,$14,$0D</td>
+<td class="comment-1" rowspan="1">Room $57 (row 5, column 7): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26097"></span>65F1</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26101"></span>65F5</td>
+<td class="instruction">DEFB $07,$2D,$6D,$AD,$24,$64,$A4,$1B</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26109"></span>65FD</td>
+<td class="instruction">DEFB $5B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26110"></span>65FE</td>
+<td class="instruction">DEFB $03,$9B,$12,$52,$92</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26115"></span>6603</td>
+<td class="instruction">DEFB $58,$0B,$0D</td>
+<td class="comment-1" rowspan="1">Room $58 (row 5, column 8): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26118"></span>6606</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26123"></span>660B</td>
+<td class="instruction">DEFB $48,$1D</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26125"></span>660D</td>
+<td class="instruction">DEFB $80,$5D</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26127"></span>660F</td>
+<td class="instruction">DEFB $5E,$12,$06</td>
+<td class="comment-1" rowspan="1">Room $5E (row 5, column 14): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26130"></span>6612</td>
+<td class="instruction">DEFB $04,$05,$0F,$10,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest walls, trees closing the W gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26135"></span>6617</td>
+<td class="instruction">DEFB $1F,$32,$35,$29,$2E,$11,$16,$0A</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26143"></span>661F</td>
+<td class="instruction">DEFB $0D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26144"></span>6620</td>
+<td class="instruction">DEFB $C8,$2D</td>
+<td class="comment-1" rowspan="1">Sparkle (type $A4)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26146"></span>6622</td>
+<td class="instruction">DEFB $5F,$06,$03</td>
+<td class="comment-1" rowspan="1">Room $5F (row 5, column 15): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26149"></span>6625</td>
+<td class="instruction">DEFB $04,$06,$07,$0F</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit S, forest exit W, forest walls; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26153"></span>6629</td>
+<td class="instruction">DEFB $64,$12,$0E</td>
+<td class="comment-1" rowspan="1">Room $64 (row 6, column 4): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26156"></span>662C</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26161"></span>6631</td>
+<td class="instruction">DEFB $07,$03,$04,$0B,$0C,$23,$24,$2B</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26169"></span>6639</td>
+<td class="instruction">DEFB $2C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26170"></span>663A</td>
+<td class="instruction">DEFB $30,$63</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26172"></span>663C</td>
+<td class="instruction">DEFB $67,$12,$0C</td>
+<td class="comment-1" rowspan="1">Room $67 (row 6, column 7): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26175"></span>663F</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26179"></span>6643</td>
+<td class="instruction">DEFB $01,$2A,$2D</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26182"></span>6646</td>
+<td class="instruction">DEFB $2B,$6A,$6D,$1A,$1D</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26187"></span>664B</td>
+<td class="instruction">DEFB $D0,$2B</td>
+<td class="comment-1" rowspan="1">Portcullis along x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26189"></span>664D</td>
+<td class="instruction">DEFB $68,$25</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26191"></span>664F</td>
+<td class="instruction">DEFB $68,$19,$0B</td>
+<td class="comment-1" rowspan="1">Room $68 (row 6, column 8): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26194"></span>6652</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26198"></span>6656</td>
+<td class="instruction">DEFB $07,$3A,$7A,$BA,$FA,$3D,$7D,$BD</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26206"></span>665E</td>
+<td class="instruction">DEFB $FD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26207"></span>665F</td>
+<td class="instruction">DEFB $03,$32,$33,$34,$35</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26212"></span>6664</td>
+<td class="instruction">DEFB $29,$72,$75</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26215"></span>6667</td>
+<td class="instruction">DEFB $60,$A3</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x and y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26217"></span>6669</td>
+<td class="instruction">DEFB $6A,$05,$06</td>
+<td class="comment-1" rowspan="1">Room $6A (row 6, column 10): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26220"></span>666C</td>
+<td class="instruction">DEFB $00,$01,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26223"></span>666F</td>
+<td class="instruction">DEFB $6B,$11,$14</td>
+<td class="comment-1" rowspan="1">Room $6B (row 6, column 11): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26226"></span>6672</td>
+<td class="instruction">DEFB $14,$03,$16,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch W, step to high arch E, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26231"></span>6677</td>
+<td class="instruction">DEFB $05,$24,$1C,$64,$5C,$E7,$DF</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26238"></span>667E</td>
+<td class="instruction">DEFB $51,$D6,$ED</td>
+<td class="comment-1" rowspan="1">Fire (type $B5) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26241"></span>6681</td>
+<td class="instruction">DEFB $6C,$18,$13</td>
+<td class="comment-1" rowspan="1">Room $6C (row 6, column 12): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26244"></span>6684</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26248"></span>6688</td>
+<td class="instruction">DEFB $37,$2B,$23,$1B,$13,$6B,$63,$5B</td>
+<td class="comment-1" rowspan="2">Chest x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26256"></span>6690</td>
+<td class="instruction">DEFB $53</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26257"></span>6691</td>
+<td class="instruction">DEFB $9F,$AB,$A3,$9B,$93,$EB,$E3,$DB</td>
+<td class="comment-1" rowspan="2">Raised spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26265"></span>6699</td>
+<td class="instruction">DEFB $D3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26266"></span>669A</td>
+<td class="instruction">DEFB $6D,$17,$06</td>
+<td class="comment-1" rowspan="1">Room $6D (row 6, column 13): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26269"></span>669D</td>
+<td class="instruction">DEFB $05,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26274"></span>66A2</td>
+<td class="instruction">DEFB $1F,$14,$2C,$54,$6C,$94,$9C,$A4</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26282"></span>66AA</td>
+<td class="instruction">DEFB $AC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26283"></span>66AB</td>
+<td class="instruction">DEFB $21,$D4,$EC</td>
+<td class="comment-1" rowspan="1">Gargoyle x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26286"></span>66AE</td>
+<td class="instruction">DEFB $38,$09</td>
+<td class="comment-1" rowspan="1">Table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26288"></span>66B0</td>
+<td class="instruction">DEFB $40,$1E</td>
+<td class="comment-1" rowspan="1">Guard (type $96)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26290"></span>66B2</td>
+<td class="instruction">DEFB $6E,$07,$03</td>
+<td class="comment-1" rowspan="1">Room $6E (row 6, column 14): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26293"></span>66B5</td>
+<td class="instruction">DEFB $05,$06,$07,$0F,$11</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit S, forest exit W, forest walls, trees closing the N gap; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26298"></span>66BA</td>
+<td class="instruction">DEFB $6F,$14,$06</td>
+<td class="comment-1" rowspan="1">Room $6F (row 6, column 15): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26301"></span>66BD</td>
+<td class="instruction">DEFB $06,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit S, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26306"></span>66C2</td>
+<td class="instruction">DEFB $1A,$2D,$2E,$2F</td>
+<td class="comment-1" rowspan="1">Rock x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26310"></span>66C6</td>
+<td class="instruction">DEFB $22,$6D,$6E,$6F</td>
+<td class="comment-1" rowspan="1">Gargoyle x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26314"></span>66CA</td>
+<td class="instruction">DEFB $9B,$3D,$35,$7D,$75</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26319"></span>66CF</td>
+<td class="instruction">DEFB $74,$18,$04</td>
+<td class="comment-1" rowspan="1">Room $74 (row 7, column 4): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26322"></span>66D2</td>
+<td class="instruction">DEFB $01,$02,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26326"></span>66D6</td>
+<td class="instruction">DEFB $2A,$39,$30,$31</td>
+<td class="comment-1" rowspan="1">Spikes x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26330"></span>66DA</td>
+<td class="instruction">DEFB $07,$3A,$7A,$32,$72,$28,$68,$29</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26338"></span>66E2</td>
+<td class="instruction">DEFB $69</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26339"></span>66E3</td>
+<td class="instruction">DEFB $B3,$B8,$B9,$B0,$B1</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26344"></span>66E8</td>
+<td class="instruction">DEFB $75,$0E,$13</td>
+<td class="comment-1" rowspan="1">Room $75 (row 7, column 5): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26347"></span>66EB</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26351"></span>66EF</td>
+<td class="instruction">DEFB $01,$23,$1C</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26354"></span>66F2</td>
+<td class="instruction">DEFB $29,$24,$1B</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26357"></span>66F5</td>
+<td class="instruction">DEFB $C8,$2B</td>
+<td class="comment-1" rowspan="1">Sparkle (type $A4)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26359"></span>66F7</td>
+<td class="instruction">DEFB $76,$16,$16</td>
+<td class="comment-1" rowspan="1">Room $76 (row 7, column 6): narrow in y, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26362"></span>66FA</td>
+<td class="instruction">DEFB $14,$03,$16,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch W, step to high arch E, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26367"></span>66FF</td>
+<td class="instruction">DEFB $06,$DF,$E7,$EF,$AE,$6D,$2C,$D7</td>
+<td class="comment-1" rowspan="1">Block x7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26375"></span>6707</td>
+<td class="instruction">DEFB $2D,$16,$1E,$26,$15,$1D,$25</td>
+<td class="comment-1" rowspan="1">Spikes x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26382"></span>670E</td>
+<td class="instruction">DEFB $77,$07,$03</td>
+<td class="comment-1" rowspan="1">Room $77 (row 7, column 7): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26385"></span>6711</td>
+<td class="instruction">DEFB $00,$01,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26390"></span>6716</td>
+<td class="instruction">DEFB $78,$19,$04</td>
+<td class="comment-1" rowspan="1">Room $78 (row 7, column 8): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26393"></span>6719</td>
+<td class="instruction">DEFB $00,$01,$02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26399"></span>671F</td>
+<td class="instruction">DEFB $2F,$39,$3F,$35,$28,$2C,$2F,$23</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26407"></span>6727</td>
+<td class="instruction">DEFB $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26408"></span>6728</td>
+<td class="instruction">DEFB $2C,$11,$13,$0A,$0D,$0E</td>
+<td class="comment-1" rowspan="1">Spikes x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26414"></span>672E</td>
+<td class="instruction">DEFB $68,$17</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26416"></span>6730</td>
+<td class="instruction">DEFB $79,$16,$13</td>
+<td class="comment-1" rowspan="1">Room $79 (row 7, column 9): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26419"></span>6733</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26423"></span>6737</td>
+<td class="instruction">DEFB $B3,$22,$1A,$25,$1D</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26428"></span>673C</td>
+<td class="instruction">DEFB $2F,$2B,$2C,$23,$24,$1B,$1C,$13</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26436"></span>6744</td>
+<td class="instruction">DEFB $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26437"></span>6745</td>
+<td class="instruction">DEFB $60,$DB</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x and y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26439"></span>6747</td>
+<td class="instruction">DEFB $7A,$16,$05</td>
+<td class="comment-1" rowspan="1">Room $7A (row 7, column 10): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26442"></span>674A</td>
+<td class="instruction">DEFB $02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26446"></span>674E</td>
+<td class="instruction">DEFB $04,$28,$70,$B8,$B9,$FF</td>
+<td class="comment-1" rowspan="1">Block x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26452"></span>6754</td>
+<td class="instruction">DEFB $2D,$BA,$BC,$BE,$37,$2F,$27</td>
+<td class="comment-1" rowspan="1">Spikes x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26459"></span>675B</td>
+<td class="instruction">DEFB $A9,$FB,$FD</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26462"></span>675E</td>
+<td class="instruction">DEFB $83,$05,$06</td>
+<td class="comment-1" rowspan="1">Room $83 (row 8, column 3): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26465"></span>6761</td>
+<td class="instruction">DEFB $00,$01,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26468"></span>6764</td>
+<td class="instruction">DEFB $84,$17,$15</td>
+<td class="comment-1" rowspan="1">Room $84 (row 8, column 4): narrow in y, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26471"></span>6767</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26475"></span>676B</td>
+<td class="instruction">DEFB $07,$2A,$6A,$2D,$6D,$12,$52,$15</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26483"></span>6773</td>
+<td class="instruction">DEFB $55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26484"></span>6774</td>
+<td class="instruction">DEFB $23,$AA,$AD,$92,$95</td>
+<td class="comment-1" rowspan="1">Gargoyle x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26489"></span>6779</td>
+<td class="instruction">DEFB $11,$1D,$9A</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along y) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26492"></span>677C</td>
+<td class="instruction">DEFB $85,$19,$14</td>
+<td class="comment-1" rowspan="1">Room $85 (row 8, column 5): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26495"></span>677F</td>
+<td class="instruction">DEFB $14,$03,$16,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch W, step to high arch E, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26500"></span>6784</td>
+<td class="instruction">DEFB $05,$28,$69,$AA,$EB,$E7,$DF</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26507"></span>678B</td>
+<td class="instruction">DEFB $2F,$1B,$23,$1C,$24,$1D,$25,$1E</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26515"></span>6793</td>
+<td class="instruction">DEFB $26</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26516"></span>6794</td>
+<td class="instruction">DEFB $78,$DB</td>
+<td class="comment-1" rowspan="1">Block (type $37)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26518"></span>6796</td>
+<td class="instruction">DEFB $86,$0B,$13</td>
+<td class="comment-1" rowspan="1">Room $86 (row 8, column 6): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26521"></span>6799</td>
+<td class="instruction">DEFB $14,$03,$16,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch W, step to high arch E, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26526"></span>679E</td>
+<td class="instruction">DEFB $80,$63</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26528"></span>67A0</td>
+<td class="instruction">DEFB $B8,$23</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26530"></span>67A2</td>
+<td class="instruction">DEFB $87,$18,$05</td>
+<td class="comment-1" rowspan="1">Room $87 (row 8, column 7): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26533"></span>67A5</td>
+<td class="instruction">DEFB $00,$01,$02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26539"></span>67AB</td>
+<td class="instruction">DEFB $03,$2A,$2D,$12,$15</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26544"></span>67B0</td>
+<td class="instruction">DEFB $2B,$6A,$6D,$52,$55</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26549"></span>67B5</td>
+<td class="instruction">DEFB $D1,$2B,$13</td>
+<td class="comment-1" rowspan="1">Portcullis along x x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26552"></span>67B8</td>
+<td class="instruction">DEFB $D9,$1A,$1D</td>
+<td class="comment-1" rowspan="1">Portcullis along y x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26555"></span>67BB</td>
+<td class="instruction">DEFB $88,$13,$06</td>
+<td class="comment-1" rowspan="1">Room $88 (row 8, column 8): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26558"></span>67BE</td>
+<td class="instruction">DEFB $00,$01,$02,$03,$12,$13,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, arch W, the wizard, the cauldron, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26566"></span>67C6</td>
+<td class="instruction">DEFB $07,$32,$29,$35,$2E,$16,$0D,$11</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26574"></span>67CE</td>
+<td class="instruction">DEFB $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26575"></span>67CF</td>
+<td class="instruction">DEFB $89,$14,$15</td>
+<td class="comment-1" rowspan="1">Room $89 (row 8, column 9): narrow in y, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26578"></span>67D2</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26582"></span>67D6</td>
+<td class="instruction">DEFB $07,$2C,$6C,$AC,$24,$1C,$14,$54</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26590"></span>67DE</td>
+<td class="instruction">DEFB $94</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26591"></span>67DF</td>
+<td class="instruction">DEFB $21,$EC,$D4</td>
+<td class="comment-1" rowspan="1">Gargoyle x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26594"></span>67E2</td>
+<td class="instruction">DEFB $50,$64</td>
+<td class="comment-1" rowspan="1">Fire (type $B5)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26596"></span>67E4</td>
+<td class="instruction">DEFB $8A,$18,$13</td>
+<td class="comment-1" rowspan="1">Room $8A (row 8, column 10): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26599"></span>67E7</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26603"></span>67EB</td>
+<td class="instruction">DEFB $5F,$2A,$22,$1A,$12,$2D,$25,$1D</td>
+<td class="comment-1" rowspan="2">Raised block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26611"></span>67F3</td>
+<td class="instruction">DEFB $15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26612"></span>67F4</td>
+<td class="instruction">DEFB $97,$EA,$E2,$DA,$D2,$ED,$E5,$DD</td>
+<td class="comment-1" rowspan="2">Spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26620"></span>67FC</td>
+<td class="instruction">DEFB $D5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26621"></span>67FD</td>
+<td class="instruction">DEFB $8B,$06,$05</td>
+<td class="comment-1" rowspan="1">Room $8B (row 8, column 11): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26624"></span>6800</td>
+<td class="instruction">DEFB $00,$01,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26628"></span>6804</td>
+<td class="instruction">DEFB $8C,$19,$14</td>
+<td class="comment-1" rowspan="1">Room $8C (row 8, column 12): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26631"></span>6807</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26635"></span>680B</td>
+<td class="instruction">DEFB $07,$2A,$6A,$2D,$6D,$12,$52,$15</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26643"></span>6813</td>
+<td class="instruction">DEFB $55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26644"></span>6814</td>
+<td class="instruction">DEFB $2B,$AA,$AD,$92,$95</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26649"></span>6819</td>
+<td class="instruction">DEFB $D9,$1A,$1D</td>
+<td class="comment-1" rowspan="1">Portcullis along y x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26652"></span>681C</td>
+<td class="instruction">DEFB $40,$1B</td>
+<td class="comment-1" rowspan="1">Guard (type $96)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26654"></span>681E</td>
+<td class="instruction">DEFB $8D,$1A,$05</td>
+<td class="comment-1" rowspan="1">Room $8D (row 8, column 13): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26657"></span>6821</td>
+<td class="instruction">DEFB $01,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26661"></span>6825</td>
+<td class="instruction">DEFB $07,$34,$74,$6C,$B4,$BC,$FB,$FD</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26669"></span>682D</td>
+<td class="instruction">DEFB $F3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26670"></span>682E</td>
+<td class="instruction">DEFB $03,$FC,$F5,$EB,$ED</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26675"></span>6833</td>
+<td class="instruction">DEFB $58,$3C</td>
+<td class="comment-1" rowspan="1">Raised block</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26677"></span>6835</td>
+<td class="instruction">DEFB $28,$24</td>
+<td class="comment-1" rowspan="1">Spikes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26679"></span>6837</td>
+<td class="instruction">DEFB $10,$E4</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26681"></span>6839</td>
+<td class="instruction">DEFB $8E,$0C,$13</td>
+<td class="comment-1" rowspan="1">Room $8E (row 8, column 14): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26684"></span>683C</td>
+<td class="instruction">DEFB $14,$03,$16,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, arch W, step to high arch E, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26689"></span>6841</td>
+<td class="instruction">DEFB $39,$23,$63</td>
+<td class="comment-1" rowspan="1">Table x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26692"></span>6844</td>
+<td class="instruction">DEFB $48,$2B</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26694"></span>6846</td>
+<td class="instruction">DEFB $8F,$05,$06</td>
+<td class="comment-1" rowspan="1">Room $8F (row 8, column 15): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26697"></span>6849</td>
+<td class="instruction">DEFB $00,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26700"></span>684C</td>
+<td class="instruction">DEFB $93,$14,$0C</td>
+<td class="comment-1" rowspan="1">Room $93 (row 9, column 3): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26703"></span>684F</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26707"></span>6853</td>
+<td class="instruction">DEFB $07,$1A,$1B,$1C,$1D,$5A,$9A,$5D</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26715"></span>685B</td>
+<td class="instruction">DEFB $9D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26716"></span>685C</td>
+<td class="instruction">DEFB $21,$DA,$DD</td>
+<td class="comment-1" rowspan="1">Gargoyle x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26719"></span>685F</td>
+<td class="instruction">DEFB $A0,$5B</td>
+<td class="comment-1" rowspan="1">Fire (type $56)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26721"></span>6861</td>
+<td class="instruction">DEFB $97,$10,$0C</td>
+<td class="comment-1" rowspan="1">Room $97 (row 9, column 7): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26724"></span>6864</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26728"></span>6868</td>
+<td class="instruction">DEFB $03,$1A,$1B,$1C,$1D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26733"></span>686D</td>
+<td class="instruction">DEFB $23,$5A,$5B,$5C,$5D</td>
+<td class="comment-1" rowspan="1">Gargoyle x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26738"></span>6872</td>
+<td class="instruction">DEFB $98,$1A,$0B</td>
+<td class="comment-1" rowspan="1">Room $98 (row 9, column 8): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26741"></span>6875</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26745"></span>6879</td>
+<td class="instruction">DEFB $01,$33,$0C</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26748"></span>687C</td>
+<td class="instruction">DEFB $A9,$6B,$54</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26751"></span>687F</td>
+<td class="instruction">DEFB $2F,$22,$23,$24,$25,$1A,$1B,$1C</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26759"></span>6887</td>
+<td class="instruction">DEFB $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26760"></span>6888</td>
+<td class="instruction">DEFB $B3,$A3,$A4,$9B,$9C</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26765"></span>688D</td>
+<td class="instruction">DEFB $9B,$17,$0B</td>
+<td class="comment-1" rowspan="1">Room $9B (row 9, column 11): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26768"></span>6890</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26773"></span>6895</td>
+<td class="instruction">DEFB $07,$3D,$7D,$35,$75,$B5,$F5,$C3</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26781"></span>689D</td>
+<td class="instruction">DEFB $C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26782"></span>689E</td>
+<td class="instruction">DEFB $78,$DD</td>
+<td class="comment-1" rowspan="1">Block (type $37)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26784"></span>68A0</td>
+<td class="instruction">DEFB $70,$DB</td>
+<td class="comment-1" rowspan="1">Block (type $36)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26786"></span>68A2</td>
+<td class="instruction">DEFB $29,$1C,$1D</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26789"></span>68A5</td>
+<td class="instruction">DEFB $9F,$18,$0D</td>
+<td class="comment-1" rowspan="1">Room $9F (row 9, column 15): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26792"></span>68A8</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26796"></span>68AC</td>
+<td class="instruction">DEFB $07,$1A,$1B,$1C,$1D,$5A,$5B,$5C</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26804"></span>68B4</td>
+<td class="instruction">DEFB $5D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26805"></span>68B5</td>
+<td class="instruction">DEFB $03,$9A,$9B,$9C,$9D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26810"></span>68BA</td>
+<td class="instruction">DEFB $2A,$DB,$DC,$DD</td>
+<td class="comment-1" rowspan="1">Spikes x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26814"></span>68BE</td>
+<td class="instruction">DEFB $A3,$1C,$0B</td>
+<td class="comment-1" rowspan="1">Room $A3 (row 10, column 3): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26817"></span>68C1</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26822"></span>68C6</td>
+<td class="instruction">DEFB $05,$3D,$7D,$34,$74,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26829"></span>68CD</td>
+<td class="instruction">DEFB $2B,$12,$14,$23,$25</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26834"></span>68D2</td>
+<td class="instruction">DEFB $93,$52,$54,$63,$65</td>
+<td class="comment-1" rowspan="1">Spiked ball x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26839"></span>68D7</td>
+<td class="instruction">DEFB $B8,$35</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26841"></span>68D9</td>
+<td class="instruction">DEFB $80,$75</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26843"></span>68DB</td>
+<td class="instruction">DEFB $A7,$05,$03</td>
+<td class="comment-1" rowspan="1">Room $A7 (row 10, column 7): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26846"></span>68DE</td>
+<td class="instruction">DEFB $00,$02,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26849"></span>68E1</td>
+<td class="instruction">DEFB $A8,$18,$06</td>
+<td class="comment-1" rowspan="1">Room $A8 (row 10, column 8): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26852"></span>68E4</td>
+<td class="instruction">DEFB $02,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26855"></span>68E7</td>
+<td class="instruction">DEFB $07,$2A,$6A,$32,$72,$B2,$F2,$36</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26863"></span>68EF</td>
+<td class="instruction">DEFB $76</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26864"></span>68F0</td>
+<td class="instruction">DEFB $05,$B6,$F6,$16,$56,$96,$D6</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26871"></span>68F7</td>
+<td class="instruction">DEFB $29,$35,$1E</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26874"></span>68FA</td>
+<td class="instruction">DEFB $AA,$18,$03</td>
+<td class="comment-1" rowspan="1">Room $AA (row 10, column 10): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26877"></span>68FD</td>
+<td class="instruction">DEFB $00,$01,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26881"></span>6901</td>
+<td class="instruction">DEFB $07,$00,$48,$90,$18,$58,$98,$D8</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26889"></span>6909</td>
+<td class="instruction">DEFB $21</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26890"></span>690A</td>
+<td class="instruction">DEFB $02,$61,$28,$68</td>
+<td class="comment-1" rowspan="1">Block x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26894"></span>690E</td>
+<td class="instruction">DEFB $29,$A8,$A1</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26897"></span>6911</td>
+<td class="instruction">DEFB $A8,$E0</td>
+<td class="comment-1" rowspan="1">Block (type $5B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26899"></span>6913</td>
+<td class="instruction">DEFB $AB,$06,$04</td>
+<td class="comment-1" rowspan="1">Room $AB (row 10, column 11): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26902"></span>6916</td>
+<td class="instruction">DEFB $00,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26906"></span>691A</td>
+<td class="instruction">DEFB $AF,$0E,$0C</td>
+<td class="comment-1" rowspan="1">Room $AF (row 10, column 15): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26909"></span>691D</td>
+<td class="instruction">DEFB $00,$15,$17,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26914"></span>6922</td>
+<td class="instruction">DEFB $03,$1B,$1C,$33,$34</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26919"></span>6927</td>
+<td class="instruction">DEFB $30,$74</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26921"></span>6929</td>
+<td class="instruction">DEFB $B3,$06,$06</td>
+<td class="comment-1" rowspan="1">Room $B3 (row 11, column 3): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26924"></span>692C</td>
+<td class="instruction">DEFB $00,$01,$02,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, arch S, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26928"></span>6930</td>
+<td class="instruction">DEFB $B4,$13,$04</td>
+<td class="comment-1" rowspan="1">Room $B4 (row 11, column 4): square, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26931"></span>6933</td>
+<td class="instruction">DEFB $03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26934"></span>6936</td>
+<td class="instruction">DEFB $07,$13,$14,$15,$1B,$23,$63,$A3</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26942"></span>693E</td>
+<td class="instruction">DEFB $E3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26943"></span>693F</td>
+<td class="instruction">DEFB $30,$55</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26945"></span>6941</td>
+<td class="instruction">DEFB $39,$2E,$6E</td>
+<td class="comment-1" rowspan="1">Table x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26948"></span>6944</td>
+<td class="instruction">DEFB $B7,$0E,$0C</td>
+<td class="comment-1" rowspan="1">Room $B7 (row 11, column 7): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26951"></span>6947</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26955"></span>694B</td>
+<td class="instruction">DEFB $03,$33,$34,$0B,$0C</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26960"></span>6950</td>
+<td class="instruction">DEFB $49,$23,$1C</td>
+<td class="comment-1" rowspan="1">Ghost x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26963"></span>6953</td>
+<td class="instruction">DEFB $BA,$19,$05</td>
+<td class="comment-1" rowspan="1">Room $BA (row 11, column 10): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26966"></span>6956</td>
+<td class="instruction">DEFB $01,$02,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26970"></span>695A</td>
+<td class="instruction">DEFB $05,$2B,$6B,$AB,$1B,$5B,$9B</td>
+<td class="comment-1" rowspan="1">Block x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26977"></span>6961</td>
+<td class="instruction">DEFB $2F,$2A,$22,$62,$A2,$1A,$2C,$24</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26985"></span>6969</td>
+<td class="instruction">DEFB $64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26986"></span>696A</td>
+<td class="instruction">DEFB $29,$A4,$1C</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26989"></span>696D</td>
+<td class="instruction">DEFB $BB,$0B,$06</td>
+<td class="comment-1" rowspan="1">Room $BB (row 11, column 11): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26992"></span>6970</td>
+<td class="instruction">DEFB $02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26996"></span>6974</td>
+<td class="instruction">DEFB $48,$24</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="26998"></span>6976</td>
+<td class="instruction">DEFB $81,$64,$A4</td>
+<td class="comment-1" rowspan="1">Block (type $3E) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27001"></span>6979</td>
+<td class="instruction">DEFB $BF,$1D,$03</td>
+<td class="comment-1" rowspan="1">Room $BF (row 11, column 15): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27004"></span>697C</td>
+<td class="instruction">DEFB $00,$15,$17,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27009"></span>6981</td>
+<td class="instruction">DEFB $04,$3D,$7E,$BE,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27015"></span>6987</td>
+<td class="instruction">DEFB $2F,$3F,$37,$2F,$2E,$2D,$25,$1D</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27023"></span>698F</td>
+<td class="instruction">DEFB $15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27024"></span>6990</td>
+<td class="instruction">DEFB $29,$14,$0C</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27027"></span>6993</td>
+<td class="instruction">DEFB $B8,$7F</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27029"></span>6995</td>
+<td class="instruction">DEFB $80,$BF</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27031"></span>6997</td>
+<td class="instruction">DEFB $C3,$14,$0B</td>
+<td class="comment-1" rowspan="1">Room $C3 (row 12, column 3): narrow in x, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27034"></span>699A</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27038"></span>699E</td>
+<td class="instruction">DEFB $07,$1A,$1B,$1C,$1D,$5A,$5B,$5C</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27046"></span>69A6</td>
+<td class="instruction">DEFB $5D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27047"></span>69A7</td>
+<td class="instruction">DEFB $03,$9A,$9B,$9C,$9D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27052"></span>69AC</td>
+<td class="instruction">DEFB $C7,$0B,$05</td>
+<td class="comment-1" rowspan="1">Room $C7 (row 12, column 7): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27055"></span>69AF</td>
+<td class="instruction">DEFB $00,$15,$17,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch S, step to high arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27060"></span>69B4</td>
+<td class="instruction">DEFB $80,$5B</td>
+<td class="comment-1" rowspan="1">Block (type $3E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27062"></span>69B6</td>
+<td class="instruction">DEFB $48,$1B</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27064"></span>69B8</td>
+<td class="instruction">DEFB $CF,$0A,$0C</td>
+<td class="comment-1" rowspan="1">Room $CF (row 12, column 15): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27067"></span>69BB</td>
+<td class="instruction">DEFB $00,$02,$08,$0A,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, portcullis N, portcullis S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27073"></span>69C1</td>
+<td class="instruction">DEFB $48,$1C</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27075"></span>69C3</td>
+<td class="instruction">DEFB $D0,$19,$05</td>
+<td class="comment-1" rowspan="1">Room $D0 (row 13, column 0): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27078"></span>69C6</td>
+<td class="instruction">DEFB $00,$01,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch E, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27082"></span>69CA</td>
+<td class="instruction">DEFB $07,$03,$42,$81,$C0,$C8,$D0,$D8</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27090"></span>69D2</td>
+<td class="instruction">DEFB $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27091"></span>69D3</td>
+<td class="instruction">DEFB $03,$1C,$5C,$9C,$DC</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27096"></span>69D8</td>
+<td class="instruction">DEFB $2B,$1B,$24,$1D,$14</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27101"></span>69DD</td>
+<td class="instruction">DEFB $D1,$11,$14</td>
+<td class="comment-1" rowspan="1">Room $D1 (row 13, column 1): narrow in y, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27104"></span>69E0</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27108"></span>69E4</td>
+<td class="instruction">DEFB $68,$16</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27110"></span>69E6</td>
+<td class="instruction">DEFB $2F,$1E,$26,$1B,$1C,$23,$24,$19</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27118"></span>69EE</td>
+<td class="instruction">DEFB $21</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27119"></span>69EF</td>
+<td class="instruction">DEFB $D2,$15,$05</td>
+<td class="comment-1" rowspan="1">Room $D2 (row 13, column 2): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27122"></span>69F2</td>
+<td class="instruction">DEFB $00,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27126"></span>69F6</td>
+<td class="instruction">DEFB $07,$03,$27,$44,$5F,$85,$97,$C6</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27134"></span>69FE</td>
+<td class="instruction">DEFB $CF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27135"></span>69FF</td>
+<td class="instruction">DEFB $01,$CE,$C7</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27138"></span>6A02</td>
+<td class="instruction">DEFB $99,$0F,$06</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27141"></span>6A05</td>
+<td class="instruction">DEFB $D3,$12,$0D</td>
+<td class="comment-1" rowspan="1">Room $D3 (row 13, column 3): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27144"></span>6A08</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27148"></span>6A0C</td>
+<td class="instruction">DEFB $01,$2A,$2D</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27151"></span>6A0F</td>
+<td class="instruction">DEFB $2B,$6A,$6D,$1A,$1D</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27156"></span>6A14</td>
+<td class="instruction">DEFB $D0,$2B</td>
+<td class="comment-1" rowspan="1">Portcullis along x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27158"></span>6A16</td>
+<td class="instruction">DEFB $68,$25</td>
+<td class="comment-1" rowspan="1">Guard (type $1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27160"></span>6A18</td>
+<td class="instruction">DEFB $D6,$15,$06</td>
+<td class="comment-1" rowspan="1">Room $D6 (row 13, column 6): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27163"></span>6A1B</td>
+<td class="instruction">DEFB $04,$05,$0F,$10,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest walls, trees closing the W gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27168"></span>6A20</td>
+<td class="instruction">DEFB $1F,$2C,$6C,$AC,$EC,$24,$1C,$14</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27176"></span>6A28</td>
+<td class="instruction">DEFB $54</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27177"></span>6A29</td>
+<td class="instruction">DEFB $18,$94</td>
+<td class="comment-1" rowspan="1">Rock</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27179"></span>6A2B</td>
+<td class="instruction">DEFB $11,$5D,$1B</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along y) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27182"></span>6A2E</td>
+<td class="instruction">DEFB $D7,$0E,$03</td>
+<td class="comment-1" rowspan="1">Room $D7 (row 13, column 7): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27185"></span>6A31</td>
+<td class="instruction">DEFB $04,$05,$06,$07,$0F,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest exit S, forest exit W, forest walls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27191"></span>6A37</td>
+<td class="instruction">DEFB $51,$1B,$24</td>
+<td class="comment-1" rowspan="1">Fire (type $B5) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27194"></span>6A3A</td>
+<td class="instruction">DEFB $A1,$23,$1C</td>
+<td class="comment-1" rowspan="1">Fire (type $56) x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27197"></span>6A3D</td>
+<td class="instruction">DEFB $D8,$06,$03</td>
+<td class="comment-1" rowspan="1">Room $D8 (row 13, column 8): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27200"></span>6A40</td>
+<td class="instruction">DEFB $04,$05,$07,$0F</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest exit W, forest walls; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27204"></span>6A44</td>
+<td class="instruction">DEFB $D9,$05,$06</td>
+<td class="comment-1" rowspan="1">Room $D9 (row 13, column 9): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27207"></span>6A47</td>
+<td class="instruction">DEFB $04,$07,$0F</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit W, forest walls; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27210"></span>6A4A</td>
+<td class="instruction">DEFB $DD,$14,$06</td>
+<td class="comment-1" rowspan="1">Room $DD (row 13, column 13): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27213"></span>6A4D</td>
+<td class="instruction">DEFB $00,$14,$16,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, high arch E, step to high arch E, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27218"></span>6A52</td>
+<td class="instruction">DEFB $01,$E7,$DF</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27221"></span>6A55</td>
+<td class="instruction">DEFB $5B,$2F,$26,$1E,$17</td>
+<td class="comment-1" rowspan="1">Raised block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27226"></span>6A5A</td>
+<td class="instruction">DEFB $3B,$1A,$5A,$9A,$DA</td>
+<td class="comment-1" rowspan="1">Table x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27231"></span>6A5F</td>
+<td class="instruction">DEFB $DE,$05,$13</td>
+<td class="comment-1" rowspan="1">Room $DE (row 13, column 14): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27234"></span>6A62</td>
+<td class="instruction">DEFB $01,$03,$0D</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27237"></span>6A65</td>
+<td class="instruction">DEFB $DF,$16,$06</td>
+<td class="comment-1" rowspan="1">Room $DF (row 13, column 15): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27240"></span>6A68</td>
+<td class="instruction">DEFB $00,$02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27245"></span>6A6D</td>
+<td class="instruction">DEFB $04,$1B,$5B,$9B,$DB,$E2</td>
+<td class="comment-1" rowspan="1">Block x5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27251"></span>6A73</td>
+<td class="instruction">DEFB $2B,$13,$1C,$23,$1A</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27256"></span>6A78</td>
+<td class="instruction">DEFB $B2,$12,$54,$A4</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27260"></span>6A7C</td>
+<td class="instruction">DEFB $E0,$11,$0E</td>
+<td class="comment-1" rowspan="1">Room $E0 (row 14, column 0): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27263"></span>6A7F</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27267"></span>6A83</td>
+<td class="instruction">DEFB $2F,$3A,$3D,$2B,$2C,$13,$14,$02</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27275"></span>6A8B</td>
+<td class="instruction">DEFB $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27276"></span>6A8C</td>
+<td class="instruction">DEFB $C8,$24</td>
+<td class="comment-1" rowspan="1">Sparkle (type $A4)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27278"></span>6A8E</td>
+<td class="instruction">DEFB $E2,$16,$0E</td>
+<td class="comment-1" rowspan="1">Room $E2 (row 14, column 2): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27281"></span>6A91</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27285"></span>6A95</td>
+<td class="instruction">DEFB $97,$05,$0A,$0C,$13,$15,$1A,$1C</td>
+<td class="comment-1" rowspan="2">Spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27293"></span>6A9D</td>
+<td class="instruction">DEFB $23</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27294"></span>6A9E</td>
+<td class="instruction">DEFB $95,$25,$2A,$2C,$33,$35,$3A</td>
+<td class="comment-1" rowspan="1">Spiked ball x6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27301"></span>6AA5</td>
+<td class="instruction">DEFB $E3,$1B,$0E</td>
+<td class="comment-1" rowspan="1">Room $E3 (row 14, column 3): narrow in x, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27304"></span>6AA8</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27308"></span>6AAC</td>
+<td class="instruction">DEFB $AF,$02,$05,$4A,$4D,$92,$95,$AA</td>
+<td class="comment-1" rowspan="2">Block (type $5B) x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27316"></span>6AB4</td>
+<td class="instruction">DEFB $AD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27317"></span>6AB5</td>
+<td class="instruction">DEFB $AB,$72,$75,$3A,$3D</td>
+<td class="comment-1" rowspan="1">Block (type $5B) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27322"></span>6ABA</td>
+<td class="instruction">DEFB $B3,$DA,$DD,$E2,$E5</td>
+<td class="comment-1" rowspan="1">Block (type $8F) x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27327"></span>6ABF</td>
+<td class="instruction">DEFB $60,$1B</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x and y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27329"></span>6AC1</td>
+<td class="instruction">DEFB $E6,$07,$03</td>
+<td class="comment-1" rowspan="1">Room $E6 (row 14, column 6): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27332"></span>6AC4</td>
+<td class="instruction">DEFB $04,$05,$06,$0F,$10</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest exit S, forest walls, trees closing the W gap; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27337"></span>6AC9</td>
+<td class="instruction">DEFB $E7,$11,$06</td>
+<td class="comment-1" rowspan="1">Room $E7 (row 14, column 7): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27340"></span>6ACC</td>
+<td class="instruction">DEFB $04,$05,$06,$07,$0F,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest exit S, forest exit W, forest walls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27346"></span>6AD2</td>
+<td class="instruction">DEFB $2F,$33,$34,$21,$19,$26,$1E,$0B</td>
+<td class="comment-1" rowspan="2">Spikes x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27354"></span>6ADA</td>
+<td class="instruction">DEFB $0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27355"></span>6ADB</td>
+<td class="instruction">DEFB $E8,$16,$06</td>
+<td class="comment-1" rowspan="1">Room $E8 (row 14, column 8): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27358"></span>6ADE</td>
+<td class="instruction">DEFB $04,$05,$06,$07,$0F,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit E, forest exit S, forest exit W, forest walls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27364"></span>6AE4</td>
+<td class="instruction">DEFB $1F,$33,$21,$23,$63,$A3,$E3,$25</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27372"></span>6AEC</td>
+<td class="instruction">DEFB $13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27373"></span>6AED</td>
+<td class="instruction">DEFB $2B,$2B,$24,$1B,$22</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27378"></span>6AF2</td>
+<td class="instruction">DEFB $E9,$06,$03</td>
+<td class="comment-1" rowspan="1">Room $E9 (row 14, column 9): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27381"></span>6AF5</td>
+<td class="instruction">DEFB $04,$06,$07,$0F</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit N, forest exit S, forest exit W, forest walls; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27385"></span>6AF9</td>
+<td class="instruction">DEFB $ED,$14,$0C</td>
+<td class="comment-1" rowspan="1">Room $ED (row 14, column 13): narrow in x, green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27388"></span>6AFC</td>
+<td class="instruction">DEFB $00,$02,$0E,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27392"></span>6B00</td>
+<td class="instruction">DEFB $07,$1A,$1B,$1C,$1D,$5A,$5B,$5C</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27400"></span>6B08</td>
+<td class="instruction">DEFB $5D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27401"></span>6B09</td>
+<td class="instruction">DEFB $03,$9A,$9B,$9C,$9D</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27406"></span>6B0E</td>
+<td class="instruction">DEFB $EF,$05,$0D</td>
+<td class="comment-1" rowspan="1">Room $EF (row 14, column 15): narrow in x, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27409"></span>6B11</td>
+<td class="instruction">DEFB $00,$02,$0E</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch N, arch S, walls (room narrow in x); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27412"></span>6B14</td>
+<td class="instruction">DEFB $F0,$1B,$05</td>
+<td class="comment-1" rowspan="1">Room $F0 (row 15, column 0): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27415"></span>6B17</td>
+<td class="instruction">DEFB $14,$15,$16,$17,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: high arch E, high arch S, step to high arch E, step to high arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27421"></span>6B1D</td>
+<td class="instruction">DEFB $07,$DF,$E7,$FF,$FE,$78,$A8,$D0</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27429"></span>6B25</td>
+<td class="instruction">DEFB $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27430"></span>6B26</td>
+<td class="instruction">DEFB $03,$C1,$C2,$C3,$C4</td>
+<td class="comment-1" rowspan="1">Block x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27435"></span>6B2B</td>
+<td class="instruction">DEFB $29,$39,$3B</td>
+<td class="comment-1" rowspan="1">Spikes x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27438"></span>6B2E</td>
+<td class="instruction">DEFB $70,$FB</td>
+<td class="comment-1" rowspan="1">Block (type $36)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27440"></span>6B30</td>
+<td class="instruction">DEFB $F1,$0A,$13</td>
+<td class="comment-1" rowspan="1">Room $F1 (row 15, column 1): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27443"></span>6B33</td>
+<td class="instruction">DEFB $01,$03,$09,$0B,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, portcullis E, portcullis W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27449"></span>6B39</td>
+<td class="instruction">DEFB $B8,$23</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27451"></span>6B3B</td>
+<td class="instruction">DEFB $F2,$06,$05</td>
+<td class="comment-1" rowspan="1">Room $F2 (row 15, column 2): square, cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27454"></span>6B3E</td>
+<td class="instruction">DEFB $01,$02,$03,$0C</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch S, arch W, walls (square room); no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27458"></span>6B42</td>
+<td class="instruction">DEFB $F3,$17,$03</td>
+<td class="comment-1" rowspan="1">Room $F3 (row 15, column 3): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27461"></span>6B45</td>
+<td class="instruction">DEFB $02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27465"></span>6B49</td>
+<td class="instruction">DEFB $07,$32,$3A,$72,$7A,$34,$3C,$74</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27473"></span>6B51</td>
+<td class="instruction">DEFB $7C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27474"></span>6B52</td>
+<td class="instruction">DEFB $01,$B3,$BB</td>
+<td class="comment-1" rowspan="1">Block x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27477"></span>6B55</td>
+<td class="instruction">DEFB $48,$33</td>
+<td class="comment-1" rowspan="1">Ghost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27479"></span>6B57</td>
+<td class="instruction">DEFB $31,$2B,$6B</td>
+<td class="comment-1" rowspan="1">Chest x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27482"></span>6B5A</td>
+<td class="instruction">DEFB $F6,$13,$06</td>
+<td class="comment-1" rowspan="1">Room $F6 (row 15, column 6): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27485"></span>6B5D</td>
+<td class="instruction">DEFB $05,$06,$0F,$10,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit S, forest walls, trees closing the W gap, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27491"></span>6B63</td>
+<td class="instruction">DEFB $1B,$1B,$5B,$9B,$DB</td>
+<td class="comment-1" rowspan="1">Rock x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27496"></span>6B68</td>
+<td class="instruction">DEFB $B0,$1C</td>
+<td class="comment-1" rowspan="1">Block (type $8F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27498"></span>6B6A</td>
+<td class="instruction">DEFB $30,$12</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27500"></span>6B6C</td>
+<td class="instruction">DEFB $38,$34</td>
+<td class="comment-1" rowspan="1">Table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27502"></span>6B6E</td>
+<td class="instruction">DEFB $F7,$15,$03</td>
+<td class="comment-1" rowspan="1">Room $F7 (row 15, column 7): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27505"></span>6B71</td>
+<td class="instruction">DEFB $05,$06,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit S, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27511"></span>6B77</td>
+<td class="instruction">DEFB $1F,$22,$23,$24,$1A,$1C,$12,$13</td>
+<td class="comment-1" rowspan="2">Rock x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27519"></span>6B7F</td>
+<td class="instruction">DEFB $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27520"></span>6B80</td>
+<td class="instruction">DEFB $B8,$1B</td>
+<td class="comment-1" rowspan="1">Ball (type $B6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27522"></span>6B82</td>
+<td class="instruction">DEFB $30,$5B</td>
+<td class="comment-1" rowspan="1">Chest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27524"></span>6B84</td>
+<td class="instruction">DEFB $F8,$07,$03</td>
+<td class="comment-1" rowspan="1">Room $F8 (row 15, column 8): square, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27527"></span>6B87</td>
+<td class="instruction">DEFB $05,$06,$07,$0F,$11</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit E, forest exit S, forest exit W, forest walls, trees closing the N gap; no objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27532"></span>6B8C</td>
+<td class="instruction">DEFB $F9,$13,$06</td>
+<td class="comment-1" rowspan="1">Room $F9 (row 15, column 9): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27535"></span>6B8F</td>
+<td class="instruction">DEFB $06,$07,$0F,$11,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: forest exit S, forest exit W, forest walls, trees closing the N gap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27540"></span>6B94</td>
+<td class="instruction">DEFB $9F,$FF,$FE,$F6,$F7,$FD,$EF,$C3</td>
+<td class="comment-1" rowspan="2">Raised spiked ball x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27548"></span>6B9C</td>
+<td class="instruction">DEFB $C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27549"></span>6B9D</td>
+<td class="instruction">DEFB $99,$D8,$E0</td>
+<td class="comment-1" rowspan="1">Raised spiked ball x2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27552"></span>6BA0</td>
+<td class="instruction">DEFB $FD,$11,$06</td>
+<td class="comment-1" rowspan="1">Room $FD (row 15, column 13): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27555"></span>6BA3</td>
+<td class="instruction">DEFB $01,$02,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch S, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27559"></span>6BA7</td>
+<td class="instruction">DEFB $07,$28,$29,$2A,$32,$3A,$70,$71</td>
+<td class="comment-1" rowspan="2">Block x8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27567"></span>6BAF</td>
+<td class="instruction">DEFB $79</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27568"></span>6BB0</td>
+<td class="instruction">DEFB $00,$B8</td>
+<td class="comment-1" rowspan="1">Block</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27570"></span>6BB2</td>
+<td class="instruction">DEFB $FE,$12,$13</td>
+<td class="comment-1" rowspan="1">Room $FE (row 15, column 14): narrow in y, magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27573"></span>6BB5</td>
+<td class="instruction">DEFB $01,$03,$0D,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch E, arch W, walls (room narrow in y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27577"></span>6BB9</td>
+<td class="instruction">DEFB $2B,$25,$1D,$22,$1A</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27582"></span>6BBE</td>
+<td class="instruction">DEFB $23,$2B,$2C,$13,$14</td>
+<td class="comment-1" rowspan="1">Gargoyle x4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27587"></span>6BC3</td>
+<td class="instruction">DEFB $60,$5B</td>
+<td class="comment-1" rowspan="1">Ball (half a cell along x and y)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27589"></span>6BC5</td>
+<td class="instruction">DEFB $FF,$0B,$06</td>
+<td class="comment-1" rowspan="1">Room $FF (row 15, column 15): square, yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27592"></span>6BC8</td>
+<td class="instruction">DEFB $02,$03,$0C,$FF</td>
+<td class="comment-1" rowspan="1">Backgrounds: arch S, arch W, walls (square room)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="27596"></span>6BCC</td>
+<td class="instruction">DEFB $2B,$2E,$35,$37,$3E</td>
+<td class="comment-1" rowspan="1">Spikes x4</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The comments give each record's room number, its square in the grid (row, column), its shape and colour, then what it contains. Where the listing's rows do not line up with the records, a comment covers the parts that begin in its row.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="25160.html">6248</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#25169">Map</a></td>
+<td class="next">
+Next: <a href="27601.html">6BD1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

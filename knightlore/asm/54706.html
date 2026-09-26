@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D5B2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54687.html">D59F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54706">Map</a></td>
+<td class="next">
+Next: <a href="54747.html">D5DB</a>
+</td>
+</tr>
+</table>
+<div class="description">D5B2: Wipe the next object that moved</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="54812.html">wipe_height</a> and <a href="54828.html">wipe_rect</a>.
+</div>
+<div class="paragraph">
+Bytes $18 and $19 of a record are the width in bytes and height in rows of its sprite as last drawn, and $1A and $1B its pixel x and y; <a href="52809.html">save_2d_info</a> copies all four to bytes $1C to $1F before the object's handler runs, so they hold last frame's picture while $18 to $1B are about to get this frame's. The rectangle wiped is the smallest one that covers both.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">wipe_next_object</td>
+<td class="address-2"><span id="54706"></span>D5B2</td>
+<td class="instruction">LD HL,($5BCB)</td>
+<td class="comment-1" rowspan="1">the next index from the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54709"></span>D5B5</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54710"></span>D5B6</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54711"></span>D5B7</td>
+<td class="instruction">LD ($5BCB),HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54714"></span>D5BA</td>
+<td class="instruction">CP $FF</td>
+<td class="comment-1" rowspan="1">$FF ends it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54716"></span>D5BC</td>
+<td class="instruction">JP Z,<a href="54867.html">draw_and_copy_rects</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54719"></span>D5BF</td>
+<td class="instruction">CALL <a href="54197.html">get_ptr_object</a></td>
+<td class="comment-1" rowspan="5">bit 5 of byte 7 means it needs wiping; the others in the list are only being drawn again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54722"></span>D5C2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54723"></span>D5C3</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54725"></span>D5C5</td>
+<td class="instruction">BIT 5,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54729"></span>D5C9</td>
+<td class="instruction">JR Z,<a href="54706.html#54706">wipe_next_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54731"></span>D5CB</td>
+<td class="instruction">RES 5,(IX+$07)</td>
+<td class="comment-1" rowspan="1">only once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54735"></span>D5CF</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="1">C = whichever of the new (byte $1A) and old (byte $1E) pixel x is further left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54738"></span>D5D2</td>
+<td class="instruction">SUB (IX+$1E)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54741"></span>D5D5</td>
+<td class="instruction">JP C,<a href="54857.html">wipe_left_is_new</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54744"></span>D5D8</td>
+<td class="instruction">LD C,(IX+$1E)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54687.html">D59F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54706">Map</a></td>
+<td class="next">
+Next: <a href="54747.html">D5DB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

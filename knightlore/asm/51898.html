@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CABA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51891.html">CAB3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51898">Map</a></td>
+<td class="next">
+Next: <a href="51955.html">CAF3</a>
+</td>
+</tr>
+</table>
+<div class="description">CABA: Go into the next room</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="51982.html">screen_north</a> and <a href="52009.html">screen_south</a>.
+</div>
+<div class="paragraph">
+Gives the object its new room number and starts the room-entry walk: 3 in the top nibble of +$0C, three frames of walking straight in with the controls and the room's walls ignored, so the player clears the archway.
+</div>
+<div class="paragraph">
+For the player -- type 16 to 79, both forms and both halves -- the rest of this frame is abandoned. The two return addresses on the stack, to <a href="51661.html">move_player_apply</a> and <a href="51285.html">player_move_and_draw</a>, are dropped, and both player records are copied to <a href="53601.html">plyr_spr_1_scratchpad</a> and <a href="53633.html">plyr_spr_2_scratchpad</a>: the player as he entered this room, which <a href="53546.html">lose_life</a> copies back when a life is lost, so he reappears at the door he came in by. The copies' types are replaced by 120, the first frame of the materialising sparkle, with the real types kept in +$10 for <a href="48913.html">upd_127</a> to restore. Then the new room is built from <a href="44986.html">game_loop</a>.
+</div>
+<div class="paragraph">
+Only the player reaches this code in this build, so the return for other types is never taken.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the new room number</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">exit_screen</td>
+<td class="address-2"><span id="51898"></span>CABA</td>
+<td class="instruction">LD (IX+$08),A</td>
+<td class="comment-1" rowspan="1">new room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51901"></span>CABD</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">the room-entry walk: three frames</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51904"></span>CAC0</td>
+<td class="instruction">OR $30</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51906"></span>CAC2</td>
+<td class="instruction">LD (IX+$0C),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51909"></span>CAC5</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="1">anything but the player: carry on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51912"></span>CAC8</td>
+<td class="instruction">SUB $10</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51914"></span>CACA</td>
+<td class="instruction">CP $40</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51916"></span>CACC</td>
+<td class="instruction">RET NC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51917"></span>CACD</td>
+<td class="instruction">INC SP</td>
+<td class="comment-1" rowspan="4">drop the returns to the rest of this frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51918"></span>CACE</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51919"></span>CACF</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51920"></span>CAD0</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51921"></span>CAD1</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="5">both player records to the respawn copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51923"></span>CAD3</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51924"></span>CAD4</td>
+<td class="instruction">LD DE,<a href="53601.html">plyr_spr_1_scratchpad</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51927"></span>CAD7</td>
+<td class="instruction">LD BC,$0040</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51930"></span>CADA</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51932"></span>CADC</td>
+<td class="instruction">LD A,(<a href="53601.html">plyr_spr_1_scratchpad</a>)</td>
+<td class="comment-1" rowspan="2">each copy's real type kept in its +$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51935"></span>CADF</td>
+<td class="instruction">LD (<a href="53617.html">plyr_spr_1_tail</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51938"></span>CAE2</td>
+<td class="instruction">LD A,(<a href="53633.html">plyr_spr_2_scratchpad</a>)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51941"></span>CAE5</td>
+<td class="instruction">LD (<a href="53649.html">plyr_spr_2_tail</a>),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51944"></span>CAE8</td>
+<td class="instruction">LD A,$78</td>
+<td class="comment-1" rowspan="1">and replaced by the materialising sparkle</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51946"></span>CAEA</td>
+<td class="instruction">LD (<a href="53601.html">plyr_spr_1_scratchpad</a>),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51949"></span>CAED</td>
+<td class="instruction">LD (<a href="53633.html">plyr_spr_2_scratchpad</a>),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51952"></span>CAF0</td>
+<td class="instruction">JP <a href="44986.html">game_loop</a></td>
+<td class="comment-1" rowspan="1">build the new room and start its frames</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51891.html">CAB3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51898">Map</a></td>
+<td class="next">
+Next: <a href="51955.html">CAF3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

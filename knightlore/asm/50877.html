@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C6BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50861.html">C6AD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50877">Map</a></td>
+<td class="next">
+Next: <a href="50912.html">C6E0</a>
+</td>
+</tr>
+</table>
+<div class="description">C6BD: A moving portcullis (type 9)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Rising, it climbs one unit a frame with a sound whose pitch follows its height, until it is more than 31 above the floor. Falling, it gets an extra unit of downward speed each frame on top of gravity, so it falls with twice the pull of anything else, and lands with a crash of noise. While it moves it has bit 7 of +$0D set, which passes the deadly mark (bit 6) to whatever it moves into: a falling portcullis kills. It stays still while the player is settling into the room.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the portcullis's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_9</td>
+<td class="address-2"><span id="50877"></span>C6BD</td>
+<td class="instruction">CALL <a href="50397.html">adj_m6_m12</a></td>
+<td class="comment-1" rowspan="1">draw 12 left and 6 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50880"></span>C6C0</td>
+<td class="instruction">SET 7,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">deadly to what it moves into</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50884"></span>C6C4</td>
+<td class="instruction">LD A,($5C14)</td>
+<td class="comment-1" rowspan="1">wait while the player's +$0C counts down after entering the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50887"></span>C6C7</td>
+<td class="instruction">AND $F0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50889"></span>C6C9</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50890"></span>C6CA</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="1">rising</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50893"></span>C6CD</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50894"></span>C6CE</td>
+<td class="instruction">JP P,<a href="50922.html">move_portcullis_up</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50897"></span>C6D1</td>
+<td class="instruction">DEC (IX+$0B)</td>
+<td class="comment-1" rowspan="1">extra speed down, then gravity and move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50900"></span>C6D4</td>
+<td class="instruction">CALL <a href="50944.html">dec_dZ_and_update_XYZ</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50903"></span>C6D7</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">not landed yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50907"></span>C6DB</td>
+<td class="instruction">JR Z,<a href="50834.html">set_wipe_and_draw_flags</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50909"></span>C6DD</td>
+<td class="instruction">CALL <a href="46217.html">sound_portcullis_crash</a></td>
+<td class="comment-1" rowspan="1">the crash: noise from bytes of the ROM chosen by the seed and the frame counter</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50861.html">C6AD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50877">Map</a></td>
+<td class="next">
+Next: <a href="50912.html">C6E0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

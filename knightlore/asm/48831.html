@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at BEBF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48819.html">BEB3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48831">Map</a></td>
+<td class="next">
+Next: <a href="48868.html">BEE4</a>
+</td>
+</tr>
+</table>
+<div class="description">BEBF: Print a list of strings</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="47657.html">game_over_summary</a> and <a href="47787.html">game_complete_msg</a>.
+</div>
+<div class="paragraph">
+Prints each string at its position in its colour. The first list printed after $5BB8 is cleared also draws the border and copies the buffer to the screen; later calls only redraw into the buffer (and write the attributes directly), which is how the menu can update its flashing lines every pass without redrawing the screen.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">how many</td>
+</tr>
+<tr>
+<td class="register">DE'</td>
+<td class="register-desc">the colours, one byte per string</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the positions, an (x, y) pair per string</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the strings, one after another, in the text code without colour bytes</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">display_text_list</td>
+<td class="address-2"><span id="48831"></span>BEBF</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">this string's colour, for print_text_single_colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48832"></span>BEC0</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48833"></span>BEC1</td>
+<td class="instruction">LD ($5BB6),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48836"></span>BEC4</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48837"></span>BEC5</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48838"></span>BEC6</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="8">L = x, H = y; HL advanced to the next pair</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48839"></span>BEC7</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48840"></span>BEC8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48841"></span>BEC9</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48842"></span>BECA</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48843"></span>BECB</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48844"></span>BECC</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48845"></span>BECD</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48846"></span>BECE</td>
+<td class="instruction">CALL <a href="48689.html">print_text_single_colour</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48849"></span>BED1</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48850"></span>BED2</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48851"></span>BED3</td>
+<td class="instruction">DJNZ <a href="48831.html#48831">display_text_list</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48853"></span>BED5</td>
+<td class="instruction">LD A,($5BB8)</td>
+<td class="comment-1" rowspan="3">already shown once: leave the screen alone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48856"></span>BED8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48857"></span>BED9</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48858"></span>BEDA</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="4">first time: flag it, draw the border and show the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48859"></span>BEDB</td>
+<td class="instruction">LD ($5BB8),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48862"></span>BEDE</td>
+<td class="instruction">CALL <a href="53910.html">print_border</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48865"></span>BEE1</td>
+<td class="instruction">JP <a href="54639.html">update_screen</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48819.html">BEB3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48831">Map</a></td>
+<td class="next">
+Next: <a href="48868.html">BEE4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

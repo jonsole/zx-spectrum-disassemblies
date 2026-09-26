@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B8DA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47304.html">B8C8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47322">Map</a></td>
+<td class="next">
+Next: <a href="47382.html">B916</a>
+</td>
+</tr>
+</table>
+<div class="description">B8DA: Cauldron bubbles (types 160 to 163)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The bubbles rise out of the cauldron, cycling through four frames, and they are not solid on the way up (bit 1 of +7 is set, so the collision code ignores them). At height $A0 they hover, and every fourth frame they are replaced by a picture of the next object the wizard wants -- type 168 plus that object's number -- for one frame in every five: the picture, then 160, 161, 162 and 163, then the picture again.
+</div>
+<div class="paragraph">
+If the player is Sabrewulf -- his legs are type 48 to 63 -- the bubbles turn hostile instead: they become types 164 to 167 (<a href="47404.html">upd_164_to_167</a>), solid, and still carry the deadly bits their starting record gave them.
+</div>
+<div class="paragraph">
+They vanish while object record 2 is occupied, which is while an object has been dropped into the cauldron and is being taken. <a href="47273.html">init_cauldron_bubbles</a> puts them back once the record is free again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_160_to_163</td>
+<td class="address-2"><span id="47322"></span>B8DA</td>
+<td class="instruction">CALL <a href="50392.html">adj_m4_m12</a></td>
+<td class="comment-1" rowspan="1">pixel offsets</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47325"></span>B8DD</td>
+<td class="instruction">LD A,($5C48)</td>
+<td class="comment-1" rowspan="3">an object is in the cauldron: vanish</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47328"></span>B8E0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47329"></span>B8E1</td>
+<td class="instruction">JP NZ,<a href="47454.html">upd_111</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47332"></span>B8E4</td>
+<td class="instruction">SET 1,(IX+$07)</td>
+<td class="comment-1" rowspan="1">not solid</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47336"></span>B8E8</td>
+<td class="instruction">CALL <a href="50944.html">dec_dZ_and_update_XYZ</a></td>
+<td class="comment-1" rowspan="2">move; next of four frames</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47339"></span>B8EB</td>
+<td class="instruction">CALL <a href="47500.html">next_graphic_no_mod_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47342"></span>B8EE</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="1">still below $A0: dZ = 2, so rise one unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47345"></span>B8F1</td>
+<td class="instruction">CP $A0</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47347"></span>B8F3</td>
+<td class="instruction">LD (IX+$0B),$02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47351"></span>B8F7</td>
+<td class="instruction">JR C,<a href="47382.html">bubbles_draw</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47353"></span>B8F9</td>
+<td class="instruction">LD (IX+$0B),$01</td>
+<td class="comment-1" rowspan="1">at the top: dZ = 1, so hover</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47357"></span>B8FD</td>
+<td class="instruction">LD A,($5C08)</td>
+<td class="comment-1" rowspan="1">the player is Sabrewulf</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47360"></span>B900</td>
+<td class="instruction">SUB $30</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47362"></span>B902</td>
+<td class="instruction">CP $10</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47364"></span>B904</td>
+<td class="instruction">JR C,<a href="47385.html">bubbles_turn_hostile</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47366"></span>B906</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="1">only when the cycle comes back round to 160</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47369"></span>B909</td>
+<td class="instruction">AND $03</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47371"></span>B90B</td>
+<td class="instruction">JR NZ,<a href="47382.html">bubbles_draw</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47373"></span>B90D</td>
+<td class="instruction">CALL <a href="49780.html">ret_next_obj_required</a></td>
+<td class="comment-1" rowspan="4">show the object wanted: type 168 plus its number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47376"></span>B910</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47377"></span>B911</td>
+<td class="instruction">OR $A8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47379"></span>B913</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47304.html">B8C8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47322">Map</a></td>
+<td class="next">
+Next: <a href="47382.html">B916</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

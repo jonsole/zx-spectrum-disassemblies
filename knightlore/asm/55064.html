@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D718</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55056.html">D710</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55064">Map</a></td>
+<td class="next">
+Next: <a href="55100.html">D73C</a>
+</td>
+</tr>
+</table>
+<div class="description">D718: Draw an object's sprite into the buffer, through its mask</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="48250.html">print_lives_gfx</a>, <a href="48868.html">multiple_print_sprite</a>, <a href="48985.html">display_object</a>, <a href="50115.html">display_frame</a> and <a href="53836.html">transfer_sprite_and_print</a>.
+</div>
+<div class="paragraph">
+A sprite is a header -- width in bytes in bits 0 to 3, the flip state in bits 6 and 7, then the height in rows -- and then a pair of bytes for every byte of every row: a mask and an image. Rows are drawn from the bottom up. Each background byte is cleared where the mask is set and then has the image put in, so a sprite punches its own shape out of whatever was drawn before it and objects can overlap in depth.
+</div>
+<div class="paragraph">
+The row loop at <a href="55210.html">sprite_row</a> is unrolled for the widest sprite, five bytes, and this routine patches it for the one in hand: the offset of the JR at <a href="55212.html">sprite_row_jump</a> decides how far into the unrolled code a row starts, and the operand of the ADD at <a href="55296.html">sprite_next_row</a> how far BC must then move to reach the next row up. There are two unrolled runs. A sprite whose pixel x is a multiple of 8 uses the plain one; any other uses the shifted one, which reads its bytes through the tables from <a href="61952.html">F200</a> up and so touches one byte more per row.
+</div>
+<div class="paragraph">
+The stack pointer is borrowed to read the sprite: SP is pointed at the data and each POP DE fetches a mask byte into E and its image byte into D. The real SP is kept in $5BA9 meanwhile. The listing has no EI anywhere, so the game runs with interrupts off and nothing can push onto the sprite while SP is borrowed.
+</div>
+<div class="paragraph">
+Bytes $18 and $19 come out as the width and height actually drawn, which <a href="54706.html">wipe_next_object</a> uses next frame to wipe the picture away. Only the top of the screen is clipped; nothing is clipped at the sides.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object: its graphic in byte 0, its pixel position in bytes $1A</td>
+</tr>
+<tr>
+<td class="register">and</td>
+<td class="register-desc">$1B, its flip bits in byte 7</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">print_sprite</td>
+<td class="address-2"><span id="55064"></span>D718</td>
+<td class="instruction">CALL <a href="55023.html">flip_sprite</a></td>
+<td class="comment-1" rowspan="1">DE = the sprite, turned the way byte 7 asks</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55067"></span>D71B</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="1">x within its byte; 0 goes to the aligned case at <a href="55151.html">sprite_aligned</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55070"></span>D71E</td>
+<td class="instruction">AND $07</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55072"></span>D720</td>
+<td class="instruction">JR Z,<a href="55151.html">sprite_aligned</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55074"></span>D722</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="4">H = $F0 + 2 * the shift, the page pair <a href="54942.html">build_lookup_tbls</a> built for it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55075"></span>D723</td>
+<td class="instruction">AND $0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55077"></span>D725</td>
+<td class="instruction">OR $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55079"></span>D727</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55080"></span>D728</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">the width from the header, plus one: the bytes a shifted row touches, into byte $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55081"></span>D729</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55082"></span>D72A</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55084"></span>D72C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55085"></span>D72D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55086"></span>D72E</td>
+<td class="instruction">LD (IX+$18),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55089"></span>D731</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="8">the JR offset for <a href="55212.html">sprite_row_jump</a>: 16 bytes of code per byte of width, counted back from the end of the shifted run</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55090"></span>D732</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55092"></span>D734</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55093"></span>D735</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55094"></span>D736</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55095"></span>D737</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55096"></span>D738</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55098"></span>D73A</td>
+<td class="instruction">ADD A,$50</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55056.html">D710</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55064">Map</a></td>
+<td class="next">
+Next: <a href="55100.html">D73C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

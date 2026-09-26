@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D320</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54039.html">D317</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54048">Map</a></td>
+<td class="next">
+Next: <a href="54079.html">D33F</a>
+</td>
+</tr>
+</table>
+<div class="description">D320: Put the player in the doorway he came through</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53743.html">build_room</a>.
+</div>
+<div class="paragraph">
+When the player walks out of a room, the exit code (<a href="51866.html">screen_west</a> and its three neighbours, ending at <a href="51898.html">exit_screen</a>) moves him to the next room number and sets the coordinate he left by to an extreme -- X to 0 on leaving towards -X, $FF towards +X, and the same for Y. That extreme says which side of the new room he enters from, and this routine moves him to that side, with his inner side two units inside the room's edge and the rest of him in the doorway. His Z is then set to the floor of the arch there (<a href="54156.html">adjust_plyr_Z_for_arch</a>).
+</div>
+<div class="paragraph">
+The names follow the compass used for the arches: +X is east, +Y north. If no coordinate is at an extreme -- the start of a life -- nothing is changed.
+</div>
+<div class="paragraph">
+$5BAB and $5BAC are the room's X and Y half-sizes, measured from the centre, $80.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">object 0, the player's legs</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">adjust_plyr_xyz_for_room_size</td>
+<td class="address-2"><span id="54048"></span>D320</td>
+<td class="instruction">LD A,($5BAB)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54051"></span>D323</td>
+<td class="instruction">SUB $02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54053"></span>D325</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54054"></span>D326</td>
+<td class="instruction">LD A,($5BAC)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54057"></span>D329</td>
+<td class="instruction">SUB $02</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54059"></span>D32B</td>
+<td class="instruction">LD H,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54060"></span>D32C</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="1">X = 0: came in on the east side</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54063"></span>D32F</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54064"></span>D330</td>
+<td class="instruction">JR Z,<a href="54143.html">enter_arch_e</a></td>
+<td class="comment-1" rowspan="1">X = $FF: the west side</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54066"></span>D332</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54067"></span>D333</td>
+<td class="instruction">JR Z,<a href="54127.html">enter_arch_w</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54069"></span>D335</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="1">Y = 0: the north side</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54072"></span>D338</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54073"></span>D339</td>
+<td class="instruction">JR Z,<a href="54114.html">enter_arch_n</a></td>
+<td class="comment-1" rowspan="1">Y = $FF: the south side; otherwise stay put</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54075"></span>D33B</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54076"></span>D33C</td>
+<td class="instruction">JR Z,<a href="54079.html">enter_arch_s</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54078"></span>D33E</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54039.html">D317</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54048">Map</a></td>
+<td class="next">
+Next: <a href="54079.html">D33F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

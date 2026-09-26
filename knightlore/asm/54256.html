@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D3F0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54242.html">D3E2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54256">Map</a></td>
+<td class="next">
+Next: <a href="54302.html">D41E</a>
+</td>
+</tr>
+</table>
+<div class="description">D3F0: Take the room's colour and size from its record</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="54223.html">find_screen</a>.
+</div>
+<div class="paragraph">
+The byte after the length is the room's attribute byte. Its bits 0 to 2 are the ink colour the whole room is drawn in, and its bits 3 to 7 pick one of the entries in <a href="25160.html">room_size_tbl</a>, which give the room's half-widths in x and y and the height of its floor. After this B counts the bytes that remain in the record, so that the lists that follow can end on it as well as on their own markers.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the record's length byte</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">found_screen</td>
+<td class="address-2"><span id="54256"></span>D3F0</td>
+<td class="instruction">LD B,(HL)</td>
+<td class="comment-1" rowspan="2">B = the record's length; HL on the attribute byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54257"></span>D3F1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54258"></span>D3F2</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">ink colour, BRIGHT, black paper: kept in $5BAD for <a href="54614.html">fill_attr</a> to paint the room with</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54259"></span>D3F3</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54261"></span>D3F5</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54263"></span>D3F7</td>
+<td class="instruction">LD ($5BAD),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54266"></span>D3FA</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="8">bits 3 to 7 index the size table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54267"></span>D3FB</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54268"></span>D3FC</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54269"></span>D3FD</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54270"></span>D3FE</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54271"></span>D3FF</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54272"></span>D400</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54273"></span>D401</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54275"></span>D403</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="5">three bytes an entry in <a href="25160.html">room_size_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54276"></span>D404</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54277"></span>D405</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54278"></span>D406</td>
+<td class="instruction">LD HL,<a href="25160.html">room_size_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54281"></span>D409</td>
+<td class="instruction">CALL <a href="54514.html">add_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54284"></span>D40C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="8">half-width in x into $5BAB, in y into $5BAC, and the floor height into $5BAE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54285"></span>D40D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54286"></span>D40E</td>
+<td class="instruction">LD ($5BAB),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54289"></span>D411</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54290"></span>D412</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54291"></span>D413</td>
+<td class="instruction">LD ($5BAC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54294"></span>D416</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54295"></span>D417</td>
+<td class="instruction">LD ($5BAE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54298"></span>D41A</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="4">the length counted itself and the attribute byte; HL on the list of backgrounds, DE on the next free record again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54299"></span>D41B</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54300"></span>D41C</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54301"></span>D41D</td>
+<td class="instruction">POP DE</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54242.html">D3E2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54256">Map</a></td>
+<td class="next">
+Next: <a href="54302.html">D41E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

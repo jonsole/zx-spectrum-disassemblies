@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: How the game is put together</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+</head>
+<body class="Architecture">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Knight Lore</a></td>
+<td class="page-header">How the game is put together</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#map">The memory map</a></li>
+<li><a href="#map2">What is where</a></li>
+<li><a href="#sysvars">Living on top of the system variables</a></li>
+<li><a href="#loop">The main loop</a></li>
+<li><a href="#random">Randomness</a></li>
+<li><a href="#sprites">The sprites</a></li>
+</ul>
+<div><span id="map"></span></div>
+<div class="box box-1">
+<div class="box-title">The memory map</div>
+<div class="paragraph">
+Knight Lore is loaded, not unpacked: a snapshot taken after loading is the
+whole game. It occupies from <a href="asm/24840.html">font</a> to the top of memory, and its variables
+sit below that from $5BA0 up, with the stack below them again. Nothing lives
+under $5BA0 that the game cares about.
+</div>
+</div>
+<div><span id="map2"></span></div>
+<div class="box box-2">
+<div class="box-title">What is where</div>
+<div class="paragraph">
+$5BA0-$5C07 are the game's variables and $5C08-$6107 the object table -- forty
+records of thirty-two bytes. $6108-$D8F2 is the game itself, 30699 bytes of
+code and data, opening with the status font at <a href="asm/24840.html">font</a>. $D8F3-$F0F2 is the
+screen buffer the drawing code composes into, and $F100 upwards holds lookup
+tables the game builds for itself at start-up.
+</div>
+</div>
+<div><span id="sysvars"></span></div>
+<div class="box box-1">
+<div class="box-title">Living on top of the system variables</div>
+<div class="paragraph">
+The object table starts at $5C08, which on a stock Spectrum is LAST-K -- where
+the ROM leaves the last key pressed. That is not an accident and not a
+conflict: Knight Lore never calls the ROM once it is running, so the whole
+system-variable area from $5BA0 up is just memory. It reads the keyboard
+itself, at <a href="asm/46583.html">read_port</a>: an IN from port $FE with the half-rows wanted on the
+high byte of the address.
+</div>
+</div>
+<div><span id="loop"></span></div>
+<div class="box box-2">
+<div class="box-title">The main loop</div>
+<div class="paragraph">
+One frame is <a href="asm/44989.html">onscreen_loop</a> walking all forty object records, followed by <a href="asm/45056.html">end_of_frame</a>
+drawing the result. Each object is dispatched on its type byte through the
+table at <a href="asm/45206.html">upd_sprite_jmp_tbl</a>, and the loop pushes its own continuation before jumping so
+that a handler ends with a plain RET. The stack is reloaded to $5BA0 before
+every object, so no handler can leave anything behind for the next one.
+</div>
+</div>
+<div><span id="random"></span></div>
+<div class="box box-1">
+<div class="box-title">Randomness</div>
+<div class="paragraph">
+There is no random number generator as such. <a href="asm/44908.html">START</a> seeds from the ROM's
+frame counter at start-up, and <a href="asm/45028.html">ret_from_tbl_jp</a> stirs in the refresh register after
+every object -- so the sequence depends on how long the machine has been on
+and how much work each frame did. That is what makes two games different.
+</div>
+</div>
+<div><span id="sprites"></span></div>
+<div class="box box-2">
+<div class="box-title">The sprites</div>
+<div class="paragraph">
+103 sprites share one format: a width in bytes, a height in rows, then a mask
+byte and a bitmap byte for every cell. Carrying the mask with the artwork is
+what lets the game draw objects in any order and still have them overlap
+correctly, which is the whole trick of the isometric view. The table at
+<a href="asm/28946.html">sprite_tbl</a> has a word per graphic number, and an object's first byte is that
+number: walking and turning are done by changing it. The header's top two
+bits are not part of the width but a record of whether the stored sprite is
+currently upside down or mirrored -- the game flips sprites in place when an
+object wants the other way round, and notes which way the data now lies.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

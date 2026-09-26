@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at AF88</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44927.html">AF7F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44936">Map</a></td>
+<td class="next">
+Next: <a href="44983.html">AFB7</a>
+</td>
+</tr>
+</table>
+<div class="description">AF88: Set up and play</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44908.html">START</a>.
+</div>
+<div class="paragraph">
+Builds the lookup tables, shows the menu, and then does the four things that make a game different from the last one: shuffles which objects the wizard will ask for, chooses a starting room, sets the sun and moon running, and places the special objects. Then it falls into <a href="44983.html">player_dies</a>, which brings Sabreman on exactly as it does after a death.
+</div>
+<div class="paragraph">
+Three of those choices come from the game seed at $5BA0, and two of them from the same two bits of it: bits 0 and 1 pick the starting room in <a href="53681.html">init_start_location</a> and also how far <a href="46404.html">shuffle_objects_required</a> rotates the wizard's list. So on the first game after loading, the starting room tells you the order the cauldron will ask in. The charms' placing adds the refresh register, so that one is not tied.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">main</td>
+<td class="address-2"><span id="44936"></span>AF88</td>
+<td class="instruction">CALL <a href="54942.html">build_lookup_tbls</a></td>
+<td class="comment-1" rowspan="1">the tables at <a href="61696.html">F100</a> -- see <a href="54942.html">build_lookup_tbls</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44939"></span>AF8B</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">no room has been played yet, so the first room entry has nothing to save back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44940"></span>AF8C</td>
+<td class="instruction">LD ($5BB2),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44943"></span>AF8F</td>
+<td class="instruction">LD (<a href="53613.html">flags12_1</a>),A</td>
+<td class="comment-1" rowspan="1">clear byte 12 of the player record saved at <a href="53601.html">plyr_spr_1_scratchpad</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44946"></span>AF92</td>
+<td class="instruction">LD A,$05</td>
+<td class="comment-1" rowspan="1">five lives; the first pass through <a href="44983.html">player_dies</a> takes one of them</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44948"></span>AF94</td>
+<td class="instruction">LD ($5BBA),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44951"></span>AF97</td>
+<td class="instruction">LD HL,$5BA0</td>
+<td class="comment-1" rowspan="4">stir the frame counter into the game seed; it is zero on the first game after loading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44954"></span>AF9A</td>
+<td class="instruction">LD A,($5BA2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44957"></span>AF9D</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44958"></span>AF9E</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44959"></span>AF9F</td>
+<td class="instruction">CALL <a href="54623.html">clear_scrn</a></td>
+<td class="comment-1" rowspan="1">clear the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44962"></span>AFA2</td>
+<td class="instruction">CALL <a href="48396.html">do_menu_selection</a></td>
+<td class="comment-1" rowspan="1">the control menu; the seed also goes up by one every time round its loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44965"></span>AFA5</td>
+<td class="instruction">LD DE,<a href="45582.html">start_game_tune</a></td>
+<td class="comment-1" rowspan="2">the tune that plays as the game starts</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44968"></span>AFA8</td>
+<td class="instruction">CALL <a href="45775.html">play_audio</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44971"></span>AFAB</td>
+<td class="instruction">CALL <a href="46404.html">shuffle_objects_required</a></td>
+<td class="comment-1" rowspan="1">rotate the list of objects the cauldron wants</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44974"></span>AFAE</td>
+<td class="instruction">CALL <a href="53681.html">init_start_location</a></td>
+<td class="comment-1" rowspan="1">pick one of four starting rooms, and make the player records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44977"></span>AFB1</td>
+<td class="instruction">CALL <a href="50285.html">init_sun</a></td>
+<td class="comment-1" rowspan="1">the sun starts at the left of its frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44980"></span>AFB4</td>
+<td class="instruction">CALL <a href="50302.html">init_special_objects</a></td>
+<td class="comment-1" rowspan="1">deal the charms and extra lives out to their places</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44927.html">AF7F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44936">Map</a></td>
+<td class="next">
+Next: <a href="44983.html">AFB7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

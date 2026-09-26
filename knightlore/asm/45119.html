@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at B03F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45112.html">B038</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45119">Map</a></td>
+<td class="next">
+Next: <a href="45172.html">B074</a>
+</td>
+</tr>
+</table>
+<div class="description">B03F: Redraw the whole screen on entering a room</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45056.html">end_of_frame</a>.
+</div>
+<div class="paragraph">
+Only on the first frame in a room, which <a href="53734.html">build_screen_objects</a> flags at $5BB7. Every other frame draws only what changed; this one paints the room's colour over the whole screen, redraws the panel, the carried objects, the sun or moon and the counters, and then copies the whole buffer to the display.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">no_delay</td>
+<td class="address-2"><span id="45119"></span>B03F</td>
+<td class="instruction">LD A,($5BB7)</td>
+<td class="comment-1" rowspan="1">not a new room: on to the next frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45122"></span>B042</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45123"></span>B043</td>
+<td class="instruction">JR Z,<a href="45172.html">next_frame_or_die</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45125"></span>B045</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">once only</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45126"></span>B046</td>
+<td class="instruction">LD ($5BB7),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45129"></span>B049</td>
+<td class="instruction">LD A,($5BAD)</td>
+<td class="comment-1" rowspan="1">the whole attribute file in the room's colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45132"></span>B04C</td>
+<td class="instruction">CALL <a href="54614.html">fill_attr</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45135"></span>B04F</td>
+<td class="instruction">CALL <a href="48974.html">display_objects</a></td>
+<td class="comment-1" rowspan="1">the three objects being carried</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45138"></span>B052</td>
+<td class="instruction">CALL <a href="53999.html">colour_panel</a></td>
+<td class="comment-1" rowspan="3">the panel's colours and its artwork</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45141"></span>B055</td>
+<td class="instruction">CALL <a href="54029.html">colour_sun_moon</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45144"></span>B058</td>
+<td class="instruction">CALL <a href="53845.html">display_panel</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45147"></span>B05B</td>
+<td class="instruction">LD IX,<a href="50253.html">sun_moon_scratchpad</a></td>
+<td class="comment-1" rowspan="2">the sun or moon in its frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45151"></span>B05F</td>
+<td class="instruction">CALL <a href="50084.html">display_sun_moon_frame</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45154"></span>B062</td>
+<td class="instruction">CALL <a href="48330.html">display_day</a></td>
+<td class="comment-1" rowspan="4">the day, the days, the lives icon and the lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45157"></span>B065</td>
+<td class="instruction">CALL <a href="48230.html">print_days</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45160"></span>B068</td>
+<td class="instruction">CALL <a href="48250.html">print_lives_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45163"></span>B06B</td>
+<td class="instruction">CALL <a href="48291.html">print_lives</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45166"></span>B06E</td>
+<td class="instruction">CALL <a href="54639.html">update_screen</a></td>
+<td class="comment-1" rowspan="1">the whole buffer to the display</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45169"></span>B071</td>
+<td class="instruction">CALL <a href="45192.html">reset_objs_wipe_flag</a></td>
+<td class="comment-1" rowspan="1">nothing drawn so far needs wiping</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45112.html">B038</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45119">Map</a></td>
+<td class="next">
+Next: <a href="45172.html">B074</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

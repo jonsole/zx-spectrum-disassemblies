@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at BA29</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47650.html">BA22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47657">Map</a></td>
+<td class="next">
+Next: <a href="47737.html">BA79</a>
+</td>
+</tr>
+</table>
+<div class="description">BA29: The game-over summary screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="47787.html">game_complete_msg</a>.
+</div>
+<div class="paragraph">
+Clears the screen and its buffer and writes the six-line summary -- time taken, percentage of the quest completed, charms collected and an overall rating -- then fills in the numbers. The text goes into the buffer at <a href="55539.html">D8F3</a> while the attributes go straight to the screen, so nothing shows until <a href="47737.html">print_charms_and_show</a> copies the buffer across.
+</div>
+<div class="paragraph">
+The rating is one of eight words from <a href="48055.html">rating_tbl</a>. Bit 0 of $5BC3 (the quest finished) picks the better four; bits 5 and 6 of $5BC6, the number of rooms visited less one, pick one of those four. So the rating moves up a step for every 32 rooms seen, and a player who finishes having seen more of the castle is rated higher than one who took a short cut.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">game_over_summary</td>
+<td class="address-2"><span id="47657"></span>BA29</td>
+<td class="instruction">CALL <a href="54631.html">clear_scrn_buffer</a></td>
+<td class="comment-1" rowspan="2">blank the buffer and the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47660"></span>BA2C</td>
+<td class="instruction">CALL <a href="54623.html">clear_scrn</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47663"></span>BA2F</td>
+<td class="instruction">LD DE,<a href="47948.html">gameover_colours</a></td>
+<td class="comment-1" rowspan="1">six lines: colours from <a href="47948.html">gameover_colours</a>, positions from <a href="47954.html">gameover_xy</a>, text from <a href="47966.html">gameover_text</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47666"></span>BA32</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47667"></span>BA33</td>
+<td class="instruction">LD HL,<a href="47954.html">gameover_xy</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47670"></span>BA36</td>
+<td class="instruction">LD DE,<a href="47966.html">gameover_text</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47673"></span>BA39</td>
+<td class="instruction">LD B,$06</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47675"></span>BA3B</td>
+<td class="instruction">CALL <a href="48831.html">display_text_list</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47678"></span>BA3E</td>
+<td class="instruction">LD HL,$E8E2</td>
+<td class="comment-1" rowspan="2">the days taken, two BCD digits from $5BB9, into the buffer at y=127, column 15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47681"></span>BA41</td>
+<td class="instruction">LD DE,$5BB9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47684"></span>BA44</td>
+<td class="instruction">LD B,$01</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47686"></span>BA46</td>
+<td class="instruction">CALL <a href="48302.html">print_BCD_number</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47689"></span>BA49</td>
+<td class="instruction">CALL <a href="48144.html">calc_and_display_percent</a></td>
+<td class="comment-1" rowspan="1">count the rooms visited and print the percentage</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47692"></span>BA4C</td>
+<td class="instruction">LD A,($5BC6)</td>
+<td class="comment-1" rowspan="4">bits 6 and 5 of rooms-visited-less-one, moved up to bits 7 and 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47695"></span>BA4F</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47696"></span>BA50</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47698"></span>BA52</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47699"></span>BA53</td>
+<td class="instruction">LD A,($5BC3)</td>
+<td class="comment-1" rowspan="3">add the quest-complete flag as bit 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47702"></span>BA56</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47704"></span>BA58</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47705"></span>BA59</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="4">rotate into place: complete*8 + visited bits * 2, a word offset</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47706"></span>BA5A</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47707"></span>BA5B</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47708"></span>BA5C</td>
+<td class="instruction">AND $0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47710"></span>BA5E</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="7">DE = the rating text's address from <a href="48055.html">rating_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47711"></span>BA5F</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47713"></span>BA61</td>
+<td class="instruction">LD BC,<a href="48055.html">rating_tbl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47716"></span>BA64</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47717"></span>BA65</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47718"></span>BA66</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47719"></span>BA67</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47720"></span>BA68</td>
+<td class="instruction">LD HL,$2758</td>
+<td class="comment-1" rowspan="2">print it at x=$58, y=$27; its first byte is its colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47723"></span>BA6B</td>
+<td class="instruction">CALL <a href="48709.html">print_text_std_font</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47726"></span>BA6E</td>
+<td class="instruction">LD DE,$5BBB</td>
+<td class="comment-1" rowspan="6">the charms count is kept in binary (0 to 14): turn 10 to 14 into BCD for printing -- harmless, since the game is over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47729"></span>BA71</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47730"></span>BA72</td>
+<td class="instruction">SUB $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47732"></span>BA74</td>
+<td class="instruction">JR C,<a href="47737.html">print_charms_and_show</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47734"></span>BA76</td>
+<td class="instruction">OR $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47736"></span>BA78</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47650.html">BA22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47657">Map</a></td>
+<td class="next">
+Next: <a href="47737.html">BA79</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Data at 728A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="28946.html">7112</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29322">Map</a></td>
+<td class="next">
+Next: <a href="29324.html">728C</a>
+</td>
+</tr>
+</table>
+<div class="description">728A: No sprite; the sprite format</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Every sprite from here to <a href="44696.html">spr_102</a> is two header bytes followed by its rows. Header byte 0 holds the width in bytes in bits 0 to 3; bit 6 is set while the rows are stored mirrored left to right and bit 7 while they are stored upside down. Header byte 1 is the height in rows. A row is a pair of bytes for each byte of width: a mask, then an image. <a href="55064.html">print_sprite</a> clears the pixels behind where the mask has a bit set and then ORs in the image, so each pixel is transparent, black or ink. The rows run from the bottom of the sprite upwards, because y in the screen buffer runs up the screen (<a href="55334.html">calc_vram_addr</a> turns it the right way up).
+</div>
+<div class="paragraph">
+Mirroring is done to the sprite itself. Before drawing, <a href="55397.html">vflip_sprite_data</a> compares bits 6 and 7 of the header with bits 6 and 7 of the object's flags (+7); where they differ it reverses the rows, or the pairs in each row (bit-reversing each byte through <a href="61696.html">F100</a>), in place, and toggles the header bit. So one set of pixels serves both ways round, and a snapshot catches each sprite in whichever way it was last drawn: of the 103, only <a href="31578.html">spr_014</a>, the border corner, was caught upside down. The header bits are state, not part of the width.
+</div>
+<div class="paragraph">
+This first one is empty: its width is 0, and <a href="55023.html">flip_sprite</a>, seeing the 0, returns from its caller without drawing anything. Types $00 and $01 use it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">spr_nul</td>
+<td class="address-1"><span id="29322"></span>728A</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Width 0, height 0</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="28946.html">7112</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29322">Map</a></td>
+<td class="next">
+Next: <a href="29324.html">728C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

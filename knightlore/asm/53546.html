@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D12A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53541.html">D125</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53546">Map</a></td>
+<td class="next">
+Next: <a href="53601.html">D161</a>
+</td>
+</tr>
+</table>
+<div class="description">D12A: Start a life</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44983.html">player_dies</a>.
+</div>
+<div class="paragraph">
+Reached at the start of every game and after every death (<a href="44983.html">player_dies</a>). Puts the player's two saved records from <a href="53601.html">plyr_spr_1_scratchpad</a> back into object records 0 and 1 -- the legs and head as they were on entering the current room, but with the materialising type -- and takes a life from $5BBA. When the count goes below zero the game is over.
+</div>
+<div class="paragraph">
+The game begins with $5BBA at 5, and this first call takes it to 4, so the player has five lives: the fifth death ends the game. Touching the extra-life object (type 103, <a href="49579.html">upd_103</a>) adds one.
+</div>
+<div class="paragraph">
+The saved records say what the legs and head become once they have materialised (+$10). That is corrected here for the time of day: knight by day, werewolf by night (bit 0 of the sun and moon's type at <a href="50253.html">sun_moon_scratchpad</a>). Werewolf types are the knight's plus 32, so the creature bit is replaced and the frame and facing kept. A transformation that was pending ($5BB1) is cancelled, as the new body is already the right one.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">lose_life</td>
+<td class="address-2"><span id="53546"></span>D12A</td>
+<td class="instruction">LD HL,<a href="53601.html">plyr_spr_1_scratchpad</a></td>
+<td class="comment-1" rowspan="2">copy both 32-byte records; IX = object 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53549"></span>D12D</td>
+<td class="instruction">LD DE,$5C08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53552"></span>D130</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53553"></span>D131</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53555"></span>D133</td>
+<td class="instruction">LD BC,$0040</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53558"></span>D136</td>
+<td class="instruction">LDIR</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53560"></span>D138</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">no transformation pending</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53561"></span>D139</td>
+<td class="instruction">LD ($5BB1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53564"></span>D13C</td>
+<td class="instruction">LD HL,$5BBA</td>
+<td class="comment-1" rowspan="3">one life fewer; below zero is game over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53567"></span>D13F</td>
+<td class="instruction">DEC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53568"></span>D140</td>
+<td class="instruction">JP M,<a href="47650.html">game_over</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53571"></span>D143</td>
+<td class="instruction">LD A,(<a href="50253.html">sun_moon_scratchpad</a>)</td>
+<td class="comment-1" rowspan="1">C = 32 at night, 0 by day</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53574"></span>D146</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53575"></span>D147</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53576"></span>D148</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53577"></span>D149</td>
+<td class="instruction">AND $20</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53579"></span>D14B</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53580"></span>D14C</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="1">legs: knight legs type (16 to 31), plus 32 at night</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53583"></span>D14F</td>
+<td class="instruction">AND $1F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53585"></span>D151</td>
+<td class="instruction">ADD A,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53586"></span>D152</td>
+<td class="instruction">LD (IX+$10),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53589"></span>D155</td>
+<td class="instruction">LD A,(IX+$30)</td>
+<td class="comment-1" rowspan="1">head: knight head type (32 to 47), plus 32 at night</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53592"></span>D158</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53594"></span>D15A</td>
+<td class="instruction">ADD A,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53595"></span>D15B</td>
+<td class="instruction">ADD A,$20</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53597"></span>D15D</td>
+<td class="instruction">LD (IX+$30),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53600"></span>D160</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53541.html">D125</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53546">Map</a></td>
+<td class="next">
+Next: <a href="53601.html">D161</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

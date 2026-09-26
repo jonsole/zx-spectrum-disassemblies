@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at BD6C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48468.html">BD54</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48492">Map</a></td>
+<td class="next">
+Next: <a href="48517.html">BD85</a>
+</td>
+</tr>
+</table>
+<div class="description">BD6C: Start the game?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="48468.html">check_for_directional_control</a> and <a href="48517.html">clr_debounce</a>.
+</div>
+<div class="paragraph">
+Clicks if the control byte changed this pass, then returns to start the game if 0 is pressed. Otherwise it bumps the seed at $5BA0 -- so the time spent in the menu shapes the game that follows -- updates the flashing lines and goes round again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">check_for_start_game</td>
+<td class="address-2"><span id="48492"></span>BD6C</td>
+<td class="instruction">LD HL,$5BA6</td>
+<td class="comment-1" rowspan="1">A is the new control byte here, whichever way we arrived</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48495"></span>BD6F</td>
+<td class="instruction">CP (HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48496"></span>BD70</td>
+<td class="instruction">CALL NZ,<a href="46243.html">toggle_audio_hw_x16</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48499"></span>BD73</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="1">half-row $EF is 0 9 8 7 6; bit 0 is the 0 key</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48501"></span>BD75</td>
+<td class="instruction">CALL <a href="46583.html">read_port</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48504"></span>BD78</td>
+<td class="instruction">BIT 0,A</td>
+<td class="comment-1" rowspan="1">CPL in <a href="46583.html">read_port</a> means a set bit is a pressed key</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48506"></span>BD7A</td>
+<td class="instruction">RET NZ</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48507"></span>BD7B</td>
+<td class="instruction">LD HL,$5BA0</td>
+<td class="comment-1" rowspan="1">one more step of the seed per pass of the menu</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48510"></span>BD7E</td>
+<td class="instruction">INC (HL)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48511"></span>BD7F</td>
+<td class="instruction">CALL <a href="48521.html">flash_menu</a></td>
+<td class="comment-1" rowspan="2">show the new selection and loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48514"></span>BD82</td>
+<td class="instruction">JP <a href="48419.html">menu_loop</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48468.html">BD54</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48492">Map</a></td>
+<td class="next">
+Next: <a href="48517.html">BD85</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

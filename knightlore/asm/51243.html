@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C82B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51240.html">C828</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51243">Map</a></td>
+<td class="next">
+Next: <a href="51262.html">C83E</a>
+</td>
+</tr>
+</table>
+<div class="description">C82B: Update the player's legs</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51235.html">upd_16_to_21_24_to_29</a>.
+</div>
+<div class="paragraph">
+The handler for the bottom of the two records that make up the player: the legs, whose box is the whole knight's for collisions. <a href="51235.html">upd_16_to_21_24_to_29</a> and <a href="51240.html">upd_48_to_53_56_to_61</a> arrive here for the man and for the werewolf. IX is always the first object record, $5C08, and the top half is the record after it.
+</div>
+<div class="paragraph">
+First, death: bit 6 of +$0D is set by the collision code when the player touches something harmful. Unless the end-of-game sequence is running ($5BC3), the legs and the top half both turn into the death sparkle.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the player's bottom record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">upd_player_bottom</td>
+<td class="address-2"><span id="51243"></span>C82B</td>
+<td class="instruction">BIT 6,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">has something harmful touched us?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51247"></span>C82F</td>
+<td class="instruction">JR Z,<a href="51262.html">player_controls</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51249"></span>C831</td>
+<td class="instruction">LD A,($5BC3)</td>
+<td class="comment-1" rowspan="3">not once the game has been won: nothing kills the player then</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51252"></span>C834</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51253"></span>C835</td>
+<td class="instruction">JR NZ,<a href="51262.html">player_controls</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51255"></span>C837</td>
+<td class="instruction">SET 6,(IX+$2D)</td>
+<td class="comment-1" rowspan="1">mark the top half (the next record) dead too</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51259"></span>C83B</td>
+<td class="instruction">JP <a href="48929.html">init_death_sparkles</a></td>
+<td class="comment-1" rowspan="1">and become the death sparkle</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51240.html">C828</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51243">Map</a></td>
+<td class="next">
+Next: <a href="51262.html">C83E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

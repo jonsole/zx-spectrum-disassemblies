@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at AFC7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44989.html">AFBD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44999">Map</a></td>
+<td class="next">
+Next: <a href="45013.html">AFD5</a>
+</td>
+</tr>
+</table>
+<div class="description">AFC7: Next object</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45028.html">ret_from_tbl_jp</a>.
+</div>
+<div class="paragraph">
+The stack is reloaded to $5BA0 for every object, so it grows downwards into the printer buffer below and nothing a handler leaves on it can leak into the next one. The loop pushes its own continuation, <a href="45028.html">ret_from_tbl_jp</a>, before dispatching, so an object handler ends with a plain RET -- and a handler can jump away mid-routine, to another handler or out to the game-over code, without tidying the stack.
+</div>
+<div class="paragraph">
+$5BBC counts up by one per object, so two objects of the same kind see opposite parities in the same frame; <a href="47167.html">upd_176_177</a> uses that to make neighbouring fires flicker out of step.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_sprite_loop</td>
+<td class="address-2"><span id="44999"></span>AFC7</td>
+<td class="instruction">LD SP,$5BA0</td>
+<td class="comment-1" rowspan="1">reset the stack for this object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45002"></span>AFCA</td>
+<td class="instruction">LD HL,$5BBC</td>
+<td class="comment-1" rowspan="2">this object's phase: the frame counter plus its place in the table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45005"></span>AFCD</td>
+<td class="instruction">INC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45006"></span>AFCE</td>
+<td class="instruction">LD HL,<a href="45028.html">ret_from_tbl_jp</a></td>
+<td class="comment-1" rowspan="2">push the return address the handler will RET to</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45009"></span>AFD1</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45010"></span>AFD2</td>
+<td class="instruction">CALL <a href="52809.html">save_2d_info</a></td>
+<td class="comment-1" rowspan="1">keep last frame's screen rectangle so the old image can be wiped</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44989.html">AFBD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44999">Map</a></td>
+<td class="next">
+Next: <a href="45013.html">AFD5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

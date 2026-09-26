@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C306</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49913.html">C2F9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49926">Map</a></td>
+<td class="next">
+Next: <a href="49975.html">C337</a>
+</td>
+</tr>
+</table>
+<div class="description">C306: Start the transformation if one is due</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51262.html">player_controls</a>.
+</div>
+<div class="paragraph">
+The first thing the player's handler (<a href="51262.html">player_controls</a>) does each frame. The variable at $5BB1 is set to 1 by <a href="50175.html">toggle_day_night</a> at every sunrise and sunset; if it is set, and the player is neither in the settling time just after entering a room (the top nibble of +$0C) nor in the middle of a jump (bit 3 of +$0C), the change from knight to werewolf or back begins now.
+</div>
+<div class="paragraph">
+Starting it replaces the rest of the player's frame: the two INC SPs throw away the return address into <a href="51262.html">player_controls</a>, so the final RET of <a href="50007.html">rand_legs_sprite</a> returns straight to the object loop and the player neither reads the keys nor moves. $5BB1 now holds the player's type, which is how the end of the transformation (<a href="50039.html">finish_transform</a>) knows which way to change. The top half of the player is erased; the bottom half becomes one of the spinning transformation sprites, types 92 to 95, handled from now on by <a href="49975.html">upd_92_to_95</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the player's bottom (legs) record, $5C08</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">chk_and_init_transform</td>
+<td class="address-2"><span id="49926"></span>C306</td>
+<td class="instruction">LD A,($5BB1)</td>
+<td class="comment-1" rowspan="3">no transformation pending</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49929"></span>C309</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49930"></span>C30A</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49931"></span>C30B</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">still settling into a new room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49934"></span>C30E</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49936"></span>C310</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49937"></span>C311</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">in mid-jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49941"></span>C315</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49942"></span>C316</td>
+<td class="instruction">INC SP</td>
+<td class="comment-1" rowspan="2">drop the return into the player handler</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49943"></span>C317</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49944"></span>C318</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="1">remember the knight or werewolf type</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49947"></span>C31B</td>
+<td class="instruction">LD ($5BB1),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49950"></span>C31E</td>
+<td class="instruction">LD (IX+$10),$08</td>
+<td class="comment-1" rowspan="1">+$10 counts eight steps of four frames each</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49954"></span>C322</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="4">the top half: type 1, erase and free</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49956"></span>C324</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49959"></span>C327</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49961"></span>C329</td>
+<td class="instruction">LD (IX+$00),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49965"></span>C32D</td>
+<td class="instruction">CALL <a href="50834.html">set_wipe_and_draw_flags</a></td>
+<td class="comment-1" rowspan="2">and draw that</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49968"></span>C330</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49970"></span>C332</td>
+<td class="instruction">CALL <a href="50413.html">upd_11</a></td>
+<td class="comment-1" rowspan="2">the transformation sprite's drawing offset, and the first sprite</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49973"></span>C335</td>
+<td class="instruction">JR <a href="50007.html">rand_legs_sprite</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49913.html">C2F9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49926">Map</a></td>
+<td class="next">
+Next: <a href="49975.html">C337</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

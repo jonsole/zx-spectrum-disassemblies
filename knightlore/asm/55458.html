@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at D8A2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55437.html">D88D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55458">Map</a></td>
+<td class="next">
+Next: <a href="55487.html">D8BF</a>
+</td>
+</tr>
+</table>
+<div class="description">D8A2: Mirror the sprite if its object wants it the other way round</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55397.html">vflip_sprite_data</a>.
+</div>
+<div class="paragraph">
+Mirroring a row is two things at once: the order of its bytes is reversed, and so are the bits of each byte. The bytes of a row are pushed as mask and image pairs, each byte reversed through the table at <a href="61696.html">F100</a> on the way; popped off again they come back last first, and are written over the same row.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">hflip_sprite_data</td>
+<td class="address-2"><span id="55458"></span>D8A2</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="6">the header's bit 6 against the object's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55459"></span>D8A3</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55460"></span>D8A4</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55461"></span>D8A5</td>
+<td class="instruction">XOR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55464"></span>D8A8</td>
+<td class="instruction">AND $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55466"></span>D8AA</td>
+<td class="instruction">JR Z,<a href="55516.html">flip_done</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55468"></span>D8AC</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">toggle the header's bit; B and C = the width in bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55469"></span>D8AD</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55471"></span>D8AF</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55472"></span>D8B0</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55474"></span>D8B2</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55475"></span>D8B3</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55476"></span>D8B4</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="4">the height into A'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55477"></span>D8B5</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55478"></span>D8B6</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55479"></span>D8B7</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55480"></span>D8B8</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="6">HL' reads and HL writes, both from the first row; B' = $F1, the page of the bit-reversal table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55481"></span>D8B9</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55482"></span>D8BA</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55483"></span>D8BB</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55484"></span>D8BC</td>
+<td class="instruction">LD B,$F1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55486"></span>D8BE</td>
+<td class="instruction">EXX</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55437.html">D88D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55458">Map</a></td>
+<td class="next">
+Next: <a href="55487.html">D8BF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

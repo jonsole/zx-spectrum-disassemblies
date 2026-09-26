@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at C9CD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51660.html">C9CC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51661">Map</a></td>
+<td class="next">
+Next: <a href="51699.html">C9F3</a>
+</td>
+</tr>
+</table>
+<div class="description">C9CD: Resolve and apply the move</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51649.html">apply_gravity</a>.
+</div>
+<div class="paragraph">
+Stores the new dZ, and keeps a copy in $5BC1: the collision code will shorten dZ, and the copy is what says afterwards which way the player was trying to go. A fall faster than two units a frame has a sound pitched by the height.
+</div>
+<div class="paragraph">
+Then <a href="52037.html">adj_for_out_of_bounds</a> shortens the move against the walls and the other objects, <a href="51824.html">handle_exit_screen</a> checks for a walk out of the room (and does not come back if there is one), and <a href="50950.html">add_dXYZ</a> adds what is left to the position. A move downwards that was stopped (bit 2 of +$0C) is a landing, and ends the jump.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">move_player_apply</td>
+<td class="address-2"><span id="51661"></span>C9CD</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1">the first unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51662"></span>C9CE</td>
+<td class="instruction">LD (IX+$0B),A</td>
+<td class="comment-1" rowspan="1">new dZ, and the intended dZ in $5BC1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51665"></span>C9D1</td>
+<td class="instruction">LD ($5BC1),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51668"></span>C9D4</td>
+<td class="instruction">ADD A,$02</td>
+<td class="comment-1" rowspan="2">falling faster than 2: the falling sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51670"></span>C9D6</td>
+<td class="instruction">CALL M,<a href="46161.html">sound_pitch_from_z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51673"></span>C9D9</td>
+<td class="instruction">CALL <a href="52037.html">adj_for_out_of_bounds</a></td>
+<td class="comment-1" rowspan="1">cut the move short where it must be</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51676"></span>C9DC</td>
+<td class="instruction">CALL <a href="51824.html">handle_exit_screen</a></td>
+<td class="comment-1" rowspan="1">out of the room?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51679"></span>C9DF</td>
+<td class="instruction">CALL <a href="50950.html">add_dXYZ</a></td>
+<td class="comment-1" rowspan="1">X, Y, Z += dX, dY, dZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51682"></span>C9E2</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">stopped while moving down?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51686"></span>C9E6</td>
+<td class="instruction">JR Z,<a href="51699.html">clear_dX_dY</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51688"></span>C9E8</td>
+<td class="instruction">LD A,($5BC1)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51691"></span>C9EB</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51692"></span>C9EC</td>
+<td class="instruction">JP P,<a href="51699.html">clear_dX_dY</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51695"></span>C9EF</td>
+<td class="instruction">RES 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">then landed: the jump is over</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51660.html">C9CC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51661">Map</a></td>
+<td class="next">
+Next: <a href="51699.html">C9F3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

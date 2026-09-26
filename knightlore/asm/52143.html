@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Routine at CBAF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Knight Lore</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52128.html">CBA0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52143">Map</a></td>
+<td class="next">
+Next: <a href="52185.html">CBD9</a>
+</td>
+</tr>
+</table>
+<div class="description">CBAF: Shorten dX: does the move hit it?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52185.html">dX_obj_shorten</a>.
+</div>
+<div class="paragraph">
+If the boxes would overlap in X too, the move is stopped (bit 0 of +$0C) and harm passes. Bit 6 of +$0D means "has been harmed": the obstacle gets it if the mover has bit 7 (harms what it runs into), and the mover gets it if the obstacle has bit 5 (harms what runs into it). This is how the player dies of a guard or of spikes: <a href="51243.html">upd_player_bottom</a> watches bit 6.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">dX_obj_hit_test</td>
+<td class="address-2"><span id="52143"></span>CBAF</td>
+<td class="instruction">CALL <a href="52381.html">do_objs_intersect_on_x</a></td>
+<td class="comment-1" rowspan="2">no overlap in X: next object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52146"></span>CBB2</td>
+<td class="instruction">JR NC,<a href="52193.html">dX_obj_next</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52148"></span>CBB4</td>
+<td class="instruction">SET 0,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">stopped in X</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52152"></span>CBB8</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">mover's bit 7 becomes the obstacle's bit 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52155"></span>CBBB</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52156"></span>CBBC</td>
+<td class="instruction">AND $40</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52158"></span>CBBE</td>
+<td class="instruction">OR (IY+$0D)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52161"></span>CBC1</td>
+<td class="instruction">LD (IY+$0D),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52164"></span>CBC4</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="4">obstacle's bit 5 becomes the mover's bit 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52165"></span>CBC5</td>
+<td class="instruction">AND $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52167"></span>CBC7</td>
+<td class="instruction">OR (IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52170"></span>CBCA</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52173"></span>CBCD</td>
+<td class="instruction">BIT 2,(IY+$07)</td>
+<td class="comment-1" rowspan="1">a pushable obstacle takes on our dX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52177"></span>CBD1</td>
+<td class="instruction">JR Z,<a href="52185.html">dX_obj_shorten</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52179"></span>CBD3</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52182"></span>CBD6</td>
+<td class="instruction">LD (IY+$09),A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52128.html">CBA0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52143">Map</a></td>
+<td class="next">
+Next: <a href="52185.html">CBD9</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>
