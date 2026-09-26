@@ -270,6 +270,34 @@ test('a starting room has to have the middle of its floor clear', function () {
   build(atlas, castle.specials);
 });
 
+test('a castle can have more floor shapes, and the rooms move down to make room', function () {
+  const castle = kl.decodeCastle(original, graphics);
+  assert.deepStrictEqual(Object.keys(castle.rooms.roomDimensions), ['square', 'narrowU', 'narrowV']);
+  assert.strictEqual(kl.word(original, kl.LOCATION_OPERAND), 0x6251);
+  const atlas = merged(castle);
+  // A fourth shape, a smaller square, for room $B3; room $F0's objects pay
+  // for its three bytes.
+  atlas.roomDimensions.small = { u: 48, v: 48, z: 128 };
+  atlas.rooms.find((r) => r.number === 0xB3).dimensions = 'small';
+  atlas.rooms.find((r) => r.number === 0xF0).objects = [];
+  const built = build(atlas, castle.specials);
+  assert.strictEqual(built.report.shapes, 4);
+  // Twelve bytes of sizes where there were nine: the rooms start three on.
+  assert.strictEqual(kl.word(built.sna, kl.LOCATION_OPERAND), 0x6254);
+  const back = kl.decodeCastle(built.sna, graphics);
+  assert.deepStrictEqual(Object.values(back.rooms.roomDimensions), Object.values(atlas.roomDimensions));
+  assert.strictEqual(back.rooms.rooms.find((r) => r.number === 0xB3).dimensions, 'shape_3');
+  assert.strictEqual(back.rooms.rooms.find((r) => r.number === 0x2F).dimensions,
+                     atlas.rooms.find((r) => r.number === 0x2F).dimensions);
+
+  // A half-size that would put a wall outside the byte, and one shape too many.
+  atlas.roomDimensions.small.u = 128;
+  assert.throws(function () { build(atlas, castle.specials); }, /the shape small: u is 1 to 127/);
+  atlas.roomDimensions.small.u = 48;
+  for (let n = 4; n < 33; n++) atlas.roomDimensions['s' + n] = { u: 8, v: 8, z: 128 };
+  assert.throws(function () { build(atlas, castle.specials); }, /33 floor shapes; a room names one in five bits, so 1 to 32/);
+});
+
 test('a snapshot that is not the original is refused', function () {
   const patched = original.slice();
   patched[27 + 0xD3CA - 0x4000] ^= 1;

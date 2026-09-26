@@ -17,8 +17,14 @@ const SNA_SIZE = SNA_HEADER + 0xC000;
 const RAM_START = 0x4000;
 
 const ROOM_SIZE_TBL = 0x6248;
-const ROOM_SIZE_COUNT = 3;
-const LOCATION_TBL = 0x6251;
+const ROOM_SIZE_LIMIT = 32;             // what bits 3-7 of the attribute byte can name
+const LOCATION_TBL = 0x6251;            // where the game has it; a build may move it
+// retrieve_screen's LD HL,location_tbl at $D3CC, one past the opcode: the one
+// operand naming where the rooms start. The room sizes run up to it, so a
+// castle with more shapes moves the rooms down and patches this.
+const LOCATION_OPERAND = 0xD3CD;
+// A half-size keeps $80 plus and minus it inside a byte; a floor is any height.
+const SHAPE_RANGE = { u: [1, 127], v: [1, 127], z: [0, 255] };
 const BLOCK_TYPE_TBL = 0x6BD1;          // where the game has it; a build may move it
 const BACKGROUND_TYPE_TBL = 0x6CE2;     // likewise
 const REGION_END = 0x6FF2;              // exclusive: special_objs_tbl starts here
@@ -245,6 +251,9 @@ function checkOriginal(sna) {
     if (word(sna, addr) !== BACKGROUND_TYPE_TBL) {
       wrong.push(hex(addr, 4) + ' holds ' + hex(word(sna, addr), 4) + ', not ' + hex(BACKGROUND_TYPE_TBL, 4));
     }
+  }
+  if (word(sna, LOCATION_OPERAND) !== LOCATION_TBL) {
+    wrong.push(hex(LOCATION_OPERAND, 4) + ' holds ' + hex(word(sna, LOCATION_OPERAND), 4) + ', not ' + hex(LOCATION_TBL, 4));
   }
   let p = LOCATION_TBL;
   while (p < BLOCK_TYPE_TBL) p += peek(sna, p + 1) + 1;
@@ -498,7 +507,14 @@ function decodeCastle(sna, graphics) {
   const objectKeys = Object.keys(objectTemplates);
 
   const rooms = [];
-  for (let p = LOCATION_TBL; p < blockTbl; p += peek(sna, p + 1) + 1) {
+  // The rooms start wherever the operand says, and the sizes run up to them:
+  // a castle this editor has given more shapes has moved both.
+  const locationTbl = word(sna, LOCATION_OPERAND);
+  const shapeNames = [];
+  for (let n = 0; n < (locationTbl - ROOM_SIZE_TBL) / 3; n++) {
+    shapeNames.push(n < SHAPE_NAMES.length ? SHAPE_NAMES[n] : 'shape_' + n);
+  }
+  for (let p = locationTbl; p < blockTbl; p += peek(sna, p + 1) + 1) {
     const number = peek(sna, p);
     const length = peek(sna, p + 1);
     const attr = peek(sna, p + 2);
@@ -520,7 +536,7 @@ function decodeCastle(sna, graphics) {
     rooms.push({
       number: number,
       ink: attr & 7,
-      dimensions: SHAPE_NAMES[attr >> 3],
+      dimensions: shapeNames[attr >> 3],
       scenery: sceneryIds.map(function (i) { return { template: sceneryKeys[i] }; }),
       objects: objects
     });
@@ -528,8 +544,8 @@ function decodeCastle(sna, graphics) {
   rooms.sort(function (a, b) { return a.number - b.number; });
 
   const roomDimensions = {};
-  for (let n = 0; n < ROOM_SIZE_COUNT; n++) {
-    roomDimensions[SHAPE_NAMES[n]] = {
+  for (let n = 0; n < shapeNames.length; n++) {
+    roomDimensions[shapeNames[n]] = {
       u: peek(sna, ROOM_SIZE_TBL + n * 3),
       v: peek(sna, ROOM_SIZE_TBL + n * 3 + 1),
       z: peek(sna, ROOM_SIZE_TBL + n * 3 + 2)
@@ -551,7 +567,7 @@ function decodeCastle(sna, graphics) {
                  'which packs it back into the original’s own tables.',
         sprites: { sheet: 'sprites.png', atlas: 'sprites.json', graphics: 'graphics.json' },
         templates: 'templates.json',
-        rules: { poolLimit: POOL_LIMIT }
+        rules: { poolLimit: POOL_LIMIT, shapeLimit: ROOM_SIZE_LIMIT }
       },
       roomDimensions: roomDimensions,
       startRooms: Array.from(peekBytes(sna, START_LOCATIONS, START_LOCATION_COUNT)),
@@ -705,15 +721,26 @@ function packCastle(original, atlas, specials, graphics) {
   for (const n of Object.keys(atlas.sceneryTemplates)) piecesOf.set(n, atlas.sceneryTemplates[n].length);
   for (const n of Object.keys(atlas.objectTemplates)) piecesOf.set(n, atlas.objectTemplates[n].length);
 
+  // The room sizes, as many as the castle has: the rooms follow them, so a
+  // shape more is three bytes more before the rooms, and the operand naming
+  // where they start moves with them.
   const shapes = Object.keys(atlas.roomDimensions);
-  if (shapes.length !== ROOM_SIZE_COUNT) {
-    throw new CastleError(shapes.length + ' floor shapes; room_size_tbl holds 3 and the rooms come after it');
+  if (shapes.length < 1 || shapes.length > ROOM_SIZE_LIMIT) {
+    throw new CastleError(shapes.length + ' floor shapes; a room names one in five bits, so 1 to ' +
+                          ROOM_SIZE_LIMIT);
   }
   const region = [];
   for (const s of shapes) {
     const d = atlas.roomDimensions[s];
+    for (const field of ['u', 'v', 'z']) {
+      const range = SHAPE_RANGE[field];
+      if (!Number.isInteger(d[field]) || d[field] < range[0] || d[field] > range[1]) {
+        throw new CastleError('the shape ' + s + ': ' + field + ' is ' + range[0] + ' to ' + range[1]);
+      }
+    }
     region.push(d.u, d.v, d.z);
   }
+  const locationTbl = ROOM_SIZE_TBL + region.length;
 
   const seen = new Set();
   let fullest = [0, null];
@@ -771,7 +798,7 @@ function packCastle(original, atlas, specials, graphics) {
   const oldScenery = [];
   for (let i = 0; i < ORIGINAL_SCENERY_TEMPLATES; i++) oldScenery.push(word(original, BACKGROUND_TYPE_TBL + 2 * i));
 
-  const blockTbl = LOCATION_TBL + roomBytes;
+  const blockTbl = locationTbl + roomBytes;
   const objectPart = layTable(blockTbl, objects, bodyOrder(objects.size, oldObjects));
   const backgroundTbl = blockTbl + objectPart.length;
   const sceneryPart = layTable(backgroundTbl, scenery, bodyOrder(scenery.size, oldScenery));
@@ -786,7 +813,7 @@ function packCastle(original, atlas, specials, graphics) {
   region.push.apply(region, sceneryPart);
   while (region.length < REGION_END - ROOM_SIZE_TBL) region.push(0);
 
-  const writes = [[ROOM_SIZE_TBL, region]];
+  const writes = [[ROOM_SIZE_TBL, region], [LOCATION_OPERAND, [locationTbl & 0xFF, locationTbl >> 8]]];
   for (const addr of BLOCK_TYPE_OPERANDS) writes.push([addr, [blockTbl & 0xFF, blockTbl >> 8]]);
   for (const addr of BACKGROUND_TYPE_OPERANDS) writes.push([addr, [backgroundTbl & 0xFF, backgroundTbl >> 8]]);
 
@@ -831,6 +858,7 @@ function packCastle(original, atlas, specials, graphics) {
     writes: writes,
     report: {
       rooms: atlas.rooms.length,
+      shapes: shapes.length,
       roomBytes: roomBytes,
       objectBytes: objectPart.length,
       sceneryBytes: sceneryPart.length,
@@ -857,7 +885,8 @@ function applyWrites(sna, writes) {
 }
 
 function describe(report) {
-  return report.rooms + ' rooms in ' + report.roomBytes + ' bytes, object templates ' +
+  return report.rooms + ' rooms in ' + report.roomBytes + ' bytes, ' + report.shapes +
+         ' floor shapes, object templates ' +
          report.objectBytes + ', scenery templates ' + report.sceneryBytes + '; ' + report.free +
          ' bytes free. The fullest room is ' + hex(report.fullest[1], 2) + ', at ' +
          report.fullest[0] + ' of ' + POOL_LIMIT + ' object records.';
@@ -866,7 +895,7 @@ function describe(report) {
 if (typeof module !== 'undefined') {
   module.exports = {
     SNA_SIZE, POOL_LIMIT, REGION_END, ROOM_SIZE_TBL, BLOCK_TYPE_TBL, BACKGROUND_TYPE_TBL,
-    BLOCK_TYPE_OPERANDS, BACKGROUND_TYPE_OPERANDS,
+    BLOCK_TYPE_OPERANDS, BACKGROUND_TYPE_OPERANDS, LOCATION_OPERAND,
     CastleError, readSnapshot, checkOriginal, word, peek,
     sheetPixels, decodeCastle, packCastle, applyWrites, describe, startBlocker
   };

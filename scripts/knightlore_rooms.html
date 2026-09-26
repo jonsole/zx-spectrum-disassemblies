@@ -366,13 +366,16 @@
     show('rooms');
   }
 
-  // A castle saved or exported before the rooms listed where a game starts
-  // takes the snapshot's, so the list under the map is there for it too.
+  // A castle saved or exported before this editor knew something takes it
+  // from the snapshot: the rooms a game starts in, so the list under the map
+  // is there for it, and the rules -- how many shapes the original can name,
+  // which would otherwise be the remakes' four.
   function withStarts(roomsText, castle) {
     const rooms = JSON.parse(roomsText);
-    if (rooms.startRooms !== undefined) return roomsText;
-    const out = { meta: rooms.meta, roomDimensions: rooms.roomDimensions,
-                  startRooms: castle.rooms.startRooms };
+    const meta = Object.assign({}, rooms.meta);
+    meta.rules = Object.assign({}, castle.rooms.meta.rules, meta.rules);
+    const out = { meta: meta, roomDimensions: rooms.roomDimensions,
+                  startRooms: rooms.startRooms !== undefined ? rooms.startRooms : castle.rooms.startRooms };
     for (const key of Object.keys(rooms)) if (!(key in out)) out[key] = rooms[key];
     return JSON.stringify(out);
   }

@@ -117,8 +117,14 @@ SNA_HEADER = 27
 RAM_START = 0x4000
 
 ROOM_SIZE_TBL = 0x6248
-ROOM_SIZE_COUNT = 3
-LOCATION_TBL = 0x6251
+ROOM_SIZE_LIMIT = 32              # what bits 3-7 of the attribute byte can name
+LOCATION_TBL = 0x6251             # where the game has it; a build may move it
+# retrieve_screen's LD HL,location_tbl at $D3CC: the one operand that names
+# where the rooms start, one past the opcode. The room sizes run up to it, so a
+# castle with more shapes moves the rooms down and patches this.
+LOCATION_OPERAND = 0xD3CD
+# A half-size keeps $80 plus and minus it inside a byte; a floor is any height.
+SHAPE_RANGE = {"u": (1, 127), "v": (1, 127), "z": (0, 255)}
 BLOCK_TYPE_TBL = 0x6BD1           # where the game has it; build may move it
 BACKGROUND_TYPE_TBL = 0x6CE2      # likewise
 ORIGINAL_OBJECT_TEMPLATES = 29    # the pointers in the game's own tables
@@ -174,7 +180,7 @@ HALF_U, HALF_V, RAISE_Z = 0x01, 0x02, 0xFC
 # What a castle this script writes says about itself, for the designer: the
 # grid and the scenery count are Knight Lore's own already, and the pool is
 # what the game's object table holds.
-RULES = {"poolLimit": POOL_LIMIT}
+RULES = {"poolLimit": POOL_LIMIT, "shapeLimit": ROOM_SIZE_LIMIT}
 
 
 class CastleError(Exception):
@@ -280,6 +286,9 @@ def check_original(sna: bytearray) -> None:
         if word(sna, addr) != BACKGROUND_TYPE_TBL:
             wrong.append(f"${addr:04X} holds ${word(sna, addr):04X}, "
                          f"not ${BACKGROUND_TYPE_TBL:04X}")
+    if word(sna, LOCATION_OPERAND) != LOCATION_TBL:
+        wrong.append(f"${LOCATION_OPERAND:04X} holds ${word(sna, LOCATION_OPERAND):04X}, "
+                     f"not ${LOCATION_TBL:04X}")
     p = LOCATION_TBL
     while p < BLOCK_TYPE_TBL:
         p += peek(sna, p + 1)[0] + 1
@@ -494,11 +503,20 @@ def pack(castle_dir: Path, original: bytearray):
                 raise CastleError(f"room {room['number']} names the object "
                                   f"template {group['template']!r}, which there is not")
 
-    shapes = list(atlas["roomDimensions"].values())
-    if len(shapes) != ROOM_SIZE_COUNT:
-        raise CastleError(f"{len(shapes)} floor shapes; room_size_tbl holds "
-                          f"{ROOM_SIZE_COUNT} and the room records come after it")
-    sizes_bytes = bytes(v for s in shapes for v in (s["u"], s["v"], s["z"]))
+    # The room sizes, as many as the castle has: the rooms follow them, so a
+    # shape more is three bytes more before the rooms and the operand that
+    # names where they start moves with them.
+    shapes = atlas["roomDimensions"]
+    if not 1 <= len(shapes) <= ROOM_SIZE_LIMIT:
+        raise CastleError(f"{len(shapes)} floor shapes; a room names one in five "
+                          f"bits, so 1 to {ROOM_SIZE_LIMIT}")
+    for name, shape in shapes.items():
+        for field, (low, high) in SHAPE_RANGE.items():
+            value = shape.get(field)
+            if not (isinstance(value, int) and low <= value <= high):
+                raise CastleError(f"the shape {name}: {field} is {low} to {high}")
+    sizes_bytes = bytes(s[f] for s in shapes.values() for f in ("u", "v", "z"))
+    location_tbl = ROOM_SIZE_TBL + len(sizes_bytes)
 
     locations, fullest = room_records(atlas, castle, scenery_index,
                                       object_index, pieces_of)
@@ -509,7 +527,7 @@ def pack(castle_dir: Path, original: bytearray):
     old_scenery = [word(original, BACKGROUND_TYPE_TBL + 2 * i)
                    for i in range(ORIGINAL_SCENERY_TEMPLATES)]
 
-    block_tbl = LOCATION_TBL + len(locations)
+    block_tbl = location_tbl + len(locations)
     object_part = lay_table(block_tbl, objects,
                             body_order(list(objects), old_objects))
     background_tbl = block_tbl + len(object_part)
@@ -528,7 +546,8 @@ def pack(castle_dir: Path, original: bytearray):
     region = sizes_bytes + locations + object_part + scenery_part
     region += bytes(REGION_END - end)
 
-    writes = {ROOM_SIZE_TBL: region}
+    writes = {ROOM_SIZE_TBL: region,
+              LOCATION_OPERAND: bytes([location_tbl & 0xFF, location_tbl >> 8])}
     for addr in BLOCK_TYPE_OPERANDS:
         writes[addr] = bytes([block_tbl & 0xFF, block_tbl >> 8])
     for addr in BACKGROUND_TYPE_OPERANDS:
@@ -552,6 +571,7 @@ def pack(castle_dir: Path, original: bytearray):
 
     report = {
         "rooms": len(atlas["rooms"]),
+        "shapes": len(shapes),
         "room_bytes": len(locations),
         "object_bytes": len(object_part),
         "scenery_bytes": len(scenery_part),
@@ -599,7 +619,8 @@ def apply(sna: bytearray, writes) -> int:
 
 def describe(report) -> str:
     used, where = report["fullest"]
-    return (f"{report['rooms']} rooms in {report['room_bytes']} bytes, object "
+    return (f"{report['rooms']} rooms in {report['room_bytes']} bytes, "
+            f"{report['shapes']} floor shapes, object "
             f"templates {report['object_bytes']}, scenery templates "
             f"{report['scenery_bytes']}; {report['free']} bytes free.\n"
             f"The fullest room is ${where:02X}, at {used} of {POOL_LIMIT} "

@@ -36,7 +36,8 @@ Give it the **original** snapshot every time. A copy it has already changed
 can only be reopened if the template tables did not move. If they did, it is
 refused: open the original and Import the castle instead.
 
-It edits what the two editors edit:
+It edits what the two editors edit -- and the floor shapes, on the designer's
+Shapes tab:
 
 - **Rooms:** their scenery and objects, colour and shape, and the
   collectables. You can add a room (click an empty square on the map) or
@@ -104,6 +105,19 @@ What each thing costs:
 | an object template | 2 for its pointer, 6 per piece, 1 to end it |
 | a scenery template | 2 for its pointer, 8 per piece, 1 to end it |
 
+**Up to 32 floor shapes.** `room_size_tbl` at $6248 holds each shape's X
+and Y half-sizes and floor height, and `found_screen` copies a room's into
+$5BAB, $5BAC and $5BAE: the walls you cannot walk through, where you come in
+and how far through an arch takes you out all read them. A room names its
+shape in bits 3 to 7 of its attribute byte, so the game can have 32; it has
+three. The table runs up to the rooms, which only `LD HL,location_tbl` at
+$D3CC names, so a castle with more shapes moves the rooms down by three bytes
+a shape and patches that operand ($D3CD). A shape changes where a room is
+bounded, not the walls and arches drawn round it -- those are scenery -- and
+the designer warns about each room whose walls no longer sit on its floor's
+edge. A half-size is 1 to 127, so the walls stay inside a byte either side of
+$80.
+
 **36 object records per room.** A room is expanded into 32-byte records from
 $5C88 up to the font at $6108. The code then clears records until it reaches
 the font exactly, so a 37th record would not stop at the font: it would run on
@@ -143,6 +157,11 @@ edit it. The rest of each row stays the original's.
   gave a `.sna` differing from the original in that one byte ($692B). Reloading
   offered the castle back with the change. A room pushed to 37 records was
   refused on Download with the reason, and nothing was downloaded.
+- A fourth shape, 48 by 48, with room $B3 on it: both packers give the same
+  bytes, the rooms start at $6254 and the operand says so, and the game, made
+  to start in $B3, built it with half-sizes of 48 and its floor at 128 -- the
+  walls still drawn where the square room's are, which is what the designer's
+  warning is for.
 - The templates editor in the page: raising the first piece of
   `scenery_arch_n` by 8 marked the castle unsaved; Undo took it back and
   cleared the mark, and Redo put it back. "$B3" in its list of rooms
