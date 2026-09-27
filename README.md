@@ -11,10 +11,11 @@ a snapshot you can debug at source level.
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
 | Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, all 844 entries titled and described, no placeholder names, the rooms laid out record by record from the game at build time (map credited below) | `scripts/build_knightlore.py` |
+| Pentagram (1986, Ultimate) | **100%** &mdash; 41472 bytes from $5E00, the 31390 the tape loads and the buffers above; all 592 entries titled, described and labelled, 4089 of 4185 instructions seen to run; the rooms, templates and sprites laid out record by record from the game at build time | `scripts/build_pentagram.py` |
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 | Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; no placeholder titles, each sprite frame and each row of the city an entry of its own | `scripts/build_antattack.py` |
 
-The Hobbit's, Atic Atac's, Ant Attack's and Knight Lore's HTML disassemblies are published at
+The Hobbit's, Atic Atac's, Ant Attack's, Knight Lore's and Pentagram's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
 page on how the game works and deep dives on the parser, the characters,
 fighting, the text and the pictures; a map with its layers, and pages for its
@@ -28,7 +29,10 @@ the game's own projection, its levels, sprites, animations, sounds and
 scripts, and its bugs, pokes and trivia;
 Knight Lore with how it works (drawing, the depth sort, collision, day and
 night, the charms), the castle map with its layers, its graphics, animations
-and sounds, and its bugs, pokes and trivia.
+and sounds, and its bugs, pokes and trivia; and Pentagram with how it works (drawing, movement, rooms and
+doorways, the quest, bolts and creatures), the whole world map with its
+layers, every room, its graphics, animations and sounds, and its bugs,
+tested pokes and trivia.
 
 ## What is committed where
 
@@ -38,7 +42,7 @@ the other. Point a build script at a tape you own and it produces the game's
 bytes locally, under `game_disassembly/`, which is gitignored.
 
 The one exception is the `gh-pages` branch, which publishes The Hobbit's,
-Atic Atac's, Ant Attack's and Knight Lore's built HTML disassemblies for the site above. That output does quote the game &mdash; its
+Atic Atac's, Ant Attack's, Knight Lore's and Pentagram's built HTML disassemblies for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
 the game's build script and `--html`, and copied there by
@@ -59,6 +63,7 @@ pip install skoolkit
 python scripts/build_aticatac.py --tape "Atic Atac.tap" --html
 python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --html
 python scripts/build_antattack.py --tape "Ant Attack.tzx" --html
+python scripts/build_pentagram.py --tape "Pentagram.tzx" --html
 ```
 
 The build ends by reassembling what it disassembled and comparing it with the
@@ -134,8 +139,8 @@ the game in the emulator. The HTML's prose pages are the polished form; the
 notes keep the evidence and the dead ends. Like the control files they are
 prose and addresses only, with no bytes of the game. So far:
 [The Hobbit](notes/hobbit/README.md), [Atic Atac](notes/aticatac/README.md),
-[Knight Lore](notes/knightlore/README.md) and
-[Ant Attack](notes/antattack/README.md).
+[Knight Lore](notes/knightlore/README.md),
+[Ant Attack](notes/antattack/README.md) and [Pentagram](notes/pentagram/README.md).
 
 ## Debugging
 

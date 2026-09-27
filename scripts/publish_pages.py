@@ -50,6 +50,9 @@ GAMES = {
     "knightlore": (ROOT / "game_disassembly" / "knightlore" / "html" / "knightlore",
                    ROOT / "scripts" / "build_knightlore.py",
                    ROOT / "game_disassembly" / "knightlore" / "knightlore.asm"),
+    "pentagram": (ROOT / "game_disassembly" / "pentagram" / "html" / "pentagram",
+                  ROOT / "scripts" / "build_pentagram.py",
+                  ROOT / "game_disassembly" / "pentagram" / "pentagram.asm"),
 }
 # What each build is given to build from. Knight Lore is built from a snapshot
 # of the loaded game, not a tape; --tape passes it on under its own name.
