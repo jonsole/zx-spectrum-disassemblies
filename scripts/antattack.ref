@@ -8,7 +8,7 @@
 ; [X:anchor:Title] section below becomes one titled block on that page.
 
 [Game]
-StyleSheet=skoolkit.css;site.css
+StyleSheet=skoolkit.css;antattack.css;site.css
 Game=Ant Attack
 Copyright=&copy; 1983 Sandy White (Quicksilva)
 Release=Disassembled from the original tape image
@@ -20,43 +20,101 @@ LinkOperands=CALL,DEFW,DJNZ,JP,JR,LD
 ; clear should be clear on the page too, not SkoolKit's opaque green.
 PNGAlpha=0
 
-[Index:Reference:About this disassembly]
+[Index]
+MemoryMaps
 HowItWorks
+TheCity
+Graphics
+Reference
+
+[Index:HowItWorks:How it works]
+HowItWorks
+Drawing
+Movement
+Ants
+Grenades
+Rescue
+
+[Index:TheCity:The city]
 City
 Levels
+
+[Index:Graphics:Graphics and sound]
 Sprites
+Animations
+Sounds
 Scripts
+
+[Index:Reference:About this disassembly]
+Bugs
+Facts
+Pokes
 
 [Titles]
 HowItWorks=How the game works
+Drawing=How a scene is drawn
+Movement=How people move
+Ants=How the ants hunt
+Grenades=How a grenade flies
+Rescue=Finding and rescuing
 City=The city of Antescher
 Levels=The ten levels
 Sprites=The sprites
+Animations=Animations
+Sounds=Sounds
 Scripts=The scripts: every message and sound
 
 [PageHeaders]
 HowItWorks=How the game works
+Drawing=How a scene is drawn
+Movement=How people move
+Ants=How the ants hunt
+Grenades=How a grenade flies
+Rescue=Finding and rescuing
 City=The city of Antescher
 Levels=The ten levels
 Sprites=The sprites
+Animations=Animations
+Sounds=Sounds
 Scripts=The scripts: every message and sound
 
 [Links]
 HowItWorks=How the game works
+Drawing=How a scene is drawn
+Movement=How people move
+Ants=How the ants hunt
+Grenades=How a grenade flies
+Rescue=Finding and rescuing
 City=The city of Antescher
 Levels=The ten levels
 Sprites=The sprites
+Animations=Animations
+Sounds=Sounds
 Scripts=The scripts: every message and sound
+
+[Page:Drawing]
+PageContent=#INCLUDE(Drawing)
+
+[Page:Movement]
+PageContent=#INCLUDE(Movement)
+
+[Page:Ants]
+PageContent=#INCLUDE(Ants)
+
+[Page:Grenades]
+PageContent=#INCLUDE(Grenades)
+
+[Page:Rescue]
+PageContent=#INCLUDE(Rescue)
+
+[Page:Animations]
+PageContent=#INCLUDE(Animations)
+
+[Page:Sounds]
+PageContent=#INCLUDE(Sounds)
 
 [Page:City]
 PageContent=#INCLUDE(CityBody)
-
-[CityBody]
-<p>Antescher is a map of 128 by 128 cells at #R$C000, one byte a cell and one bit a height: bit 0 is a block on the ground, bit 5 a block five up, so a wall is a column of set bits. Coordinates run from $80 to $FF; anything lower is outside the walls, where nothing is solid and nothing collides.</p>
-<p>From above, the taller the darker, with the places the person to be rescued waits on each level ringed in red and numbered by level. x runs left to right, y top to bottom.</p>
-<p><img src="images/city/above.png" alt="Antescher from above"></p>
-<p>And the whole city at once, the way the game draws a corner of it: view 0, each block the picture #R$8203 paints -- captured by running that routine rather than copied -- and painted in the same order #R$8500 uses, lowest height first and then from the back, so every block hides exactly what it hides in the game.</p>
-<p><img src="images/city/city.png" alt="Antescher in the game's projection" style="max-width:100%"></p>
 
 [Page:HowItWorks]
 SectionPrefix=HowItWorks
@@ -65,7 +123,7 @@ SectionPrefix=HowItWorks
 The tape holds a BASIC header, a 76-byte program and one headerless block of 41984 bytes. The program is a single line,
 <pre>1 RANDOMIZE USR (PEEK 23635+256*PEEK 23636+53)</pre>
 which is PROG plus 53: the machine code sitting after the line's own ENTER. That code loads the big block to $5C00 -- the system variables -- and everything above, to the top of memory. It replaces the running BASIC program with the game's own, 8K of it, and survives doing so because nothing returns to the old program: LD-BYTES is entered with #R$9700 pushed as its return address.
-#R$9700 checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: #R$97A0 types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header has no auto-run line; the game starts itself.
+#R$9700 checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: #R$97A0 types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header's own auto-run line, 1, starts the loader; nothing would start the game's BASIC that the block brings in, so the game starts it itself.
 
 [HowItWorks:break:BREAK starts it again]
 Interrupt mode 2 sends every interrupt through #R$9800 to #R$9797. That passes the interrupt on to the ROM's own routine unless ERR_NR says an error has happened -- BREAK, most likely -- in which case it drops into the same #R$97A0 that started the game, and the BASIC program runs again from the top. There is no way to stop it into BASIC.
@@ -73,7 +131,7 @@ Interrupt mode 2 sends every interrupt through #R$9800 to #R$9797. That passes t
 [HowItWorks:halves:Half BASIC, half machine code]
 BASIC runs everything that is not the city: the title screen, "Girl or Boy (g/b)?", the story cards, the score card, "Have another go!", and the setting up of each level, which is a matter of POKEing the object records at #R$B480 from DATA (lines 100-190) and the variables at #R$B420 (lines 200-230). The ten places the person to be rescued waits are DATA too -- see #LINK(Levels)(the levels).
 The machine code is entered through four USRs: #R$8000 (32768) to play, #R$8090 (32912) for the girl-or-boy key, #R$8097 (32919) to wait for a key, and #R$8EF2 (36594) for the ending.
-#R$8000 is called twice a level. With 2 in #R$B438 it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- five frames after time or energy runs out (#R$8ED0), one after a rescue (#R$8EA0). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (#R$B49D, BASIC's <code>w</code>) is a rescue.
+#R$8000 is called twice a level. With 2 in #R$B438 it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- at the end of the fourth frame after time or energy runs out (#R$8ED0), at the end of the same frame after a rescue (#R$8EA0). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (#R$B49D, BASIC's <code>w</code>) is a rescue.
 
 [HowItWorks:objects:Eight objects, one record]
 The player, the person to be rescued, the grenade and five ants are all the same 16-byte record at #R$B480, and all moved by the same code (#R$8800).
@@ -118,7 +176,7 @@ The player and the rescued person may stand on each other (bit 0 of the flags, #
 
 [HowItWorks:ants:The ants]
 #R$8A5D gives each ant a turn every frame but one in +$0D. The first ant's +$0D is 20 (line 140) -- nearly full speed. The other four take BASIC's <code>sp</code>, which is 2 (half speed) for the first four levels and one more for every four rescues after that.
-#R$8A00 steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within four cells turns to face the player. Not closer: it stops and turns left or right at random (#R$8360). There is no path-finding; the city's walls do the rest.
+#R$8A00 steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within three cells turns to face the player. Not closer: it stops and turns left or right at random (#R$8360). There is no path-finding; the city's walls do the rest.
 A grenade (#R$8D00: S, D, F or G throw for 2, 4, 8 or 16 frames) explodes where it is when the time runs out. #R$87A0 blows up any ant at the same height within four cells ("GOOD SHOT!") and stuns one within seven. The grenade is checked against the player's and the rescued person's cells on every frame of its flight, not just the last: anything it meets on the way is blown up.
 
 [HowItWorks:rescue:Finding someone and leading them out]
@@ -134,7 +192,7 @@ Every message and every sound is a script in #R$9000, run by #R$8E0D: a stream t
 <li>#R$8B60 is a script that nothing runs: "OWCH!", with notes, in the script format but outside #R$9000.</li>
 <li>The three bytes before each block drawer are <code>LD DE,31</code>, that routine's own first instruction; both are entered three bytes in, since #R$8500 has already set DE.</li>
 <li>Bit 3 of the flags, "never falls", is tested by #R$8880 and set by nothing. Its three instructions are the only ones in the game not seen to run.</li>
-<li>Five NOPs sit where something was taken out: three in #R$84D0, one in #R$88C0 and one in #R$8D00.</li>
+<li>Five NOPs sit where something was taken out: three in #R$84D0, one in #R$88C0 and one in #R$8D00. A sixth, after the JP (IY) in #R$8500, can never be reached.</li>
 <li>#R$8DD0 decrements the time's low byte and then overwrites it with the same result worked out another way.</li>
 <li>Frames $F0-$F3 are an ant on its back, and nothing draws them.</li>
 </ul>

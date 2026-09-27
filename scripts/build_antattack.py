@@ -24,8 +24,8 @@ the BASIC program that is running -- which is replaced by the game's own, 8K
 of it. What makes that work is that nothing returns to the old program:
 LD-BYTES returns to $9700, which checks the load (JP NC,0 resets on a tape
 error), switches to interrupt mode 2 and types RUN into the edit line itself,
-then jumps into the ROM's statement loop. The header has no auto-run line; the
-game starts its own BASIC.
+then jumps into the ROM's statement loop. The header's auto-run line starts
+the loader; nothing would start the game's own BASIC, so the game does.
 
 The game is half BASIC and half machine code. BASIC runs the title screen, the
 choice of boy or girl, the score card and story text, and sets each level up
@@ -587,7 +587,8 @@ def basic_blocks(snapshot: Path) -> str:
     memory = game_memory(snapshot)
     prog, vars_ = _word(memory, PROG), _word(memory, VARS)
     listing = BasicLister().list_basic(list(memory)).split(NEWLINE)
-    lines = [f"b ${BLOCK_START:04X} System variables",
+    lines = [f"@ ${BLOCK_START:04X} label=SYSTEM_VARIABLES",
+             f"b ${BLOCK_START:04X} System variables",
              f"D ${BLOCK_START:04X} The tape block starts here, so it carries a set "
              f"of system variables of its own: PROG, VARS and the rest point at the "
              f"game's BASIC, and ERR_SP and RAMTOP at its stack, just below the machine code."]
@@ -603,10 +604,12 @@ def basic_blocks(snapshot: Path) -> str:
               "B $5C59,2 E_LINE: where #R$97A0 types RUN",
               "B $5C5B,27",
               "@ $5C76 label=SEED",
-              "B $5C76,2 SEED: #R$8000 leaves the game's random number here for RND",
+              "B $5C76,2 SEED: #R$8000 leaves the game's random number here, and RANDOMIZE "
+              "USR overwrites it at once",
               f"B $5C78,{SYSVARS_END - 0x5C78}"]
     if prog > SYSVARS_END:
-        lines.append(f"b ${SYSVARS_END:04X} Channel information")
+        lines += [f"@ ${SYSVARS_END:04X} label=CHANNELS",
+                  f"b ${SYSVARS_END:04X} Channel information"]
     address = prog
     for text in listing:
         number = memory[address] << 8 | memory[address + 1]
@@ -615,6 +618,7 @@ def basic_blocks(snapshot: Path) -> str:
         # The listing is full of POKEd and PEEKed addresses; they are BASIC's,
         # not the disassembly's to turn into labels.
         lines += [f"@ ${address:04X} ignoreua:d",
+                  f"@ ${address:04X} label=LINE{number}",
                   f"b ${address:04X} BASIC line {number}",
                   f"D ${address:04X} {text.strip().replace('#', '##')}",
                   f"B ${address:04X},4 Line number (big-endian) and length",
@@ -622,7 +626,8 @@ def basic_blocks(snapshot: Path) -> str:
         address += 4 + length
     if address != vars_:
         sys.exit(f"error: the BASIC ends at ${address:04X}, but VARS is ${vars_:04X}")
-    lines += [f"b ${vars_:04X} BASIC variables and workspace",
+    lines += [f"@ ${vars_:04X} label=BASIC_VARIABLES",
+              f"b ${vars_:04X} BASIC variables and workspace",
               f"D ${vars_:04X} Up to RAMTOP: the variables area (empty on the tape), "
               f"the edit line, the calculator stack and the machine stack."]
     return NEWLINE.join(lines) + NEWLINE
@@ -762,6 +767,84 @@ def script_blocks(snapshot: Path) -> str:
     return NEWLINE.join(lines) + NEWLINE
 
 
+FRAME_BYTES = 64                # 16 rows of mask, graphic, mask, graphic
+SPRITE_TABLES = [(0x68, 0x80), (0xDC, 0x100)]   # frames at $9A00 and at $B700
+CITY = 0xC000
+CITY_SIDE = 128
+CITY_ROW_PART = 32              # bytes to a line of the listing: not 16, or
+                                # $FFF0 (LD BC,-16 at $8677) would land on one
+
+
+def frame_name(frame: int) -> str:
+    """What a frame shows, from SPRITE_SETS: who, the pose, the facing."""
+    for title, first, rows in SPRITE_SETS:
+        count = 4 * len(rows)
+        if first <= frame < first + count:
+            row, facing = divmod(frame - first, 4)
+            what = rows[row]
+            if title in ("The boy", "The girl", "The ants"):
+                return f"{title[4:]}, {what[:1].lower() + what[1:]}, facing {facing}"
+            return f"{title[4:] if title.startswith('The ') else title[:1].lower() + title[1:]}"
+    return "not used by any object"
+
+
+def data_blocks(snapshot: Path) -> str:
+    """An entry per sprite frame and per row of the city, generated rather
+    than written into the annotations because the pictures and the rows'
+    counts are the game's. The annotations title the first of each table."""
+    memory = game_memory(snapshot)
+    lines = []
+    for first, end in SPRITE_TABLES:
+        for frame in range(first, end):
+            address = 0x8000 + FRAME_BYTES * frame
+            if frame == first:
+                # The annotations name and title the table's first entry.
+                lines.append(f"D ${address:04X} This entry is frame ${frame:02X}: "
+                             f"{frame_name(frame)}.")
+            else:
+                lines += [f"@ ${address:04X} label=FRAME{frame:02X}",
+                          f"b ${address:04X} Sprite frame ${frame:02X}: {frame_name(frame)}"]
+            lines += [f"D ${address:04X} #HTML({sprite_macro(frame)})",
+                      f"B ${address:04X},{FRAME_BYTES},4 Rows of mask, graphic, mask, graphic"]
+    for row in range(CITY_SIDE):
+        address = CITY + CITY_SIDE * row
+        cells = memory[address:address + CITY_SIDE]
+        blocks = sum(bin(cell & 0x3F).count("1") for cell in cells)
+        tallest = max(cell.bit_length() for cell in cells)
+        y = 0x80 + row
+        if row:
+            lines += [f"@ ${address:04X} label=CITY_Y{y:02X}",
+                      f"b ${address:04X} The city: the row at y=${y:02X}"]
+        lines += [f"D ${address:04X} {'The row at y=$80: ' if not row else ''}"
+                  f"{blocks} block{'s' if blocks != 1 else ''}"
+                  + (f", up to {tallest} high." if tallest else ": open ground.")]
+        for part in range(0, CITY_SIDE, CITY_ROW_PART):
+            lines.append(f"B ${address + part:04X},{CITY_ROW_PART},8 "
+                         f"x=${0x80 + part:02X} to ${0x80 + part + CITY_ROW_PART - 1:02X}")
+    return NEWLINE.join(lines) + NEWLINE
+
+
+def label_unlabelled(skool_text: str) -> str:
+    """Give each entry the annotations leave without a label -- the $FF and
+    $02 filler between routines -- one named after the entry before it, so
+    every address in the listing has a name."""
+    out, previous, label = [], None, None
+    for line in skool_text.split(NEWLINE):
+        if line.startswith("@label="):
+            label = line[len("@label="):]
+        elif re.match(r"^[bcgistuw]\$[0-9A-F]{4}", line):
+            if label is None and previous:
+                # The entry's comment is already out; its label goes just
+                # before its first line, as sna2skool writes one.
+                label = f"{previous}_PAD"
+                out.append(f"@label={label}")
+            previous, label = label, None
+        elif re.match(r"^[ *]\$[0-9A-F]{4}", line):
+            label = None            # a label inside an entry names a jump target
+        out.append(line)
+    return NEWLINE.join(out)
+
+
 def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path) -> None:
     from skoolkit import skool2asm, sna2ctl, sna2skool
 
@@ -782,7 +865,8 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
         _log(f"  {len(spans)} declared span(s); dropped {dropped} generated "
              f"block boundar{'y' if dropped == 1 else 'ies'} inside them")
     ctl.write_text(f"@ ${BLOCK_START:04X} start{NEWLINE}@ ${BLOCK_START:04X} org{NEWLINE}"
-                   + basic_blocks(snapshot) + kept + NEWLINE + script_blocks(snapshot),
+                   + basic_blocks(snapshot) + kept + NEWLINE + script_blocks(snapshot)
+                   + data_blocks(snapshot),
                    encoding="utf-8")
 
     _log("Generating skool file...")
@@ -804,8 +888,9 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
     # ListRefs=2: every entry gets its "Used by the routines at ..." line.
     # sna2skool's default writes it only for an entry with no comment of its
     # own, and nearly every entry here has one, so the callers went missing.
-    skool.write_text(_capture(sna2skool.main,
-                              ["-H", "-I", "ListRefs=2", *ctls, str(snapshot)]),
+    skool.write_text(label_unlabelled(_capture(sna2skool.main,
+                                               ["-H", "-I", "ListRefs=2", *ctls,
+                                                str(snapshot)])),
                      encoding="utf-8")
 
     _log("Generating assembly...")
@@ -888,10 +973,10 @@ SPRITE_SETS = [
     ("The girl", 0x6C, POSES),
     ("The ants", 0xF8, ["Walking, one foot", "Walking, the other"]),
     ("The grenade", 0xF4, ["In flight ($F4), then the blast, frame by frame"]),
-    ("An ant on its back", 0xF0, ["Never drawn: no code produces these frame numbers"]),
+    ("Four frames nothing draws", 0xF0, ["Never drawn: no code produces these frame numbers"]),
     ("The grenade's own frames", 0x68, [
-        "Its record's first frame, but it is only ever drawn as $F4 onwards "
-        "in flight, and at home it is out of view"]),
+        "Its record's first frame: drawn at its home, far outside the walls, "
+        "when the player goes near; in flight it is $F4 onwards"]),
 ]
 SPRITE_SCALE = 4
 SPRITE_ATTR = 0x38          # black on white, as the play area is
@@ -1123,31 +1208,178 @@ def block_picture(snapshot: Path, drawer: int) -> list[list]:
     return rows
 
 
-def render_city(snapshot: Path, out_dir: Path, levels: list[dict]) -> None:
-    """Two pictures of Antescher: from above, and in the game's own projection."""
-    from PIL import Image, ImageDraw
+# The map from above, and its layers. y runs down the page, so the one gap in
+# the outer wall, on the y=$FF side, is at the bottom; past it y wraps round to
+# $00 and up, open ground, where the player starts. That much of the outside is
+# drawn below the wall.
+ABOVE_SCALE = 6                 # pixels to a cell
+OUTSIDE_ROWS = 12               # y=$00 to $0B, below the gate
+GROUND = (225, 212, 170)
+LEVEL_NUMBER_SIZE = 14          # points, for the level beside each place
+OBJECT_DATA_LINES = range(110, 190, 10)     # DATA for the eight objects
+HOME = 10                       # +$0A: home x, then y and height
+# (key, what, colour, shown at first)
+CITY_LAYERS = [
+    ("start", "Where the player starts", (0, 160, 0), True),
+    ("gate", "The way in and out", (0, 140, 220), True),
+    ("ants", "Where the ants start", (220, 0, 0), True),
+    ("rescue", "Where someone waits, by level", (200, 0, 170), True),
+]
+
+
+def basic_data(snapshot: Path) -> dict[int, list[int]]:
+    """The numbers on each DATA line of the game's BASIC, by line number."""
+    from skoolkit.basic import BasicLister
+
+    data = {}
+    for line in BasicLister().list_basic(list(game_memory(snapshot))).split(NEWLINE):
+        match = re.match(r"^\s*(\d+) DATA (.*)$", line)
+        if match:
+            data[int(match.group(1))] = [int(v) for v in match.group(2).split(",")]
+    return data
+
+
+def object_homes(snapshot: Path) -> list[tuple[int, int, int]]:
+    """Each object's home -- x, y, height at +$0A -- as BASIC's DATA sets it
+    at the start of a level: the player, the rescued person (whose DATA leaves
+    it to line 800), the grenade, then the five ants."""
+    data = basic_data(snapshot)
+    return [tuple(data[line][HOME:HOME + 3]) for line in OBJECT_DATA_LINES]
+
+
+def city_openings(memory) -> list[tuple[int, int]]:
+    """The cells of the outer wall's four edges with nothing in them."""
+    edges = ([(x, 0x80) for x in range(0x80, 0x100)] + [(x, 0xFF) for x in range(0x80, 0x100)]
+             + [(0x80, y) for y in range(0x80, 0x100)] + [(0xFF, y) for y in range(0x80, 0x100)])
+    return [(x, y) for x, y in edges if memory[0xC000 + 128 * (y - 0x80) + (x - 0x80)] == 0]
+
+
+def _above_xy(x: int, y: int) -> tuple[int, int]:
+    """A cell's top-left pixel on the map from above; y below $80 is past the
+    gate, under the city."""
+    row = y - 0x80 if y >= 0x80 else 128 + y
+    return (x - 0x80) * ABOVE_SCALE, row * ABOVE_SCALE
+
+
+def render_city(snapshot: Path, out_dir: Path, levels: list[dict]) -> dict[str, list]:
+    """Two pictures of Antescher -- from above, and in the game's own
+    projection -- and the layers over the first. Returns what each layer marks."""
+    from PIL import Image, ImageDraw, ImageFont
 
     out_dir.mkdir(parents=True, exist_ok=True)
     memory = game_memory(snapshot)
 
-    # From above: the tallest block in each cell, the ground sand-coloured,
-    # with the gate and every place someone waits to be rescued.
-    scale = 6
-    above = Image.new("RGB", (128 * scale, 128 * scale))
+    # From above: the tallest block in each cell, the ground sand-coloured.
+    scale = ABOVE_SCALE
+    size = (128 * scale, (128 + OUTSIDE_ROWS) * scale)
+    above = Image.new("RGB", size, GROUND)
     draw = ImageDraw.Draw(above)
     for y in range(128):
         for x in range(128):
-            cell = memory[0xC000 + 128 * y + x]
-            height = cell.bit_length()
-            colour = (225, 212, 170) if height == 0 else tuple([200 - 26 * height] * 3)
-            draw.rectangle([x * scale, y * scale, x * scale + scale - 1, y * scale + scale - 1],
-                           fill=colour)
-    for level in levels:
-        for x, y, height in level["spots"]:
-            cx, cy = (x - 0x80) * scale + scale // 2, (y - 0x80) * scale + scale // 2
-            draw.ellipse([cx - 6, cy - 6, cx + 6, cy + 6], outline=(220, 0, 0), width=2)
-            draw.text((cx + 7, cy - 6), str(level["level"]), fill=(220, 0, 0))
+            height = memory[0xC000 + 128 * y + x].bit_length()
+            if height:
+                draw.rectangle([x * scale, y * scale, x * scale + scale - 1, y * scale + scale - 1],
+                               fill=tuple([200 - 26 * height] * 3))
+    # A line where the city ends and the outside begins.
+    draw.line([0, 128 * scale, size[0], 128 * scale], fill=(150, 140, 110))
     above.save(out_dir / "above.png")
+
+    homes = object_homes(snapshot)
+    marked = {
+        "start": [homes[0][:2]],
+        "gate": city_openings(memory),
+        "ants": [home[:2] for home in homes[3:]],
+        "rescue": [(x, y, level["level"]) for level in levels for x, y, _ in level["spots"]],
+    }
+    font = ImageFont.load_default(LEVEL_NUMBER_SIZE)
+    for key, _, colour, _ in CITY_LAYERS:
+        layer = Image.new("RGBA", size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
+        for place in marked[key]:
+            left, top = _above_xy(place[0], place[1])
+            cx, cy = left + scale // 2, top + scale // 2
+            if key == "gate":
+                draw.rectangle([left, top, left + scale - 1, top + scale - 1], fill=colour + (255,))
+            else:
+                draw.ellipse([cx - 7, cy - 7, cx + 7, cy + 7], outline=colour + (255,), width=3)
+            if key == "rescue":
+                draw.text((cx + 9, cy - 9), str(place[2]), fill=colour + (255,), font=font,
+                          stroke_width=2, stroke_fill=GROUND)
+        layer.save(out_dir / f"layer_{key}.png")
+    return marked
+
+
+def write_city_ref(snapshot: Path, path: Path, marked: dict[str, list]) -> None:
+    """The city page: the map from above with its layers, each row of it a
+    link to that row's entry, and the city in the game's projection."""
+    scale = ABOVE_SCALE
+    width, height = 128 * scale, (128 + OUTSIDE_ROWS) * scale
+    areas = "".join(
+        f'<area shape="rect" coords="0,{row * scale},{width},{row * scale + scale}" '
+        f'href="asm/{0xC000 + 128 * row}.html" title="y=${0x80 + row:02X}" '
+        f'alt="y=${0x80 + row:02X}">'
+        for row in range(128))
+    toggles, overlays = [], []
+    for key, what, _, shown in CITY_LAYERS:
+        toggles.append(f'<input type="checkbox" class="aa-toggle" id="aa-layer-{key}"'
+                       + (" checked" if shown else "") + ">"
+                       f'<label for="aa-layer-{key}"><span class="aa-key aa-key-{key}"></span>'
+                       f"{what}</label>")
+        overlays.append(f'<img class="aa-layer aa-layer-{key}" '
+                        f'src="images/city/layer_{key}.png" alt="">')
+    start = marked["start"][0]
+    gate = marked["gate"]
+    ants = marked["ants"]
+    keys = [
+        f'<p><span class="aa-key aa-key-start"></span><b>Where the player starts</b>: '
+        f"x=${start[0]:02X}, y=${start[1]:02X} -- the home BASIC gives the player "
+        f"(#R$B480, +$0A and +$0B, from the DATA at line 110), just outside the gate: "
+        f"past y=$FF the coordinate wraps round to $00, and anything under $80 is "
+        f"outside the walls.</p>",
+        f'<p><span class="aa-key aa-key-gate"></span><b>The way in and out</b>: the '
+        f"{len(gate)} cells of the outer wall with nothing in them, x=${gate[0][0]:02X} to "
+        f"${gate[-1][0]:02X} on the y=${gate[0][1]:02X} side -- the only gap. A rescue is "
+        f"done when both people are out of the city (#R$8EA0).</p>",
+        f'<p><span class="aa-key aa-key-ants"></span><b>Where the ants start</b>: '
+        + ", ".join(f"x=${x:02X}, y=${y:02X}" for x, y in ants)
+        + " -- each ant's home from lines 140-180; an object goes home when its explosion "
+        "countdown (+$09) runs out, and BASIC sets that to 1, so they appear there as a "
+        "level starts.</p>",
+        '<p><span class="aa-key aa-key-rescue"></span><b>Where someone waits</b>, numbered '
+        "by level: see <a href=\"Levels.html\">the levels</a> for how one of each level's "
+        "places is picked.</p>",
+    ]
+    lines = ["[CityBody]",
+             "<p>Antescher is a map of 128 by 128 cells at #R$C000, one byte a cell and one "
+             "bit a height: bit 0 is a block on the ground, bit 5 a block five up, so a wall "
+             "is a column of set bits. Coordinates run from $80 to $FF; anything lower is "
+             "outside the walls, where nothing is solid and nothing collides. Each row of "
+             "the map is an entry of its own in the listing.</p>",
+             "<p>From above, the taller the darker, with the open ground past the gate "
+             "drawn below the city. x runs left to right, y top to bottom. Each layer is "
+             "read from the game when these pages are built -- the city map, BASIC's DATA "
+             "and the levels -- and a box shows or hides it. Click a row to see its "
+             "bytes.</p>",
+             '<div class="aa-layers">' + "".join(toggles)
+             + '<div class="aa-city"><div class="aa-city-stack">'
+             f'<img src="images/city/above.png" usemap="#aacity" alt="Antescher from above" '
+             f'width="{width}" height="{height}">' + "".join(overlays) + "</div>"
+             f'<map name="aacity">{areas}</map></div></div>'] + keys + [
+             "<p>And the whole city at once, the way the game draws a corner of it: view 0, "
+             "each block the picture #R$8203 paints -- captured by running that routine "
+             "rather than copied -- and painted in the same order #R$8500 uses, lowest "
+             "height first and then from the back, so every block hides exactly what it "
+             "hides in the game.</p>",
+             "<p><img src=\"images/city/city.png\" alt=\"Antescher in the game's projection\" "
+             'style="max-width:100%"></p>']
+    path.write_text(NEWLINE.join(lines), encoding="utf-8")
+
+
+def render_projection(snapshot: Path, out_dir: Path) -> None:
+    """The whole city in the game's own projection, view 0."""
+    from PIL import Image
+
+    memory = game_memory(snapshot)
 
     # The game's projection, view 0: a cell (u, v) at height h is drawn at
     # 8(u + v) across and 4(v - u) - 8h down, and painted lowest height first
@@ -1175,6 +1407,24 @@ def render_city(snapshot: Path, out_dir: Path, levels: list[dict]) -> None:
     city.save(out_dir / "city.png")
 
 
+# The generated pages beyond the listing, each family in a module of its own
+# beside this script: build(snapshot, html_dir, log) draws its pictures and
+# records its sounds into html_dir and returns its ref sections, name to body.
+PAGE_MODULES = ["antattack_howitworks", "antattack_animations", "antattack_sounds",
+                "antattack_reference"]
+
+
+def write_pages_ref(snapshot: Path, html_dir: Path, path: Path) -> None:
+    import importlib
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    sections = {}
+    for name in PAGE_MODULES:
+        sections.update(importlib.import_module(name).build(snapshot, html_dir, _log))
+    path.write_text(NEWLINE.join(f"[{name}]{NEWLINE}{body}{NEWLINE}"
+                                 for name, body in sections.items()), encoding="utf-8")
+
+
 def build_html(skool: Path, snapshot: Path, out: Path) -> None:
     from skoolkit import skool2html
 
@@ -1187,16 +1437,22 @@ def build_html(skool: Path, snapshot: Path, out: Path) -> None:
     write_sprites_ref(sprites_ref)
     write_scripts_ref(snapshot, scripts_ref)
     write_levels_ref(snapshot, levels_ref)
+    city_ref = OUT_DIR / "antattack-city.ref"
+    marked = render_city(snapshot, game_dir / "images" / "city", levels)
+    write_city_ref(snapshot, city_ref, marked)
+    pages_ref = OUT_DIR / "antattack-pages.ref"
+    write_pages_ref(snapshot, game_dir, pages_ref)
     # -a: the pages use the annotations' labels, so a call reads CALL
     # DRAW_VIEW there too. -S: antattack.css, which the ref names, is beside
     # this script. -o: redraw the images every time, since skool2html
     # otherwise keeps any it finds, however old.
     args = ["-H", "-a", "-o", "-d", str(out), "-S", str(Path(__file__).resolve().parent),
-            str(skool), str(REF), str(sprites_ref), str(scripts_ref), str(levels_ref)]
+            str(skool), str(REF), str(sprites_ref), str(scripts_ref), str(levels_ref),
+            str(city_ref), str(pages_ref)]
     _capture(skool2html.main, args)
     _log("  running the scripts, and drawing the city...")
     render_scripts(snapshot, game_dir / SCRIPT_IMAGES)
-    render_city(snapshot, game_dir / "images" / "city", levels)
+    render_projection(snapshot, game_dir / "images" / "city")
 
 
 def main() -> None:

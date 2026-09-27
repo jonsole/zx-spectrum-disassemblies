@@ -68,7 +68,7 @@ D $8000 #R$B438 is both the stop signal and a frame budget. BASIC pokes 2 into i
   $801A Out of time, or out of energy?
   $801D,8 $FF: keep playing.
   $8025,7 Otherwise count a frame off, and stop at zero.
-  $802C,6 Leave the random number in SEED, for BASIC's RND.
+  $802C,6 Leave the random number in SEED -- to no end: the RANDOMIZE in the BASIC's RANDOMIZE USR that calls this overwrites SEED with what the USR returns, and the BASIC has no RND (watched: the ROM's write at $1E5A replaces this one).
 
 b $8034 Signature
 D $8034 "SandyWhite1983" twice, with a leading fragment and $7F between the copies, padded out to the next routine. Nothing reads it. There is another copy at #R$8448.
@@ -214,7 +214,7 @@ b $82D2 Unused
 
 @ $82E0 label=BLAST_FRAME
 c $82E0 Show the explosion while the explosion countdown runs
-D $82E0 Frames $F4-$F7, chosen by the low two bits of the count.
+D $82E0 Frames $F4-$F7, chosen by the low two bits of the count. The grenade's count has already gone from 5 to 4 when this runs (#R$8800), so its blast shows $F4 -- its flight frame -- then $F7, $F6, $F5. An ant's is written over by #R$8A00 on every frame the ant moves, so the blast shows only on frames it skips: a slow ant flickers between ant and blast, and the fast one never shows it (measured in a simulator).
 
 b $82ED Unused
 
@@ -230,7 +230,8 @@ b $8358 Unused
 
 @ $8360 label=RANDOM
 c $8360 Step the random number generator
-D $8360 A 32-bit shift register at #R$B428, big-endian, fed back from two bits of its first byte. The carry out is the random bit: #R$8A00 uses it to pick which way an ant turns and #R$8B4A to make a hiss.
+D $8360 A 32-bit shift register at #R$B428, big-endian, fed back from two bits of its first byte. The carry out is the random bit, and #R$8A00 uses it to pick which way an ant turns. #R$8B4A takes bit 4 of A instead, which after the rotations is bit 2 of the first byte, before the shift, XOR the carry the routine was entered with -- always clear there. (Checked in a simulator for every first byte and both carries.)
+R $8360 O:A Bit 4 another random bit
 R $8360 O:F Carry the random bit
   $8360,10 The feedback bit into the carry.
   $836A,14 Shift all 32 bits left, feeding it in at the bottom.
@@ -340,6 +341,7 @@ D $8500 #R$B500 holds, per place, one of $01, $02 ... $20 (a block at that heigh
   $851B,5 Find the next place at this height -- or run out of count first.
   $8520,6 Found the sentinel: the next height.
   $8526,4 Draw the block through the pointer #R$8570 set.
+  $852A,1 Never reached: the JP (IY) before it does not fall through, and the block drawers come back at #R$852B. A spare byte.
 
 @ $852B label=BLOCK_DRAWN
 c $852B Where DRAW_BLOCK and DRAW_BLOCK_TURNED come back to
@@ -408,7 +410,8 @@ D $8600 For each object, last to first, its position relative to #R$B420 is turn
   $865F,9 The facing relative to the view.
   $8668,7 Bit 7 set: the frame outright...
   $866F,6 ...otherwise the first frame, plus four times the animation frame, plus the facing.
-  $8677,5 The object before.
+@ $8677 keep
+  $8677,5 The object before: BC is -16, not an address.
 
 @ $8681 label=GATHER_VIEW0
 c $8681 Gather the cells in view, view 0
@@ -446,7 +449,7 @@ D $8703 #R$8203's picture shaded for the other two views.
 
 @ $87A0 label=BLAST_ANT
 c $87A0 See whether an exploding grenade got an ant
-D $87A0 Only ants at the grenade's height and not already exploding. Within four cells (counted along the grid, not diagonally) the ant is blown up -- "GOOD SHOT!" -- and within seven it is stunned for 24 frames. Both seen in play, in staged scenes.
+D $87A0 Only ants at the grenade's height and not already exploding. Within four cells (counted along the grid, not diagonally) the ant is blown up -- "GOOD SHOT!" -- and within seven it is stunned for 24 of its turns -- about 48 frames for a half-speed ant, since the stun counts down only on turns it takes. Both seen in play, in staged scenes.
 R $87A0 HL The grenade's x and y
 R $87A0 C Its height
 R $87A0 IY The ant
@@ -591,20 +594,20 @@ b $89FC Unused
 
 @ $8A00 label=MOVE_ANT
 c $8A00 Move an ant towards the player
-D $8A00 The ant is taken out of the map, moved, and put back. If the move brought it closer to the player it walks on (and, within four cells, turns to face the player); otherwise it stops and turns a random way.
+D $8A00 The ant is taken out of the map, moved, and put back. If the move brought it closer to the player it walks on (and, within three cells, turns to face the player); otherwise it stops and turns a random way.
   $8A00,13 Out of the map...
   $8A0D Move it.
   $8A10,14 ...and back in where it is now.
   $8A1E,15 Its distance from the player, now and before.
   $8A31,9 Closer: walk.
-  $8A3A,16 Within four: face the player.
+  $8A3A,16 Within three cells (under four): face the player.
   $8A4B,17 No closer: stop, and turn left or right at random.
 
 b $8A5C Unused
 
 @ $8A5D label=ANT_TURN
 c $8A5D An ant's turn
-D $8A5D A paralysed ant does nothing. Otherwise an ant moves every frame except one in every +D: 2 is half speed, 20 very nearly full. The first ant is the fast one (line 140's DATA); BASIC sets the others' speed from sp, which goes up as the levels do.
+D $8A5D A paralysed ant does nothing. Otherwise an ant moves every frame except one in every +D: 2 is half speed, 20 very nearly full. Its explosion count goes down only on the frames it moves, so a slow ant's blast lasts twice as long. A stunned ant cannot move, so #R$8A00 finds it no closer every frame and turns it at random: it spins where it stands (measured in a simulator). The first ant is the fast one (line 140's DATA); BASIC sets the others' speed from sp, which goes up as the levels do.
   $8A5D,6 Paralysed.
   $8A66,8 Not the frame to skip: move.
   $8A6F,6 Skip it, and start counting again.
@@ -647,10 +650,12 @@ b $8B46 Unused
 c $8B4A A burst of noise on the speaker
 R $8B4A B Length
   $8B4A,8 The border colour, with the MIC and speaker bits set.
-  $8B52,8 A random speaker bit, each time round.
+  $8B52,8 A random speaker bit, each time round: bit 4 of what #R$8360 leaves in A.
+  $8B5C,4 The border colour again, with the speaker bit set: unlike #R$8B80, a burst leaves the speaker on.
 
+@ $8B60 label=UNUSED_SCRIPT
 b $8B60 An unused script
-D $8B60 In the #R$8E0D format -- AT 15,12, then letters between notes -- and spelling "OWCH!". It is not among the ones #R$9000 counts from, so nothing ever runs it: a leftover.
+D $8B60 Nearly in the #R$8E0D format -- AT 15,12, then letters between notes -- and its letters spell "OWCH!". But it has no stream byte before the AT, and an end marker stands between the C and the H, so run through #R$8E0D (in a simulator) it prints only "OWC". It is not among the ones #R$9000 counts from, so nothing ever runs it: a leftover.
 ; span $8B60,32
 
 @ $8B80 label=TONE
@@ -771,7 +776,7 @@ b $8E9C Unused
 
 @ $8EA0 label=CHECK_RESCUED
 c $8EA0 Have the player and the rescued person both left the city?
-D $8EA0 Seen in play. Once both are outside the walls, the rescued person's +D is set to 2 -- BASIC's w, which line 70 reads as success -- "CONGRATULATIONS !" is shown, and the game stops next frame.
+D $8EA0 Seen in play. Once both are outside the walls, the rescued person's +D is set to 2 -- BASIC's w, which line 70 reads as success -- "CONGRATULATIONS !" is shown, and the game stops at the end of this same frame: #R$8000 counts the 1 down to 0 before it looks again.
   $8EA0,7 The player is inside if both x and y have bit 7 set...
   $8EA7,6 ...and the same for the rescued person.
   $8EAD,6 Already done.
@@ -782,22 +787,22 @@ b $8EC6 Unused
 
 @ $8ED0 label=CHECK_GAME_OVER
 c $8ED0 Stop the game when time or either energy runs out
-D $8ED0 Five frames later, so the last message is seen. Seen in play for the time.
+D $8ED0 At the end of the fourth frame after this one -- #R$8000 counts the 5 down once in this frame -- so the last message is seen. Seen in play for the time.
   $8ED0,13 Either energy at zero...
   $8EDD,6 ...or the time.
   $8EE3,6 Only once.
-  $8EE9,8 Five more frames.
+  $8EE9,8 Five, counted down from the end of this frame.
 
 @ $8EF2 ignoreua:t
 @ $8EF2 label=FINAL_SCRIPT
 c $8EF2 The ending (USR 36594)
-D $8EF2 Script 17, "YOU ARE A REAL HERO", called from BASIC line 3600 after the tenth rescue. Seen in play, with BASIC's fin set to 1.
+D $8EF2 Script 17, "YOU ARE A REAL HERO", called from BASIC line 3600 after the tenth rescue. The script is seen in the build's session with BASIC's fin set to 1 on the first level -- but there the ending's BASIC stops at line 3610 with out of memory, since c$ still holds the first level's long story card, and BREAK's handler starts the game again. A real tenth rescue runs the whole ending (the animations page stages one).
 
 b $8EFA Unused
 
 @ $8F00 label=HANDLE_EVENTS
 c $8F00 React to what happened to the player and the rescued person
-D $8F00 Reads and clears the two event bytes (+F). A step is a click; a bad fall, "NASTY FALL !" or "HELP! I FELL!"; blown up, energy to 0 with "SILLY! YOU BLEW YOURSELF UP !" or "HOW COULD YOU ?"; bitten, an energy point off with "BITTEN!" or "THEY GOT ME", or when it reaches 0, "EATEN ALIVE" or "IVE BEEN EATEN ALIVE". All seen in play.
+D $8F00 Reads and clears the two event bytes (+F). A step is a click; a bad fall, "NASTY FALL !" or "HELP! I FELL!"; blown up, energy to 0 with "SILLY! YOU BLEW YOURSELF UP !" or "HOW COULD YOU ?"; bitten, an energy point off with "BITTEN!" or "THEY GOT ME", or when it reaches 0, "EATEN ALIVE" or "IVE BEEN EATEN ALIVE". All seen in play. A bad fall returns early from here, and #R$8E02 loads its script number into D, which held the other person's event, so whatever else happened to either of them that frame -- a bite, a blast -- is lost (tested in a simulator and in the emulator by writing both event bytes).
   $8F00,10 E = the player's event, D = the other's, both cleared.
   $8F0A,3 Nothing happened.
   $8F0D,8 Only a step: a click.
@@ -849,6 +854,7 @@ D $9000 The $FF that ends a script zero. #R$8E0D finds script n by counting $FF 
 
 b $93BA Unused
 D $93BA Filled with $02.
+; span $93BA,838
 
 @ $9700 label=LOADED
 c $9700 Where the load finishes
@@ -869,7 +875,7 @@ D $9797 Passes the interrupt to the ROM unless an error is pending -- BREAK, mos
 
 @ $97A0 label=RESTART_BASIC
 c $97A0 Type RUN and run it
-D $97A0 Clears the error, resets the stack from ERR_SP, puts RUN and ENTER in the edit line and jumps into the ROM's line executor. This is also how the game starts after loading, since the tape's program header has no auto-run line.
+D $97A0 Clears the error, resets the stack from ERR_SP, puts RUN and ENTER in the edit line and jumps into the ROM's line executor. This is also how the game starts after loading, since the header's own auto-run line, 1, starts the loader; nothing would start the game's BASIC that the block brings in, so the game starts it itself.
   $97A0,5 No error.
   $97A5 The stack BASIC keeps.
   $97A9,10 RUN, ENTER into the edit line.
@@ -877,24 +883,30 @@ D $97A0 Clears the error, resets the stack from ERR_SP, puts RUN and ENTER in th
   $97B7,4 The ROM's own interrupt routine.
 
 b $97BB Unused
+; span $97BB,69
 
 @ $9800 label=INTERRUPT_VECTORS
 b $9800 Interrupt vector table
+; span $9800,258
 D $9800 257 bytes of $97 (and one more), so wherever the data bus leaves the vector, the interrupt goes to #R$9797.
 
 b $9902 Unused
 D $9902 Filled with $02.
+; span $9902,254
 
 @ $9A00 label=SPRITES
 b $9A00 Sprites: the grenade and the girl
-D $9A00 Frames $68-$6B are the grenade's by its record, but in flight it is drawn as $F4 and at home it is out of view, so these are not seen in play; $6C-$7F are the girl. 64 bytes a frame, mask and graphic interleaved (see #R$80A0).
+; span $9A00,1536
+D $9A00 Frames $68-$6B are the grenade's by its record. In flight it is drawn as $F4 onwards, and its home, x=0, y=$40, is open ground far outside the walls -- but it is drawn there, as these frames, whenever the player goes near it (watched in the emulator). $6C-$7F are the girl. 64 bytes a frame, mask and graphic interleaved (see #R$80A0).
 
 @ $A000 label=RENDER_BUFFER
 b $A000 Render buffer
+; span $A000,4480
 D $A000 140 rows of 32 bytes. The view is painted here and rows 12-127 copied to the screen (#R$8100); the rest is margin. What the tape holds here is whatever was in it when the game was saved.
 
 @ $B180 label=VIEW_CELLS
 b $B180 The cells in view
+; span $B180,672
 D $B180 #R$83B0's output: 21 rows of 32 map cells.
 
 @ $B420 label=VIEW_ORIGIN
@@ -986,12 +998,15 @@ B $B4F0,16
 
 @ $B500 label=PLANES
 b $B500 Planes
+; span $B500,512
 D $B500 #R$81B0's output, 512 places: each holds the bit of the height of block seen there, or $FF. The last place is where #R$8500 plants its sentinel.
 
 @ $B700 label=MORE_SPRITES
 b $B700 Sprites: the boy, the grenade in flight, and the ants
-D $B700 Frames $DC-$EF the boy, $F4-$F7 the grenade in flight and exploding, $F8-$FF the ants. What $F0-$F3 are has not been checked.
+; span $B700,2304
+D $B700 Frames $DC-$EF the boy, $F4-$F7 the grenade in flight and exploding, $F8-$FF the ants. $F0-$F3 are never drawn: no write to an object's frame (+$08) and nothing in #R$8600 can produce them. What they show is not known; they look like a sprawled figure.
 
 @ $C000 label=CITY_MAP
 b $C000 The city of Antescher
+; span $C000,16384
 D $C000 128 x 128 cells, a byte each, one bit per height: bit 0 a block on the ground, up to bit 5. See #R$8380.
