@@ -6546,10 +6546,12 @@ sparkle_blip:
 ; Used by the routine at upd_120_to_126.
 ;
 ; A rising sweep, one wave per step from a low note upwards. The number of
-; steps comes from the type, so each frame of the materialising sweep is longer
-; than the last: 3, 7, 11 and so on up to 27 steps.
+; steps comes from the type: four times its bottom three bits, plus three.
+; upd_120_to_126 moves the object on to its next type before calling, so the
+; calls are for types 121 to 127 and each is longer than the last: 7, 11, 15
+; and so on up to 31 steps.
 ;
-; IX the object, types 120 to 126
+; IX the object, types 121 to 127
 sound_materialise:
   LD A,(IX+$00)           ; C = the number of steps
   RLCA

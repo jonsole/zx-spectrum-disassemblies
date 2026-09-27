@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Day, night and the werewolf</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="DayNight">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Knight Lore</a></td>
+<td class="page-header">Day, night and the werewolf</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Knight Lore's clock is a picture: the sun or the moon crossing a small window at the bottom right of the screen. When one has crossed, the other takes its place; at sunset the knight turns into a werewolf and at sunrise back again. Every sunrise is a new day, and the fortieth ends the game.</p>
+<h3>The sun and the moon</h3>
+<p>The sun or moon is not one of the forty objects but a 32-byte record of its own at <a href="asm/50253.html">sun_moon_scratchpad</a>, laid out like one so that the ordinary sprite printer (<a href="asm/55064.html">print_sprite</a>) can draw it. Its type is 88 for the sun and 89 for the moon, and bit 0 of that byte is how the rest of the game tells night from day. (That 88 is the sun is inferred: it is the one every game starts with, the one whose return adds a day, and the one coloured yellow.) <a href="asm/50285.html">init_sun</a> puts the sun at the left of the window at the start of a game.</p>
+<div class="kl-item"><img class="kl-sprite" src="images/howitworks/type088.png" alt="" width="32" height="32"><p>The sun, type 88.</p></div>
+<div class="kl-item"><img class="kl-sprite" src="images/howitworks/type089.png" alt="" width="32" height="32"><p>The moon, type 89.</p></div>
+<p>Every eighth frame, as the renderer finishes (<a href="asm/54867.html">draw_and_copy_rects</a> calls <a href="asm/50071.html">print_sun_moon</a>), the record moves one pixel to the right, and <a href="asm/50084.html">display_sun_moon_frame</a> gives it a height from the thirteen bytes at <a href="asm/50240.html">sun_moon_yoff</a> -- 5, 6, 7, 8, 9, 10, 10, 9, 8, 7, 6, 5, 5 -- one for every four pixels across, so it climbs, levels off and sinks. <a href="asm/50115.html">display_frame</a> then clears the window in the buffer, draws the sun or moon, draws the two halves of the window's frame (types 90 and 186) over it, and copies the window to the screen. Because the frame goes on last, the sun rises from behind the frame's left side and sets behind its right.</p>
+<div class="kl-item"><img class="kl-piece" src="images/howitworks/sun_path.png" alt="" width="720" height="62"><p>The window drawn by <a href="asm/50084.html">display_sun_moon_frame</a> in a simulator with the sun at pixel x 176, 184, 192, 200, 208, 216, 224.</p></div>
+<div class="kl-item"><img class="kl-piece" src="images/howitworks/moon_window.png" alt="" width="96" height="62"><p>And with the moon, at 200.</p></div>
+<p>It starts at pixel x 176. When it reaches 225, after 49 steps -- 392 frames -- <a href="asm/50175.html">toggle_day_night</a> swaps the type, recolours the window (<a href="asm/54029.html">colour_sun_moon</a>: yellow for the sun, white for the moon) and starts the other at 176. A frame here is one pass of the game's loop, and that varies with how much there is to draw (<a href="asm/45056.html">end_of_frame</a> pads a quiet frame out to a minimum), so a day has no fixed length in seconds.</p>
+<h3>The change</h3>
+<p>Every swap sets $5BB1 to 1: a change is due. Nothing happens at once. The player's legs handler calls <a href="asm/49926.html">chk_and_init_transform</a> first thing every frame, and it starts the change only when the player is not walking into a new room (the top four bits of +$0C) and not in the middle of a jump (bit 3). When it does start:</p>
+<ul><li>it throws away its own return address, so the rest of the player's frame is skipped: no controls and no movement for as long as the change lasts;</li><li>it saves the player's type in $5BB1 and sets +$10 to 8, a count of steps;</li><li>it erases the top half (type 1) and turns the legs into one of four spinning figures, types 92 to 95.</li></ul>
+<div class="kl-item"><img class="kl-sprite" src="images/howitworks/type092.png" alt="type 92" width="48" height="64"> <img class="kl-sprite" src="images/howitworks/type093.png" alt="type 93" width="48" height="66"> <img class="kl-sprite" src="images/howitworks/type094.png" alt="type 94" width="48" height="76"> <img class="kl-sprite" src="images/howitworks/type095.png" alt="type 95" width="48" height="70"><p>Types 92 to 95, the figures of the change.</p></div>
+<p>From then on the legs are run by <a href="asm/49975.html">upd_92_to_95</a>. Every fourth frame (<a href="asm/49993.html">transform_step</a>) it makes a sound, counts a step off, and shows another of the four figures at random -- never the one already showing -- mirrored each time, which makes it spin (<a href="asm/50007.html">rand_legs_sprite</a>). After eight steps, 32 frames, <a href="asm/50039.html">finish_transform</a> flips bit 5 of the saved type: XOR $20 turns the knight's legs (types 16 to 29) into the werewolf's (48 to 61) or back, keeping the walking frame and the way he faces. The top half comes back as the new type plus 16, and $5BB1 is cleared.</p>
+<div class="kl-item"><img class="kl-sprite" src="images/howitworks/type034.png" alt="type 34" width="48" height="48"> <img class="kl-sprite" src="images/howitworks/type018.png" alt="type 18" width="48" height="32"><p>The knight: the top half (type 34) and the legs (type 18).</p></div>
+<div class="kl-item"><img class="kl-sprite" src="images/howitworks/type066.png" alt="type 66" width="48" height="58"> <img class="kl-sprite" src="images/howitworks/type050.png" alt="type 50" width="48" height="32"><p>The werewolf: the top half (type 66) and the legs (type 50).</p></div>
+<p>He can still die while he changes: <a href="asm/49975.html">upd_92_to_95</a> looks at the harm bit (bit 6 of +$0D; see <a href="Collision.html">collision</a>) just as the legs' own handler does. Dying cancels the change: <a href="asm/53546.html">lose_life</a>, which starts every life, clears $5BB1 and brings him back as knight or werewolf by bit 0 of the sun or moon's type, so the new body already suits the time of day.</p>
+<h3>Days</h3>
+<p>When the moon gives way to the sun, <a href="asm/50201.html">inc_days</a> adds one to the day count at $5BB9, kept in binary-coded decimal for printing. The count starts at 0, with the rest of the variables. The dawn that takes it to 40 jumps to <a href="asm/47650.html">game_over</a>, game over; any other prints the new number (<a href="asm/48230.html">print_days</a>) and copies it to the screen. The summary at the end shows the same count as the days taken.</p>
+<p>Once the fourteenth charm is in the cauldron, $5BC3 is set and <a href="asm/50084.html">display_sun_moon_frame</a> returns at once: the sun stops where it is, so no more days pass and no more changes are asked for (see <a href="Charms.html">the charms</a>).</p>
+<h3>What cares which he is</h3>
+<p>The body is the type of object 0, the player's legs, and anything that wants to know reads that. (That types 16 to 29 are the knight and 48 to 61 the werewolf comes from how the handler table groups them; the code only ever tests ranges.)</p>
+<ul><li>The bouncing balls (types 182 and 183, <a href="asm/46591.html">upd_182_183</a>) test it every frame and patch two jumps in their own code (<a href="asm/46685.html">bounce_ball_y_sense</a>, <a href="asm/46710.html">bounce_ball_x_sense</a>) to suit: while the legs are the knight's the balls hop away from him, and otherwise -- the werewolf, or the knight part-way through changing -- they hop towards him.</li><li>The bubbles over the cauldron (types 160 to 163, <a href="asm/47322.html">upd_160_to_163</a>) rise harmlessly and show the next charm the wizard wants. If the legs are the werewolf's they set bit 2 of their type instead, becoming types 164 to 167, turn solid and fly at the player; their starting record (<a href="asm/47304.html">cauldron_bubbles</a>) made them deadly both ways, so now they kill.</li><li>A new life takes its body from the time of day, as above.</li></ul>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Animations</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Animations">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Knight Lore</a></td>
+<td class="page-header">Animations</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Knight Lore has no animation frames as such. An object's type -- the first byte of its 32-byte record -- chooses both the routine that runs it each frame, through <a href="asm/45206.html">upd_sprite_jmp_tbl</a>, and the sprite it is drawn with, through <a href="asm/28946.html">sprite_tbl</a>, so an object animates by changing its own type: a walk is six types in a row, a flicker is bit 0 of the type turned over, a sparkle counts its type up and at the end of its run turns into something else. The runs of types, and how fast each handler steps through them, are the animations.</p>
+<p>Each animation below was made by running the game's own code in a simulator when these pages were built: a room with the thing in it, one real frame of the game after another -- the handlers, the renderer and the copy to the screen -- with each picture read off the screen. So Sabreman, the guards and the wizard are put together by the game from their two records, the frames come in the game's order, and each is shown for as long as the game took over it (counted in the simulator, without the memory contention of a real Spectrum). A figure that walks is kept in the middle of its picture. Under each, the types in each frame of the picture and how long it lasts; a type that stays on screen for several game frames is one frame of the picture.</p>
+<div class="kl-item" id="sabreman-a">
+<h3>Sabreman walking, view A</h3>
+<img class="kl-sprite" src="images/animations/sabreman-a.gif" alt="Sabreman walking, view A" width="90" height="120">
+<p>Legs 16-21 in record 0 and the upper body 32-37 in record 1: the legs' handler (<a href="asm/51235.html">upd_16_to_21_24_to_29</a>, into <a href="asm/51243.html">upd_player_bottom</a>) steps the low three bits of the type 0, 1, ... 5, 0 every frame while forward is held (<a href="asm/51583.html">animate_human_legs</a>), and <a href="asm/52706.html">upd_player_top</a> then sets the upper body to the legs' type + 16 (<a href="asm/52770.html">set_top_sprite</a>), so the two halves change together. The six legs types name only four sprites, 1 2 3 4 3 2; the upper body's six name four more. View A is type bit 3 clear; this one is unmirrored, walking towards -X.</p>
+<p>Types and their sprites: 16 (<a href="asm/37422.html">spr_055</a>), 17 (<a href="asm/37520.html">spr_056</a>), 18 (<a href="asm/37618.html">spr_057</a>), 19 (<a href="asm/37716.html">spr_058</a>), 20 (<a href="asm/37618.html">spr_057</a>), 21 (<a href="asm/37520.html">spr_056</a>), 32 (<a href="asm/36674.html">spr_050</a>), 33 (<a href="asm/36820.html">spr_051</a>), 34 (<a href="asm/36078.html">spr_046</a>), 35 (<a href="asm/36528.html">spr_049</a>), 36 (<a href="asm/36078.html">spr_046</a>), 37 (<a href="asm/36820.html">spr_051</a>).</p>
+<p>In the picture: 16+32 (40ms), 17+33 (50ms), 18+34 (50ms), 19+35 (50ms), 20+36 (40ms), 21+37 (50ms).</p>
+</div>
+<div class="kl-item" id="sabreman-b">
+<h3>Sabreman walking, view B</h3>
+<img class="kl-sprite" src="images/animations/sabreman-b.gif" alt="Sabreman walking, view B" width="90" height="123">
+<p>The same cycle with type bit 3 set: legs 24-29 and upper body 40-45, unmirrored, walking towards +X. Mirroring (+$07 bit 6) makes the other two of the four facings out of these two views (<a href="asm/51742.html">get_sprite_dir</a>).</p>
+<p>Types and their sprites: 24 (<a href="asm/37814.html">spr_059</a>), 25 (<a href="asm/37912.html">spr_060</a>), 26 (<a href="asm/38010.html">spr_061</a>), 27 (<a href="asm/38108.html">spr_062</a>), 28 (<a href="asm/38010.html">spr_061</a>), 29 (<a href="asm/37912.html">spr_060</a>), 40 (<a href="asm/36966.html">spr_052</a>), 41 (<a href="asm/36224.html">spr_047</a>), 42 (<a href="asm/37270.html">spr_054</a>), 43 (<a href="asm/37118.html">spr_053</a>), 44 (<a href="asm/37270.html">spr_054</a>), 45 (<a href="asm/36224.html">spr_047</a>).</p>
+<p>In the picture: 24+40 (40ms), 25+41 (50ms), 26+42 (50ms), 27+43 (50ms), 28+44 (40ms), 29+45 (50ms).</p>
+</div>
+<div class="kl-item" id="sabrewulf-a">
+<h3>Sabrewulf walking, view A</h3>
+<img class="kl-sprite" src="images/animations/sabrewulf-a.gif" alt="Sabrewulf walking, view A" width="90" height="126">
+<p>The werewolf is the man's types + 32: legs 48-53 run by <a href="asm/51240.html">upd_48_to_53_56_to_61</a> (drawn a pixel lower than the man's) and the upper body 64-69 by <a href="asm/52703.html">upd_64_to_79</a>, stepped the same way every frame.</p>
+<p>Types and their sprites: 48 (<a href="asm/41140.html">spr_079</a>), 49 (<a href="asm/41238.html">spr_080</a>), 50 (<a href="asm/41336.html">spr_081</a>), 51 (<a href="asm/41434.html">spr_082</a>), 52 (<a href="asm/41336.html">spr_081</a>), 53 (<a href="asm/41238.html">spr_080</a>), 64 (<a href="asm/41924.html">spr_087</a>), 65 (<a href="asm/42100.html">spr_088</a>), 66 (<a href="asm/42276.html">spr_089</a>), 67 (<a href="asm/42452.html">spr_090</a>), 68 (<a href="asm/42276.html">spr_089</a>), 69 (<a href="asm/42100.html">spr_088</a>).</p>
+<p>In the picture: 48+64 (40ms), 49+65 (50ms), 50+66 (50ms), 51+67 (50ms), 52+68 (40ms), 53+69 (50ms).</p>
+</div>
+<div class="kl-item" id="sabrewulf-b">
+<h3>Sabrewulf walking, view B</h3>
+<img class="kl-sprite" src="images/animations/sabrewulf-b.gif" alt="Sabrewulf walking, view B" width="90" height="129">
+<p>Legs 56-61 and upper body 72-77, unmirrored, walking towards +X.</p>
+<p>Types and their sprites: 56 (<a href="asm/41532.html">spr_083</a>), 57 (<a href="asm/41630.html">spr_084</a>), 58 (<a href="asm/41728.html">spr_085</a>), 59 (<a href="asm/41826.html">spr_086</a>), 60 (<a href="asm/41728.html">spr_085</a>), 61 (<a href="asm/41630.html">spr_084</a>), 72 (<a href="asm/43174.html">spr_094</a>), 73 (<a href="asm/42992.html">spr_093</a>), 74 (<a href="asm/42810.html">spr_092</a>), 75 (<a href="asm/42628.html">spr_091</a>), 76 (<a href="asm/42810.html">spr_092</a>), 77 (<a href="asm/42992.html">spr_093</a>).</p>
+<p>In the picture: 56+72 (40ms), 57+73 (50ms), 58+74 (50ms), 59+75 (50ms), 60+76 (40ms), 61+77 (50ms).</p>
+</div>
+<div class="kl-item" id="transformation">
+<h3>Man into werewolf</h3>
+<img class="kl-sprite" src="images/animations/transformation.gif" alt="Man into werewolf" width="90" height="147">
+<p>The sun was set one pixel from the edge of its window, so the game's own <a href="asm/50175.html">toggle_day_night</a> turns it to the moon and sets $5BB1. The legs' handler sees it (<a href="asm/49926.html">chk_and_init_transform</a>): the upper body becomes type 1 and is wiped, and the legs take one of types 92-95 at random, never the one showing, mirrored each time (<a href="asm/50007.html">rand_legs_sprite</a>). <a href="asm/49975.html">upd_92_to_95</a> changes it every fourth frame, by the frame counter, eight times; then <a href="asm/50039.html">finish_transform</a> flips bit 5 of the saved type -- legs 18 to 50 -- and puts the upper body back as that + 16. The four sprites are chosen at random, so another run gives another order.</p>
+<p>Types and their sprites: 18 (<a href="asm/37618.html">spr_057</a>), 34 (<a href="asm/36078.html">spr_046</a>), 92 (<a href="asm/44072.html">spr_099</a>), 93 (<a href="asm/44266.html">spr_100</a>), 94 (<a href="asm/44466.html">spr_101</a>), 95 (<a href="asm/44696.html">spr_102</a>), 50 (<a href="asm/41336.html">spr_081</a>), 66 (<a href="asm/42276.html">spr_089</a>).</p>
+<p>In the picture: 18+34 (80ms), 93 (220ms), 94 (260ms), 92 (260ms), 93 (260ms), 92 (250ms), 93 (260ms), 92 (250ms), 94 (260ms), 50+66 (310ms).</p>
+</div>
+<div class="kl-item" id="materialising">
+<h3>Sabreman appearing</h3>
+<img class="kl-sprite" src="images/animations/materialising.gif" alt="Sabreman appearing" width="90" height="132">
+<p>On every new life (<a href="asm/53546.html">lose_life</a>) and every room entered, both of Sabreman's records are type 120 with the real type kept at +$10. <a href="asm/48894.html">upd_120_to_126</a> counts the type up on alternate frames of the counter at $5BA2, 120 to 127, and <a href="asm/48913.html">upd_127</a> then restores the saved type and runs its handler at once. The eight types are the sparkle sprites growing, small to large. The first frame is long because it is the room's first, when the game draws and copies the whole screen.</p>
+<p>Types and their sprites: 120 (<a href="asm/33124.html">spr_025</a>), 121 (<a href="asm/33246.html">spr_026</a>), 122 (<a href="asm/33374.html">spr_027</a>), 123 (<a href="asm/33514.html">spr_028</a>), 124 (<a href="asm/33660.html">spr_029</a>), 125 (<a href="asm/33806.html">spr_030</a>), 126 (<a href="asm/33660.html">spr_029</a>), 127 (<a href="asm/33806.html">spr_030</a>), 18 (<a href="asm/37618.html">spr_057</a>), 34 (<a href="asm/36078.html">spr_046</a>).</p>
+<p>In the picture: 120+120 (260ms), 121+121 (100ms), 122+122 (110ms), 123+123 (110ms), 124+124 (120ms), 125+125 (120ms), 126+126 (130ms), 127+127 (70ms), 18+34 (210ms).</p>
+</div>
+<div class="kl-item" id="dying">
+<h3>Sabreman dying</h3>
+<img class="kl-sprite" src="images/animations/dying.gif" alt="Sabreman dying" width="90" height="132">
+<p>Something deadly sets bit 6 of the legs' +$0D; the legs' handler (<a href="asm/51243.html">upd_player_bottom</a>) marks the upper body too, and both become type 112 (<a href="asm/48929.html">init_death_sparkles</a>). <a href="asm/48939.html">upd_112_to_118_184</a> adds one every frame, with a noise that shortens as it goes; 119 (<a href="asm/48959.html">upd_119</a>) makes the record type 1, which is wiped and freed. When both records are empty the life is over. The sprites are the materialising ones, large to small.</p>
+<p>Types and their sprites: 112 (<a href="asm/33806.html">spr_030</a>), 113 (<a href="asm/33660.html">spr_029</a>), 114 (<a href="asm/33806.html">spr_030</a>), 115 (<a href="asm/33660.html">spr_029</a>), 116 (<a href="asm/33514.html">spr_028</a>), 117 (<a href="asm/33374.html">spr_027</a>), 118 (<a href="asm/33246.html">spr_026</a>), 119 (<a href="asm/33124.html">spr_025</a>).</p>
+<p>In the picture: 18+34 (40ms), 112+112 (90ms), 113+113 (90ms), 114+114 (80ms), 115+115 (70ms), 116+116 (80ms), 117+117 (70ms), 118+118 (70ms), 119+119 (60ms), - (60ms).</p>
+</div>
+<div class="kl-item" id="collecting">
+<h3>An extra life collected</h3>
+<img class="kl-piece" src="images/animations/collecting.gif" alt="An extra life collected" width="122" height="102">
+<p>An extra life (type 103, <a href="asm/49579.html">upd_103</a>) tests itself against Sabreman every frame; touching, it sets bit 3 of its type, making 111, adds a life and shows it, and takes itself out of <a href="asm/28658.html">special_objs_tbl</a>. Type 111 (<a href="asm/47454.html">upd_111</a>) is drawn for one frame as a sparkle and then becomes type 1. A charm picked up does not sparkle: it goes straight to the carried objects.</p>
+<p>Types and their sprites: 103 (<a href="asm/32490.html">spr_021</a>), 111 (<a href="asm/33806.html">spr_030</a>).</p>
+<p>In the picture: 19+35+103 (50ms), 20+36+103 (40ms), 21+37+103 (50ms), 16+32+103 (40ms), 17+33+103 (40ms), 18+34+103 (50ms), 19+35+103 (40ms), 20+36+111 (60ms), 21+37 (40ms), 16+32 (40ms), 17+33 (40ms), 18+34 (40ms).</p>
+</div>
+<div class="kl-item" id="guard">
+<h3>A guard walking</h3>
+<img class="kl-sprite" src="images/animations/guard.gif" alt="A guard walking" width="90" height="126">
+<p>Two records: the body, 150 or 151 (<a href="asm/46908.html">upd_150_151</a>), and the legs in the record after it, 144-149 or 152-157 (<a href="asm/46841.html">upd_144_to_149_152_to_157</a>), which use Sabreman's own legs sprites. The body walks 2 a frame along X and writes its position and velocity into the legs; the legs pick view and mirroring from that and step the same six-frame cycle as Sabreman's, every frame they move. The body's view is bit 0 of its type, set by <a href="asm/46956.html">set_guard_wizard_sprite</a>.</p>
+<p>Types and their sprites: 150 (<a href="asm/30268.html">spr_005</a>), 151 (<a href="asm/30128.html">spr_004</a>), 144 (<a href="asm/37422.html">spr_055</a>), 145 (<a href="asm/37520.html">spr_056</a>), 146 (<a href="asm/37618.html">spr_057</a>), 147 (<a href="asm/37716.html">spr_058</a>), 148 (<a href="asm/37618.html">spr_057</a>), 149 (<a href="asm/37520.html">spr_056</a>), 152 (<a href="asm/37814.html">spr_059</a>), 153 (<a href="asm/37912.html">spr_060</a>), 154 (<a href="asm/38010.html">spr_061</a>), 155 (<a href="asm/38108.html">spr_062</a>), 156 (<a href="asm/38010.html">spr_061</a>), 157 (<a href="asm/37912.html">spr_060</a>).</p>
+<p>In the picture: 150+144 (40ms), 150+145 (50ms), 150+146 (50ms), 150+147 (40ms), 150+148 (40ms), 150+149 (50ms).</p>
+</div>
+<div class="kl-item" id="wizard">
+<h3>The wizard walking</h3>
+<img class="kl-sprite" src="images/animations/wizard.gif" alt="The wizard walking" width="90" height="144">
+<p>Built the same way as a guard: the body, 158 or 159 (<a href="asm/47525.html">upd_30_31_158_159</a>, which walks him round the edge of the room, turning a quarter whenever he is blocked), one frame per view, over the same legs (<a href="asm/46841.html">upd_144_to_149_152_to_157</a>).</p>
+<p>Types and their sprites: 158 (<a href="asm/31378.html">spr_013</a>), 159 (<a href="asm/31142.html">spr_012</a>), 144 (<a href="asm/37422.html">spr_055</a>), 145 (<a href="asm/37520.html">spr_056</a>), 146 (<a href="asm/37618.html">spr_057</a>), 147 (<a href="asm/37716.html">spr_058</a>), 148 (<a href="asm/37618.html">spr_057</a>), 149 (<a href="asm/37520.html">spr_056</a>), 152 (<a href="asm/37814.html">spr_059</a>), 153 (<a href="asm/37912.html">spr_060</a>), 154 (<a href="asm/38010.html">spr_061</a>), 155 (<a href="asm/38108.html">spr_062</a>), 156 (<a href="asm/38010.html">spr_061</a>), 157 (<a href="asm/37912.html">spr_060</a>).</p>
+<p>In the picture: 158+144 (40ms), 158+145 (50ms), 158+146 (50ms), 158+147 (50ms), 158+148 (40ms), 158+149 (50ms).</p>
+</div>
+<div class="kl-item" id="ghost">
+<h3>A ghost</h3>
+<img class="kl-sprite" src="images/animations/ghost.gif" alt="A ghost" width="90" height="78">
+<p><a href="asm/50632.html">upd_80_to_83</a> turns the type's bit 0 over every frame, a two-frame flicker; bit 1 and the mirroring give the view, chosen from its direction whenever it picks a new one (<a href="asm/50691.html">calc_ghost_sprite</a>). Here it drifts one way, flickering between 82 and 83, until the edge of the room turns it, and the new directions show the other view.</p>
+<p>Types and their sprites: 80 (<a href="asm/34858.html">spr_039</a>), 81 (<a href="asm/34980.html">spr_040</a>), 82 (<a href="asm/35096.html">spr_041</a>), 83 (<a href="asm/35218.html">spr_042</a>).</p>
+<p>In the picture: 83 (50ms), 82 (50ms), 83 (50ms), 82 (50ms), 83 (50ms), 82 (60ms), 83 (50ms), 82 (50ms), 83 (50ms), 82 (50ms), 83 (50ms), 82 (60ms), and so on: 16 frames, 0.9s in all.</p>
+</div>
+<div class="kl-item" id="fire">
+<h3>A fire</h3>
+<img class="kl-sprite" src="images/animations/fire.gif" alt="A fire" width="66" height="66">
+<p><a href="asm/47167.html">upd_176_177</a> flips the type's bit 0 on alternate frames -- by bit 0 of $5BBC, the frame counter plus the object's place in the table, so fires side by side flicker out of step -- and on each flip toggles the mirroring when a bit of the random byte at $5BA5 is set.</p>
+<p>Types and their sprites: 176 (<a href="asm/31014.html">spr_010</a>), 177 (<a href="asm/31076.html">spr_011</a>).</p>
+<p>In the picture: 176 (110ms), 177 (110ms), 176 (120ms), 177 (110ms), 176 (110ms), 177 (110ms), 176 (120ms), 177 (110ms).</p>
+</div>
+<div class="kl-item" id="flame">
+<h3>A flame running along X</h3>
+<img class="kl-sprite" src="images/animations/flame.gif" alt="A flame running along X" width="66" height="66">
+<p><a href="asm/47085.html">upd_86_87</a> moves it 2 a frame and flips bit 0 of the type every frame, over the same two sprites as the fire; the flame along Y (180, 181, <a href="asm/47119.html">upd_180_181</a>) is the same.</p>
+<p>Types and their sprites: 86 (<a href="asm/31014.html">spr_010</a>), 87 (<a href="asm/31076.html">spr_011</a>).</p>
+<p>In the picture: 87 (50ms), 86 (50ms), 87 (50ms), 86 (50ms), 87 (50ms), 86 (60ms), 87 (60ms), 86 (60ms).</p>
+</div>
+<div class="kl-item" id="ball">
+<h3>A ball bouncing</h3>
+<img class="kl-piece" src="images/animations/ball.gif" alt="A ball bouncing" width="60" height="120">
+<p><a href="asm/47205.html">upd_178_179</a> flips the type every frame while the ball rises 2 a frame to a ceiling 32 above the first ball in the room and falls back under gravity. One bounce, from a landing to the next; the picture stays put while the ball moves in it. The ball that hops at Sabrewulf (182, 183, <a href="asm/46591.html">upd_182_183</a>) uses the same two sprites, also a frame each.</p>
+<p>Types and their sprites: 178 (<a href="asm/30408.html">spr_006</a>), 179 (<a href="asm/30524.html">spr_007</a>).</p>
+<p>In the picture: 178 (80ms), 179 (60ms), 178 (60ms), 179 (60ms), 178 (70ms), 179 (60ms), 178 (60ms), 179 (60ms), 178 (60ms), 179 (60ms), 178 (60ms), 179 (60ms), and so on: 27 frames, 1.7s in all.</p>
+</div>
+<div class="kl-item" id="bubbles">
+<h3>The cauldron's bubbles</h3>
+<img class="kl-piece" src="images/animations/bubbles.gif" alt="The cauldron's bubbles" width="76" height="140">
+<p>In the wizard's room, $88, <a href="asm/47273.html">init_cauldron_bubbles</a> puts the bubbles in record 3, type 160 (here the cauldron is alone in a room of that number). <a href="asm/47322.html">upd_160_to_163</a> adds one to the type's low two bits every frame (<a href="asm/47500.html">next_graphic_no_mod_4</a>: 160, 161, 162, 163, sprites of the sparkle, small, smaller, smallest, smaller) while they rise one unit a frame; at the top, each time the cycle comes back to 160 they show the charm wanted next (168 + its number) for one frame, and <a href="asm/47395.html">upd_168_to_175</a> puts them back to 160 -- one frame in five. If Sabreman is the werewolf they turn into the repel spell, 164-167, the same four sprites.</p>
+<p>Types and their sprites: 160 (<a href="asm/33806.html">spr_030</a>), 161 (<a href="asm/33660.html">spr_029</a>), 162 (<a href="asm/33514.html">spr_028</a>), 163 (<a href="asm/33660.html">spr_029</a>), 168 (<a href="asm/33952.html">spr_031</a>), 169 (<a href="asm/34068.html">spr_032</a>), 170 (<a href="asm/32560.html">spr_022</a>), 171 (<a href="asm/34202.html">spr_033</a>), 172 (<a href="asm/34342.html">spr_034</a>), 173 (<a href="asm/34452.html">spr_035</a>), 174 (<a href="asm/34598.html">spr_036</a>).</p>
+<p>In the picture: 141+142+161 (40ms), 141+142+162 (40ms), 141+142+163 (40ms), 141+142+160 (40ms), 141+142+161 (40ms), 141+142+162 (40ms), 141+142+163 (50ms), 141+142+160 (40ms), 141+142+161 (40ms), 141+142+162 (40ms), 141+142+163 (40ms), 141+142+160 (40ms), and so on: 51 frames, 2.3s in all.</p>
+</div>
+<div class="kl-item" id="crumbling">
+<h3>A block crumbling</h3>
+<img class="kl-piece" src="images/animations/crumbling.gif" alt="A block crumbling" width="76" height="112">
+<p>Type 143 (<a href="asm/46754.html">upd_143</a>) waits for something to land on it -- here a chest placed above it. Then it makes itself 184 and goes straight on into <a href="asm/48939.html">upd_112_to_118_184</a>, which adds one with a noise, so the first thing drawn is 185; the next frame 185 (<a href="asm/48951.html">upd_185_187</a>) vanishes. One frame of sparkle, and the chest falls through. The block is back when the room is next built.</p>
+<p>Types and their sprites: 143 (<a href="asm/32264.html">spr_020</a>), 184 (<a href="asm/33806.html">spr_030</a>), 185 (<a href="asm/33660.html">spr_029</a>).</p>
+<p>In the picture: 143+85 x4 (220ms), 185+85 (60ms), 85 x5 (280ms).</p>
+</div>
+<div class="kl-item" id="sun-moon">
+<h3>The sun and the moon</h3>
+<img class="kl-sprite" src="images/animations/sun-moon.gif" alt="The sun and the moon" width="144" height="93">
+<p>Not an animation of the sprite: the sun (88) or moon (89) is a record of its own at <a href="asm/50253.html">sun_moon_scratchpad</a> that <a href="asm/50071.html">print_sun_moon</a> moves one pixel right every eighth frame along an arc, drawn behind the two ends of the window frame; after 49 steps <a href="asm/50175.html">toggle_day_night</a> flips it to the other one. Shown here eight times faster than the game: a day and a night, 98 steps, are 784 game frames.</p>
+<p>Types and their sprites: 88 (<a href="asm/34726.html">spr_037</a>), 89 (<a href="asm/34792.html">spr_038</a>).</p>
+<p>In the picture: 88 x49 (2940ms), 89 x49 (2940ms).</p>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>

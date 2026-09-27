@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Knight Lore: Sounds</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Knight Lore</a></td>
+<td class="page-header">Sounds: the effects and the tunes</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>A 48K Spectrum has one bit of sound hardware -- bit 4 of port $FE, the speaker -- and Knight Lore makes every sound by setting and clearing it with the processor counting in between. Nothing else happens while a sound plays: the tunes and effects are timing loops, and they take the machine. Every effect comes down to <a href="asm/46317.html">toggle_audio_hw</a>, which turns the speaker on for B turns of a 13 T-state loop and off for as long; <a href="asm/46310.html">toggle_audio_hw_xC</a> repeats it C times. A half-wave count of 128 is about 1 kHz.</p>
+<p>A tune is a string of note bytes ended by $FF (<a href="asm/45582.html">start_game_tune</a>). The low six bits index <a href="asm/45874.html">freq_tbl</a>, a table of five octaves of semitones from G#1 to G6, 0 being a rest; each row holds two counts that time the half-wave and the number of waves in one unit of length, scaled so a unit lasts about 0.155 s whatever the pitch. The top two bits are the length less one, one to four units. <a href="asm/45775.html">play_audio</a> plays a tune through; <a href="asm/45758.html">play_audio_until_keypress</a> stops at a key.</p>
+<p>Every recording here is the game's own code running in SkoolKit's simulator, with each change of the speaker bit logged to the T-state and rendered at 44100 Hz; nothing is synthesised. A sound made by one call was recorded by calling its routine on a machine of its own, with the values it reads set as given. A sound that is a blip a frame from something moving was recorded by running the game itself, with Sabreman put into a room where that thing is the only source of noise, so the gaps between the blips are the game's real frames. The simulator has no memory contention, so all of this runs a little faster, and sounds a little higher, than on a real Spectrum. A quiet frame (room $0B, nothing moving) lasts 145,709 T-states, 42 ms.</p>
+<h3>Tunes</h3>
+<div class="kl-item" id="start_game_tune">
+<h4>The start of a game</h4>
+<p>Played in full by <a href="asm/44936.html">main</a> once a control method has been chosen, before Sabreman first appears.</p>
+<p>Recorded: <a href="asm/45775.html">play_audio</a> called with DE = $B20E. 9 notes, 16 units.</p>
+<p>2.52 s, 1031 edges.</p>
+<audio controls preload="none" src="audio/start_game_tune.wav"><a href="audio/start_game_tune.wav">start_game_tune.wav</a></audio>
+</div>
+<div class="kl-item" id="menu_tune">
+<h4>The menu tune</h4>
+<p>Played under the control menu, once per visit, until a key is pressed (<a href="asm/45750.html">play_audio_wait_key</a>). Two lines, one unit a note, alternating.</p>
+<p>Recorded: <a href="asm/45758.html">play_audio_until_keypress</a> called with DE = $B253 and no key down, so it plays to the end, as it does for a player who waits. 98 notes, 98 units.</p>
+<p>15.46 s, 11511 edges.</p>
+<audio controls preload="none" src="audio/menu_tune.wav"><a href="audio/menu_tune.wav">menu_tune.wav</a></audio>
+</div>
+<div class="kl-item" id="game_over_tune">
+<h4>Game over</h4>
+<p>Played by <a href="asm/47751.html">await_restart</a> under the game-over screen until a key is pressed: a moving upper note alternating with a held bass.</p>
+<p>Recorded: <a href="asm/45758.html">play_audio_until_keypress</a> called with DE = $B218 and no key down, so it plays to the end, as it does for a player who waits. 32 notes, 32 units.</p>
+<p>5.03 s, 3783 edges.</p>
+<audio controls preload="none" src="audio/game_over_tune.wav"><a href="audio/game_over_tune.wav">game_over_tune.wav</a></audio>
+</div>
+<div class="kl-item" id="game_complete_tune">
+<h4>The game completed</h4>
+<p>Played in full by <a href="asm/47787.html">game_complete_msg</a> under the closing message.</p>
+<p>Recorded: <a href="asm/45775.html">play_audio</a> called with DE = $B239. 25 notes, 27 units.</p>
+<p>4.24 s, 2237 edges.</p>
+<audio controls preload="none" src="audio/game_complete_tune.wav"><a href="audio/game_complete_tune.wav">game_complete_tune.wav</a></audio>
+</div>
+<h3>Effects</h3>
+<div class="kl-item" id="pick_up">
+<h4>Picking up, dropping, an extra life</h4>
+<p><a href="asm/46243.html">toggle_audio_hw_x16</a>: 16 waves at a half-wave count of 128. Played when an object is picked up or dropped, when an extra life is collected, and when the menu's choice changes.</p>
+<p>Recorded: One call; it sets its own pitch and length.</p>
+<p>16 ms, 32 edges, 1026 Hz.</p>
+<audio controls preload="none" src="audio/pick_up.wav"><a href="audio/pick_up.wav">pick_up.wav</a></audio>
+</div>
+<div class="kl-item" id="pause">
+<h4>Pause</h4>
+<p><a href="asm/46248.html">toggle_audio_hw_x24</a>: 24 waves at a half-wave count of 80, as SPACE pauses the game and again as it lets go.</p>
+<p>Recorded: One call; it sets its own pitch and length.</p>
+<p>15 ms, 48 edges, 1619 Hz.</p>
+<audio controls preload="none" src="audio/pause.wav"><a href="audio/pause.wav">pause.wav</a></audio>
+</div>
+<div class="kl-item" id="jump">
+<h4>Jumping</h4>
+<p><a href="asm/46145.html">sound_jump</a>: a rising sweep of 32 single waves, played as Sabreman leaves the ground.</p>
+<p>Recorded: One call; it sets its own pitch and length.</p>
+<p>30 ms, 64 edges, 534 to 25735 Hz (the top of that is above hearing).</p>
+<audio controls preload="none" src="audio/jump.wav"><a href="audio/jump.wav">jump.wav</a></audio>
+</div>
+<div class="kl-item" id="thud">
+<h4>A thud</h4>
+<p><a href="asm/46126.html">sound_thud</a>: four low blips of three waves, their pitches the first four bytes of the ROM with the top two bits set. A bouncing ball landing, a flame turning at a wall.</p>
+<p>Recorded: One call; it takes its pitches from the ROM, so it is the same every time.</p>
+<p>21 ms, 24 edges, 521 to 635 Hz.</p>
+<audio controls preload="none" src="audio/thud.wav"><a href="audio/thud.wav">thud.wav</a></audio>
+</div>
+<div class="kl-item" id="footstep">
+<h4>Turning on the spot</h4>
+<p><a href="asm/46273.html">sound_footstep</a>: one of Sabreman's footsteps, played by itself when he turns without walking.</p>
+<p>Recorded: One call with Sabreman's legs (IX) at X $80, Y $80, Z $80 -- the middle of the floor, so 8 waves -- and the frame counter at 0, which picks the fixed pitch (half-wave count $60); on the other frames of the pair it takes its pitch from his height instead. The walking recording below has both.</p>
+<p>6 ms, 16 edges, 1358 Hz.</p>
+<audio controls preload="none" src="audio/footstep.wav"><a href="audio/footstep.wav">footstep.wav</a></audio>
+</div>
+<div class="kl-item" id="cauldron">
+<h4>A charm into the cauldron</h4>
+<p><a href="asm/49829.html">cycle_colours_with_sound</a>: sixteen passes, each stepping the ink of every attribute cell on by one, making a burst with <a href="asm/46083.html">sound_sparkle</a> and pausing. The colour cycling and noise when the right charm lands in the cauldron.</p>
+<p>Recorded: One call with the charm (IX) of type 104, the first of the types a charm takes as it falls in (104-110), so each burst is (NOT 104) AND 31 = 23 blips; a charm of type 110 makes 17. The silences are the attribute passes and the pauses, which are part of the routine.</p>
+<p>1.86 s, 1472 edges, 515 to 32407 Hz (the top of that is above hearing).</p>
+<audio controls preload="none" src="audio/cauldron.wav"><a href="audio/cauldron.wav">cauldron.wav</a></audio>
+</div>
+<div class="kl-item" id="finale_tone">
+<h4>The finale's tone</h4>
+<p><a href="asm/46164.html">sound_pitch_from_a</a>: six waves at a half-wave count from A. During the finale <a href="asm/45056.html">end_of_frame</a> plays it at the end of every frame, pitched by the last spark's height at $5BC5.</p>
+<p>Recorded: One call with A = $A4, the height a spark climbs to before homing on Sabreman (half-wave count $6D). In the game it sounds once a frame for the whole finale.</p>
+<p>5 ms, 12 edges, 1200 Hz.</p>
+<audio controls preload="none" src="audio/finale_tone.wav"><a href="audio/finale_tone.wav">finale_tone.wav</a></audio>
+</div>
+<div class="kl-item" id="transform">
+<h4>Man to werewolf, and back</h4>
+<p><a href="asm/46194.html">sound_transform</a>: a warble of 16 to 40 single waves at pitches scrambled from the step count, played by <a href="asm/49993.html">transform_step</a> every fourth frame for the eight steps of the change at sunset and sunrise.</p>
+<p>Recorded: Eight calls with the legs (IX) of types 92, 93, 94, 95, 92, 93, 94, 95 -- 16, 24, 32 and 40 waves -- where the game picks each frame at random; four quiet frames apart (four times the frame measured in room $0B, 582,836 T-states).</p>
+<p>1.34 s, 448 edges, 797 to 1514 Hz.</p>
+<audio controls preload="none" src="audio/transform.wav"><a href="audio/transform.wav">transform.wav</a></audio>
+</div>
+<div class="kl-item" id="sinking_block">
+<h4>A block sinking</h4>
+<p><a href="asm/46161.html">sound_pitch_from_z</a>: six waves pitched by the object's height -- higher when higher. A dropping block sinking under Sabreman, a spiked ball falling, a bouncing ball, and Sabreman falling fast.</p>
+<p>Recorded: 25 calls with the object's Z falling one a frame from $98 to $80 (the floor), as a dropping block sinks, a quiet frame apart (measured in room $0B, 145,709 T-states).</p>
+<p>1.23 s, 300 edges, 526 to 841 Hz.</p>
+<audio controls preload="none" src="audio/sinking_block.wav"><a href="audio/sinking_block.wav">sinking_block.wav</a></audio>
+</div>
+<div class="kl-item" id="materialise">
+<h4>Sabreman appearing</h4>
+<p><a href="asm/46105.html">sound_materialise</a>: a rising sweep, one wave a step. Both of Sabreman's records materialise together, stepping their type from 120 to 127 every other frame (<a href="asm/48894.html">upd_120_to_126</a>), and each plays the sweep for its new type -- so every other frame the sweep sounds twice, and each pair is longer than the last. It starts every life and follows him into every room.</p>
+<p>Recorded: The game running in room $0B, which has nothing in it, from the first frame to the last of the effect. The types passed are 121 to 127, so the sweeps are 7, 11, 15 ... 31 steps (the type is stepped before the call, so type 120's 3 steps are never heard).</p>
+<p>1.16 s, 532 edges, 15 frames, 478 to 11438 Hz.</p>
+<audio controls preload="none" src="audio/materialise.wav"><a href="audio/materialise.wav">materialise.wav</a></audio>
+</div>
+<div class="kl-item" id="walking">
+<h4>Sabreman walking</h4>
+<p><a href="asm/46267.html">sound_walk_step</a>: a footstep on every other frame of the walk cycle, alternating a fixed pitch with one from his height -- the tick-tock of two feet -- with fewer waves the further he is to the west or north.</p>
+<p>Recorded: The game running in room $0B with A held (walk forward, on the keyboard) from the frame after he has appeared, as he walks from the middle of the room towards the west wall.</p>
+<p>926 ms, 134 edges, 20 frames, 1358 to 2035 Hz.</p>
+<audio controls preload="none" src="audio/walking.wav"><a href="audio/walking.wav">walking.wav</a></audio>
+</div>
+<div class="kl-item" id="death">
+<h4>Sabreman dying</h4>
+<p><a href="asm/46083.html">sound_sparkle</a>: bursts of short blips pitched by bytes of the ROM from $1234. When Sabreman is killed both his records turn to sparkles (types 112-119, <a href="asm/48929.html">init_death_sparkles</a>) and each plays a burst every frame, one blip shorter each frame. A crumbling block makes the same noise, briefly, as it goes.</p>
+<p>Recorded: The game running in room $F7, where he is killed as soon as he has formed, over the eight frames of the sparkle: bursts of 15 down to 8 blips, twice a frame.</p>
+<p>940 ms, 736 edges, 8 frames, 221 to 32407 Hz (the top of that is above hearing).</p>
+<audio controls preload="none" src="audio/death.wav"><a href="audio/death.wav">death.wav</a></audio>
+</div>
+<div class="kl-item" id="movable_block">
+<h4>The movable block's buzz</h4>
+<p><a href="asm/46057.html">sound_movable_block</a>: four waves, at one of eight pitches (<a href="asm/46075.html">block_blip_pitches</a>) chosen by the frame counter. The type 62 block plays it every frame, so a room with one has a buzz under everything else.</p>
+<p>Recorded: The game running in room $A3, where the block is the only thing making a noise, for 24 frames (three turns of the eight pitches).</p>
+<p>3.19 s, 192 edges, 24 frames, 593 to 1358 Hz.</p>
+<audio controls preload="none" src="audio/movable_block.wav"><a href="audio/movable_block.wav">movable_block.wav</a></audio>
+</div>
+<div class="kl-item" id="sliding_block_x">
+<h4>A block sliding east and west</h4>
+<p><a href="asm/46173.html">sound_pitch_from_x</a>: six waves pitched by X. A sliding block (type 54) plays it every frame as it shuttles one unit a frame, 15 units each way; a flame moving along X uses it too. The half-wave count is four times the bottom six bits of NOT X, so the pitch climbs as X rises and drops back to the bottom every 64 units -- which this block's run crosses at X = $80, where a whine far above hearing becomes the lowest note.</p>
+<p>Recorded: The game running in room $2D, whose sliding block is its only noise, for 32 frames: one shuttle there and back.</p>
+<p>3.22 s, 384 edges, 32 frames, 526 to 26119 Hz (the top of that is above hearing).</p>
+<audio controls preload="none" src="audio/sliding_block_x.wav"><a href="audio/sliding_block_x.wav">sliding_block_x.wav</a></audio>
+</div>
+<div class="kl-item" id="sliding_block_y">
+<h4>A block sliding north and south</h4>
+<p><a href="asm/46178.html">sound_pitch_from_y</a>: the same, pitched by Y. A sliding block of type 55, and flames moving along Y.</p>
+<p>Recorded: The game running in room $48, whose sliding block is its only noise, for 32 frames: one shuttle there and back.</p>
+<p>2.25 s, 384 edges, 32 frames, 835 to 1331 Hz.</p>
+<audio controls preload="none" src="audio/sliding_block_y.wav"><a href="audio/sliding_block_y.wav">sliding_block_y.wav</a></audio>
+</div>
+<div class="kl-item" id="guard">
+<h4>A guard walking</h4>
+<p><a href="asm/46253.html">audio_guard_wizard</a>: the guards' and the wizard's footsteps, on every other frame of the walk cycle, their two pitches alternating the opposite way round to Sabreman's.</p>
+<p>Recorded: The game running in room $D1, which holds a guard and spikes, for 24 frames of the guard walking round the walls.</p>
+<p>2.13 s, 192 edges, 24 frames, 1026 to 2035 Hz.</p>
+<audio controls preload="none" src="audio/guard.wav"><a href="audio/guard.wav">guard.wav</a></audio>
+</div>
+<div class="kl-item" id="portcullis">
+<h4>A portcullis rising and crashing down</h4>
+<p><a href="asm/46183.html">sound_pitch_from_xyz</a> while it rises: six waves pitched by X + Y + Z, a frame at a time as it climbs one unit a frame -- the sound charms, tables and chests make when pushed, too. Then <a href="asm/46217.html">sound_portcullis_crash</a> as it lands: sixteen blips of two waves pitched by bytes from a random address in the ROM, so no two crashes are alike.</p>
+<p>Recorded: The game running in room $3F, whose portcullis is its only noise, from frame 81 after arriving: its second rise, 32 frames to the top, the fall, and the crash.</p>
+<p>3.19 s, 448 edges, 39 frames, 514 to 32407 Hz (the top of that is above hearing).</p>
+<audio controls preload="none" src="audio/portcullis.wav"><a href="audio/portcullis.wav">portcullis.wav</a></audio>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from a snapshot of the loaded game</div>
+<div class="copyright">&copy; 1984 Ultimate Play the Game</div>
+<div class="created">Disassembled by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_knightlore.py</code>.</div>
+</footer>
+</body>
+</html>
