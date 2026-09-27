@@ -87,7 +87,16 @@ carried on.
 `SHOW_END_SCREEN` ($96EC) both end in `END_DELAY` ($8C4A), twenty times round
 a 65536-count loop, and then `TITLE_AGAIN` ($7C29). From `GAME_OVER` to the
 title took 9.8 seconds of emulated time (twenty times 65536 x 26 T-states is
-9.7 s; interrupts are off because the death happens inside `FRAME_TICK`).
+9.7 s). The interrupts are off during that delay only when the last life went
+inside `FRAME_TICK`, which starts with DI -- a death by hunger -- and
+during the end screen, which follows `PAUSE`'s DI in the same pass. A death
+in the main loop's own dispatch -- a creature's touch, a big monster, a
+mushroom -- reaches `GAME_OVER` with interrupts on, and FRAMES counts through
+the delay and the title screen that follows (*measured* live, 2026-09-27:
+iff1 on at `GAME_OVER` after a devil's touch, FRAMES $2531 there and $2726 at
+the title; iff1 off and FRAMES unmoved after a hunger death and after a win).
+That decides whether the next game's cyan key can move: see "Fewer castles
+than it seems" on the Bugs page and [`loading.md`](loading.md).
 
 ## How this was found
 
@@ -127,6 +136,9 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
   UPDATE_KNIGHT when the player's last life goes", is also wrong: it is
   reached from `LOSE_LIFE` ($8EA4), whatever took the last life.
 - `CHECK_KEY_HELD` ("Look at a key with interrupts off") is the pause.
+- The comment at $8C4F said the delay runs "with interrupts off because the
+  death happened inside FRAME_TICK". True only of a hunger death; corrected
+  on 2026-09-27 (above).
 
 ## Open questions
 

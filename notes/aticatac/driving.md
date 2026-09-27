@@ -12,11 +12,11 @@ $7EB2 (`FRAME_TICK`) is reached once per 50 Hz frame and $7DC3 (`MAIN_LOOP`)
 once per pass; hold keys between stops. The player is at $EA90, the room in
 $EA91.
 
-**Nothing here has been tried in the emulator.** Every address is *read*
-from the listing, and the recipes marked *measured* were run in SkoolKit's
-simulator (the scratch harness `aticatac_sim.py`, 2026-09-27) with the same
-breakpoint-and-hold method. Try them live before building on them, and
-record what happens here.
+Most addresses here are *read* from the listing, and the recipes marked
+*measured* were run in SkoolKit's simulator (the scratch harness
+`aticatac_sim.py`, 2026-09-27) with the same breakpoint-and-hold method.
+Those marked *watched* were run live on a private zx_server later the same
+day; see [Driven live](#driven-live) at the end.
 
 ## The snapshot
 
@@ -64,7 +64,9 @@ stop at $7C2F, hold the key, run to $7C2F again (the key has been read),
 release, run to $7C2F again; for 0, run to $7D9A instead. Then run to $8E78
 for the first frame in play (*read*).
 
-**Keys in play** ([`input.md`](input.md)): Q left, W right, E down, R up,
+**Keys in play** ([`input.md`](input.md)): Q left, W right, E down, R up
+(down the screen is y increasing: E adds to $EA94, R takes from it --
+*watched*),
 T fire (keyboard); SYMBOL SHIFT pick up / drop -- one action per press, so
 release it between; SPACE alone pauses and resumes. Two pixels a frame
 walking; hold for N stops at $7EB2 to walk 2N pixels (then the knight coasts
@@ -105,7 +107,14 @@ from the snapshot and a fresh game.
 - **Winning** (*measured*): slots $8C, $8D, $8E in that order (slot one
   $8C), stand in room $00 and put the player at x $9C, y $7B (inside the
   A.C.G. door at $98, $7F); `SHOW_END_SCREEN` follows within the pass after
-  next. Or simply write $8E to $EA91: the end of the next pass ends the game
+  next. That works only because the player is dropped straight into the
+  door's trigger box (y $50-$7F). Walking in, he must get through the
+  doorway's walk box first: the door's +$06/+$07 are $BA, $D6, which make it
+  x $84-$AB and y $5C-$73 ([`collision.md`](collision.md)), so y $7B is
+  outside it and a walk there stops at the wall. From the start position
+  (y $68) holding W walks straight through (*watched*: 28 frames from x $60
+  to `ENTER_ROOM`, with the three pieces staged or with the A.C.G. door
+  poke). Or simply write $8E to $EA91: the end of the next pass ends the game
   (*read*).
 
 ## Variables worth watching
@@ -126,8 +135,12 @@ from the snapshot and a fresh game.
 
 ## Traps
 
-- **Interrupts are off on the title screen**: FRAMES does not move there, so
-  `set_break_on_interrupt` sees nothing until the first `MAIN_LOOP` (*read*).
+- **Interrupts are off on the title screen** after loading, after a win and
+  after a game over by hunger: FRAMES does not move there, so
+  `set_break_on_interrupt` sees nothing until the first `MAIN_LOOP` (*read*;
+  *watched*). After a game over caused in the main loop -- a creature, a big
+  monster, a mushroom -- they are on, and FRAMES runs through the delay and
+  the title (*watched*; [`main-loop.md`](main-loop.md)).
 - **FRAMES is rewritten by the game**: it stays under 50 during play, so do
   not use it as a frame counter; use the `FRAME_TICK` stop.
 - **Held keys**: the pick-up key acts once per press, and SPACE alone pauses.
@@ -135,7 +148,73 @@ from the snapshot and a fresh game.
 - **Death clears creatures** and awards 155 points each -- a staged trial that
   kills the player changes the score (*measured*).
 - **One sound slot**: a new sound replaces one playing.
-- **GAME_OVER and the end screen run with interrupts off for ten seconds** in a
-  counting loop; do not mistake it for a hang.
+- **GAME_OVER and the end screen run a ten-second counting loop**
+  (`END_DELAY` $8C4A); do not mistake it for a hang. Interrupts are off in it
+  except after a main-loop death (above).
 - `get_screen` at a stop shows the CRT as drawn so far; read $4000 (6912
   bytes) for a clean picture.
+
+## Driven live
+
+*Watched* on a private zx_server (ports 14711/18000, `--no-audio`,
+`--uncapped`), 2026-09-27, with the skill's `mcp_client.py`: two MCP sessions,
+one to run and one to pause on a timeout, every wait a breakpoint with a time
+limit. The scratch scripts are `aa2_ref_drive.py` and `aa2_ref_t*.py`.
+Everything here was used for the Bugs, Pokes and Facts pages.
+
+**Setup.** `load_snapshot` of `aticatac.z80`, then release every key (they
+stay held across loads) and `load_debug_info` with `aticatac.sld` and
+`aticatac.asm`. Run to $7C2F; hold 1, run to $7C2F twice, release, run to
+$7C2F twice more; the same with 4 (knight; 6 is the serf). Hold 0, run to
+`START_GAME` $7D9A, release. Run to `PLAYER_TICK` $8E78: the first frame in
+play, sprite $08, room $00 at x $60, y $68, clock 0:00:05. Then run to
+`FRAME_TICK` $7EB2 and `save_snapshot` a `.z80` there: every trial started
+from that file. The first game's rooms came out as in the simulator (pieces
+$17, $10, $2B; keys $22, $85, $91, $66). Uncapped, 500 `FRAME_TICK` stops
+with a few memory reads each take about 7 s of wall time.
+
+**Directions.** E makes y bigger (down the screen), R smaller; room $00's
+cyan door at y $1F is at the top and is reached with R.
+
+**Teleporting.** At a `MAIN_LOOP` stop write the room to $EA91 and x, y to
+$EA93/$EA94, then `set_registers pc=$9147` (`ARRIVE_IN_ROOM`) and run on; the
+room is drawn and play continues there.
+
+**Waiting for a death.** After setting the life force to 1, stop at
+`LOSE_LIFE` $8EA0 first: the sprite still reads $08 for several frames, so a
+loop that waits for "$08 again" returns at once. From `LOSE_LIFE`, run
+`FRAME_TICK` stops until the sprite is $08: about 205 frames for the knight.
+
+**Watchers.**
+- `set_watchpoint` on $5E28 (the life force) names each writer: $8A25 for a
+  big monster's touch, $8E88 for hunger (both seen), and by the code $98B5
+  for a mushroom.
+- A logpoint on $8EA0 with `IX={IX} lives={(0x5E21)} food={(0x5E28)}
+  player={(0xEA90)}` counts deaths and says what caused each. `get_log`
+  returns every earlier line too; pass `since`.
+
+**Staging tricks.**
+- Keep creatures away by resetting `SPAWN_COUNTDOWN` $5E27 to $20 and zeroing
+  the three creature slots at every stop.
+- A monster on the player: copy the player's room, x and y into its record.
+  A mushroom (8-byte record, e.g. $EDD8) likewise.
+- To open `REGROW_FOOD`'s gate on demand, write $FFFF to `TICKS` $5E12 at a
+  `MAIN_LOOP` stop: the end of that pass makes it 0.
+- Ending a game: `LIVES` $5E21 = 0 and the life force 1 (a hunger death) or a
+  monster on the player (a main-loop death); stop at `GAME_OVER` $8C35, then
+  run to $7C2F for the title.
+- Winning: the three pieces staged in the inventory, hold W from the start
+  position, stop at `SHOW_END_SCREEN` $96EC and then `END_DELAY` $8C4A, when
+  everything is printed.
+
+**Traps.**
+- Moving a monster by writing its x, y after its room has been drawn leaves
+  its old picture on the screen: the next erase is XORed at the new place.
+- The big hunters back away from the player whenever he is rising or sinking,
+  so a monster staged next to a dying player moves off.
+- Dying twice at the rising spot leaves two gravestones that cancel out; a
+  screenshot after the second death shows none.
+- Identical staged trials sometimes differed by a frame between runs (28 or
+  27 frames to the A.C.G. door; FRAMES $10 or $0F at a game over), so do not
+  rely on frame-exact repeats between separate loads.
+- The user's own server holds 4711/8000; leave it alone.

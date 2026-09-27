@@ -2459,15 +2459,215 @@ def castle_layout(floor: dict, doors: list[dict]) -> dict:
     return position
 
 
+# The map's layers: where things are when a new game has been set up. Each is
+# a key, what its checkbox says, its markers' colour and whether it is shown to
+# begin with. A layer's markers sit in a slot of their own along the top of each
+# room's box, so layers that share a room never cover each other.
+MAP_LAYERS = [
+    ("acg", "The A.C.G. key's three pieces", "#f0f050", True),
+    ("keys", "The coloured keys", "#ffffff", True),
+    ("objects", "The other collectables", "#ff70ff", False),
+    ("food", "Food", "#ffa040", False),
+    ("monsters", "The big five", "#ff3c3c", False),
+    ("mushrooms", "Mushrooms", "#b080ff", False),
+    ("start", "Where the game starts", "#50e050", False),
+    ("acgdoor", "The A.C.G. door", "#e8e8f4", False),
+    ("trapdoors", "Trapdoors", "#50e0e0", False),
+]
+MARK_R, MARK_STEP = 6, 13
+# The record areas the layers read, at their runtime addresses: the eight-byte
+# objects from the A.C.G. pieces to the drop controller, then the sixteen-byte
+# monster slots (records.md; MAIN_LOOP walks the first from $EAA8 to $EE60).
+OBJECTS_FIRST, MONSTERS_FIRST, MONSTERS_END = 0xEAA8, 0xEE60, 0xEEE0
+# What a record is, told by its handler -- the ACTOR_HANDLERS entry for its
+# sprite code -- rather than by where it sits: PICK_UP for everything that can
+# be carried, EAT_FOOD, MUSHROOM, and the big five's own movers.
+PICK_UP, EAT_FOOD, MUSHROOM = 0x92F5, 0x8C63, 0x988B
+BIG_FIVE = {
+    0x8862: ("the mummy", "Mu", "put in the red key's room by PLACE_KEYS; it walks to and fro "
+             "while the key is here and hunts the player once it has gone; 8 of the life "
+             "force a pass in contact"),
+    0x8906: ("Dracula", "Dr", "hunts in the player's room and runs from the crucifix; out of "
+             "sight he now and then moves to a random square, cave or octagonal room; 8 a pass "
+             "in contact"),
+    0x8988: ("Frankenstein's monster", "Fr", "hunts; touched with the spanner carried he dies, "
+             "for 1000 points; otherwise 8 a pass in contact"),
+    0x89ED: ("the devil", "De", "hunts, and nothing in the code stops him; 8 a pass in contact"),
+    0x8AFF: ("the humpback", "Hu", "takes any of the eight other collectables lying in his "
+             "room, for good; 16 a pass in contact"),
+}
+ACG_PIECES = (0x8C, 0x8D, 0x8E)       # ACG_DOOR wants them newest to oldest
+KEY_SPRITE, ACG_DOOR_KIND = 0x81, 0x24
+KEY_COLOURS = {2: "red", 4: "green", 5: "cyan", 6: "yellow"}   # a key's +$05, AND 7
+# Where PLACE_ACG_KEY and PLACE_KEYS choose from, and the frame counter and the
+# running values they choose with.
+KEY_ROOM_SETS = 0x94DD
+KEY_ROOM_TABLES = {"green": 0x990C, "red": 0x9914, "cyan": 0x991C}
+FRAMES, TICKS = 0x5C78, 0x5E12
+# What $80 and $82-$89 look like: descriptions of their pictures on the Sprites
+# page, not the game's words -- it has none. $8A and $8B are named by what the
+# code does with them.
+OBJECT_LOOKS = {
+    0x80: "a leaf-like thing", 0x82: "a bottle", 0x83: "a coin", 0x84: "a quill",
+    0x85: "a hook", 0x86: "a broken glass", 0x87: "a wheel", 0x88: "a money bag",
+    0x89: "a skull", 0x8A: "the crucifix", 0x8B: "the spanner",
+}
+OBJECT_USES = {0x80: "the mummy goes after it", 0x8A: "Dracula flees whoever carries it",
+               0x8B: "carried, it kills Frankenstein's monster",
+               **{c: "the humpback takes it if it is in his room" for c in range(0x82, 0x8A)}}
+
+
+def skool_entries(skool: Path) -> set:
+    """The addresses that start an entry in the built skool file: the only ones
+    #R resolves. Empty if there is no skool file, and then nothing is linked."""
+    if not skool.exists():
+        return set()
+    return {int(m.group(1), 16) for m in
+            re.finditer(r"^[bcgistuw]\$([0-9A-F]{4})", skool.read_text(encoding="utf-8"), re.M)}
+
+
+def new_game_memory(snapshot: Path) -> tuple[list, list]:
+    """The machine the moment a new game has been set up, and the same game when
+    render_rooms takes its pictures.
+
+    The game is started from the title screen with the steps render_rooms
+    takes, and stopped the first time it reaches ARRIVE_IN_ROOM: START_GAME
+    jumps there once PLACE_ACG_KEY, PLACE_KEYS, CHOOSE_TIMED_DOORS and
+    PLACE_PLAYER have run and the template has been copied to $EA90, before
+    the first pass of MAIN_LOOP enables interrupts, so nothing has moved yet.
+    It is then run on to where render_rooms' start ends, which is what the
+    room pictures show: the one thing that differs is where Dracula has got
+    to. FRAMES is frozen on the title screen, so this is the first game after
+    loading, and it is the same whatever keys are pressed and when.
+    """
+    from skoolkit import CSimulator, read_bin_file
+    from skoolkit.simulator import Simulator
+    from skoolkit.simutils import PC, T
+    from skoolkit.snapshot import Snapshot
+
+    memory = list(Snapshot.get(str(snapshot)).memory)
+    memory[:0x4000] = read_bin_file(str(ROM))
+    simulator = (CSimulator or Simulator)(memory, state={"iff": 0, "im": 1, "tstates": 0})
+    tracer = _key_tracer_class()(simulator)
+    simulator.set_tracer(tracer)
+    control, character, _ = SESSIONS[0]
+    pc, set_up = ENTRY, None
+    for keys, seconds in [([], 3.0), ([control], 0.3), ([], 0.5), ([character], 0.3),
+                          ([], 0.5), (["0"], 0.3), ([], 3.0)]:
+        tracer.keys = set(keys)
+        end = simulator.registers[T] + int(seconds * TSTATES_PER_SECOND)
+        simulator.trace(pc, REDRAW_ROOM if set_up is None else 0, 0, end,
+                        True, None, None, None, None, None)
+        pc = simulator.registers[PC]
+        if set_up is None and pc == REDRAW_ROOM:
+            set_up = list(simulator.memory)
+            simulator.trace(pc, 0, 0, end, True, None, None, None, None, None)
+            pc = simulator.registers[PC]
+    if set_up is None:
+        sys.exit("error: the game never reached ARRIVE_IN_ROOM from the title screen")
+    return set_up, list(simulator.memory)
+
+
+def map_layers(snapshot: Path, doors: list[dict]) -> tuple[dict, dict]:
+    """The markers for each of MAP_LAYERS, {key: {room: [(label, tip, fill)]}},
+    and what the key under the checkboxes needs besides.
+
+    The objects and monsters are read from their records in a new game
+    (new_game_memory), each told apart by its handler; the doors from the
+    template (castle_doors), since START_GAME changes only which plain doors
+    are timed. The rooms PLACE_ACG_KEY and PLACE_KEYS chose are then worked out
+    again from their tables and the frame counter, and compared.
+    """
+    memory = game_memory(snapshot)
+    set_up, drawn = new_game_memory(snapshot)
+    layers = {key: {} for key, _, _, _ in MAP_LAYERS}
+    extra = {"dracula_drawn": None}
+
+    def handler(m, code):
+        return m[ACTOR_HANDLERS + 2 * code] | (m[ACTOR_HANDLERS + 2 * code + 1] << 8)
+
+    def mark(key, room, label, tip, fill=None):
+        layers[key].setdefault(room, []).append((label, tip, fill))
+
+    for record in range(OBJECTS_FIRST, MONSTERS_FIRST, 8):
+        code, room, attr = set_up[record], set_up[record + 1], set_up[record + 5]
+        if not code:
+            continue
+        kind = handler(set_up, code)
+        if kind == PICK_UP and code in ACG_PIECES:
+            piece = code - ACG_PIECES[0] + 1
+            order = {1: "pick it up last", 2: "pick it up second", 3: "pick it up first"}[piece]
+            mark("acg", room, str(piece), f"A.C.G. key piece {piece} (${code:02X}): {order}")
+        elif kind == PICK_UP and code == KEY_SPRITE:
+            colour = KEY_COLOURS.get(attr & 7, f"colour {attr & 7}")
+            mark("keys", room, colour[0].upper(), f"the {colour} key", INKS[attr & 7])
+        elif kind == PICK_UP:
+            mark("objects", room, "", f"{OBJECT_LOOKS.get(code, 'collectable')} (${code:02X})"
+                 + (f": {OBJECT_USES[code]}" if code in OBJECT_USES else ""))
+        elif kind == EAT_FOOD:
+            mark("food", room, "", f"food (${code:02X})")
+        elif kind == MUSHROOM:
+            mark("mushrooms", room, "", "mushroom")
+    for record in range(MONSTERS_FIRST, MONSTERS_END, 16):
+        code, room = set_up[record], set_up[record + 1]
+        if code and handler(set_up, code) in BIG_FIVE:
+            name, label, what = BIG_FIVE[handler(set_up, code)]
+            tip = f"{name}: {what}"
+            if drawn[record + 1] != room:
+                tip += (f". By the time the rooms were drawn, a few seconds in, he had "
+                        f"moved to ${drawn[record + 1]:02X}, which is where the pictures show him")
+                extra["dracula_drawn"] = (name, drawn[record + 1])
+            mark("monsters", room, label, tip)
+    mark("start", set_up[CURRENT_ROOM], "S", "a new game starts here: the player's room "
+         "when START_GAME hands over to ARRIVE_IN_ROOM")
+    for d in doors:
+        if d["kind"] == ACG_DOOR_KIND:
+            wall = {"N": "north", "S": "south", "E": "east", "W": "west"}[d["wall"]]
+            tip = (f"the A.C.G. door, in the {wall} wall: it opens when the inventory "
+                   "holds the three pieces, piece 1 newest" if d["room"] == 0 else
+                   f"the far side of the A.C.G. door, in the {wall} wall: standing in "
+                   "this room wins the game")
+            mark("acgdoor", d["room"], "A", tip)
+        elif d["kind"] == TRAPDOOR:
+            mark("trapdoors", d["room"], "T", f"a trapdoor, down to room ${d['to']:02X}")
+
+    # PLACE_ACG_KEY and PLACE_KEYS again, from the frame counter and TICKS as
+    # START_GAME left them (TICKS just cleared, FRAMES frozen since ENTRY).
+    frames, ticks = set_up[FRAMES:FRAMES + 2], set_up[TICKS:TICKS + 2]
+    acg_set = (frames[0] + ticks[0]) & 7
+    index = {"green": frames[0] & 7, "red": (frames[0] + ticks[0]) & 7,
+             "cyan": (frames[1] + ticks[1]) & 7}
+    sets = [memory[KEY_ROOM_SETS + 3 * i:KEY_ROOM_SETS + 3 * i + 3] for i in range(8)]
+    choices = {c: memory[a:a + 8] for c, a in KEY_ROOM_TABLES.items()}
+    expected = {f"A.C.G. key piece {i + 1}": sets[acg_set][i] for i in range(3)}
+    expected.update({f"the {c} key": choices[c][index[c]] for c in choices})
+    found = {tip.split(" (")[0].split(":")[0]: room for key in ("acg", "keys")
+             for room, marks in layers[key].items() for _, tip, _ in marks}
+    for what, room in expected.items():
+        if found.get(what) != room:
+            _log(f"  warning: {what} is in ${found.get(what, 0):02X}; its table says ${room:02X}")
+    extra.update({"acg_set": acg_set, "sets": sets, "choices": choices, "frames":
+                  frames[0] | (frames[1] << 8)})
+    return layers, extra
+
+
 def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
     """The map page's content: one drawing per floor, every room in its own
-    outline and colour, every door a line between the rooms it joins."""
+    outline and colour, every door a line between the rooms it joins, and the
+    layers of map_layers over it, each shown by a checkbox."""
     import html
 
     memory = game_memory(snapshot)
     doors = castle_doors(memory)
     floor, misfits = castle_floors(memory, doors)
     position = castle_layout(floor, doors)
+    layers, extra = map_layers(snapshot, doors)
+    entries = skool_entries(OUT_DIR / "aticatac.skool")
+
+    def ref(address):
+        # #R only to an entry's start, and written with a stand-in for the #
+        # until the page's colours have been escaped below.
+        return f"\x01R${address:04X}" if address in entries else f"${address:04X}"
     outline = {s["shape"]: s for s in shapes}
     misfit_records = {d["record"] for d in misfits} | {d["record"] ^ 8 for d in misfits}
     lists = {r: memory[ROOM_CONTENTS + 2 * r] | (memory[ROOM_CONTENTS + 2 * r + 1] << 8)
@@ -2515,6 +2715,94 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
         return {"N": (x + box / 2, y), "S": (x + box / 2, y + box),
                 "W": (x, y + box / 2), "E": (x + box, y + box / 2)}[wall]
 
+    def layer_svg(level, ox, oy):
+        # A group per layer, its markers just above the top edge of each box in
+        # the layer's own slot; several things of a layer in one room are one
+        # marker with their count.
+        groups = []
+        for slot, (key, _, hue, _) in enumerate(MAP_LAYERS):
+            marks = [(r, m) for r, m in sorted(layers[key].items()) if floor.get(r) == level]
+            if not marks:
+                continue
+            groups.append(f'<g class="aa-layer aa-layer-{key}">')
+            for room, things in marks:
+                cx = ox + position[room][0] * cell + MARK_R + slot * MARK_STEP
+                cy = oy + position[room][1] * cell - MARK_R - 1
+                label = things[0][0] if len(things) == 1 else str(len(things))
+                fill = things[0][2] if len(things) == 1 and things[0][2] else hue
+                tips = [t for _, t, _ in things]
+                if key == "food":
+                    kinds = ", ".join(t.split("(")[1].rstrip(")") for t in tips)
+                    tips = [f"{len(tips)} piece{'s' if len(tips) > 1 else ''} of food ({kinds}): "
+                            "each adds 64 to the life force, up to 240"]
+                elif key == "mushrooms":
+                    tips = [("a mushroom" if len(tips) == 1 else f"{len(tips)} mushrooms")
+                            + ": standing on one costs 1 of the life force a pass, and a "
+                            "life when that runs out"]
+                size = 7 if len(label) > 1 else 9
+                groups.append(f'<g><title>Room ${room:02X}: {html.escape("; ".join(tips))}</title>'
+                              f'<circle cx="{cx}" cy="{cy}" r="{MARK_R}" fill="{fill}" '
+                              f'stroke="#000000" stroke-width="1"/>'
+                              f'<text x="{cx}" y="{cy + size / 3:.1f}" font-size="{size}" '
+                              f'font-weight="bold" text-anchor="middle" fill="#000000">'
+                              f'{html.escape(label)}</text></g>')
+            groups.append("</g>")
+        return groups
+
+    def room_ref(room):
+        return f'<a href="asm/{lists[room]}.html">${room:02X}</a>'
+
+    def rooms_of(key):
+        return ", ".join(room_ref(r) + (f" ({len(m)})" if len(m) > 1 else "")
+                         for r, m in sorted(layers[key].items()))
+
+    def where(key, name):
+        return next(r for r, m in layers[key].items() for _, t, _ in m if t.startswith(name))
+
+    # The key under the checkboxes: every layer's rooms, linked.
+    acg_rooms = [where("acg", f"A.C.G. key piece {i}") for i in (1, 2, 3)]
+    others = "; ".join(" ".join(f"${r:02X}" for r in s)
+                       for i, s in enumerate(extra["sets"]) if i != extra["acg_set"])
+    key_colours = {c: where("keys", f"the {c} key") for c in ("green", "red", "cyan", "yellow")}
+    monsters = [(m[0][1].split(":")[0], r) for r, m in layers["monsters"].items()]
+    order = [v[0] for v in BIG_FIVE.values()]
+    monsters.sort(key=lambda nr: order.index(nr[0]))
+    objects = sorted((t.split(": ")[0], r) for r, m in layers["objects"].items() for _, t, _ in m)
+    objects.sort(key=lambda tr: tr[0].split("($")[1])
+    key_lines = {
+        "acg": f"piece 1 in {room_ref(acg_rooms[0])}, piece 2 in {room_ref(acg_rooms[1])}, "
+               f"piece 3 in {room_ref(acg_rooms[2])}: set {extra['acg_set']} of the eight in "
+               f"{ref(KEY_ROOM_SETS)}. The other seven sets are " + others + ".",
+        "keys": ", ".join(f"{c} in {room_ref(r)}" for c, r in key_colours.items()) + ". "
+                + " ".join(f"The {c} key is always one of "
+                           + ", ".join(f"${r:02X}" for r in extra["choices"][c])
+                           + f" ({ref(KEY_ROOM_TABLES[c])})" + (", and the mummy goes with it" if c == "red" else "")
+                           + "." for c in ("green", "red", "cyan"))
+                + f" The yellow key's room is not chosen: it is always ${key_colours['yellow']:02X}.",
+        "objects": "; ".join(f"{t} in {room_ref(r)}" for t, r in objects) + ".",
+        "food": f"{sum(len(m) for m in layers['food'].values())} pieces in "
+                f"{len(layers['food'])} rooms: {rooms_of('food')}.",
+        "monsters": ", ".join(f"{n} in {room_ref(r)}" for n, r in monsters) + "."
+                    + (f" {extra['dracula_drawn'][0][0].upper()}{extra['dracula_drawn'][0][1:]} "
+                       f"wanders: by the time the rooms were drawn he was in "
+                       f"{room_ref(extra['dracula_drawn'][1])}, which is where the pictures "
+                       "show him." if extra["dracula_drawn"] else ""),
+        "mushrooms": f"{sum(len(m) for m in layers['mushrooms'].values())} in "
+                     f"{len(layers['mushrooms'])} rooms: {rooms_of('mushrooms')}.",
+        "start": rooms_of("start") + ".",
+        "acgdoor": " and ".join(f"{room_ref(r)}, " + ("the door itself" if r == 0 else "the passage beyond it")
+                                for r in sorted(layers["acgdoor"])) + ".",
+        "trapdoors": ", ".join(f"{room_ref(d['room'])} to ${d['to']:02X}"
+                               for d in sorted(doors, key=lambda d: d["room"])
+                               if d["kind"] == TRAPDOOR) + ".",
+    }
+
+    def swatch(key, hue):
+        if key == "keys":
+            stops = ", ".join(f"{INKS[a]} {25 * i}% {25 * (i + 1)}%" for i, a in enumerate((4, 2, 5, 6)))
+            return f"background: linear-gradient(90deg, {stops})"
+        return f"background: {hue}"
+
     out = ['<div class="map-intro">',
            "<p>The castle, worked out from its doors. The game itself has no map "
            "and no idea of a floor: every room has a list of what is in it "
@@ -2537,14 +2825,44 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
            "loop round, so some doors are long lines and some rooms have been "
            "moved to the nearest free square: &#8646; marks a door whose other "
            "side is somewhere the drawing could not put beside it.</p>",
-           "</div>"]
+           "<p>The markers along the top of a room are layers, each ticked on and off "
+           "below. They are read from the game's own records the moment "
+           f"{ref(0x7D9A)} has set a new game up -- after {ref(0x94B6)} has hidden "
+           f"the A.C.G. key, {ref(0x98D2)} has placed three of the coloured keys and "
+           "the mummy, and the template has been copied into place -- and each "
+           "thing is told by its handler: what "
+           f"{ref(PICK_UP)} runs for can be carried, {ref(EAT_FOOD)} is food, "
+           f"{ref(MUSHROOM)} a mushroom, and the big five each have a mover of their "
+           "own. The trapdoors and the A.C.G. door are the doors of those types. "
+           "Hold the pointer over a marker for what it is.</p>",
+           f"<p>This is the first game after loading. The key pieces and three of the "
+           "keys are placed by the frame counter, and the frame counter does not "
+           "move on the title screen, so the first game is always set out alike "
+           f"(FRAMES ${extra['frames']:04X} in this build's snapshot); later games "
+           "differ, and the key below says where else each could be. The names of "
+           "the other collectables describe their pictures on the "
+           '<a href="Sprites.html">Sprites</a> page: the game has no words for them.</p>',
+           "</div>",
+           '<div class="aa-layers">']
+    for key, what, hue, shown in MAP_LAYERS:
+        out.append(f'<input type="checkbox" class="aa-toggle" id="aa-layer-{key}"'
+                   f'{" checked" if shown else ""}><label for="aa-layer-{key}">'
+                   f'<span class="aa-key" style="{swatch(key, hue)}"></span>'
+                   f"{what} ({len(layers[key])})</label>")
+    out.append('<div class="aa-key">')
+    for key, what, hue, _ in MAP_LAYERS:
+        out.append(f'<p><span class="aa-key" style="{swatch(key, hue)}"></span>'
+                   f"<b>{what}</b>: {key_lines[key]}</p>")
+    out += ["</div>", '<div class="aa-map">']
     for level in sorted(set(floor.values()), reverse=True):
         rooms = [r for r in floor if floor[r] == level]
         xs = [position[r][0] for r in rooms]
         ys = [position[r][1] for r in rooms]
-        ox, oy = 12 - min(xs) * cell, 12 - min(ys) * cell
-        width = (max(xs) - min(xs)) * cell + box + 24
-        height = (max(ys) - min(ys)) * cell + box + 24
+        # Room above the top row for the layers' markers, and to the right of
+        # the last column for the slots that stand past the box's edge.
+        ox, oy = 12 - min(xs) * cell, 26 - min(ys) * cell
+        width = (max(xs) - min(xs)) * cell + box + 24 + 10
+        height = (max(ys) - min(ys)) * cell + box + 38
         svg = [f'<h2 id="floor{level}">{names.get(level, f"Floor {level}")} &ndash; {len(rooms)} rooms</h2>',
                f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
                f'viewBox="0 0 {width} {height}" style="max-width: 100%; height: auto; '
@@ -2569,17 +2887,25 @@ def write_map_ref(snapshot: Path, shapes: list[dict], path: Path) -> None:
                        f'stroke="{colour_}" stroke-width="{width_}"{dash}>'
                        f'<title>{DOOR_KINDS[d["kind"]]}: ${a:02X} to ${b:02X}</title></line>')
         svg += [room_svg(r, ox, oy) for r in sorted(rooms)]
+        svg += layer_svg(level, ox, oy)
         svg.append("</svg>")
         out += svg
+    out.append("</div></div>")
     unplaced = [r for r in range(ROOM_LIST_ENTRIES) if r not in floor]
     if unplaced:
         out.append("<p>Not reached by any door: " + ", ".join(
             f'<a href="asm/{lists[r]}.html">${r:02X}</a>' for r in unplaced) + ".</p>")
-    text = "\n".join(out).replace("#", "&#35;").replace("&&#35;", "&#")
+    missing = sorted({r for marks in layers.values() for r in marks if r not in floor})
+    if missing:
+        _log("  warning: layer markers for rooms not on the map: "
+             + ", ".join(f"${r:02X}" for r in missing))
+    text = "\n".join(out).replace("#", "&#35;").replace("&&#35;", "&#").replace("\x01", "#")
     path.write_text("; Generated by scripts/build_aticatac.py -- do not edit.\n\n"
                     "[Map]\n" + text + "\n", encoding="utf-8")
     _log(f"Mapping the castle: {len(floor)} rooms on {len(set(floor.values()))} floors, "
-         f"{len(doors) // 2} doors, {len(misfits)} that do not fit")
+         f"{len(doors) // 2} doors, {len(misfits)} that do not fit; layers: "
+         + ", ".join(f"{key} {sum(len(m) for m in layers[key].values())} in {len(layers[key])} rooms"
+                     for key, _, _, _ in MAP_LAYERS))
 
 
 ROOM_IMAGES = "images/rooms"
@@ -2645,6 +2971,23 @@ def render_rooms(snapshot: Path, out_dir: Path) -> None:
             writer.write_image([Frame(scr_udgs(machine.memory, 0, 0, 24, 24), 2)], f)
 
 
+# The generated pages beyond the ones above, each family in a module of its own
+# beside this script: build(snapshot, html_dir, log) draws its pictures and
+# records its sounds into html_dir and returns its ref sections, name to body.
+PAGE_MODULES = ["aticatac_howitworks", "aticatac_animations", "aticatac_reference"]
+
+
+def write_extra_pages(snapshot: Path, html_dir: Path, path: Path) -> None:
+    import importlib
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    sections = {}
+    for name in PAGE_MODULES:
+        sections.update(importlib.import_module(name).build(snapshot, html_dir, _log))
+    path.write_text("\n".join(f"[{name}]\n{body}\n" for name, body in sections.items()),
+                    encoding="utf-8")
+
+
 def build_html(skool: Path, out: Path, tape: Path) -> None:
     """Render the skool file as a browsable HTML disassembly.
 
@@ -2684,6 +3027,9 @@ def build_html(skool: Path, out: Path, tape: Path) -> None:
     sounds = record_sounds(snapshot, out / "aticatac" / "audio")
     write_sounds_ref(sounds, entry_addresses(OUT_DIR / "aticatac.ctl"), sounds_ref)
     args.append(str(sounds_ref))
+    extra_ref = OUT_DIR / "aticatac-extra.ref"
+    write_extra_pages(snapshot, out / "aticatac", extra_ref)
+    args.append(str(extra_ref))
     _capture(skool2html.main, args)
     render_shapes(snapshot, shapes, out / "aticatac" / "images" / "shapes")
     render_victory_screens(snapshot, out / "aticatac" / "images" / "bugs")

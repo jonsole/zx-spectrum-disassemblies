@@ -102,6 +102,9 @@ half, which is the landing spot in the room below.
 test for under 16. The right character: `OPEN_DOOR` and act as a door. Anyone
 else: `SHUT_DOOR` and just draw it. So the clocks, bookcases and barrels are
 secret passages for one character each ([`player.md`](player.md)).
+*Watched* live 2026-09-27: the knight, moved to room $0A and walking up into
+its bookcase, stopped at y $52; with the JR NC at $9435 NOPped he went
+through in 12 frames.
 
 ## How this was found
 
@@ -158,6 +161,11 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
   $B2, $B9 and $BC. Those are handler-table indices; the records' types are
   $10, $17 and $1A and their pictures $B1 (clock), $B8 (bookcase) and $BB
   (barrel), which is how the Graphics page names them.
+
+## Also found for the how-it-works pages (2026-09-27)
+
+- Trapdoors close far more often than once in 256 passes: room $03's closed 8 times in 60 s, reopening each time on the pass after `TICKS`' low byte came round to zero (*measured*).
+- `CHOOSE_TIMED_DOORS` at a new game made 47 of the 78 plain doors and 21 of the 42 cave doors timed, reading ROM bytes from $1F00; room $00's two timed doors toggled 94-96 passes apart (*measured*).
 
 ## Open questions
 

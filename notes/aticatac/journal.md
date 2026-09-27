@@ -162,3 +162,53 @@ exist yet.
   warnings against 11 before the edits, all 3 old (a graphic's shared bytes and
   two addresses in `DRAW_FOOD`'s note). The Sounds page now names the
   effects by what plays them; pages checked in headless Edge.
+
+## 2026-09-27, evening -- bugs, pokes and facts, checked live
+
+- **The reference module** `scripts/aticatac_reference.py` (new; the build
+  imports it through `PAGE_MODULES`): eight bugs, ten pokes and eleven facts
+  for SkoolKit's Bugs, Pokes and Facts pages, beside the ref's own
+  CONGRATULATIONT, its poke and seven facts. Every poke was tried live
+  against the same trial without it; every bug and fact says whether it was
+  read or watched. The one picture, the devil's and Frankenstein's caves on
+  arrival, is drawn by the game's own code in the simulator at build time.
+- **Driven live for the first time**, on a private zx_server
+  ([`driving.md`](driving.md), "Driven live"): the simulator's recipes held,
+  and the first game's rooms came out the same.
+- **New bugs, watched:** the first game is fixed (FRAMES frozen at $256F on
+  the title screen for 300 turns); fewer castles than it seems -- the green
+  and red keys, the mummy and the A.C.G. pieces share FRAMES AND 7, and the
+  cyan key, chosen from FRAMES' middle byte, stays in $91 unless a game over
+  caused in the main loop leaves interrupts on through the delay and the
+  title ([`loading.md`](loading.md), [`main-loop.md`](main-loop.md)); the
+  zero wrap, now caught with a watchpoint; one death costing two lives to a
+  mushroom; the first food record never regrowing (fix: POKE 39260,80);
+  two gravestones cancelling out ([`food-and-health.md`](food-and-health.md));
+  the devil and Frankenstein standing in their caves' rock, because the
+  hunters retreat to 52 pixels while the player rises or sinks and a cave's
+  floor stops at 40; Dracula heading for $8A, $46 off-screen
+  ([`monsters.md`](monsters.md)).
+- **Pokes, tested:** infinite life force (the four below together), no
+  hunger, harmless creatures, no creatures, the big five harmless, harmless
+  mushrooms, infinite lives, every locked door open, the A.C.G. door always
+  open, every secret passage for every character. The ref's own POKE
+  38687,211 was tried too: the end screen read CONGRATULATIONS.
+- **Corrected:** the comment at $8C4F and main-loop.md (GAME_OVER's delay
+  has interrupts off only after a hunger death); loading.md ("later games
+  differ" -- mostly they do not); monsters.md's "slightly smaller walk
+  rectangle" (52 or 56 pixels: 12 more than a cave's floor); the positions at
+  the first frame of play recorded in monsters.md and records.md (hunters at
+  $26, $36; Dracula already in $68); driving.md's win recipe (x $9C, y $7B
+  works only by being dropped into the door; walking in needs y $5C-$73);
+  a blank line before the ref poke's POKE; three sprite names in the
+  annotations -- the sword does not spin, the collectables kill only
+  Frankenstein's monster, and $94-$97 (a hooded figure in a robe with a cross)
+  had no name, so the Sprites page used its mover's.
+- **Answered:** Dracula's lost target is a slip (the mummy loads DE from the
+  same bytes; Dracula does not); walking through a locked door and a
+  character's secret passage, now watched; the humpback's loose limits never
+  bite (read).
+- **Open:** room $43's picture on the Map shows no devil, though he is there
+  live and in a simulated arrival; `render_rooms`' own run was repeated and
+  left his record in $43 at $25, $35. Not found why ([`monsters.md`](monsters.md)).
+- **Renamed (the lead):** the diagonal drawers, after the how-it-works build matched modes 3 and 6 pixel for pixel: mode 3 is `DRAW_FLIP_ANTIDIAGONAL` / `COLOURS_FLIP_ANTIDIAGONAL` / `DRAW_FLIP_ANTIDIAGONAL_OP` (were `DRAW_TRANSPOSED`...), mode 6 `DRAW_FLIP_DIAGONAL` / `COLOURS_FLIP_DIAGONAL` / `DRAW_FLIP_DIAGONAL_OP` (were `DRAW_ANTI_TRANSPOSED`...) -- the old names had the diagonals the other way round. The same build found no spawn grace in room $00, trapdoors closing far oftener than once in 256 passes, a rise of 77 frames not 72, and a colour block a cell short for an 18-row sprite; each is in its topic note.

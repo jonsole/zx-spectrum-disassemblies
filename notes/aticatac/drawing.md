@@ -43,13 +43,20 @@ $9985) by way of the `JP (HL)` at $5CB0:
 | 0 | `BLIT_SPRITE` $99C9 | `COLOURS_AS_STORED` $9D25 | as stored |
 | 1 | `BLIT_SPRITE_MIRRORED` $99E5: each row read backwards, each byte bit-reversed (`REVERSE_BITS`) | `COLOURS_MIRRORED` $9D47 | mirrored |
 | 2 | `DRAW_TURNED_RIGHT` $9A0A: each screen byte gathered from one bit of eight successive rows, starting at the right-hand column | `COLOURS_TURNED_RIGHT` $9D6F | turned a quarter clockwise |
-| 3 | `DRAW_TRANSPOSED` $9A50: the same from the left-hand column | `COLOURS_TRANSPOSED` $9DA0 | mirrored across its diagonal |
+| 3 | `DRAW_FLIP_ANTIDIAGONAL` $9A50: the same from the left-hand column | `COLOURS_FLIP_ANTIDIAGONAL` $9DA0 | mirrored across the bottom-left to top-right diagonal |
 | 4 | `DRAW_UPSIDE_DOWN` $9ACB: from the last row back (`START_AT_LAST_ROW`) | `COLOURS_UPSIDE_DOWN` $9DCE | upside down |
 | 5 | `BLIT_SPRITE_FLIPPED` $9AEF: mirrored and upside down | `COLOURS_HALF_TURN` $9DF8 | a half turn |
-| 6 | `DRAW_ANTI_TRANSPOSED` $9B14: mode 2's gathering, rows read top down | `COLOURS_ANTI_TRANSPOSED` $9E21 | mirrored across the other diagonal |
+| 6 | `DRAW_FLIP_DIAGONAL` $9B14: mode 2's gathering, rows read top down | `COLOURS_FLIP_DIAGONAL` $9E21 | mirrored across the top-left to bottom-right diagonal: a transpose |
 | 7 | `DRAW_TURNED_LEFT` $9B5D: mode 3's gathering, rows read top down | `COLOURS_TURNED_LEFT` $9E55 | turned a quarter anticlockwise |
 
-(The last column was worked out on 2026-09-27 by following where each loop
+(Modes 2, 3, 6 and 7 are now *measured*: the how-it-works build drew the suit
+of armour and a door through each drawer and matched the result pixel for pixel
+against the eight symmetries of the stored picture. That showed the diagonals
+the other way round from the old names, so mode 3's routines are now
+`DRAW_FLIP_ANTIDIAGONAL` / `COLOURS_FLIP_ANTIDIAGONAL` (were `DRAW_TRANSPOSED` /
+`COLOURS_TRANSPOSED`) and mode 6's `DRAW_FLIP_DIAGONAL` / `COLOURS_FLIP_DIAGONAL`
+(were `DRAW_ANTI_TRANSPOSED` / `COLOURS_ANTI_TRANSPOSED`). Modes 1 and 6 appear in
+no template record. The last column was first worked out on 2026-09-27 by following where each loop
 puts the source's corners: in mode 2 the source's bottom edge, its first row,
 becomes the left edge and its right-hand column the bottom row; *read*. The
 colour drawers walk their tables in the same orders.)
@@ -127,7 +134,7 @@ Applied to the annotations on 2026-09-27; the build verified byte for byte.
 | `ERASE_ROWS`, `DRAW_ROWS` (equates) | `CLIP_COUNT`, `CLIP_LIMIT` | $5E18, $5E19 | rows still to erase and to draw |
 | `ERASE_SHIFT_CHAIN` | `SHIFT_CHAIN_2` | $9EE6 | the erase path's shifts |
 | `ERASE_UNSHIFTED`, `DRAW_UNSHIFTED` | `PLOT_XOR`, `PLOT_XOR_2` | $9ECE, $9F13 | where the patched jumps land when no shift is needed |
-| `DRAW_TURNED_RIGHT`, `DRAW_TRANSPOSED`, `DRAW_UPSIDE_DOWN`, `DRAW_ANTI_TRANSPOSED`, `DRAW_TURNED_LEFT` | `DRAW_PIXELS_2`, `_3`, `_4`, `_6`, `_7` | $9A0A, $9A50, $9ACB, $9B14, $9B5D | furniture pixels in modes 2, 3, 4, 6, 7 (and their `_OP` labels) |
+| `DRAW_TURNED_RIGHT`, `DRAW_FLIP_ANTIDIAGONAL`, `DRAW_UPSIDE_DOWN`, `DRAW_FLIP_DIAGONAL`, `DRAW_TURNED_LEFT` | `DRAW_PIXELS_2`, `_3`, `_4`, `_6`, `_7` | $9A0A, $9A50, $9ACB, $9B14, $9B5D | furniture pixels in modes 2, 3, 4, 6, 7 (and their `_OP` labels) |
 | `COLOURS_AS_STORED` ... `COLOURS_TURNED_LEFT` | `DRAW_COLOURS_0` ... `_7` | $9D25-$9E55 | furniture colours in the eight modes |
 | `COLOUR_FILLERS` | `FILL_HANDLERS` | $A064 | the nine attribute fillers, by direction of movement |
 | `COLOUR_STILL`, `COLOUR_MOVED_RIGHT`, `COLOUR_MOVED_LEFT`, `COLOUR_MOVED_DOWN`, `COLOUR_MOVED_DOWN_RIGHT`, `COLOUR_MOVED_DOWN_LEFT`, `COLOUR_MOVED_UP`, `COLOUR_MOVED_UP_RIGHT`, `COLOUR_MOVED_UP_LEFT` | `FILL_ATTRS`, `FILL_ATTRS_BACK`, `FILL_ATTRS_2`, `FILL_ATTRS_3`, `FILL_ATTRS_ALT`, `FILL_ATTRS_4`, `FILL_ATTRS_ROW`, `FILL_ATTRS_ROW_3`, `FILL_ATTRS_ROW_2` | $A07A, $A08D, $A0A3, $A0B7, $A0D2, $A110, $A0EC, $A127, $A0FE | the fillers |
@@ -164,6 +171,11 @@ used here).
   sprites. Both reworded. (Its "fourteen graphics below $AD2E" was not
   re-checked and is left.)
 - `PIXEL_MASK` also plotted the pixel; now `PLOT_PIXEL`.
+
+## Also found for the how-it-works pages (2026-09-27)
+
+- `DRAW_FROM_RECORD`'s colour block can be a cell short: the knight is 18 rows tall and gets three cells of colour, so at y $88, straddling four cells, his top line stays in the room's colour (two pixels seen) (*measured*).
+- A room's arrival costs about 1.56M T-states, 40% of it the outline and 342k the A.C.G. door alone; a pass of ordinary play about 165k, 35% of it the player's, led by `TEST_ROOM_BOXES` (*measured*, no contention).
 
 ## Open questions
 

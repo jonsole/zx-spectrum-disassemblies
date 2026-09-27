@@ -19,8 +19,10 @@ The Hobbit's, Atic Atac's, Ant Attack's and Knight Lore's HTML disassemblies are
 page on how the game works and deep dives on the parser, the characters,
 fighting, the text and the pictures; a map with its layers, and pages for its
 locations (with their pictures), objects, characters and actions; animations,
-a page on its sound (there is none), and its bugs, tested pokes and trivia; Atic Atac with its loader, room
-types, sprites, graphics and sounds; Ant Attack with how it works (drawing, movement,
+a page on its sound (there is none), and its bugs, tested pokes and trivia; Atic Atac with how it works (drawing,
+movement, the monsters, doors and keys, the quest), the castle map with its layers,
+its loader, room types, sprites, graphics, animations and sounds, and its bugs,
+tested pokes and trivia; Ant Attack with how it works (drawing, movement,
 the ants, grenades, rescue), the city map with its layers and drawn whole in
 the game's own projection, its levels, sprites, animations, sounds and
 scripts, and its bugs, pokes and trivia;

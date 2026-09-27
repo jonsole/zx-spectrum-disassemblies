@@ -88,18 +88,41 @@ exempt from that test (the mask at $8530).
 
 **The big five** (slots $EE90-$EED0, dispatched every pass wherever they
 are; *read* unless marked). Each uses `HOME_IN` ($882D) -- velocity +/-1 per
-axis towards a target, so a pixel a pass -- and a slightly smaller walk
-rectangle. While the player is not in play, the four hunters turn their
-velocity round and move away instead (`BIG_MONSTER_STEP` $89BB). None tests
-for the weapon.
+axis towards a target, so a pixel a pass -- and a walk rectangle of its own,
+the half-extents in DE handed to `STEP_ACTOR` ($84CD): 52 pixels from the
+centre ($3434) for Dracula, Frankenstein and the devil, and for all four
+hunters while they retreat; 56 ($3838) for the mummy otherwise. That is
+smaller than (for the mummy, the same as) a square hall's 56, but 12 pixels
+larger than a cave's floor, which stops at 40 -- and the devil and
+Frankenstein live in caves (*read*; see below). While the player is not in
+play, the four hunters turn their velocity round and move away instead
+(`BIG_MONSTER_STEP` $89BB). None tests for the weapon.
+
+**Where they are when play starts** (*measured* live, 2026-09-27, first game
+after loading, at the first `FRAME_TICK` in play). The template puts the four
+hunters at x $50, y $50; by the first frame in play all four read x $26,
+y $36, because they spent the player's first rise backing away from him (he
+rises at $60, $68) to about 50 pixels up and left of the centre. Dracula had
+also already moved: his record read room $68, not the template's $6D. The
+humpback read $58, $3A (template $58, $38). So on first arriving in the
+devil's cave ($43) or Frankenstein's ($55) the monster stands in the rock
+(*watched*: -49, -49 after the first pass; the Bugs page draws both with the
+game's own code), and when the player dies in the devil's cave the devil
+backs off to +51, +51, into the rock opposite (*watched*).
 
 - **The mummy** (`MOVE_MUMMY` $8862), put in the red key's room by
   `PLACE_KEYS`. If object $80 is in its room it walks to it and, on reaching
   it, moves it to room $6B. Otherwise, while the red key is in its room, it
   walks back and forth between two points; once the key has gone it sets bit 7
   of +$06 and hunts the player for the rest of the game. Touch: 8 a pass.
+  (*Watched* live 2026-09-27: object $80 put in the mummy's room at x $80,
+  y $90 was reached in 148 frames and its room byte became $6B, x and y
+  unchanged. Its starting room, $09, is one of the mummy's eight.)
 - **Dracula** (`MOVE_DRACULA` $8906), starting in room $6D. Touch: 8 a pass.
-  Carrying the yellow crucifix ($8A) makes him run from the player. In the
+  Carrying the yellow crucifix ($8A) makes him run from the player
+  (*watched* live: put 12 pixels away, he closed in and had the life force
+  down to 4 in 80 frames; with the crucifix carried he backed off to 48
+  pixels). In the
   player's room he hunts. Elsewhere, on a pass that falls in the frame when
   FRAMES is 0, he picks a random room 0-127 and moves there if it is a
   square, cave or octagonal room ($00-$02) and not the player's -- so he
@@ -114,12 +137,15 @@ for the weapon.
 - **The humpback** (`MOVE_HUMPBACK` $8AFF), room $56: if one of the eight
   collectables $82-$89 is in its room it walks to it and takes it (the
   record is emptied -- the object is gone for good); otherwise it stands
-  still. Touch: 16 a pass (`LOSE_FOOD_SIXTEEN`). While the player is not in play it
+  still (*watched* live: object $82 put in room $56 was gone 40 frames
+  later). Touch: 16 a pass (`LOSE_FOOD_SIXTEEN`). While the player is not in play it
   walks to the top of the room.
 
 The hunters head for the player's x and y even from another room, so they
 are wherever the player was last standing, relative to the room, when he
-comes back (*read*).
+comes back (*read*) -- except Dracula away from the player, who heads for
+x $8A, y $46 (see the open questions), and except while the player is
+rising or sinking, when all four back away from him (above).
 
 ## How this was found
 
@@ -176,13 +202,39 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
 - `MONSTER_TEMPLATE`: "+$02 holds $5C, the spider". The spawner always
   overwrites +$02 from `SPAWN_TYPES`; the template's value is never used.
 
+## Also found for the how-it-works pages (2026-09-27)
+
+- No spawn grace in the starting room: `CLEAR_VARIABLES` leaves `SPAWN_ROOM` at 0 and the countdown at 0, so in room $00 the first creature came 0.18 s in -- not after 32 frames (*measured*).
+- Dracula's off-screen wandering, 60 s of it: 22 moves, all into rooms of shape $00-$02 (*measured*).
+
 ## Open questions
 
 - Room $6B, where the mummy sends object $80: whether anything is there for
   the player (not looked at).
-- `MOVE_DRACULA` at $8952 stores the room centre as his target in +$0B/+$0C
-  but calls `HOME_IN` with DE still holding the crucifix test's $468A, so
-  off-screen he heads for x $8A, y $46. Harmless, since he is not drawn;
-  a slip, or meant?
+- ~~`MOVE_DRACULA` at $8952 ... a slip, or meant?~~ Answered 2026-09-27: a
+  slip. `MOVE_MUMMY` keeps its targets in the same +$0B/+$0C and loads DE
+  from them ($8895) before calling `HOME_IN`; Dracula's routine writes $68,
+  $68 there and lacks the loads, so DE still holds the crucifix test's $468A
+  (*read*). *Watched* live over 600 frames: in room $68 he walked from x $27,
+  y $37 to x $8A, y $46 a pixel a pass and kept it through moves to rooms $17,
+  $45 and $55, with +$0B/+$0C reading $68 throughout. Not quite harmless: $55
+  is a cave, and x $8A is 50 pixels right of the centre, in its rock. On the
+  Bugs page as "Dracula forgets where he was going".
 - The humpback's walk limits ($3C, 60) exceed the square hall's 56; whether it
-  can be seen standing in a wall has not been checked.
+  can be seen standing in a wall has not been checked. Partly answered
+  2026-09-27 (*read*): it only moves towards a target -- a collectable lying
+  in its room, or x $58, y $3A while the player is not in play -- and all of
+  those are inside the hall's walk area, so the looser limits should never
+  come into play. (It read x $58, y $3A at the first frame of a game,
+  *measured*.)
+- **Room $43's picture on the Map shows no devil** (open, 2026-09-27). He is
+  there: the record reads room $43, x $26, y $36 from the first frame in play
+  (*measured* live), arriving in the cave live shows him in the rock at the
+  top left, and so does a simulated arrival with the knight in play and the
+  first pass of `MAIN_LOOP` run (the Bugs page's cave pictures).
+  `render_rooms`' own run -- the player's sprite 0, 0.4 s from `ARRIVE_IN_ROOM`
+  -- was repeated in the simulator and left the record at room $43, x $25,
+  y $35, yet room43.png has no devil in it, while room55.png does show
+  Frankenstein's monster in the same corner. Why not was not found; sprite 0
+  counts as "in play" for `BIG_MONSTER_STEP` (below $31) but not for
+  `CHECK_HIT`, which may matter.

@@ -49,14 +49,23 @@ record of its own ([`player.md`](player.md)).
 | $EE60 | $63DD | eight monster slots, 16 bytes: three for spawned creatures, then the mummy, Dracula, the devil, Frankenstein's monster, the humpback | `MAIN_LOOP_MONSTERS`, every pass |
 | $EEE0 | $645D | 274 sixteen-byte door and furniture records, one half per room | the room lists only |
 
+The template is not what the first frame of play shows (*measured* live,
+2026-09-27, first game after loading): the four big hunters, at x $50, y $50
+in the template, all read x $26, y $36 by then, having backed away from the
+player during his first rise, and Dracula's room read $68 rather than the
+template's $6D -- he had already made one of his random moves
+([`monsters.md`](monsters.md)). The gravestone slots are never emptied, so a
+game has four gravestones at most, and the first food record, $EB58, is
+never refilled once eaten (the Bugs page, [`food-and-health.md`](food-and-health.md)).
+
 **The type is the sprite** (*read*). `ACTOR_HANDLERS` has 202 entries, in runs
 because the low bits of a code are the animation frame or the heading: $01-$10
 the knight, $11-$20 the wizard, $21-$30 the serf (sixteen each, four
 headings of four frames); $31 the drop controller; $32-$33 and $48-$4B the
 title screen's pictures; $34-$47 the three weapons; $4C-$4F, $5C-$63,
-$68-$6B and $90-$9F the small creatures; $50-$57 food; $58-$5B a creature arriving;
+$68-$6B and $90-$9B the small creatures; $9C-$9F the humpback (its handler is MOVE_HUMPBACK, $8AFF -- corrected 2026-09-27, from the map layers); $50-$57 food; $58-$5B a creature arriving;
 $64, $65 and $A0 sounds; $66 and $67 the player rising and sinking; $6C-$6F a
-burst; $70-$7F the four big monsters; $80-$8E collectables; $8F a gravestone;
+burst; $70-$7F the four other big monsters; $80-$8E collectables; $8F a gravestone;
 $A1 a mushroom. Codes nothing uses point at `INERT_SPRITE` ($807A). So "is
 the player in play" is one compare: the player's sprite is $01-$30 (*read*).
 

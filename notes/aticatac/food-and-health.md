@@ -39,7 +39,11 @@ more (the food cap is 240). Staged in the simulator: a devil's touch at 8
 left 0; with the devil moved away, the drain at $8E88 took it to 255 and
 counting down. Another touch before that drain would kill instead
 (0 - 8 borrows). `LOSE_FOOD_THIRTY_TWO` does test for zero, so small creatures cannot
-cause it.
+cause it. *Watched* live too (2026-09-27), with a watchpoint on $5E28: set to
+8 with the devil on the player, the store at $8A25 wrote 0; with the devil
+sent home, the next write was $8E88's, 0 to 255, then 254, and the roast was
+drawn whole. On the Bugs page as "A touch that leaves nothing fills the
+roast".
 
 **Food** (`EAT_FOOD` $8C63, *read*): eighty records, ten each of eight kinds
 ($50-$57), each in its room. Standing within 12 pixels: erased, its slot
@@ -50,13 +54,26 @@ every 512 passes a cursor steps to the next of the eighty food slots
 player's room, it is refilled with a random kind, $50 + FRAMES AND 7, in its
 old place. Staged: an emptied slot in room $27 came back after the cursor
 reached it. A whole round of the eighty takes 40960 passes, about half an
-hour at 23 passes a second.
+hour at 23 passes a second. Except the first record, $EB58 (room $27): the
+cursor steps before it looks, and on reaching $EDD8 it is reset to $EB58 and
+the routine returns without looking, so the next step goes to $EB60 --
+`START_GAME` starts it at $EB58 too. Once eaten, that food never comes back
+(*read*, then *watched* live 2026-09-27: with $EB58 and $EB60 emptied and the
+cursor on the last slot, $EB60 was refilled and $EB58 stayed empty; setting
+the reset to $EB50, POKE 39260,80, refilled it at the next step).
 
 **Mushrooms** (`MUSHROOM` $988B, *read*): sixteen, sprite $A1. While the
 player is within 12 pixels, one unit a pass and sound $64; when that reaches
 zero, the mushroom is erased and removed, and the life is lost. Otherwise its
 colour cycles red, magenta, yellow, magenta every fourth pass. There is no
-in-play test, so a mushroom drains a rising or sinking player too.
+in-play test, so a mushroom drains a rising or sinking player too -- and
+that can cost a second life. A death by hunger or by a big monster leaves the
+life force where it was (neither stores the last value), so a mushroom within
+12 pixels of the body counts the rest down while he sinks and, at zero, calls
+`LOSE_LIFE` again and vanishes (*watched* live 2026-09-27: beside the
+mushroom in the devil's cave, room $43, the devil's death ran `LOSE_LIFE`
+with 6 units left and three spare lives, and a few passes later the mushroom
+ran it again, the player still sinking: lives 3 to 1, mushroom gone).
 
 **Dying** (*read*, then *measured*). `LOSE_LIFE` ($8EA0): with no lives left,
 `GAME_OVER`; otherwise one fewer, the player's +$07 = the character's sprite,
@@ -65,10 +82,11 @@ found the zero, the player is put back where the frame started (from the
 workspace). Then `DYING` ($8D45) lowers the figure one row on three frames in
 four (on the fourth it only changes colour), and at the bottom
 `DROP_GRAVESTONE` ($95A9) leaves a gravestone ($8F, cyan) in the first free of
-four slots at the spot -- none if all four are used -- and `PLACE_PLAYER`
-starts a new life in the same room ([`player.md`](player.md)): 104 frames
+four slots at the spot -- none if all four are used; the slots are never
+emptied -- and `PLACE_PLAYER` starts a new life in the same room, always at
+x $60, y $68, the template's place ([`player.md`](player.md)): 104 frames
 of the score flashing, then the rise, one row every four frames. Measured
-for the knight (18 rows): sinking 25 frames, flashing 105, rising 72 -- about
+for the knight (18 rows): sinking 25 frames, flashing 105, rising 72 (77 in the how-it-works run; see below) -- about
 four seconds from death to control. While sinking and rising, the small
 creatures in the room are destroyed ([`monsters.md`](monsters.md)).
 
@@ -130,10 +148,19 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
   rising" -- the flash is the start of every life (`PLACE_PLAYER` sets
   `FLASH_COUNT` $5E3C to 104), not a bonus.
 
+## Also found for the how-it-works pages (2026-09-27)
+
+- A death followed through its phases: sinking 25 frames, flashing 104, rising 77 for the knight -- not 72 (*measured*); a full life force drains in about 82 s of ordinary play.
+
 ## Open questions
 
 - The zero wrap is a bug by any reading; a poke to test would make
   `LOSE_FOOD_EIGHT`'s `JR C` a `JR Z`-and-`JR C` pair, which needs more bytes than
-  are there. Not tried.
+  are there. Not tried. (The wrap itself is now *watched* live: above.)
 - Whether the gravestones (at most four) ever block or matter: their handler
-  only draws them.
+  only draws them. Partly answered 2026-09-27: they block nothing (*read*),
+  but they are drawn with XOR, and since every new life rises at the same
+  place, dying twice without moving puts two in exactly the same spot and they
+  cancel out (*watched* live: three hunger deaths standing still -- a
+  gravestone after the first, none after the second with two records at the
+  same room, x and y, one again after the third).

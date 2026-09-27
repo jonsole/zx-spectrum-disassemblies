@@ -68,8 +68,29 @@ frozen since `ENTRY`, those choices depend only on how many frames the
 loader and decryptor took. The build's snapshot has FRAMES = $256F (seventeen
 frames after the poke), and starting a game from it put the pieces in rooms
 $17, $10 and $2B, the green key in $22, the red key and the mummy in $85, the
-cyan key in $91 -- every time, whatever was pressed on the menu and when.
-Later games differ, because FRAMES runs during play. On a real Spectrum the
+cyan key in $91 -- every time, whatever was pressed on the menu and when
+(*watched* live as well, 2026-09-27: FRAMES read $256F on the title screen
+and still did after 300 turns of its loop; a game as the knight and another
+after a different control option and the serf both had those rooms).
+
+**Later games differ less than they seem** (*read*, then *watched* live,
+2026-09-27; the Bugs page's "Fewer castles than it seems"). Only FRAMES' low
+byte runs in play, and `TICK_CLOCK` ($95DA) takes 50 off it every second, so
+it never carries into the middle byte ($5C79). `PLACE_KEYS` chooses the cyan
+key from that middle byte, so the cyan key stays in $91 game after game. The
+middle byte moves only while interrupts are on outside play: after a game
+over caused in the main loop (a creature, a big monster, a mushroom), whose
+ten-second delay and following title screen run with interrupts on
+([`main-loop.md`](main-loop.md)). A hunger death or a win leaves FRAMES
+frozen until the next game. And because `TICKS` has just been cleared, the
+green key, the red key with the mummy and the set of rooms for the A.C.G.
+pieces all come from one index, FRAMES AND 7 -- eight arrangements, each
+with the same partners -- while the timed doors come from FRAMES AND 15.
+Watched: after six games over by hunger the cyan key was in $91 every time
+and the rest followed FRAMES AND 7; after six by the devil, FRAMES' middle
+byte reached $26-$28 and the cyan key went to $4C and $53.
+
+On a real Spectrum the
 count after the last block is also fixed, so the first game should be the
 same on every load (*assumed*: it depends on the BASIC and the decryptor
 taking the same number of frames there as in the simulated load).
@@ -106,6 +127,10 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
 
 - None about the loader. (`ROTATING_INDEX`, one of the three choosers, was
   misnamed and is now `PLACE_ACG_KEY`: see [`acg-key-and-winning.md`](acg-key-and-winning.md).)
+- This note said "Later games differ, because FRAMES runs during play". Only
+  the low byte runs: the cyan key stays put unless a main-loop death's game
+  over lets the middle byte move, and the other keys and the pieces share
+  one index (above; corrected 2026-09-27).
 
 ## Open questions
 

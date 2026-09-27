@@ -586,7 +586,7 @@ D $8C35 Note the second and third instructions: the tile source has to be pointe
   $8C3E,6 "GAME OVER", centred above the figures.
   $8C47,3 TIME, SCORE and the proportion of the castle seen.
   $8C4A,5 A delay, and a long one: twenty times round a full 16-bit count.
-  $8C4F,7 Twenty times 65536 turns of 26 T-states: about ten seconds (9.8 s from here to the title, measured in the simulator), with interrupts off because the death happened inside FRAME_TICK.
+  $8C4F,7 Twenty times 65536 turns of 26 T-states: about ten seconds (9.8 s from here to the title, measured in the simulator). Whether interrupts are on depends on what took the last life. Hunger kills inside FRAME_TICK, which has done a DI, so they are off and FRAMES stands still through this delay and the title screen after it; a creature, a big monster or a mushroom kills from the main loop, with interrupts on, and FRAMES counts all the way through both (measured live: about 500 frames by the title).
 
 @ $9641 label=DRAW_SUMMARY
 c $9641 Print the three end-of-game figures
@@ -777,7 +777,7 @@ D $8D32 +$07 has been carrying the character's sprite since LOSE_LIFE put it the
 
 ; sprite $6C-$6F Burst, expanding
 ; sprite $34-$37 Spell, thrown by the wizard
-; sprite $38-$3F Sword, spinning, thrown by the serf
+; sprite $38-$3F Sword, thrown by the serf, pointing the way it flies (it changes angle only on a bounce)
 ; sprite $40-$47 Axe, spinning, thrown by the knight
 ; sprite $48-$49 Keyboard icon, in two halves
 ; sprite $4A-$4B Joystick icon, in two halves
@@ -795,9 +795,10 @@ D $8D32 +$07 has been carrying the character's sprite since LOSE_LIFE put it the
 ; sprite $74-$77 Frankenstein's monster
 ; sprite $78-$7B Devil
 ; sprite $7C-$7F Dracula
-; sprite $80-$8E Collectables: keys, and the objects that kill the mummy, Dracula, the devil and Frankenstein's monster
+; sprite $80-$8E Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix Dracula flees, the spanner that kills Frankenstein's monster, the mummy's lure, and eight that only the humpback wants
 ; sprite $8F Gravestone, left where the player died
 ; sprite $90-$93 Witch
+; sprite $94-$97 Hooded figure in a robe with a cross on it, facing the way it flies
 ; sprite $98-$9B Bat, a third kind
 ; sprite $9C-$9F Humpback
 # $AE-$B1, $B2, $B9 and $BC were named here as doors. They are not: drawn at
@@ -1311,22 +1312,22 @@ D $8B6A The sprite is $58 -- not a creature but the arrival animation, so a new 
 c $9A0A Drawing mode 2: furniture's pixels turned a quarter clockwise
 D $9A0A Entry 2 of PIXEL_DRAWERS. Each screen byte is gathered a bit at a time from one bit column of eight successive rows, starting from the right-hand column, so the source's bottom edge ends up on the left: the picture turned a quarter clockwise. The combining instruction is patched in by SPRITE_COMBINE_OPCODE, as in every routine of the two tables.
 
-@ $9A50 label=DRAW_TRANSPOSED
-c $9A50 Drawing mode 3: furniture's pixels transposed
-D $9A50 Entry 3 of PIXEL_DRAWERS. Gathers bits as DRAW_TURNED_RIGHT does, but from the left-hand column rightwards: the picture mirrored across its diagonal.
+@ $9A50 label=DRAW_FLIP_ANTIDIAGONAL
+c $9A50 Drawing mode 3: furniture's pixels mirrored across the bottom-left to top-right diagonal
+D $9A50 Entry 3 of PIXEL_DRAWERS. Gathers bits as DRAW_TURNED_RIGHT does, but from the left-hand column rightwards: the picture mirrored across the diagonal from its bottom-left to its top-right corner. (Matched pixel for pixel against the stored picture by the how-it-works build, 2026-09-27; renamed from the transposed names, which had the diagonals the other way round.)
 
 @ $9ACB label=DRAW_UPSIDE_DOWN
 c $9ACB Drawing mode 4: furniture's pixels upside down
 D $9ACB Entry 4 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
 
 ; span $9B14,73
-@ $9B14 label=DRAW_ANTI_TRANSPOSED
-c $9B14 Drawing mode 6: furniture's pixels transposed the other way
-D $9B14 Entry 6 of PIXEL_DRAWERS. DRAW_TURNED_RIGHT's bit gathering, reading the rows from the top down: the picture mirrored across its other diagonal.
+@ $9B14 label=DRAW_FLIP_DIAGONAL
+c $9B14 Drawing mode 6: furniture's pixels mirrored across the top-left to bottom-right diagonal
+D $9B14 Entry 6 of PIXEL_DRAWERS. DRAW_TURNED_RIGHT's bit gathering, reading the rows from the top down: the picture mirrored across its leading diagonal, top-left to bottom-right -- a transpose. (Matched pixel for pixel against the stored picture by the how-it-works build, 2026-09-27; renamed from the transposed names, which had the diagonals the other way round.)
 
 @ $9B5D label=DRAW_TURNED_LEFT
 c $9B5D Drawing mode 7: furniture's pixels turned a quarter anticlockwise
-D $9B5D Entry 7 of PIXEL_DRAWERS. DRAW_TRANSPOSED's bit gathering, reading the rows from the top down: the picture turned a quarter anticlockwise.
+D $9B5D Entry 7 of PIXEL_DRAWERS. DRAW_FLIP_ANTIDIAGONAL's bit gathering, reading the rows from the top down: the picture turned a quarter anticlockwise.
 
 @ $9D25 label=COLOURS_AS_STORED
 c $9D25 Drawing mode 0: furniture's colours as stored
@@ -1340,8 +1341,8 @@ D $9D47 Entry 1 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then c
 c $9D6F Drawing mode 2: furniture's colours turned a quarter clockwise
 D $9D6F Entry 2 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies row by row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
 
-@ $9DA0 label=COLOURS_TRANSPOSED
-c $9DA0 Drawing mode 3: furniture's colours transposed
+@ $9DA0 label=COLOURS_FLIP_ANTIDIAGONAL
+c $9DA0 Drawing mode 3: furniture's colours mirrored across the bottom-left to top-right diagonal
 D $9DA0 Entry 3 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies row by row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
 
 @ $9DCE label=COLOURS_UPSIDE_DOWN
@@ -1352,8 +1353,8 @@ D $9DCE Entry 4 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then c
 c $9DF8 Drawing mode 5: furniture's colours turned a half turn
 D $9DF8 Entry 5 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies row by row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
 
-@ $9E21 label=COLOURS_ANTI_TRANSPOSED
-c $9E21 Drawing mode 6: furniture's colours transposed the other way
+@ $9E21 label=COLOURS_FLIP_DIAGONAL
+c $9E21 Drawing mode 6: furniture's colours mirrored across the top-left to bottom-right diagonal
 D $9E21 Entry 6 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies row by row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
 
 @ $9E55 label=COLOURS_TURNED_LEFT
@@ -2104,10 +2105,10 @@ W $A64E,78,8
 @ $99D7 label=BLIT_SPRITE_OP
 @ $99F9 label=BLIT_MIRRORED_OP
 @ $9A36 label=DRAW_TURNED_RIGHT_OP
-@ $9A78 label=DRAW_TRANSPOSED_OP
+@ $9A78 label=DRAW_FLIP_ANTIDIAGONAL_OP
 @ $9ADD label=DRAW_UPSIDE_DOWN_OP
 @ $9B06 label=BLIT_FLIPPED_OP
-@ $9B43 label=DRAW_ANTI_TRANSPOSED_OP
+@ $9B43 label=DRAW_FLIP_DIAGONAL_OP
 @ $9B88 label=DRAW_TURNED_LEFT_OP
 @ $96C6 label=SET_BIT_OP
 @ $9C3D label=FROM_VERTEX_X

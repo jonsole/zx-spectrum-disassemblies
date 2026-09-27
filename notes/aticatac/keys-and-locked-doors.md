@@ -63,7 +63,10 @@ rooms were read from the simulator's memory after `START_GAME`.
 ## Confidence
 
 *Read*; the room choices *measured* for the first game only. Walking through
-a locked door was not staged.
+a locked door was *watched* live on 2026-09-27: walking up into room $00's
+cyan door with no key stopped at y $32; with the cyan key staged in the first
+inventory slot the player went through in 33 frames (and with the Pokes
+page's `DOOR_NEEDS_KEY` poke and no key, the same 33 frames).
 
 ## Disassembly corrections
 
@@ -81,4 +84,4 @@ All applied to the annotations, the ref and the build on 2026-09-27 (the old nam
 ## Open questions
 
 - None about the mechanism. The eight candidate rooms per key are the three
-  tables in the listing; the map does not yet show them as a layer.
+  tables in the listing; the Map page's key line lists every key's eight rooms, and its layer marks where the first game puts each (2026-09-27).
