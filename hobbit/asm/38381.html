@@ -34,10 +34,10 @@ Next: <a href="38443.html">962B</a>
 Used by the routines at <a href="28971.html">NARRATE_ACTION</a>, <a href="33291.html">CLEAR_CANVAS</a>, <a href="36253.html">MOVE</a>, <a href="38159.html">DO_ACTION</a>, <a href="39682.html">NOTE_LIGHT</a> and <a href="41958.html">DO_CAPTURE</a>.
 </div>
 <div class="paragraph">
-Characters are never in the dark: anyone but the player gets "no" at once. The player can see if inside something, or if the room is lit -- bit 7 of the first byte of its record. Otherwise only the short strong sword helps: it has to be with the player, and its flag byte at <a href="49925.html#49932">SHORT_STRONG_SWORD_FLAGS</a> must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and carrying it lights every dark place.
+Characters are never in the dark: anyone but the player gets "no" at once. A player shut inside something that cannot be seen into (SHUT_IN) skips the room's light altogether, so a closed barrel is dark inside even in a lit room; otherwise the player can see if the room is lit -- bit 7 of the first byte of its record. Failing that only the short strong sword helps: it has to be within the player's reach (lying in the same room will do), and its flag byte at <a href="49925.html#49932">SHORT_STRONG_SWORD_FLAGS</a> must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and having it at hand lights every dark place. The torch has the same flags, but only the sword is tested. Tried in the simulator: with the sword lying in the trolls' cave the cave could be seen, and with it moved out it could not; and a player who climbed into the barrel in Bag End and closed it was in the dark, and could not then OPEN it, since OPEN needs light and the barrel is not carried.
 </div>
 <div class="paragraph">
-Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
+Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, the large dry cave, the big goblins' cavern, the dark winding passage, inside the goblins' gate, fifteen identical dark stuffy passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
 </div>
 <div class="paragraph">
 What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
@@ -86,7 +86,7 @@ What depends on it: MOVE, which in the dark throws the direction away and picks 
 <td class="asm-label"></td>
 <td class="address-1"><span id="38389"></span>95F5</td>
 <td class="instruction">LD IX,<a href="49435.html">PLAYER</a></td>
-<td class="comment-1" rowspan="4">The player shut inside something can see</td>
+<td class="comment-1" rowspan="4">Shut inside something closed? Then the room's light does not count: only the sword</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

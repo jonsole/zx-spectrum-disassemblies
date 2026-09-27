@@ -37,7 +37,7 @@ Used by the routine at <a href="38926.html">CHARACTERS_ACT</a>.
 Four bytes, then a 2-byte fallback if bit 4 is set. With bit 0 clear they are the action code and its two objects, tried as the character's own sentence. With bit 0 set, bytes 1 and 2 are the address of a routine instead: it is run once with printing off as a test, and only if it reports success by setting <a href="46810.html#46843">SUCCEEDED</a> is it run again for real.
 </div>
 <div class="paragraph">
-A step that succeeds with bit 5 set takes the character out of the story: its slot is emptied and it never acts again.
+A step that succeeds with bit 5 set is used up: the LD (IX+$00),$00 near its end writes zero over its own first byte -- IX is the step, not the character's slot -- so it never calls its routine again. The character goes on as before. Only Thorin's remark about the small curious key has the bit. Tried in the simulator: Thorin took the key, said his line the next turn, and went on following the player, his slot unchanged, while the step's first byte went from $23 to $00. The scripts are not among what a new game copies back, so the step stays spent until the game is loaded again.
 </div>
 </div>
 </td>
@@ -166,7 +166,7 @@ A step that succeeds with bit 5 set takes the character out of the story: its sl
 <td class="asm-label">SCRIPT_DO_1</td>
 <td class="address-2"><span id="39271"></span>9967</td>
 <td class="instruction">BIT 5,(IX+$00)</td>
-<td class="comment-1" rowspan="4">Done. Bit 5: the character's part is over</td>
+<td class="comment-1" rowspan="4">Done. Bit 5: this step is used up, its first byte zeroed</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

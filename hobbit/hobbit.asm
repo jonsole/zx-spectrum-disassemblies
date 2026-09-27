@@ -692,12 +692,12 @@ WORD_SHATTER:
 
 ; The game's entry point
 ;
-; Reached by PRINT USR 27648, and never left: it runs on into MAIN_LOOP at
-; MAIN_LOOP, which is the game. It first copies the whole of the game's
-; changeable state aside -- the objects to WORLD_COPY, the rooms straight after
-; them, the variables at SAVED_STATE and the TIMERS block to $5F00 -- and every
-; new game at NEW_GAME copies it back, which is how dying and starting again
-; restores the world as it was loaded.
+; Reached by the BASIC loader's PRINT USR, and never left: it runs on into
+; MAIN_LOOP at MAIN_LOOP, which is the game. It first copies the whole of the
+; game's changeable state aside -- the objects to WORLD_COPY, the rooms
+; straight after them, the variables at SAVED_STATE and the TIMERS block to
+; $5F00 -- and every new game at NEW_GAME copies it back, which is how dying
+; and starting again restores the world as it was loaded.
 START:
   DI
   LD DE,WORLD_COPY        ; The objects and the rooms, to WORLD_COPY onwards
@@ -719,10 +719,10 @@ START:
 NEW_GAME:
   DI                      ; A new game starts here
   LD SP,$5EFF             ;
-  LD IX,PICTURE_TABLE     ; Not yet worked out: zeroes two bytes found through
-  LD A,$05                ; picture 5's entry
-  CALL FIND_RECORD        ;
-  LD L,(IX+$01)           ;
+  LD IX,PICTURE_TABLE     ; The trolls' clearing's picture back to night: its
+  LD A,$05                ; border and starting attribute, the first two bytes
+  CALL FIND_RECORD        ; of its stream, to black (TROLLS_TURN_TO_STONE sets
+  LD L,(IX+$01)           ; the day's)
   LD H,(IX+$02)           ;
   LD (HL),$00             ;
   INC HL                  ;
@@ -809,9 +809,9 @@ START_1:
   JR NZ,START_0           ;
   LD A,$11                ; The first 17 lines of story without a pause
   LD (NO_PAUSE_LINES),A   ;
-  LD A,(COMMAND_FRAMES)   ; Come back here with a command to repeat? Straight
-  INC A                   ; to it
-  JR NZ,MAIN_LOOP         ;
+  LD A,(COMMAND_FRAMES)   ; Unless COMMAND_FRAMES is $FF, straight to the main
+  INC A                   ; loop -- never: it is $FF on the tape and was copied
+  JR NZ,MAIN_LOOP         ; back from there just above
   CALL NEW_GAME_CHOICES   ; Shut a road and choose a riddle
   LD HL,FIRST_COMMAND     ; The first turn: "> LOOK" printed and put in the
 START_2:
@@ -1539,7 +1539,7 @@ NARRATE_REFUSAL:
 NARRATE_ACTION:
   LD A,$01                ; Narrating
   LD (NARRATING),A        ;
-  XOR A                   ; Not yet worked out
+  XOR A                   ; Names in full, not the noun alone
   LD (NOUN_ONLY),A        ;
   PUSH IY
   PUSH BC
@@ -1880,7 +1880,7 @@ CANNOT_DO:
 ; bytecode, and pointed at where to look.
 ;
 ; The messages are stored end to end from MSG_BUT_FALL_AND_HIT, straight after
-; COMMON_WORDS, and a few are entered part-way through another: four at an
+; COMMON_WORDS, and a few are entered part-way through another: five at an
 ; element boundary, sharing its tail -- the last is the two banks of the black
 ; river, one description entered at two places -- and one on the second byte of
 ; the word that ends the message before, which it reads as a control code.
@@ -2550,8 +2550,8 @@ PARSE_COMMAND:
 ; This entry point is used by the routine at ORDER_BEGINS.
 PARSE_ORDER:
   LD (IS_ORDER),A         ; }
-  CALL CLEAR_ALL_EXCEPT   ; Not yet worked out
-  LD (COMMAND_FRAMES),A   ;
+  CALL CLEAR_ALL_EXCEPT   ; No ALL or EXCEPT, and no frames yet:
+  LD (COMMAND_FRAMES),A   ; CLEAR_ALL_EXCEPT leaves A zero
   LD E,$FF                ; Was the last command left unfinished -- after
   LD A,(QUESTION_WAITING) ; 'which key?', say? Then fit these words into it
   AND A                   ;
@@ -3356,12 +3356,12 @@ OBEY_1:
   JP Z,SAY_WHY_NOT        ;
   LD A,$01                ; Really do it
   LD (DOING_IT),A         ;
-  CALL NARRATE_ACTION     ; Not yet worked out
+  CALL NARRATE_ACTION     ; Tell the player what was done (NARRATE_ACTION)
   CALL DO_ACTION          ; Carry it out -- the player's MOVE was reached from
                           ; here
 ; This entry point is used by the routine at MATCH_PATTERN.
 TURN_OVER:
-  CALL END_OF_TURN        ; Not yet worked out
+  CALL END_OF_TURN        ; The world's turn (END_OF_TURN)
 ; This entry point is used by the routine at TARGET_TROUBLE.
 OBEY_NEXT:
   LD A,(ALL_ACTION)       ; Asked to go round the same frame again?
@@ -4476,15 +4476,16 @@ PICTURE_SHOWN:
 ;
 ; Looks the location up in the picture table at PICTURE_TABLE, takes the stream
 ; pointer out of the record and runs it. Does nothing at all if the byte at
-; PICTURES_ON is zero, which is believed to be the graphics on/off flag -- v1.2
-; was also sold as a text-only edition, and this is the only test standing
-; between a location change and the whole of the drawing code.
+; PICTURES_ON is zero: the pictures-off flag, which TITLE_WAIT (TITLE_WAIT)
+; sets from the N key, so holding N there turns every picture off for the game.
+; This is the only test standing between a location change and the whole of the
+; drawing code.
 ;
 ; O:A The value stored at PICTURE_SHOWN, from the table lookup
 DRAW_LOCATION_PICTURE:
   PUSH AF
-  LD A,(PICTURES_ON)      ; PICTURES_ON: nonzero to draw pictures at all
-                          ; (believed the graphics flag)
+  LD A,(PICTURES_ON)      ; PICTURES_ON: nonzero to draw pictures at all (zero
+                          ; if N was held at the title)
   AND A
   JR NZ,DRAW_LOCATION_PICTURE_0
   LD A,$FF
@@ -5086,8 +5087,9 @@ PIXEL_ADDRESS_0:
 ; The whole routine is a candidate for two lookup tables and an 8-byte mask
 ; table, which would roughly halve it. There is no room above the game for them
 ; -- the payload ends at $FC3F and the 960 bytes above that are live workspace
-; -- but the printer buffer at $5B00 is page-aligned and unused, since RAMTOP
-; is at $5FFF and nothing here prints.
+; -- but the printer buffer at $5B00 is page-aligned and unused: the game's
+; PRINT drives the ZX Printer itself, through LINE_TO_PRINTER, and never goes
+; through the ROM or its buffer.
 
 ; Take the stream's header off and clear the canvas
 ;
@@ -6005,9 +6007,12 @@ MID_LINE:
 ; case again, by the flag at CAPITAL_NEXT.
 ;
 ; At the end of a line the finished line is copied to the ZX Printer if PRINT
-; is on, then the game waits about a third of a second, or less if a key is
-; pressed, before scrolling. NO_PAUSE_LINES, when not zero, takes away that
-; wait for as many lines as it counts; what sets it is not yet traced.
+; is on, then the game waits about 0.58 s -- a 62 T-state loop run up to 32,768
+; times -- or less if a key is pressed, before scrolling. NO_PAUSE_LINES, when
+; not zero, takes away that wait for as many lines as it counts: START sets it
+; to 17 for the opening description, and MAIN_LOOP to 9 before every line, so
+; each turn's first nine lines come at once. Either way a key pressed means
+; waiting for every key to be let go.
 STORY_CHAR:
   PUSH HL
   PUSH BC
@@ -6485,14 +6490,14 @@ LINE_TO_PRINTER_6:
 ;
 ; Used by the routine at SCAN_KEYBOARD.
 ;
-; About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so while
+; About 26,000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so while
 ; the game sits at its prompt this is 88% of everything it does -- idle, not
 ; work, but it is also the reason a scan is too expensive to call from inside
 ; the drawing code as it stands.
 DEBOUNCE_DELAY:
   LD BC,$03E8             ; 1000 times round a four-instruction loop: about
 DEBOUNCE_DELAY_0:
-  DEC BC                  ; 26000 T-states
+  DEC BC                  ; 26,000 T-states
   LD A,B                  ;
   OR C                    ;
   JR NZ,DEBOUNCE_DELAY_0  ;
@@ -6836,8 +6841,9 @@ ACTOR_SIZE:
 ;
 ; For the player -- told apart by ACTING being zero -- the codes observed are 1
 ; north, 2 south, 3 east, 9 up and 10 down. West was not observed because it
-; was blocked where the test stood, and the four diagonals will be among 4 to
-; 8, but which is which has not been watched and is not asserted here.
+; was blocked where the test stood. The rest follow the order of
+; DIRECTION_WORDS, which DIRECTION_WORD indexes by the same code: 4 west, 5
+; northeast, 6 northwest, 7 southeast, 8 southwest.
 MOVE:
   CALL TOO_DARK           ; In the dark, the direction asked for is thrown away
   JR NC,MOVE_ACTOR        ; for a random one from 1 to 10
@@ -7331,7 +7337,7 @@ PLAYER_DIES:
   LD (ACTING),A           ;
   LD HL,MSG_DEAD          ; "you are dead."
   CALL RUN_MESSAGE_HL     ;
-  CALL SHOW_SCORE         ; Not yet worked out
+  CALL SHOW_SCORE         ; The score (SHOW_SCORE)
 ; This entry point is used by the routine at CHECK_WON.
 WAIT_AND_RESTART:
   XOR A                   ; Wait for any key
@@ -7381,7 +7387,7 @@ OPEN_IT:
   CALL COUNT_HELD         ;
   AND A                   ;
   RET Z                   ;
-  LD A,(TARGET)           ; Not yet worked out
+  LD A,(TARGET)           ; Introduce what it holds; nothing to show: done
   CALL CONTENTS_INTRO     ;
   RET C                   ;
   LD B,(IX+$10)           ; "you see" and what is in it
@@ -7499,12 +7505,12 @@ DO_ATTACK_3:
   LD L,(IY+$00)           ;
   LD H,(IY+$01)           ;
   RRCA                    ; ...and the target's strength and defence worn down
-  RRCA                    ; by it
-  LD B,A                  ;
-  CPL                     ;
-  ADD A,(IX+$05)          ;
-  JR NC,DO_ATTACK_4       ;
-  LD (IX+$05),A           ;
+  RRCA                    ; by it -- halved with RRCA, which rotates the
+  LD B,A                  ; margin's low bit into bit 7: an odd margin takes
+  CPL                     ; 129 or more off a strong target and nothing off a
+  ADD A,(IX+$05)          ; weak one. Tried in four fights with Thorin
+  JR NC,DO_ATTACK_4       ; (104/120): a margin of 8 left him 99/117, 10
+  LD (IX+$05),A           ; 98/120, 11 unhurt and 13 104/52
 DO_ATTACK_4:
   LD A,B                  ;
   RRCA                    ;
@@ -7544,8 +7550,12 @@ JOSTLE_0:
 
 ; What a wound is said to be, by how much stronger the blow was
 ;
-; The messages the fight picks between, from a stagger to a stunning hit; the
-; stronger the blow, the further down the table.
+; The messages the fight picks between; the stronger the blow, the further down
+; the table. DO_ATTACK indexes it with twice the margin, which runs from 1 to
+; 16, so the table is read one entry late: the first message, a stagger, is
+; never chosen, and a margin of exactly 16 takes the word after the table --
+; the first two bytes of ONE_PLACE's code, an address in the ROM -- and prints
+; the ROM's bytes as a message (tried: a few garbled words).
 WOUNDS:
   DEFW MSG_SEEM_TIRED_STAGGER_BUT
   DEFW MSG_SWING_FEEBLY_AT_BUT
@@ -8048,8 +8058,8 @@ DO_ACTION_5:
   LD A,(DOING_IT)         ; Done quietly, as a test? Then that is all
   CP $01                  ;
   JR NZ,DO_ACTION_7       ;
-  LD A,(ACTING)           ; Not yet worked out: for the player in the dark, a
-  CP $00                  ; message at HL
+  LD A,(ACTING)           ; For the player in the dark: "it is dark.", the
+  CP $00                  ; message TOO_DARK leaves in HL
   JR NZ,DO_ACTION_6       ;
   CALL TOO_DARK           ;
   CALL C,RUN_MESSAGE_HL   ;
@@ -8081,8 +8091,8 @@ DO_ACTION_9:
 ;
 ; Used by the routines at DO_THROW_AT and DO_ACTION.
 ;
-; Only a character (flag bit 6), and only one without flag bit 3, which is not
-; yet worked out.
+; Only a character (flag bit 6), and only one without flag bit 3: the dead do
+; not react.
 REACT_TO_ACTION:
   BIT 6,(IX+$07)
   RET Z
@@ -8096,18 +8106,26 @@ REACT_TO_ACTION:
 ; Used by the routines at NARRATE_ACTION, CLEAR_CANVAS, MOVE, DO_ACTION,
 ; NOTE_LIGHT and DO_CAPTURE.
 ;
-; Characters are never in the dark: anyone but the player gets "no" at once.
-; The player can see if inside something, or if the room is lit -- bit 7 of the
-; first byte of its record. Otherwise only the short strong sword helps: it has
-; to be with the player, and its flag byte at SHORT_STRONG_SWORD_FLAGS must
-; have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C
-; tests for in one go. It starts as $94, so it glows from the beginning, and
-; carrying it lights every dark place.
+; Characters are never in the dark: anyone but the player gets "no" at once. A
+; player shut inside something that cannot be seen into (SHUT_IN) skips the
+; room's light altogether, so a closed barrel is dark inside even in a lit
+; room; otherwise the player can see if the room is lit -- bit 7 of the first
+; byte of its record. Failing that only the short strong sword helps: it has to
+; be within the player's reach (lying in the same room will do), and its flag
+; byte at SHORT_STRONG_SWORD_FLAGS must have bit 2 set, bit 3 clear and bit 4
+; set, which is what XOR $F7 then AND $1C tests for in one go. It starts as
+; $94, so it glows from the beginning, and having it at hand lights every dark
+; place. The torch has the same flags, but only the sword is tested. Tried in
+; the simulator: with the sword lying in the trolls' cave the cave could be
+; seen, and with it moved out it could not; and a player who climbed into the
+; barrel in Bag End and closed it was in the dark, and could not then OPEN it,
+; since OPEN needs light and the barrel is not carried.
 ;
 ; Twenty-six of the seventy-nine rooms are dark, and they are the ones the
-; story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen
-; identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar
-; and dungeon, and the passage into the mountain.
+; story says are: the trolls' cave, the goblins' dungeon, the large dry cave,
+; the big goblins' cavern, the dark winding passage, inside the goblins' gate,
+; fifteen identical dark stuffy passages, Gollum's lake, the Elvenking's halls,
+; cellar and dungeon, and the passage into the mountain.
 ;
 ; What depends on it: MOVE, which in the dark throws the direction away and
 ; picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture
@@ -8120,8 +8138,8 @@ TOO_DARK:
   RET NZ                  ;
   PUSH IX
   PUSH BC
-  LD IX,PLAYER            ; The player shut inside something can see
-  CALL SHUT_IN            ;
+  LD IX,PLAYER            ; Shut inside something closed? Then the room's light
+  CALL SHUT_IN            ; does not count: only the sword
   INC A                   ;
   JR NZ,TOO_DARK_0        ;
   CALL ACTOR_ROOM         ; So can a player in a lit room (bit 7 of its first
@@ -8293,23 +8311,25 @@ DESCRIBE_BRIEFLY:
 ;
 ; Used by the routine at OBEY.
 ;
-; Calls CHECK_WON and CHARACTERS_ACT -- the rest of the world's turn, not yet
-; worked out -- and then walks TIMERS. A timer whose count is zero is not
+; Calls CHECK_WON and CHARACTERS_ACT -- has the player won, and every other
+; character's turn -- and then walks TIMERS. A timer whose count is zero is not
 ; running. One that is running counts down by one a turn; on reaching zero it
 ; runs its routine, and in the turns before that, while the count is no more
 ; than its warning span, it runs its warning routine instead.
 ;
 ; Only one timer fires in a turn. A second one to reach zero in the same turn
 ; is held at a count of 1 and fires in the next, so two events never land on
-; the player at once.
+; the player at once -- though a held timer with a warning span runs its
+; warning this turn instead, and BARREL_REACHES_LAKE clears TIMER_FIRED as it
+; starts, so it does not use the turn's firing up.
 END_OF_TURN:
   PUSH HL
   PUSH IX
   PUSH IY
   PUSH BC
   PUSH DE
-  CALL CHECK_WON          ; The characters' turn, not yet worked out
-  CALL CHARACTERS_ACT     ;
+  CALL CHECK_WON          ; Has the player won? Then every other character's
+  CALL CHARACTERS_ACT     ; turn
   SUB A                   ; Nothing has fired yet this turn; printing on
   LD (TIMER_FIRED),A      ;
   INC A                   ;
@@ -8446,8 +8466,8 @@ KILL:
   JR Z,KILL_0             ;
   LD (IY+$00),$00         ;
 KILL_0:
-  CALL BROKEN_OR_DEAD     ; Not yet worked out
-  LD A,C                  ;
+  CALL BROKEN_OR_DEAD     ; Named DEAD (BROKEN_OR_DEAD), and its orders thrown
+  LD A,C                  ; away (CANCEL_ORDERS)
   CALL CANCEL_ORDERS      ;
   POP IX
   POP IY
@@ -8558,7 +8578,8 @@ TARGET_AT:
 ; ORDERS) replaces its script's step for the turn, unless the step has bit 6
 ; set, which makes it one that cannot be interrupted.
 CHARACTERS_ACT:
-  CALL NOTE_LIGHT         ; Not yet worked out
+  CALL NOTE_LIGHT         ; Note where the player is and whether it is dark
+                          ; there (NOTE_LIGHT)
   LD IY,CHARACTERS        ; IY = the first character
 CHARACTERS_ACT_0:
   XOR A                   ; No steps refused yet
@@ -8721,8 +8742,14 @@ STEP_PAST_0:
 ; once with printing off as a test, and only if it reports success by setting
 ; SUCCEEDED is it run again for real.
 ;
-; A step that succeeds with bit 5 set takes the character out of the story: its
-; slot is emptied and it never acts again.
+; A step that succeeds with bit 5 set is used up: the LD (IX+$00),$00 near its
+; end writes zero over its own first byte -- IX is the step, not the
+; character's slot -- so it never calls its routine again. The character goes
+; on as before. Only Thorin's remark about the small curious key has the bit.
+; Tried in the simulator: Thorin took the key, said his line the next turn, and
+; went on following the player, his slot unchanged, while the step's first byte
+; went from $23 to $00. The scripts are not among what a new game copies back,
+; so the step stays spent until the game is loaded again.
 SCRIPT_DO:
   CALL STEP_PAST          ; Step past it
   BIT 0,(IX+$00)          ; A routine?
@@ -8749,8 +8776,8 @@ SCRIPT_DO_0:
   LD (DOING_IT),A         ;
   CALL RUN_ROUTINE        ;
 SCRIPT_DO_1:
-  BIT 5,(IX+$00)          ; Done. Bit 5: the character's part is over
-  JP Z,NEXT_CHARACTER     ;
+  BIT 5,(IX+$00)          ; Done. Bit 5: this step is used up, its first byte
+  JP Z,NEXT_CHARACTER     ; zeroed
   LD (IX+$00),$00         ;
   JR NEXT_CHARACTER       ;
 
@@ -11244,7 +11271,7 @@ BARREL_THROWN:
   LD A,(TARGET)           ; Not the barrel: nothing
   CP $13                  ;
   RET NZ                  ;
-  CALL ONLY_IF_DONE       ; Not yet worked out
+  CALL ONLY_IF_DONE       ; Only if the throw really happened, and worked
   LD IX,BARREL            ; Not in the forest river: nothing
   LD A,(IX+$10)           ;
   CP $21                  ;
@@ -11255,25 +11282,28 @@ BARREL_THROWN:
 
 ; Timer 0: the barrel is thrown up on the long lake
 ;
-; Two turns after it is started, the barrel goes to location 34, the long lake,
-; and anything in it goes with it -- the player too, who is told so and arrives
-; there. Then it is emptied, with printing off, so that what spills is not
-; reported; and the wine is put back into a barrel in location 32, the
-; elvenking's cellar.
+; Two turns after it is started, whatever is in the barrel goes to location 34,
+; the long lake -- the player too, who is told so and arrives there. Then the
+; barrel itself is put back in location 32, the elvenking's cellar, closed and
+; full, emptied with printing off so that what spills is not reported, and
+; given back its wine: it is ready for another ride. Tried in the simulator
+; with the player in the barrel at the forest river and the timer at 2: two
+; WAITs later the player was on the long lake's bank, held by nothing, and the
+; barrel was in the cellar with the wine in it.
 BARREL_REACHES_LAKE:
-  SUB A                   ; Only one timer fires in a turn
-  LD (TIMER_FIRED),A      ;
+  SUB A                   ; Clear TIMER_FIRED: this does not count as the
+  LD (TIMER_FIRED),A      ; turn's firing
   LD A,(PLAYER_HOLDER)          ; In the barrel ($13)? "you are thrown onto the
   CP $13                        ; bank of the long lake."
   LD HL,MSG_YOU_ARE_THROWN_ONTO ;
   CALL Z,RUN_MESSAGE_HL         ;
-  LD A,$22                ; The barrel is at location 34 now
+  LD A,$22                ; The barrel at location 34 for the moment...
   LD (BARREL_WHERE),A     ;
-  LD B,A                  ; ... and so is everything in it
+  LD B,A                  ; ...so that everything in it goes there
   LD A,$13                ;
   CALL MOVE_CONTENTS      ;
-  LD IX,BARREL            ; The barrel: at the lake; flag bit 5 (seen into)
-  LD (IX+$10),$20         ; off, bit 2 on
+  LD IX,BARREL            ; Then the barrel back to location 32, the cellar:
+  LD (IX+$10),$20         ; closed (flag bit 5 off) and full (bit 2 on)
   RES 5,(IX+$07)          ;
   SET 2,(IX+$07)          ;
   SUB A                   ; Empty it with printing off
@@ -11542,7 +11572,7 @@ ELROND_READS_MAP:
   LD A,(ACTING)           ; Not Elrond: the ordinary EXAMINE
   CP $41                  ;
   JP NZ,DO_EXAMINE        ;
-  CALL FOR_REAL           ; Not yet worked out
+  CALL FOR_REAL           ; The test ends here
 SHUT_ROAD:
   LD IY,$0000             ; IY = the road that was shut; HL = its exit in the
   LD L,(IY+$01)           ; room record
@@ -11798,7 +11828,10 @@ TROLLS_EAT:
 ;
 ; Both trolls are killed and hidden, drop what they held -- the large key among
 ; it -- the clearing gets its daytime description and is marked unvisited, and
-; its picture is patched to show them as stone.
+; its picture's first two bytes -- the border and the attribute its canvas
+; starts as -- go from night's black to day's cyan; the drawing itself is the
+; same. Every new game puts the night back (NEW_GAME). Seen in the simulator:
+; $00 $00 at the start, $05 $28 once day had dawned.
 TROLLS_TURN_TO_STONE:
   CALL FOR_REAL
   LD A,$47
@@ -12085,7 +12118,13 @@ WEB_SMOTHERS:
 ; "you see some pale bulbous eyes staring at you." Then, unless the player is
 ; where FOREST_ENTRY says or at the other of the forest road and the forest
 ; (locations 2 and 3), something drops and stings, fatally, as in EYES_STING.
-; What sets FOREST_ENTRY is not yet traced.
+; FOREST_ENTRY is the forest location IN_THE_FOREST noted on arrival, so the
+; player is safe only while still in the forest: stepping out of it during the
+; warning turns is death, and so is staying until the timer runs out. Tried in
+; the simulator: from the other forest road (46), east and straight back west
+; was fatal on arriving; east, east, east to the waterfall was fatal at the
+; waterfall; walking back and forth between 2 and 3 kept the player alive, and
+; waiting there killed on the third WAIT.
 EYES_WARNING:
   LD HL,MSG_SEE_SOME_PALE_BULBOUS ; "you see some pale bulbous eyes staring at
   CALL RUN_MESSAGE_HL             ; you."
@@ -13594,7 +13633,8 @@ ROAD_OPEN:
 TO_PRINTER:
   DEFB $00                ; PRINT is on: the story goes to the ZX Printer too
 FOREST_ENTRY:
-  DEFB $00                ; Where the player came into the forest, for the eyes
+  DEFB $00                ; The forest location the player last arrived at, 2
+                          ; or 3, for the eyes
 ORDER_WAITING:
   DEFB $00                ; The character acting has an order waiting
 PLAYER_AT:
@@ -17470,8 +17510,9 @@ AT_ELVENKINGS_CELLAR_0:
 
 ; Arriving on the forest road or in the forest: the eyes
 ;
-; Keeps the place the player came into the forest by in FOREST_ENTRY -- the one
-; EYES_WARNING counts as safe -- and starts timer 8.
+; Keeps the forest location just arrived at -- DESTINATION, so 2 or 3 -- in
+; FOREST_ENTRY, and starts timer 8 again at its full four turns. Every step
+; between the forest road and the forest starts it again.
 IN_THE_FOREST:
   LD A,(DESTINATION)
   LD (FOREST_ENTRY),A
@@ -17505,7 +17546,7 @@ RIDDLES:
                           ; morning, two at midday and three in the evening ?"
   DEFB $74,$04,$EE,$B1    ; NIGHT again
   DEFB $29,$04,$B7,$B2    ; MAN again
-  DEFB $FF,$FF            ; Not yet worked out
+  DEFB $FF,$FF            ; Two $FF bytes no instruction names: unused
 
 ; The ways one of which is shut at the start of each game
 ;
@@ -17541,10 +17582,10 @@ HIDDEN_ROADS:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 NASTY_GOBLIN_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: NASTY_GOBLIN_A
   DEFW NASTY_GOBLIN_A
@@ -17570,10 +17611,10 @@ NASTY_GOBLIN_SCRIPTS:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 VICIOUS_GOBLIN_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: VICIOUS_GOBLIN_A
   DEFW VICIOUS_GOBLIN_A
@@ -17599,10 +17640,10 @@ VICIOUS_GOBLIN_SCRIPTS:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 HORRIBLE_GOBLIN_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: HORRIBLE_GOBLIN_A
   DEFW HORRIBLE_GOBLIN_A
@@ -17725,10 +17766,10 @@ GOBLINS_ON_ATTACK_WITH:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 GANDALF_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: GANDALF_A
   DEFW GANDALF_A
@@ -17799,10 +17840,10 @@ GANDALF_E:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 THORIN_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: THORIN_A
   DEFW THORIN_A
@@ -17822,8 +17863,8 @@ THORIN_A:
 THORIN_B:
   DEFB $12,$13,$02,$FF    ; TAKE: small curious key
   DEFW THORIN_C           ; If it is refused: THORIN_C
-  DEFB $23                ; Call THORIN_THRAINS_KEY (then its part in the story
-                          ; is over)
+  DEFB $23                ; Call THORIN_THRAINS_KEY (used up once it works: the
+                          ; game zeroes it)
   DEFW THORIN_THRAINS_KEY
   DEFB $00                ; Not used
 ; THORIN_C -- Where a jump or a refusal goes on: THORIN_WHERES_THIEF, Pause:
@@ -17863,10 +17904,10 @@ THORIN_D:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 WOOD_ELF_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: WOOD_ELF_A
   DEFW WOOD_ELF_A
@@ -17899,10 +17940,10 @@ WOOD_ELF_A:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 VICIOUS_WARG_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: VICIOUS_WARG_A
   DEFW VICIOUS_WARG_A
@@ -17954,10 +17995,10 @@ VICIOUS_WARG_D:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 BUTLER_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: BUTLER_A
   DEFW BUTLER_A
@@ -18019,10 +18060,10 @@ BUTLER_B:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 ELROND_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: ELROND_A
   DEFW ELROND_A
@@ -18074,10 +18115,10 @@ ELROND_ON_ATTACK_WITH:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 RED_GOLDEN_DRAGON_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: RED_GOLDEN_DRAGON_A
   DEFW RED_GOLDEN_DRAGON_A
@@ -18135,10 +18176,10 @@ RED_GOLDEN_DRAGON_C:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 BARD_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: BARD_A
   DEFW BARD_A
@@ -18188,10 +18229,10 @@ BARD_ON_ATTACK_WITH:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 GOLLUM_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: GOLLUM_A
   DEFW GOLLUM_A
@@ -18268,10 +18309,10 @@ GOLLUM_ON_ATTACK_WITH:
 ; its low four bits $00-$03 an action with objects (or, $01 and $03, a routine
 ; to call), $04 an action with none, $0E go to, $0F switch at random, $0C
 ; switch to a reaction. $10 added means an address follows, where the script
-; goes on if the step is refused; $20 that the character's part is over once it
-; works; $40 that an order from the player cannot interrupt it. So $14 is an
-; action with no objects, with somewhere to go if it is refused. The Characters
-; page has every script written out.
+; goes on if the step is refused; $20 that the step is used up once it works
+; (SCRIPT_DO zeroes its first byte); $40 that an order from the player cannot
+; interrupt it. So $14 is an action with no objects, with somewhere to go if it
+; is refused. The Characters page has every script written out.
 HIDEOUS_TROLL_SCRIPTS:
   DEFB $00                ; Key 0, an ordinary script: HIDEOUS_TROLL_A
   DEFW HIDEOUS_TROLL_A
@@ -18459,23 +18500,24 @@ TIMER9_COUNT:
 ; The characters' scripts: where each has got to
 ;
 ; Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a
-; slot not in use -- three are empty at the start, and a character whose part
-; is over (see SCRIPT_DO) empties its own. Byte 1 is how many of its scripts
+; slot not in use -- three are empty at the start, and a character that is
+; killed gives its slot up (see KILL). Byte 1 is how many of its scripts
 ; SCRIPT_RANDOM may choose among. Bytes 2 and 3 are the instruction its script
 ; has got to; bytes 4 and 5 are its script table, a FIND_RECORD table whose
 ; entries keyed 0 are its ordinary scripts and whose others are its reactions
 ; (see REACT). Byte 6 is how many of the player's orders it will take at once
-; (see DO_TALK): Thorin 6, Gandalf and Elrond 5, Gollum 3, the wood elf and the
-; trolls 1, and the warg and the goblins 0, never.
+; (see DO_TALK): Thorin 6, Gandalf and Elrond 5, Gollum and Bard 3, the wood
+; elf, the butler and the trolls 1, and the warg, the dragon and the goblins 0,
+; never.
 ;
 ; The scripts themselves are from NASTY_GOBLIN_SCRIPTS up to TIMERS, each table
 ; followed by its scripts, every step decoded and every address in them a label
 ; (generated by build_hobbit.py's script_blocks). An instruction's low four
 ; bits are its opcode: 0 to 3 as SCRIPT_DO, 4 as SCRIPT_BARE, $0C, $0E and $0F
 ; as CHARACTERS_ACT says, and anything else sends the character back to its
-; first script. Bit 4 means a 2-byte fallback follows, bit 5 that the character
-; leaves the story when the step succeeds, and bit 6 that an order cannot
-; interrupt it.
+; first script. Bit 4 means a 2-byte fallback follows, bit 5 that the step is
+; used up once it succeeds (SCRIPT_DO zeroes it), and bit 6 that an order
+; cannot interrupt it.
 CHARACTERS:
   DEFB $3E                ; Gandalf
   DEFB $07                ; How many of its scripts it chooses among at random

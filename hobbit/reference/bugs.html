@@ -16,7 +16,13 @@
 </table>
 <ul class="contents">
 <li><a href="#jump">JUMP ONTO the barrel jumps into a message</a></li>
-<li><a href="#fill">FILL looks as though it can never work</a></li>
+<li><a href="#fill">FILL can never work</a></li>
+<li><a href="#wear">A wound wears the target down erratically</a></li>
+<li><a href="#wounds">The wound messages are read one entry late</a></li>
+<li><a href="#forest">The forest road kills whatever you do</a></li>
+<li><a href="#load">A LOAD can lose the hidden road</a></li>
+<li><a href="#break">BREAK at the end of a tape block restarts the machine</a></li>
+<li><a href="#reset">A new game does not reset the characters' scripts</a></li>
 <li><a href="#score">The score cannot reach 100%</a></li>
 <li><a href="#unreached">Code nothing reaches</a></li>
 </ul>
@@ -29,9 +35,51 @@ The barrel's own JUMP ONTO handler, <a href="../asm/43559.html">JUMP_ONTO_BARREL
 </div>
 <div><span id="fill"></span></div>
 <div class="box box-2">
-<div class="box-title">FILL looks as though it can never work</div>
+<div class="box-title">FILL can never work</div>
 <div class="paragraph">
-The barrel's FILL WITH, <a href="../asm/36713.html">DO_FILL</a>, fetches a fresh water and puts it in the barrel with the objects swapped, through PUT IN (<a href="../asm/37455.html">DO_PUT_IN</a>). But PUT IN begins with the last part of CAN_LIFT, which refuses a liquid -- and the water is a liquid. As read, then, filling the barrel is always refused. This has not been confirmed in play.
+The barrel's FILL WITH, <a href="../asm/36713.html">DO_FILL</a>, fetches a fresh water and puts it in the barrel with the objects swapped, through PUT IN (<a href="../asm/37455.html">DO_PUT_IN</a>). But PUT IN begins with the last part of CAN_LIFT, which refuses a liquid -- and the water is a liquid. So filling the barrel is always refused. Tried in the simulator: at the long lake, with the barrel carried, opened and emptied, FILL BARREL WITH WATER was refused, the refusal naming the objects the other way round -- the swapped PUT IN that failed.
+</div>
+</div>
+<div><span id="wear"></span></div>
+<div class="box box-1">
+<div class="box-title">A wound wears the target down erratically</div>
+<div class="paragraph">
+When a blow lands but does not kill, <a href="../asm/37233.html">DO_ATTACK</a> takes something off the target's strength and defence for how much stronger the blow was -- a margin of 1 to 16. It halves the margin with <code>RRCA</code>, twice, where a shift was surely meant: a rotate carries the margin's low bit round into bit 7. An even margin then takes about half of itself off the strength, as intended; an odd one takes 129 or more, which a weak target shrugs off (the result would go below zero, so nothing is written) and a strong one loses most of its strength to. The defence goes the same way a step further on. Tried in the simulator, the player attacking Thorin (strength 104, defence 120) with the sword: a margin of 8 left him 99/117, 10 left 98/120, 11 did nothing at all, and 13 took his defence to 52.
+</div>
+</div>
+<div><span id="wounds"></span></div>
+<div class="box box-2">
+<div class="box-title">The wound messages are read one entry late</div>
+<div class="paragraph">
+The same routine picks the wound's message from <a href="../asm/37414.html">WOUNDS</a> with twice the margin as the index. The margins run from 1 to 16, so the table is read from its second entry: its first message is never shown, and a margin of exactly 16 reads the word after the table -- the first two bytes of <a href="../asm/37446.html">ONE_PLACE</a>'s code, which make an address in the ROM -- and prints the ROM's bytes as a message. Run as one in the simulator, they came out as a few garbled dictionary words.
+</div>
+</div>
+<div><span id="forest"></span></div>
+<div class="box box-1">
+<div class="box-title">The forest road kills whatever you do</div>
+<div class="paragraph">
+Arriving on the forest road or in the forest (locations 2 and 3) starts timer 8 (<a href="../asm/51165.html">IN_THE_FOREST</a>). For three turns <a href="../asm/43807.html">EYES_WARNING</a> says pale eyes are watching and stings to death a player who is anywhere but those two places; on the fourth <a href="../asm/43834.html">EYES_STING</a> stings to death a player who is still there. So stepping out kills and staying kills; only walking back and forth between the two, which starts the timer again each time, keeps the player alive. Tried four ways in the simulator, with the results just described. Whether the warning's test was meant the other way round cannot be told from the code.
+</div>
+</div>
+<div><span id="load"></span></div>
+<div class="box box-2">
+<div class="box-title">A LOAD can lose the hidden road</div>
+<div class="paragraph">
+Which road this game shut is kept only in the operand of an instruction in <a href="../asm/42948.html">ELROND_READS_MAP</a>, and SAVE writes the variables, the objects, the timers and characters and the rooms -- not that. The rooms carry the shut exit. So a game saved and then loaded after a new game has begun, or after the tape has been loaded again, has its own road shut while the operand names the new game's: when Elrond reads the map he puts back the new game's road, which the loaded rooms already have, and the loaded game's stays shut. Read from the code; not tried with a tape.
+</div>
+</div>
+<div><span id="break"></span></div>
+<div class="box box-1">
+<div class="box-title">BREAK at the end of a tape block restarts the machine</div>
+<div class="paragraph">
+SAVE and LOAD use the ROM's own tape routines, which end by testing BREAK and, if it is held, report an error through the ROM -- with the game's own registers, not the ones the ROM expects. Tried in the simulator: with SPACE held from SAVE's key press on, the first block ended in the ROM's error exit, and a few seconds later the Spectrum was restarting. Pressing SPACE for "press any key" and holding it is enough.
+</div>
+</div>
+<div><span id="reset"></span></div>
+<div class="box box-2">
+<div class="box-title">A new game does not reset the characters' scripts</div>
+<div class="paragraph">
+<a href="../asm/27648.html#27687">NEW_GAME</a> copies back the objects, the rooms, the timers, the character slots and the variables, but not the scripts themselves, where the game keeps two things it changes: Bard's order, which <a href="../asm/43179.html">BARD_TAKES_ORDER</a> writes into a step of his script, and Thorin's one-time remark about the small curious key, which <a href="../asm/39208.html">SCRIPT_DO</a> zeroes once made. Both carry over into the next game until the tape is loaded again. Seen in the simulator for Thorin: after QUIT and a new game, the key was back in the goblins' cache and the step still zero.
 </div>
 </div>
 <div><span id="score"></span></div>
@@ -45,7 +93,7 @@ The barrel's FILL WITH, <a href="../asm/36713.html">DO_FILL</a>, fetches a fresh
 <div class="box box-2">
 <div class="box-title">Code nothing reaches</div>
 <div class="paragraph">
-Six stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: an OPEN for the wood elf alone (<a href="../asm/42294.html">UNREACHED_ELF_OPEN</a>), a routine that would wipe an exit (<a href="../asm/42762.html">UNREACHED_WIPE_EXIT</a>), one that finds what an object holds (<a href="../asm/41390.html">UNREACHED_WALK_HELD</a>), and three fragments (<a href="../asm/30971.html">UNREACHED_COPY_SIX</a>, <a href="../asm/36912.html">UNREACHED_LET_GO</a>, <a href="../asm/37608.html">UNREACHED_SAY_BROKEN</a>). A seventh was on this list, special word slot 0's handler, until it turned out to be the quote mark's: <a href="../asm/33557.html">SPECIAL_QUOTE</a>. They are left as data here, with what they would do said beside them.
+Five sentence shapes -- PUT ON, TAKE FROM, THROW, CUT and CLIMB -- have patterns in <a href="../asm/43859.html">ACTION_PATTERNS</a> but no handler in <a href="../asm/50992.html">ACTION_TABLE</a> or in any object's record, so they can never be done (tried: "i cannot do that."), and the PUT ON case in <a href="../asm/37455.html">DO_PUT_IN</a> can never be reached. Six stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: an OPEN for the wood elf alone (<a href="../asm/42294.html">UNREACHED_ELF_OPEN</a>), a routine that would wipe an exit (<a href="../asm/42762.html">UNREACHED_WIPE_EXIT</a>), one that finds what an object holds (<a href="../asm/41390.html">UNREACHED_WALK_HELD</a>), and three fragments (<a href="../asm/30971.html">UNREACHED_COPY_SIX</a>, <a href="../asm/36912.html">UNREACHED_LET_GO</a>, <a href="../asm/37608.html">UNREACHED_SAY_BROKEN</a>). A seventh was on this list, special word slot 0's handler, until it turned out to be the quote mark's: <a href="../asm/33557.html">SPECIAL_QUOTE</a>. They are left as data here, with what they would do said beside them.
 </div>
 </div>
 <footer>

@@ -59,7 +59,7 @@ A turn, in outline:
 <div class="paragraph">
 <a href="../asm/28118.html">READ_LINE</a> prints the prompt and takes keys into <a href="../asm/28665.html">INPUT_LINE</a>: letters, space, quote, comma and full stop, with backspace to correct. Three things are more than a line editor:
 <ul>
-<li><b>The game types for you.</b> <a href="../asm/29257.html">GET_KEY</a> counts down while it waits, and if nothing is pressed in time it types WAIT and presses ENTER itself -- which is why WAIT appears on screen when nobody typed it, and why the world goes on without you. The time allowed, <a href="../asm/46860.html#46868">PATIENCE</a>, adapts to how fast the player types.</li>
+<li><b>The game types for you.</b> <a href="../asm/29257.html">GET_KEY</a> counts down while it waits, and if nothing is pressed in time it types WAIT and presses ENTER itself -- which is why WAIT appears on screen when nobody typed it, and why the world goes on without you. The time allowed, <a href="../asm/46860.html#46868">PATIENCE</a>, is 3000 keyboard scans at every prompt -- about 23 seconds -- and each key leaves what was left plus 500 scans, never more than 3000; pause mid-line for longer than that and the half-typed line is thrown away for the WAIT.</li>
 <li><b>One-key moves.</b> On an empty line the cursor keys 5, 6, 7 and 8 are W, S, N and E, and each is a whole command (<a href="../asm/28239.html">ONE_KEY_MOVES</a>).</li>
 <li><b>@</b> on an empty line runs the last command again (<a href="../asm/28282.html">REPEAT_LAST</a>).</li>
 </ul>
@@ -194,7 +194,7 @@ Every step can carry a <b>fallback</b>: where to go on if it is refused. A step 
 <b>Captivity.</b> A character held by something closed can do nothing; held by something open, it tries to CLIMB OUT OF it (<a href="../asm/39702.html">CAPTIVE</a>).
 </div>
 <div class="paragraph">
-<b>Leaving the story.</b> A step marked for it empties the character's slot when it succeeds, and a character that is killed gives its slot up (<a href="../asm/38783.html">KILL</a>). Three slots start empty -- the butler's, Bard's and the dragon's -- and are filled by arrival hooks when the story reaches them.
+<b>Leaving the story.</b> A character that is killed gives its slot up (<a href="../asm/38783.html">KILL</a>), and its script never runs again. (A step can also be marked to be used only once: when it works, <a href="../asm/39208.html">SCRIPT_DO</a> zeroes the step's first byte. Only Thorin's remark about the small curious key is marked so; he goes on as before.) Three slots start empty -- the butler's, Bard's and the dragon's -- and are filled by arrival hooks when the story reaches them.
 </div>
 </div>
 <div><span id="moving"></span></div>
@@ -217,17 +217,17 @@ One road in five is shut at the start of each game (<a href="../asm/51214.html">
 <div class="box box-2">
 <div class="box-title">Light and dark</div>
 <div class="paragraph">
-Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passages, Gollum's lake, the Elvenking's halls and the passage into the mountain. Only the player is ever in the dark -- the characters see everywhere (<a href="../asm/38381.html">TOO_DARK</a>). The one light in the game is the short strong sword, which glows from the start: carried, it lights every dark place.
+Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passages, Gollum's lake, the Elvenking's halls and the passage into the mountain. Only the player is ever in the dark -- the characters see everywhere (<a href="../asm/38381.html">TOO_DARK</a>). The one light in the game is the short strong sword, which glows from the start: within reach -- carried, or just lying in the same room -- it lights every dark place. The torch has the same flags, but only the sword is tested. And a player shut inside something closed is in the dark whatever the room: close the barrel over yourself without the sword and it is dark inside, and OPEN, which needs light, is refused.
 </div>
 <div class="paragraph">
-In the dark, a move goes in a random direction, and falling in the dark too often is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
+In the dark, a move goes in a random direction, and a way that is not there is a fall: each halves the player's strength, and the seventh is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
 </div>
 </div>
 <div><span id="fighting"></span></div>
 <div class="box box-1">
 <div class="box-title">Fighting and breaking things</div>
 <div class="paragraph">
-Every object and character has a strength and a defence, bytes 5 and 6 of its record. <a href="../asm/37233.html">DO_ATTACK</a> sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (<a href="../asm/37414.html">WOUNDS</a>) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows.
+Every object and character has a strength and a defence, bytes 5 and 6 of its record. <a href="../asm/37233.html">DO_ATTACK</a> sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (<a href="../asm/37414.html">WOUNDS</a>) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows. The wearing down is less even than that sounds: see <a href="bugs.html#wear">Bugs</a>.
 </div>
 <div class="paragraph">
 Characters have sides (byte 4), and no one attacks their own -- except the player, who can turn on a friend, who is an enemy from then on (<a href="../asm/37194.html">SAME_SIDE</a>).
@@ -264,6 +264,9 @@ Each picture is a program for <a href="../asm/32679.html">RUN_PICTURE</a>, found
 </div>
 <div class="paragraph">
 The flood fill (<a href="../asm/32881.html">FLOOD_FILL</a>) keeps its queue of seed points on the machine stack and tests every pixel from each side it can be reached from, which is why the pictures fill so slowly. Holding N at the title screen turns the pictures off (<a href="../asm/46848.html#46855">PICTURES_ON</a>), and in the dark the canvas is blacked out instead of drawn (<a href="../asm/33291.html">CLEAR_CANVAS</a>).
+</div>
+<div class="paragraph">
+One picture changes as the game goes on. The trolls' clearing starts with a black border and black paper -- night -- and when day dawns and the trolls turn to stone, <a href="../asm/43377.html">TROLLS_TURN_TO_STONE</a> rewrites those first two bytes of its stream for a cyan border and cyan paper; every new game puts the night back (<a href="../asm/27648.html#27687">NEW_GAME</a>).
 </div>
 <div class="paragraph">
 The same pictures can be drawn nine times faster without changing a pixel of them: see <a href="patches.html">Patches</a>.
