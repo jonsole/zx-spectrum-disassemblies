@@ -15,13 +15,193 @@
 </tr>
 </table>
 <ul class="contents">
+<li><a href="#lifeforce">Infinite life force</a></li>
+<li><a href="#hunger">No hunger</a></li>
+<li><a href="#creatures">Harmless creatures</a></li>
+<li><a href="#nocreatures">No creatures</a></li>
+<li><a href="#bigfive">The big five harmless</a></li>
+<li><a href="#mushrooms">Harmless mushrooms</a></li>
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#keys">Every locked door open</a></li>
+<li><a href="#acgdoor">The A.C.G. door always open</a></li>
+<li><a href="#passages">Every secret passage for every character</a></li>
 <li><a href="#congratulations">Spell CONGRATULATIONS correctly</a></li>
 </ul>
+<div><span id="lifeforce"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite life force</div>
+<div class="paragraph">
+Five things take the life force down, and each has its own code: hunger in
+PLAYER_TICK, a small creature's touch in <a href="../asm/36567.html">LOSE_FOOD_THIRTY_TWO</a>, the four big
+hunters' in <a href="../asm/35358.html">LOSE_FOOD_EIGHT</a>, the humpback's in <a href="../asm/35349.html">LOSE_FOOD_SIXTEEN</a> and a mushroom in <a href="../asm/39089.html">MUSHROOM_DRAIN</a>.
+The line below is the four pokes that follow put together -- no hunger,
+harmless creatures, the big five harmless and harmless mushrooms -- and with
+all of them the roast never shrinks. Tested: the devil, the humpback and a
+mushroom put on the player in the first room, with creatures free to come,
+killed him in 37 frames without the pokes; with them the life force read 240
+at every one of 600 frames, and three creatures burst on touching him for
+465 points.
+</div>
+<div class="paragraph">
+POKE 36480,24: POKE 36571,0: POKE 35362,0: POKE 35353,0: POKE 39092,167
+</div>
+</div>
+<div><span id="hunger"></span></div>
+<div class="box box-2">
+<div class="box-title">No hunger</div>
+<div class="paragraph">
+The roast runs down on its own in PLAYER_TICK: on the passes when
+TICKS AND 15 is zero, the JR NZ at $8E80 falls through to a DEC
+of the life force. Make it an unconditional JR and the drain is always
+skipped. Nothing else is: creatures, the big five and mushrooms still bite.
+(The clock on the scroll counts up and costs nothing; it only goes on the
+end screen.) Tested: standing still in the first room for 500 frames took
+the life force from 240 to 176 without the poke -- 32 to hunger and 32 to
+the one creature that reached him -- and to 208 with it, the creature's 32
+alone.
+</div>
+<div class="paragraph">
+POKE 36480,24
+</div>
+</div>
+<div><span id="creatures"></span></div>
+<div class="box box-1">
+<div class="box-title">Harmless creatures</div>
+<div class="paragraph">
+A small creature that catches the player costs 32 units through
+<a href="../asm/36567.html">LOSE_FOOD_THIRTY_TWO</a> and is destroyed for 155 points (<a href="../asm/34282.html">MONSTER_CAUGHT_PLAYER</a>). Make its SUB $20 at
+$8EDA a SUB 0: the touch still kills the creature and still
+scores, but costs nothing, so walking into creatures becomes the easy way to
+clear a room. Tested: the same 500 frames standing in the first room left
+the life force at 207 with the poke, hunger's share, against 176 without;
+one creature reached the player, burst and scored 155 both times.
+</div>
+<div class="paragraph">
+POKE 36571,0
+</div>
+</div>
+<div><span id="nocreatures"></span></div>
+<div class="box box-2">
+<div class="box-title">No creatures</div>
+<div class="paragraph">
+Every small creature comes from <a href="../asm/33770.html">SPAWN_MONSTER_INTO_ROOM</a>, called once a frame while the player
+is in play. A RET as its first instruction stops them all: the rooms stay
+empty except for the big five, whose records are not spawned. Tested: in the
+same 500 frames in the first room, four creatures materialised without the
+poke and one reached the player (155 points, 32 units); with it none
+appeared, the score stayed 0, and the life force went down only to hunger,
+240 to 208.
+</div>
+<div class="paragraph">
+POKE 33770,201
+</div>
+</div>
+<div><span id="bigfive"></span></div>
+<div class="box box-1">
+<div class="box-title">The big five harmless</div>
+<div class="paragraph">
+The mummy, Dracula, Frankenstein's monster and the devil cost eight units a
+pass in contact through <a href="../asm/35358.html">LOSE_FOOD_EIGHT</a>; the humpback sixteen through <a href="../asm/35349.html">LOSE_FOOD_SIXTEEN</a>. Make
+both SUBs subtract nothing ($8A22 and $8A19
+are their operands) and they can stand on the player all day. The spanner
+still kills Frankenstein's monster.
+Tested: the devil put on top of the player killed him in 49 frames without
+the poke; with it he was alive 200 frames later, 240 down to 230 by hunger.
+The humpback: dead in 24 frames without, 228 after 200 frames with.
+</div>
+<div class="paragraph">
+POKE 35362,0: POKE 35353,0
+</div>
+</div>
+<div><span id="mushrooms"></span></div>
+<div class="box box-2">
+<div class="box-title">Harmless mushrooms</div>
+<div class="paragraph">
+Standing within 12 pixels of a mushroom takes a unit a pass in <a href="../asm/39089.html">MUSHROOM_DRAIN</a>, and a
+mushroom that finds the life force at zero kills (see the bug about one death
+costing two lives). Turn its DEC A at $98B4 into AND A: the
+value is stored back unchanged, and the zero test after it still sees the
+life force as it was. The warning noise still plays. Tested: a mushroom put
+under the player took the life force from 240 to 48 in 400 frames without
+the poke; with it, 221 -- hunger's share.
+</div>
+<div class="paragraph">
+POKE 39092,167
+</div>
+</div>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/36512.html">LOSE_LIFE</a> takes a life with DEC A at $8EA7, after checking for none
+left; make it a NOP and LIVES stays at 3. <a href="../asm/37955.html">PLACE_PLAYER</a>, which starts each new
+life, treats LIVES = 3 as the first life of the game and skips a redraw, so
+with the poke it always skips it; that makes no difference that could be
+seen: the play area after each death was compared pixel for pixel with the
+unpoked game's, and they were the same. Tested: starving four times in a row
+left 2, 1 and 0 lives and then GAME OVER at the fourth death without the
+poke; with it, 3 after every death, and a fifth life after the fourth.
+</div>
+<div class="paragraph">
+POKE 36519,0
+</div>
+</div>
+<div><span id="keys"></span></div>
+<div class="box box-2">
+<div class="box-title">Every locked door open</div>
+<div class="paragraph">
+A locked door asks <a href="../asm/37410.html">DOOR_NEEDS_KEY</a> each pass whether a key of its colour is carried,
+and the JP NZ at $9233 sends it off to be drawn shut when not.
+Three NOPs, and every red, green, cyan and yellow door behaves as if its key
+were in the inventory: it opens, and once walked through becomes an ordinary
+door for the rest of the game, as it would with the key. Tested: walking up
+into the first room's cyan door with no key stopped at y $32; with the cyan
+key staged in the inventory the player went through in 33 frames; with the
+poke and no key, the same 33 frames.
+</div>
+<div class="paragraph">
+POKE 37427,0: POKE 37428,0: POKE 37429,0
+</div>
+</div>
+<div><span id="acgdoor"></span></div>
+<div class="box box-1">
+<div class="box-title">The A.C.G. door always open</div>
+<div class="paragraph">
+<a href="../asm/38427.html">ACG_DOOR</a> wants the three pieces of the key in the three inventory slots, in
+order. Replace its first instruction with a jump to the "all three" branch at
+$9632 and the great door in the first room opens for anyone -- the
+game can be won by walking east from the start. Tested: walking right from
+the start with nothing carried stopped at x $8E against the shut door;
+with the poke the player went through in 28 frames, into room $8E, and the
+end screen followed.
+</div>
+<div class="paragraph">
+POKE 38427,195: POKE 38428,50: POKE 38429,150
+</div>
+</div>
+<div><span id="passages"></span></div>
+<div class="box box-2">
+<div class="box-title">Every secret passage for every character</div>
+<div class="paragraph">
+The clocks are doors for the knight, the bookcases for the wizard and the
+barrels for the serf: each handler subtracts its character's first sprite
+code from the player's and lets him through if the answer is under 16
+(<a href="../asm/37921.html">DOOR_SERF</a> and the two entry points after it). NOP the JR NC at $9435 that
+turns everyone else away, and all three kinds work for all three characters.
+Tested: the knight, moved to room $0A and walking up into its bookcase,
+stopped at y $52 without the poke; with it he went through in 12 frames.
+</div>
+<div class="paragraph">
+POKE 37941,0: POKE 37942,0
+</div>
+</div>
 <div><span id="congratulations"></span></div>
 <div class="box box-1">
 <div class="box-title">Spell CONGRATULATIONS correctly</div>
 <div class="paragraph">
 One byte, and nothing else moves: the string is the same length.
+</div>
+<div class="paragraph">
 POKE 38687,211
 </div>
 </div>

@@ -5962,9 +5962,15 @@ END_DELAY:
 GAME_OVER_0:
   DEC HL                  ; Twenty times 65536 turns of 26 T-states: about ten
   LD A,H                  ; seconds (9.8 s from here to the title, measured in
-  OR L                    ; the simulator), with interrupts off because the
-  JR NZ,GAME_OVER_0       ; death happened inside FRAME_TICK.
-  DJNZ GAME_OVER_0        ;
+  OR L                    ; the simulator). Whether interrupts are on depends
+  JR NZ,GAME_OVER_0       ; on what took the last life. Hunger kills inside
+  DJNZ GAME_OVER_0        ; FRAME_TICK, which has done a DI, so they are off
+                          ; and FRAMES stands still through this delay and the
+                          ; title screen after it; a creature, a big monster or
+                          ; a mushroom kills from the main loop, with
+                          ; interrupts on, and FRAMES counts all the way
+                          ; through both (measured live: about 500 frames by
+                          ; the title).
   JP TITLE_AGAIN
 
 ; "GAME OVER"
@@ -8753,10 +8759,10 @@ PIXEL_DRAWERS:
   DEFW BLIT_SPRITE
   DEFW BLIT_SPRITE_MIRRORED
   DEFW DRAW_TURNED_RIGHT
-  DEFW DRAW_TRANSPOSED
+  DEFW DRAW_FLIP_ANTIDIAGONAL
   DEFW DRAW_UPSIDE_DOWN
   DEFW BLIT_SPRITE_FLIPPED
-  DEFW DRAW_ANTI_TRANSPOSED
+  DEFW DRAW_FLIP_DIAGONAL
   DEFW DRAW_TURNED_LEFT
 
 ; Draw a sprite from the other set of eight routines
@@ -8780,17 +8786,17 @@ COLOUR_DRAWERS:
   DEFW COLOURS_AS_STORED
   DEFW COLOURS_MIRRORED
   DEFW COLOURS_TURNED_RIGHT
-  DEFW COLOURS_TRANSPOSED
+  DEFW COLOURS_FLIP_ANTIDIAGONAL
   DEFW COLOURS_UPSIDE_DOWN
   DEFW COLOURS_HALF_TURN
-  DEFW COLOURS_ANTI_TRANSPOSED
+  DEFW COLOURS_FLIP_DIAGONAL
   DEFW COLOURS_TURNED_LEFT
 
 ; Look up a sprite's bitmap and work out where it goes
 ;
 ; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
-; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED
-; and DRAW_TURNED_LEFT.
+; DRAW_FLIP_ANTIDIAGONAL, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED,
+; DRAW_FLIP_DIAGONAL and DRAW_TURNED_LEFT.
 ;
 ; Sprite numbers are 1-based, so the number is decremented before being doubled
 ; into the table of addresses at FURNITURE_SPRITES. The first two bytes of the
@@ -8837,8 +8843,8 @@ FETCH_SPRITE:
 ; Look up a sprite's colours
 ;
 ; Used by the routines at COLOURS_AS_STORED, COLOURS_MIRRORED,
-; COLOURS_TURNED_RIGHT, COLOURS_TRANSPOSED, COLOURS_UPSIDE_DOWN,
-; COLOURS_HALF_TURN, COLOURS_ANTI_TRANSPOSED and COLOURS_TURNED_LEFT.
+; COLOURS_TURNED_RIGHT, COLOURS_FLIP_ANTIDIAGONAL, COLOURS_UPSIDE_DOWN,
+; COLOURS_HALF_TURN, COLOURS_FLIP_DIAGONAL and COLOURS_TURNED_LEFT.
 ;
 ; The same routine as FETCH_SPRITE but based at FURNITURE_COLOURS -- the 200th
 ; entry of SPRITE_TABLE rather than the 161st -- and ending in PIXEL_TO_ATTR
@@ -9006,48 +9012,52 @@ DRAW_TURNED_RIGHT_OP:
   DEC DE
   JR DRAW_TURNED_RIGHT_0
 
-; Drawing mode 3: furniture's pixels transposed
+; Drawing mode 3: furniture's pixels mirrored across the bottom-left to
+; top-right diagonal
 ;
 ; Entry 3 of PIXEL_DRAWERS. Gathers bits as DRAW_TURNED_RIGHT does, but from
-; the left-hand column rightwards: the picture mirrored across its diagonal.
-DRAW_TRANSPOSED:
+; the left-hand column rightwards: the picture mirrored across the diagonal
+; from its bottom-left to its top-right corner. (Matched pixel for pixel
+; against the stored picture by the how-it-works build, 2026-09-27; renamed
+; from the transposed names, which had the diagonals the other way round.)
+DRAW_FLIP_ANTIDIAGONAL:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_TRANSPOSED_OP),A
+  LD (DRAW_FLIP_ANTIDIAGONAL_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
   LD B,A
   LD L,$80
   EXX
-DRAW_TRANSPOSED_0:
+DRAW_FLIP_ANTIDIAGONAL_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_TRANSPOSED_1:
+DRAW_FLIP_ANTIDIAGONAL_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_TRANSPOSED_2
+  JR Z,DRAW_FLIP_ANTIDIAGONAL_2
   SCF
-DRAW_TRANSPOSED_2:
+DRAW_FLIP_ANTIDIAGONAL_2:
   RL H
   EXX
   CALL NEXT_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_TRANSPOSED_1
+  JR NZ,DRAW_FLIP_ANTIDIAGONAL_1
   EXX
   LD A,H
   EXX
-DRAW_TRANSPOSED_OP:
+DRAW_FLIP_ANTIDIAGONAL_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_TRANSPOSED_1
+  JR NZ,DRAW_FLIP_ANTIDIAGONAL_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -9055,13 +9065,13 @@ DRAW_TRANSPOSED_OP:
   EXX
   RRC L
   EXX
-  JR NC,DRAW_TRANSPOSED_0
+  JR NC,DRAW_FLIP_ANTIDIAGONAL_0
   EXX
   DEC B
   EXX
   RET Z
   INC DE
-  JR DRAW_TRANSPOSED_0
+  JR DRAW_FLIP_ANTIDIAGONAL_0
 
 ; Turn a byte back to front
 ;
@@ -9092,9 +9102,9 @@ REVERSE_BITS_0:
 ; Step the sprite pointer on by one row
 ;
 ; Used by the routines at BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
-; DRAW_TRANSPOSED, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED, COLOURS_MIRRORED,
-; COLOURS_TURNED_RIGHT, COLOURS_TRANSPOSED, COLOURS_HALF_TURN and
-; COLOURS_ANTI_TRANSPOSED.
+; DRAW_FLIP_ANTIDIAGONAL, BLIT_SPRITE_FLIPPED, DRAW_FLIP_DIAGONAL,
+; COLOURS_MIRRORED, COLOURS_TURNED_RIGHT, COLOURS_FLIP_ANTIDIAGONAL,
+; COLOURS_HALF_TURN and COLOURS_FLIP_DIAGONAL.
 ;
 ; DE += B, where B is the width in bytes. The counterpart at
 ; PREVIOUS_SPRITE_ROW subtracts instead, for the routines that read a sprite
@@ -9110,8 +9120,8 @@ NEXT_SPRITE_ROW:
 
 ; Step the sprite pointer back one row
 ;
-; Used by the routines at DRAW_UPSIDE_DOWN, DRAW_ANTI_TRANSPOSED,
-; DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN, COLOURS_ANTI_TRANSPOSED and
+; Used by the routines at DRAW_UPSIDE_DOWN, DRAW_FLIP_DIAGONAL,
+; DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN, COLOURS_FLIP_DIAGONAL and
 ; COLOURS_TURNED_LEFT.
 ;
 ; DE -= B. The mirror of NEXT_SPRITE_ROW, for the drawing modes that read a
@@ -9146,8 +9156,8 @@ MULTIPLY_1:
 ; Point at the bottom row of a sprite
 ;
 ; Used by the routines at DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED,
-; DRAW_ANTI_TRANSPOSED, DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN,
-; COLOURS_HALF_TURN, COLOURS_ANTI_TRANSPOSED and COLOURS_TURNED_LEFT.
+; DRAW_FLIP_DIAGONAL, DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN, COLOURS_HALF_TURN,
+; COLOURS_FLIP_DIAGONAL and COLOURS_TURNED_LEFT.
 ;
 ; Multiplies the width by the height less one and adds it to the data pointer,
 ; so drawing can start from the far end. Called by every drawing routine whose
@@ -9241,14 +9251,18 @@ BLIT_FLIPPED_OP:
   JR NZ,BLIT_SPRITE_FLIPPED_0
   RET
 
-; Drawing mode 6: furniture's pixels transposed the other way
+; Drawing mode 6: furniture's pixels mirrored across the top-left to
+; bottom-right diagonal
 ;
 ; Entry 6 of PIXEL_DRAWERS. DRAW_TURNED_RIGHT's bit gathering, reading the rows
-; from the top down: the picture mirrored across its other diagonal.
-DRAW_ANTI_TRANSPOSED:
+; from the top down: the picture mirrored across its leading diagonal, top-left
+; to bottom-right -- a transpose. (Matched pixel for pixel against the stored
+; picture by the how-it-works build, 2026-09-27; renamed from the transposed
+; names, which had the diagonals the other way round.)
+DRAW_FLIP_DIAGONAL:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_ANTI_TRANSPOSED_OP),A
+  LD (DRAW_FLIP_DIAGONAL_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
@@ -9258,34 +9272,34 @@ DRAW_ANTI_TRANSPOSED:
   CALL NEXT_SPRITE_ROW
   DEC DE
   CALL START_AT_LAST_ROW
-DRAW_ANTI_TRANSPOSED_0:
+DRAW_FLIP_DIAGONAL_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_ANTI_TRANSPOSED_1:
+DRAW_FLIP_DIAGONAL_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_ANTI_TRANSPOSED_2
+  JR Z,DRAW_FLIP_DIAGONAL_2
   SCF
-DRAW_ANTI_TRANSPOSED_2:
+DRAW_FLIP_DIAGONAL_2:
   RL H
   EXX
   CALL PREVIOUS_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_ANTI_TRANSPOSED_1
+  JR NZ,DRAW_FLIP_DIAGONAL_1
   EXX
   LD A,H
   EXX
-DRAW_ANTI_TRANSPOSED_OP:
+DRAW_FLIP_DIAGONAL_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_ANTI_TRANSPOSED_1
+  JR NZ,DRAW_FLIP_DIAGONAL_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -9293,18 +9307,18 @@ DRAW_ANTI_TRANSPOSED_OP:
   EXX
   RLC L
   EXX
-  JR NC,DRAW_ANTI_TRANSPOSED_0
+  JR NC,DRAW_FLIP_DIAGONAL_0
   EXX
   DEC B
   EXX
   RET Z
   DEC DE
-  JR DRAW_ANTI_TRANSPOSED_0
+  JR DRAW_FLIP_DIAGONAL_0
 
 ; Drawing mode 7: furniture's pixels turned a quarter anticlockwise
 ;
-; Entry 7 of PIXEL_DRAWERS. DRAW_TRANSPOSED's bit gathering, reading the rows
-; from the top down: the picture turned a quarter anticlockwise.
+; Entry 7 of PIXEL_DRAWERS. DRAW_FLIP_ANTIDIAGONAL's bit gathering, reading the
+; rows from the top down: the picture turned a quarter anticlockwise.
 DRAW_TURNED_LEFT:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
@@ -9728,8 +9742,8 @@ DRAW_LINE_8:
 ; Choose the instruction that puts a sprite byte on the screen
 ;
 ; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
-; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED
-; and DRAW_TURNED_LEFT.
+; DRAW_FLIP_ANTIDIAGONAL, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED,
+; DRAW_FLIP_DIAGONAL and DRAW_TURNED_LEFT.
 ;
 ; Returns an opcode rather than a flag, for BLIT_SPRITE to write into the
 ; middle of its own loop. The drawing mode is packed into B: the low two bits
@@ -9863,36 +9877,37 @@ COLOURS_TURNED_RIGHT_3:
   JR NZ,COLOURS_TURNED_RIGHT_0
   RET
 
-; Drawing mode 3: furniture's colours transposed
+; Drawing mode 3: furniture's colours mirrored across the bottom-left to
+; top-right diagonal
 ;
 ; Entry 3 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-COLOURS_TRANSPOSED:
+COLOURS_FLIP_ANTIDIAGONAL:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
   EXX
   LD B,A
   EXX
-COLOURS_TRANSPOSED_0:
+COLOURS_FLIP_ANTIDIAGONAL_0:
   PUSH BC
   PUSH DE
   PUSH HL
-COLOURS_TRANSPOSED_1:
+COLOURS_FLIP_ANTIDIAGONAL_1:
   LD A,(DE)
   AND A
-  JR Z,COLOURS_TRANSPOSED_3
+  JR Z,COLOURS_FLIP_ANTIDIAGONAL_3
   CP $FF
-  JR NZ,COLOURS_TRANSPOSED_2
+  JR NZ,COLOURS_FLIP_ANTIDIAGONAL_2
   LD A,(ROOM_COLOUR)
-COLOURS_TRANSPOSED_2:
+COLOURS_FLIP_ANTIDIAGONAL_2:
   LD (HL),A
-COLOURS_TRANSPOSED_3:
+COLOURS_FLIP_ANTIDIAGONAL_3:
   CALL NEXT_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,COLOURS_TRANSPOSED_1
+  JR NZ,COLOURS_FLIP_ANTIDIAGONAL_1
   POP HL
   LD BC,$0020
   AND A
@@ -9903,7 +9918,7 @@ COLOURS_TRANSPOSED_3:
   EXX
   DEC B
   EXX
-  JR NZ,COLOURS_TRANSPOSED_0
+  JR NZ,COLOURS_FLIP_ANTIDIAGONAL_0
   RET
 
 ; Drawing mode 4: furniture's colours upside down
@@ -9979,12 +9994,13 @@ COLOURS_HALF_TURN_3:
   JR NZ,COLOURS_HALF_TURN_0
   RET
 
-; Drawing mode 6: furniture's colours transposed the other way
+; Drawing mode 6: furniture's colours mirrored across the top-left to
+; bottom-right diagonal
 ;
 ; Entry 6 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-COLOURS_ANTI_TRANSPOSED:
+COLOURS_FLIP_DIAGONAL:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
@@ -9993,25 +10009,25 @@ COLOURS_ANTI_TRANSPOSED:
   EXX
   CALL START_AT_LAST_ROW
   CALL NEXT_SPRITE_ROW
-COLOURS_ANTI_TRANSPOSED_0:
+COLOURS_FLIP_DIAGONAL_0:
   DEC DE
   PUSH BC
   PUSH DE
   PUSH HL
-COLOURS_ANTI_TRANSPOSED_1:
+COLOURS_FLIP_DIAGONAL_1:
   LD A,(DE)
   AND A
-  JR Z,COLOURS_ANTI_TRANSPOSED_3
+  JR Z,COLOURS_FLIP_DIAGONAL_3
   CP $FF
-  JR NZ,COLOURS_ANTI_TRANSPOSED_2
+  JR NZ,COLOURS_FLIP_DIAGONAL_2
   LD A,(ROOM_COLOUR)
-COLOURS_ANTI_TRANSPOSED_2:
+COLOURS_FLIP_DIAGONAL_2:
   LD (HL),A
-COLOURS_ANTI_TRANSPOSED_3:
+COLOURS_FLIP_DIAGONAL_3:
   CALL PREVIOUS_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,COLOURS_ANTI_TRANSPOSED_1
+  JR NZ,COLOURS_FLIP_DIAGONAL_1
   POP HL
   LD BC,$0020
   AND A
@@ -10021,7 +10037,7 @@ COLOURS_ANTI_TRANSPOSED_3:
   EXX
   DEC B
   EXX
-  JR NZ,COLOURS_ANTI_TRANSPOSED_0
+  JR NZ,COLOURS_FLIP_DIAGONAL_0
   RET
 
 ; Drawing mode 7: furniture's colours turned a quarter anticlockwise
@@ -10242,8 +10258,9 @@ XOR_BYTE:
 ; Move a display file address up one pixel row
 ;
 ; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
-; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED,
-; DRAW_TURNED_LEFT, ERASE_UNSHIFTED, DRAW_UNSHIFTED and ERASE_STRIP.
+; DRAW_FLIP_ANTIDIAGONAL, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED,
+; DRAW_FLIP_DIAGONAL, DRAW_TURNED_LEFT, ERASE_UNSHIFTED, DRAW_UNSHIFTED and
+; ERASE_STRIP.
 ;
 ; The counterpart to PIXEL_TO_SCREEN's arithmetic, done as cheaply as possible
 ; because BLIT_SPRITE calls it once per row of every sprite on the screen.
@@ -12884,8 +12901,9 @@ GFX_31:
   DEFB $00,$00
   DEFB $00,$00
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $80
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $80
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -12908,8 +12926,9 @@ GFX_80:
   DEFB $DE,$00
   DEFB $F8,$00
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $81
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $81
 ;
 ; 10 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -12926,8 +12945,9 @@ GFX_81:
   DEFB $1E,$00
   DEFB $0C,$00
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $82
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $82
 ;
 ; 20 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -12981,8 +13001,9 @@ GFX_57:
   DEFB $05,$C0
   DEFB $03,$80
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $84
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $84
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -13005,8 +13026,9 @@ GFX_84:
   DEFB $00,$FE
   DEFB $00,$1F
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $85
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $85
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -13029,8 +13051,9 @@ GFX_85:
   DEFB $0E,$E0
   DEFB $04,$60
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $86
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $86
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14030,7 +14053,8 @@ GFX_17:
   DEFB $03,$80
   DEFB $01,$00
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3E
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3E
 ;
 ; 12 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14049,7 +14073,8 @@ GFX_3E:
   DEFB $00,$10
   DEFB $00,$20
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3B
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3B
 ;
 ; 13 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14069,7 +14094,8 @@ GFX_3B:
   DEFB $18,$00
   DEFB $10,$00
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3C
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3C
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14092,7 +14118,8 @@ GFX_3C:
   DEFB $01,$80
   DEFB $00,$80
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3D
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3D
 ;
 ; 13 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14112,7 +14139,8 @@ GFX_3D:
   DEFB $00,$38
   DEFB $00,$1C
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3A
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3A
 ;
 ; 12 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14131,7 +14159,8 @@ GFX_3A:
   DEFB $08,$00
   DEFB $04,$00
 
-; Sword, spinning, thrown by the serf, drawn for sprite $39
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $39
 ;
 ; 12 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14151,7 +14180,8 @@ GFX_39:
   DEFB $3B,$80
   DEFB $38,$00
 
-; Sword, spinning, thrown by the serf, drawn for sprite $38
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $38
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14174,7 +14204,8 @@ GFX_38:
   DEFB $03,$C0
   DEFB $01,$80
 
-; Sword, spinning, thrown by the serf, drawn for sprite $3F
+; Sword, thrown by the serf, pointing the way it flies (it changes angle only
+; on a bounce), drawn for sprite $3F
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14973,8 +15004,9 @@ GFX_50:
   DEFB $18,$18
   DEFB $07,$E0
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $88
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $88
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -14997,8 +15029,9 @@ GFX_88:
   DEFB $11,$34
   DEFB $0E,$C8
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $83
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $83
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -15021,8 +15054,9 @@ GFX_83:
   DEFB $1F,$E8
   DEFB $07,$A0
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $87
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $87
 ;
 ; 13 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16569,8 +16603,9 @@ GFX_8F:
   DEFB $16,$B8
   DEFB $00,$70
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $8A
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $8A
 ;
 ; 18 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16595,8 +16630,9 @@ GFX_8A:
   DEFB $03,$C0
   DEFB $01,$80
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $89
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $89
 ;
 ; 15 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16734,7 +16770,8 @@ GFX_93:
   DEFB $3F,$E0
   DEFB $F8,$10
 
-; The graphics for sprite $94
+; Hooded figure in a robe with a cross on it, facing the way it flies, drawn
+; for sprite $94
 ;
 ; 19 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16760,7 +16797,8 @@ GFX_94:
   DEFB $3F,$80
   DEFB $1E,$00
 
-; The graphics for sprite $95
+; Hooded figure in a robe with a cross on it, facing the way it flies, drawn
+; for sprite $95
 ;
 ; 19 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16786,7 +16824,8 @@ GFX_95:
   DEFB $3F,$80
   DEFB $1E,$00
 
-; The graphics for sprite $96
+; Hooded figure in a robe with a cross on it, facing the way it flies, drawn
+; for sprite $96
 ;
 ; 19 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -16812,7 +16851,8 @@ GFX_96:
   DEFB $01,$FC
   DEFB $00,$78
 
-; The graphics for sprite $97
+; Hooded figure in a robe with a cross on it, facing the way it flies, drawn
+; for sprite $97
 ;
 ; 19 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -17039,8 +17079,9 @@ ATTRS_EC:
   DEFB $47,$47,$43,$43,$43,$43,$47,$47
   DEFB $46,$46,$46,$46,$46,$46,$46,$46
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $8C
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $8C
 ;
 ; 11 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -17058,8 +17099,9 @@ GFX_8C:
   DEFB $40,$00
   DEFB $3F,$FF
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $8D
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $8D
 ;
 ; 15 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -17081,8 +17123,9 @@ GFX_8D:
   DEFB $00,$01
   DEFB $00,$01
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $8E
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $8E
 ;
 ; 19 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -17163,8 +17206,9 @@ ATTRS_ED:
   DEFB $46,$46,$46,$46
   DEFB $46,$46,$46,$46
 
-; Collectables: keys, and the objects that kill the mummy, Dracula, the devil
-; and Frankenstein's monster, drawn for sprite $8B
+; Collectables: the four keys, the three pieces of the A.C.G. key, the crucifix
+; Dracula flees, the spanner that kills Frankenstein's monster, the mummy's
+; lure, and eight that only the humpback wants, drawn for sprite $8B
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.

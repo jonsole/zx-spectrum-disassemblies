@@ -15,8 +15,228 @@
 </tr>
 </table>
 <ul class="contents">
+<li><a href="#firstgame">Every first game is the same castle</a></li>
+<li><a href="#castles">Fewer castles than it seems</a></li>
+<li><a href="#zerowrap">A touch that leaves nothing fills the roast</a></li>
+<li><a href="#mushroom">One death, two lives</a></li>
+<li><a href="#firstfood">The first piece of food never grows back</a></li>
+<li><a href="#gravestones">A second gravestone rubs out the first</a></li>
+<li><a href="#rock">The devil and Frankenstein's monster stand in the rock</a></li>
+<li><a href="#dracula">Dracula forgets where he was going</a></li>
 <li><a href="#congratulationt">CONGRATULATIONT</a></li>
 </ul>
+<div><span id="firstgame"></span></div>
+<div class="box box-1">
+<div class="box-title">Every first game is the same castle</div>
+<div class="paragraph">
+<a href="../asm/32154.html">START_GAME</a> hides the A.C.G. key's three pieces, places the green, red and cyan
+keys and the mummy, and chooses which doors will open and shut by themselves,
+all from the ROM's frame counter FRAMES. But <a href="../asm/24576.html">ENTRY</a> turns the interrupts off
+as the game starts, and nothing turns them on until the first pass of
+<a href="../asm/32195.html">MAIN_LOOP</a> -- after all of that has been chosen. FRAMES does not move on the
+title screen, so the first game after loading is decided by how many frames
+the loader took, whatever is pressed on the menu and whenever.
+</div>
+<div class="paragraph">
+The loaded snapshot has FRAMES at $256F, which puts the pieces in
+<a href="../asm/30655.html">room $17</a>, <a href="../asm/30581.html">room $10</a>, <a href="../asm/30843.html">room $2B</a>, the green key in <a href="../asm/30753.html">room $22</a>, the red key and the mummy
+in <a href="../asm/31627.html">room $85</a> and the cyan key in <a href="../asm/31741.html">room $91</a> (the yellow is
+always in <a href="../asm/31351.html">room $66</a>). Watched in the emulator: FRAMES read
+$256F on the title screen and still did after three hundred turns of
+its loop; a game started from there, as the knight, and another started after
+choosing a different control option and the serf, both had exactly those
+rooms. A
+real Spectrum should do the same on every load, if its loader takes the same
+number of frames (not checked on hardware).
+</div>
+</div>
+<div><span id="castles"></span></div>
+<div class="box box-2">
+<div class="box-title">Fewer castles than it seems</div>
+<div class="paragraph">
+Even after the first game, the choices are narrower than they look.
+<a href="../asm/38070.html">PLACE_ACG_KEY</a> and <a href="../asm/39122.html">PLACE_KEYS</a> add TICKS to FRAMES to pick their rooms, but <a href="../asm/32154.html">START_GAME</a> has
+just cleared TICKS (<a href="../asm/32971.html">CLEAR_VARIABLES</a>), so the green key, the red key with the mummy,
+and the set of rooms for the A.C.G. pieces all come from the same number,
+FRAMES AND 7: eight arrangements, each always with the same partners. The
+timed doors (<a href="../asm/38133.html">CHOOSE_TIMED_DOORS</a>) take their random bytes from a stretch of ROM chosen by
+FRAMES AND 15, so each arrangement comes with one of two patterns of doors.
+</div>
+<div class="paragraph">
+The cyan key is chosen from FRAMES' middle byte instead, which in play never
+changes: <a href="../asm/38362.html">TICK_CLOCK</a> takes 50 off FRAMES every second, so its low byte never
+reaches 256 to carry. It moves only while the interrupts are left on outside
+play, and that happens after one kind of ending only: a game over caused in
+the main loop -- by a creature, a big monster or a mushroom -- runs its
+ten-second delay and the title screen that follows with interrupts on. Dying
+of hunger happens inside <a href="../asm/32434.html">FRAME_TICK</a>, which has turned them off, and the end
+screen follows <a href="../asm/38025.html">PAUSE</a>, which has too; after either, FRAMES stands still
+until the next game begins.
+</div>
+<div class="paragraph">
+<table class="data">
+<tr><th>FRAMES AND 7</th><th>Green key</th><th>Red key and the mummy</th><th>A.C.G. pieces $8C, $8D, $8E</th><th>Cyan key, by FRAMES' middle byte AND 7</th></tr>
+<tr><td>0</td><td><a href="../asm/30449.html">room $05</a></td><td><a href="../asm/30655.html">room $17</a></td><td><a href="../asm/31591.html">room $81</a>, <a href="../asm/31049.html">room $45</a>, <a href="../asm/31545.html">room $7C</a></td><td><a href="../asm/31149.html">room $53</a></td></tr>
+<tr><td>1</td><td><a href="../asm/30459.html">room $06</a></td><td><a href="../asm/30607.html">room $13</a></td><td><a href="../asm/31627.html">room $85</a>, <a href="../asm/31079.html">room $49</a>, <a href="../asm/30843.html">room $2B</a></td><td><a href="../asm/31727.html">room $8F</a></td></tr>
+<tr><td>2</td><td><a href="../asm/30477.html">room $07</a></td><td><a href="../asm/30497.html">room $09</a></td><td><a href="../asm/31389.html">room $6A</a>, <a href="../asm/30969.html">room $3B</a>, <a href="../asm/31545.html">room $7C</a></td><td><a href="../asm/31021.html">room $41</a></td></tr>
+<tr><td>3</td><td><a href="../asm/31415.html">room $6D</a></td><td><a href="../asm/30545.html">room $0D</a></td><td><a href="../asm/31383.html">room $69</a>, <a href="../asm/31457.html">room $71</a>, <a href="../asm/30843.html">room $2B</a></td><td><a href="../asm/31761.html">room $94</a></td></tr>
+<tr><td>4</td><td><a href="../asm/30783.html">room $25</a></td><td><a href="../asm/31663.html">room $89</a></td><td><a href="../asm/31371.html">room $67</a>, <a href="../asm/31627.html">room $85</a>, <a href="../asm/31545.html">room $7C</a></td><td><a href="../asm/30909.html">room $33</a></td></tr>
+<tr><td>5</td><td><a href="../asm/30771.html">room $24</a></td><td><a href="../asm/31639.html">room $87</a></td><td><a href="../asm/31377.html">room $68</a>, <a href="../asm/31575.html">room $7F</a>, <a href="../asm/30843.html">room $2B</a></td><td><a href="../asm/31741.html">room $91</a> (the first game, and every game until FRAMES' middle byte moves)</td></tr>
+<tr><td>6</td><td><a href="../asm/30761.html">room $23</a></td><td><a href="../asm/31585.html">room $80</a></td><td><a href="../asm/31109.html">room $4D</a>, <a href="../asm/31469.html">room $73</a>, <a href="../asm/31545.html">room $7C</a></td><td><a href="../asm/30955.html">room $39</a></td></tr>
+<tr><td>7 (the first game)</td><td><a href="../asm/30753.html">room $22</a></td><td><a href="../asm/31627.html">room $85</a></td><td><a href="../asm/30655.html">room $17</a>, <a href="../asm/30581.html">room $10</a>, <a href="../asm/30843.html">room $2B</a></td><td><a href="../asm/31101.html">room $4C</a></td></tr>
+</table>
+</div>
+<div class="paragraph">
+Watched in the emulator, ending games in both ways from the first game after
+a varying number of frames and starting another: after six games over by
+hunger, FRAMES had not moved during the delay or on the title screen, the
+cyan key was in <a href="../asm/31741.html">room $91</a> every time, and the other keys and the
+pieces followed FRAMES AND 7 through the table; after six games over by the
+devil, FRAMES ran on through both, its middle byte reached $26 to $28, and the
+cyan key went to $4C and $53. A win left FRAMES frozen too.
+</div>
+</div>
+<div><span id="zerowrap"></span></div>
+<div class="box box-1">
+<div class="box-title">A touch that leaves nothing fills the roast</div>
+<div class="paragraph">
+<a href="../asm/35358.html">LOSE_FOOD_EIGHT</a> and <a href="../asm/35349.html">LOSE_FOOD_SIXTEEN</a>, the big five's touches, subtract from the life force and
+kill only when that borrows (JR C). A result of exactly zero is stored, and
+the player lives. The next drain -- hunger in PLAYER_TICK, or a
+mushroom -- does DEC A and tests for zero, and 0 minus 1 is 255: not zero,
+so it is stored, and the roast on the scroll is full again, fuller than
+eating can make it (<a href="../asm/35939.html">EAT_FOOD</a> stops at 240). It needs the life force at a
+multiple of 8 (of 16 for the humpback) when the touching starts, which is
+less rare than it sounds: every life starts at 240 and food adds 64 (how
+often it happens in play was not counted). The small creatures' <a href="../asm/36567.html">LOSE_FOOD_THIRTY_TWO</a>
+tests for zero as well as a borrow, so they cannot do it.
+</div>
+<div class="paragraph">
+Watched in the emulator, with a watchpoint on the life force: set to 8, with
+the devil put on the player, the store at $8A25 wrote 0 and the player
+carried on; with the devil sent back to his own room, the next write was
+the hunger drain's store at $8E88, 0 to 255, then 254, and the roast was
+drawn whole.
+</div>
+</div>
+<div><span id="mushroom"></span></div>
+<div class="box box-2">
+<div class="box-title">One death, two lives</div>
+<div class="paragraph">
+<a href="../asm/39051.html">MUSHROOM</a>, a mushroom, drains the player whenever he is within 12 pixels of it
+(<a href="../asm/37115.html">NEAR_PLAYER</a>), without asking whether he is alive: it goes on while he sinks
+into the floor. Dying to a big monster (<a href="../asm/35358.html">LOSE_FOOD_EIGHT</a>) or to hunger leaves the life
+force where it was -- neither stores the final value -- so a mushroom beside
+the body counts the last few units down, and on reaching zero it calls
+<a href="../asm/36512.html">LOSE_LIFE</a> a second time and disappears (<a href="../asm/39112.html">MUSHROOM_KILLED_PLAYER</a>). One death costs two lives.
+</div>
+<div class="paragraph">
+Watched in the emulator, staging only the room and keeping small creatures
+away: the player put beside the mushroom in the devil's cave, room $43, with
+a full life force, stood still. The devil arrived and ran the life force out with 6
+left; <a href="../asm/36512.html">LOSE_LIFE</a> ran for the devil with three spare lives, and a few passes
+later ran again for the mushroom, the player still sinking, with the life
+force at 0. He rose with one spare life instead of two, and the mushroom was
+gone. (A small creature's touch stores 0 before killing, and a mushroom's DEC
+turns that into 255, so it takes only one life.)
+</div>
+</div>
+<div><span id="firstfood"></span></div>
+<div class="box box-1">
+<div class="box-title">The first piece of food never grows back</div>
+<div class="paragraph">
+<a href="../asm/39204.html">REGROW_FOOD</a> refills eaten food, one of the eighty food records every 512 passes,
+by stepping a cursor through them. It steps before it looks, and when the
+step reaches the end it puts the cursor back on the first record and returns
+without looking; the next step moves it to the second. <a href="../asm/32154.html">START_GAME</a> starts the
+cursor on the first record too. So the first food record -- the one in
+<a href="../asm/30797.html">room $27</a> at the start of every game -- is never
+looked at, and once eaten it is gone for good.
+</div>
+<div class="paragraph">
+Watched in the emulator: with the first two records emptied and the cursor
+on the last, TICKS was set so that the next four passes each opened the
+gate. The cursor went back to the first record, then refilled the second
+(with food $56), then went on; the first stayed empty. Moving the reset back
+one record fixes it, and was tested the same way: the first record was
+refilled at the next step.
+</div>
+<div class="paragraph">
+POKE 39260,80
+</div>
+</div>
+<div><span id="gravestones"></span></div>
+<div class="box box-2">
+<div class="box-title">A second gravestone rubs out the first</div>
+<div class="paragraph">
+When the player dies, <a href="../asm/38313.html">DROP_GRAVESTONE</a> puts a gravestone in the first free one of four
+slots at the spot where he fell and draws it -- with XOR, like every moving
+thing. The new life always rises at the same place in the room (<a href="../asm/37955.html">PLACE_PLAYER</a>
+copies it from its template), so dying twice without moving puts two
+gravestones in exactly the same place, and the second rubs the first out.
+The two records are still there; a third makes one visible again. And the
+four slots are never emptied, so after the fourth death there are no more.
+</div>
+<div class="paragraph">
+Watched in the emulator: starved three times in a row standing where he
+rose, the knight had a gravestone under him after the first death, none
+after the second -- with two gravestone records holding the same room, x and
+y -- and one again after the third.
+</div>
+</div>
+<div><span id="rock"></span></div>
+<div class="box box-1">
+<div class="box-title">The devil and Frankenstein's monster stand in the rock</div>
+<div class="paragraph">
+The four big hunters are dispatched every pass wherever they are, and while
+the player is not in play -- rising at the start of every life, the first
+included, or sinking at the end of one -- they walk away from where he is
+(BIG_MONSTER_STEP), up to 52 pixels from the centre: the limits in
+DE, $3434, handed to STEP_ACTOR. That suits a square hall, whose walk
+area reaches 56 pixels from the centre, but the devil and Frankenstein's
+monster live in caves, whose walk area stops at 40. While the player rises in
+the first room at the start of a game, both back off to about 50 pixels up and
+left of their caves' centres, into the rock, and that is where the player finds
+them on arriving; they walk out onto the floor from there.
+</div>
+<div class="paragraph">
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<div><div style="font-size:11px;margin-bottom:4px">Room $43: the devil at x $25, y $35</div>
+<img src="../images/reference/cave43.png" alt="the devil's cave on arrival"/></div>
+<div><div style="font-size:11px;margin-bottom:4px">Room $55: Frankenstein's monster at x $25, y $35</div>
+<img src="../images/reference/cave55.png" alt="Frankenstein's cave on arrival"/></div>
+</div>
+<div style="clear:both"></div>
+Both pictures were drawn by the game's own code: a game started from the
+title screen, and three seconds later the knight put at the centre of each
+cave and the first pass of the main loop run. Watched in the emulator too:
+arriving in each cave from the first game's start, the monster stood 49
+pixels up and left of the centre after the first pass; and with the player
+dying in the devil's cave, the devil backed away to 51 pixels down and right,
+into the rock in the opposite corner, until the new life began.
+</div>
+</div>
+<div><span id="dracula"></span></div>
+<div class="box box-2">
+<div class="box-title">Dracula forgets where he was going</div>
+<div class="paragraph">
+Away from the player, <a href="../asm/35078.html">MOVE_DRACULA</a> writes $68, $68 into its +$0B and +$0C as a
+place to walk to, and then calls <a href="../asm/34861.html">HOME_IN</a> -- which takes its target from DE,
+not from the record. <a href="../asm/34914.html">MOVE_MUMMY</a>, the mummy, stores its targets in the same two
+bytes and loads DE from them before the same call; Dracula's routine lacks
+the two loads, and DE still holds $468A, the crucifix's sprite and colour
+from the test just before. So off-screen Dracula walks to x $8A, y $46,
+wherever he is, and that is where he stands when the player finds him. It
+is harmless, and in a cave -- Dracula's random moves allow caves -- it puts
+him 50 pixels right of the centre, in the rock.
+</div>
+<div class="paragraph">
+Watched in the emulator over 600 frames of the first game: Dracula, in room
+$68, walked from x $27, y $37 to x $8A, y $46 a pixel a pass, and kept that
+position through moves to rooms $17, $45 and $55 -- the last of them a cave
+-- while +$0B and +$0C read $68 throughout.
+</div>
+</div>
 <div><span id="congratulationt"></span></div>
 <div class="box box-1">
 <div class="box-title">CONGRATULATIONT</div>
