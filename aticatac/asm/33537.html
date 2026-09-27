@@ -25,19 +25,19 @@ Next: <a href="33722.html">83BA</a>
 </td>
 </tr>
 </table>
-<div class="description">8301: Drive the other kind of bat</div>
+<div class="description">8301: Drive the second bat, which flies in arcs</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Sprites $6A and $6B. What it does differently from MOVE_BAT has not been established -- only that the game keeps them apart.
+Sprites $6A and $6B, the second kind of bat. Every sixteen passes it picks a random direction from R into +$08, and in between takes its steps from STEP_VECTORS in order through ARC_STEP -- sixteen steps that swing from horizontal to vertical, the axes swapped by bit 2 of +$08 -- so it flies in arcs, bouncing off the walls.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT</td>
+<td class="asm-label">MOVE_ARCS</td>
 <td class="address-2"><span id="33537"></span>8301</td>
 <td class="instruction">LD A,($EA91)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -105,7 +105,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33564"></span>831C</td>
-<td class="instruction">JP Z,<a href="34586.html#34655">DRAW_MONSTER</a></td>
+<td class="instruction">JP Z,<a href="34586.html#34655">KILL_MONSTER</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -147,7 +147,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33584"></span>8330</td>
-<td class="instruction">JP NZ,<a href="33537.html#33594">MOVE_BAT_ALT_0</a></td>
+<td class="instruction">JP NZ,<a href="33537.html#33594">MOVE_ARCS_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -169,9 +169,9 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_0</td>
+<td class="asm-label">MOVE_ARCS_0</td>
 <td class="address-2"><span id="33594"></span>833A</td>
-<td class="instruction">CALL <a href="33722.html">VELOCITY_LOOKUP</a></td>
+<td class="instruction">CALL <a href="33722.html">ARC_STEP</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -183,7 +183,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33601"></span>8341</td>
-<td class="instruction">JR NZ,<a href="33537.html#33604">MOVE_BAT_ALT_1</a></td>
+<td class="instruction">JR NZ,<a href="33537.html#33604">MOVE_ARCS_1</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -193,7 +193,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_1</td>
+<td class="asm-label">MOVE_ARCS_1</td>
 <td class="address-2"><span id="33604"></span>8344</td>
 <td class="instruction">LD A,(HL)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -207,7 +207,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33609"></span>8349</td>
-<td class="instruction">JR NZ,<a href="33537.html#33613">MOVE_BAT_ALT_2</a></td>
+<td class="instruction">JR NZ,<a href="33537.html#33613">MOVE_ARCS_2</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -217,7 +217,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_2</td>
+<td class="asm-label">MOVE_ARCS_2</td>
 <td class="address-2"><span id="33613"></span>834D</td>
 <td class="instruction">ADD A,(IX+$04)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -237,7 +237,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33619"></span>8353</td>
-<td class="instruction">JR C,<a href="33537.html#33626">MOVE_BAT_ALT_3</a></td>
+<td class="instruction">JR C,<a href="33537.html#33626">MOVE_ARCS_3</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -249,17 +249,17 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33622"></span>8356</td>
-<td class="instruction">JR NC,<a href="33537.html#33698">MOVE_BAT_ALT_10</a></td>
+<td class="instruction">JR NC,<a href="33537.html#33698">MOVE_ARCS_10</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33624"></span>8358</td>
-<td class="instruction">JR <a href="33537.html#33631">MOVE_BAT_ALT_4</a></td>
+<td class="instruction">JR <a href="33537.html#33631">MOVE_ARCS_4</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_3</td>
+<td class="asm-label">MOVE_ARCS_3</td>
 <td class="address-2"><span id="33626"></span>835A</td>
 <td class="instruction">NEG</td>
 <td class="comment-0" rowspan="1"></td>
@@ -273,25 +273,25 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33629"></span>835D</td>
-<td class="instruction">JR NC,<a href="33537.html#33704">MOVE_BAT_ALT_11</a></td>
+<td class="instruction">JR NC,<a href="33537.html#33704">MOVE_ARCS_11</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_4</td>
+<td class="asm-label">MOVE_ARCS_4</td>
 <td class="address-2"><span id="33631"></span>835F</td>
 <td class="instruction">LD (IX+$04),C</td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_5</td>
+<td class="asm-label">MOVE_ARCS_5</td>
 <td class="address-2"><span id="33634"></span>8362</td>
-<td class="instruction">CALL <a href="33722.html">VELOCITY_LOOKUP</a></td>
+<td class="instruction">CALL <a href="33722.html">ARC_STEP</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33637"></span>8365</td>
-<td class="instruction">JR Z,<a href="33537.html#33640">MOVE_BAT_ALT_6</a></td>
+<td class="instruction">JR Z,<a href="33537.html#33640">MOVE_ARCS_6</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -301,7 +301,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_6</td>
+<td class="asm-label">MOVE_ARCS_6</td>
 <td class="address-2"><span id="33640"></span>8368</td>
 <td class="instruction">LD A,(HL)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -315,7 +315,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33645"></span>836D</td>
-<td class="instruction">JR NZ,<a href="33537.html#33649">MOVE_BAT_ALT_7</a></td>
+<td class="instruction">JR NZ,<a href="33537.html#33649">MOVE_ARCS_7</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -325,7 +325,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_7</td>
+<td class="asm-label">MOVE_ARCS_7</td>
 <td class="address-2"><span id="33649"></span>8371</td>
 <td class="instruction">ADD A,(IX+$03)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -345,7 +345,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33655"></span>8377</td>
-<td class="instruction">JR C,<a href="33537.html#33662">MOVE_BAT_ALT_8</a></td>
+<td class="instruction">JR C,<a href="33537.html#33662">MOVE_ARCS_8</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -357,17 +357,17 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33658"></span>837A</td>
-<td class="instruction">JR NC,<a href="33537.html#33716">MOVE_BAT_ALT_13</a></td>
+<td class="instruction">JR NC,<a href="33537.html#33716">MOVE_ARCS_13</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33660"></span>837C</td>
-<td class="instruction">JR <a href="33537.html#33667">MOVE_BAT_ALT_9</a></td>
+<td class="instruction">JR <a href="33537.html#33667">MOVE_ARCS_9</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_8</td>
+<td class="asm-label">MOVE_ARCS_8</td>
 <td class="address-2"><span id="33662"></span>837E</td>
 <td class="instruction">NEG</td>
 <td class="comment-0" rowspan="1"></td>
@@ -381,11 +381,11 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33665"></span>8381</td>
-<td class="instruction">JR NC,<a href="33537.html#33710">MOVE_BAT_ALT_12</a></td>
+<td class="instruction">JR NC,<a href="33537.html#33710">MOVE_ARCS_12</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_9</td>
+<td class="asm-label">MOVE_ARCS_9</td>
 <td class="address-2"><span id="33667"></span>8383</td>
 <td class="instruction">LD (IX+$03),C</td>
 <td class="comment-0" rowspan="1"></td>
@@ -459,7 +459,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33692"></span>839C</td>
-<td class="instruction">JP NC,<a href="34586.html#34655">DRAW_MONSTER</a></td>
+<td class="instruction">JP NC,<a href="34586.html#34655">KILL_MONSTER</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -469,7 +469,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_10</td>
+<td class="asm-label">MOVE_ARCS_10</td>
 <td class="address-2"><span id="33698"></span>83A2</td>
 <td class="instruction">RES 1,(IX+$08)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -477,11 +477,11 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33702"></span>83A6</td>
-<td class="instruction">JR <a href="33537.html#33634">MOVE_BAT_ALT_5</a></td>
+<td class="instruction">JR <a href="33537.html#33634">MOVE_ARCS_5</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_11</td>
+<td class="asm-label">MOVE_ARCS_11</td>
 <td class="address-2"><span id="33704"></span>83A8</td>
 <td class="instruction">SET 1,(IX+$08)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -489,11 +489,11 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33708"></span>83AC</td>
-<td class="instruction">JR <a href="33537.html#33634">MOVE_BAT_ALT_5</a></td>
+<td class="instruction">JR <a href="33537.html#33634">MOVE_ARCS_5</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_12</td>
+<td class="asm-label">MOVE_ARCS_12</td>
 <td class="address-2"><span id="33710"></span>83AE</td>
 <td class="instruction">SET 0,(IX+$08)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -501,11 +501,11 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33714"></span>83B2</td>
-<td class="instruction">JR <a href="33537.html#33667">MOVE_BAT_ALT_9</a></td>
+<td class="instruction">JR <a href="33537.html#33667">MOVE_ARCS_9</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">MOVE_BAT_ALT_13</td>
+<td class="asm-label">MOVE_ARCS_13</td>
 <td class="address-2"><span id="33716"></span>83B4</td>
 <td class="instruction">RES 0,(IX+$08)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -513,7 +513,7 @@ Sprites $6A and $6B. What it does differently from MOVE_BAT has not been establi
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33720"></span>83B8</td>
-<td class="instruction">JR <a href="33537.html#33667">MOVE_BAT_ALT_9</a></td>
+<td class="instruction">JR <a href="33537.html#33667">MOVE_ARCS_9</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 </table>

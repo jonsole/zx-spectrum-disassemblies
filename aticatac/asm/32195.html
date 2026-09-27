@@ -34,13 +34,13 @@ Next: <a href="32275.html">7E13</a>
 Used by the routines at <a href="32275.html">MAIN_LOOP_MONSTERS</a> and <a href="37143.html">ENTER_ROOM</a>.
 </div>
 <div class="paragraph">
-Everything the game does happens here. It walks three tables of records and hands each one to DISPATCH_ACTOR, which finds its handler from its sprite byte; there is no other structure above this. Monsters, doors, objects, the player and even the sound effects are all just records this loop reaches.
+Everything the game does happens here. It walks two tables of records and the player's room's list, and hands each record to DISPATCH_ACTOR, which finds its handler from its sprite byte; there is no other structure above this. Monsters, doors, objects, the player and even the sound effects are all just records this loop reaches.
 </div>
 <div class="paragraph">
-The three tables have different shapes and are treated differently. From $EAA8 to $EE60 are eight-byte records -- objects, collectables, sounds -- and those are only dispatched if their room matches the player's. From $EE60 to $EEE0 are the sixteen-byte monster records, dispatched every pass whatever room they are in, which is how creatures keep moving around a castle you cannot see. From $EEE0 up are the doors, eight bytes again.
+The three are treated differently. From $EAA8 to $EE60 are eight-byte records -- objects, collectables, the drop controller -- and those are only dispatched if their room matches the player's. From $EE60 to $EEE0 are the sixteen-byte monster records, dispatched every pass whatever room they are in, which is how creatures keep moving around a castle you cannot see. The doors and furniture, sixteen-byte records from $EEE0 with a half in each of two rooms, are not walked at all: ROOM_LIST_PASS dispatches the ones the player's room's list names. On the first pass in a room the first two walks are skipped. Measured in the simulator, a pass in room $00 takes about 1.7 frames: a fifth of it this loop's own walk over the objects, with a FRAMES check between each, and a seventh INERT_SPRITE's delay in the three empty monster slots.
 </div>
 <div class="paragraph">
-Two details in the first three instructions are worth more than they look. The stack pointer is reset at the top of every pass, so no handler has to leave the stack as it found it -- which is what lets LOSE_FOOD_16 abandon its caller and jump straight to the death routine. And the EI here is where the DI at the entry point is finally lifted: everything before this runs with interrupts off.
+Two details in the first three instructions are worth more than they look. The stack pointer is reset at the top of every pass, so no handler has to leave the stack as it found it -- which is what lets LOSE_FOOD_SIXTEEN abandon its caller and jump straight to the death routine. And the EI here is where the DI at the entry point is finally lifted: everything before this runs with interrupts off.
 </div>
 </div>
 </td>
@@ -96,7 +96,7 @@ Two details in the first three instructions are worth more than they look. The s
 <td class="asm-label"></td>
 <td class="address-1"><span id="32214"></span>7DD6</td>
 <td class="instruction">LD IX,$EEE0</td>
-<td class="comment-1" rowspan="1"></td>
+<td class="comment-1" rowspan="1">Never used: on the first pass in a room the loop goes straight to the room list, which reloads IX.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

@@ -25,176 +25,175 @@ Next: <a href="37308.html">91BC</a>
 </td>
 </tr>
 </table>
-<div class="description">917D: Count a delay down before doing anything</div>
+<div class="description">917D: A timed door, shut (types $20 and $22)</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Runs on alternate frames only, and while the counter at $5E2E is above zero it does nothing but decrement it and draw. When it finally reaches zero the routine below it runs. Reached from the handlers for sprites $C2 and $C4.
+Made by CHOOSE_TIMED_DOORS; reached through ACTOR_HANDLERS entries $C2 and $C4 for types $20 and $22. On passes where TICKS is even it counts the shared DOOR_WAIT ($5E2E) down; the door that finds it at zero runs TOGGLE_TIMED_DOOR, which opens it. Otherwise it only draws itself.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">WAIT_THEN_ACT</td>
+<td class="asm-label">TIMED_DOOR_SHUT</td>
 <td class="address-2"><span id="37245"></span>917D</td>
 <td class="instruction">LD A,($5E12)</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37248"></span>9180</td>
 <td class="instruction">AND $01</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37250"></span>9182</td>
 <td class="instruction">JP NZ,<a href="37362.html#37374">DRAW_DOOR</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37253"></span>9185</td>
 <td class="instruction">LD A,($5E2E)</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37256"></span>9188</td>
 <td class="instruction">AND A</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37257"></span>9189</td>
-<td class="instruction">JP Z,<a href="37245.html#37267">RESTART_WAIT</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="instruction">JP Z,<a href="37245.html#37267">TOGGLE_TIMED_DOOR</a></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37260"></span>918C</td>
 <td class="instruction">DEC A</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37261"></span>918D</td>
 <td class="instruction">LD ($5E2E),A</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37264"></span>9190</td>
 <td class="instruction">JP <a href="37362.html#37374">DRAW_DOOR</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="routine-comment" colspan="5">
 <span id="37267"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="37215.html">WAIT_THEN_DOOR</a>.
+This entry point is used by the routine at <a href="37215.html">TIMED_DOOR_OPEN</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">RESTART_WAIT</td>
+<td class="asm-label">TOGGLE_TIMED_DOOR</td>
 <td class="address-2"><span id="37267"></span>9193</td>
 <td class="instruction">LD A,$5E</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="2">TOGGLE_TIMED_DOOR: reload the shared countdown, then swap this door between shut and open on both halves and rasp.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37269"></span>9195</td>
 <td class="instruction">LD ($5E2E),A</td>
-<td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37272"></span>9198</td>
 <td class="instruction">LD A,(IX+$05)</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37275"></span>919B</td>
 <td class="instruction">PUSH AF</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37276"></span>919C</td>
 <td class="instruction">OR $03</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37278"></span>919E</td>
 <td class="instruction">LD (IX+$05),A</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37281"></span>91A1</td>
 <td class="instruction">CALL <a href="37362.html#37395">DRAW_RECORD</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37284"></span>91A4</td>
 <td class="instruction">LD A,(IX+$00)</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37287"></span>91A7</td>
 <td class="instruction">XOR $01</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37289"></span>91A9</td>
 <td class="instruction">CALL <a href="37472.html">SET_BOTH_HALVES</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37292"></span>91AC</td>
 <td class="instruction">CALL <a href="37362.html#37395">DRAW_RECORD</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37295"></span>91AF</td>
 <td class="instruction">POP AF</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37296"></span>91B0</td>
 <td class="instruction">LD (IX+$05),A</td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37299"></span>91B3</td>
 <td class="instruction">CALL <a href="38214.html">DOOR_OPEN_OR_SHUT</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37302"></span>91B6</td>
 <td class="instruction">CALL <a href="37362.html#37374">DRAW_DOOR</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37305"></span>91B9</td>
 <td class="instruction">JP <a href="42094.html">SOUND_NOISE_BURST</a></td>
-<td class="comment-0" rowspan="1"></td>
+<td class="comment-1" rowspan="1"></td>
 </tr>
 </table>
 <table class="asm-navigation">

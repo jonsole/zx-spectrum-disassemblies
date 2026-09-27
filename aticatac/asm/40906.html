@@ -25,7 +25,7 @@ Next: <a href="40955.html">9FFB</a>
 </td>
 </tr>
 </table>
-<div class="description">9FCA: Draw a sprite that may not fit</div>
+<div class="description">9FCA: Redraw a thing that may have moved</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
@@ -34,13 +34,13 @@ Next: <a href="40955.html">9FFB</a>
 Used by the routine at <a href="36390.html">UPDATE_KNIGHT</a>.
 </div>
 <div class="paragraph">
-Sets the drawing up through SETUP_SPRITE_DRAW, then compares the thing's position against the workspace to work out how much of it is off the edge, handing the whole-sprite case and the two clipped cases to different routines. Called from the character handlers, which are the sprites most likely to be walking off the edge of the play area.
+The end of most handlers (through REDRAW_ACTOR). Sets up the draw at the record's position through SETUP_SPRITE_DRAW, and in the other register bank the erase at the position saved in the workspace through SETUP_ERASE; then ALIGN_ROWS compares the two y positions, erases (or draws) the rows the old and new pictures do not share, and hands the rest to ERASE_DRAW_ROWS, so each screen row is rubbed out and redrawn close together.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">DRAW_CLIPPED</td>
+<td class="asm-label">REDRAW_MOVED</td>
 <td class="address-2"><span id="40906"></span>9FCA</td>
 <td class="instruction">CALL <a href="40863.html">SETUP_SPRITE_DRAW</a></td>
 <td class="comment-0" rowspan="1"></td>
@@ -68,7 +68,7 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 </td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_BOTTOM</td>
+<td class="asm-label">ALIGN_ROWS</td>
 <td class="address-2"><span id="40913"></span>9FD1</td>
 <td class="instruction">LD A,($5E17)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -82,13 +82,13 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40919"></span>9FD7</td>
-<td class="instruction">JP Z,<a href="40603.html#40629">CLIP_TOP</a></td>
+<td class="instruction">JP Z,<a href="40603.html#40629">ROWS_TOGETHER</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40922"></span>9FDA</td>
-<td class="instruction">JP M,<a href="40906.html#40940">DRAW_CLIPPED_0</a></td>
+<td class="instruction">JP M,<a href="40906.html#40940">REDRAW_MOVED_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -112,7 +112,7 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40930"></span>9FE2</td>
-<td class="instruction">JP C,<a href="40603.html#40629">CLIP_TOP</a></td>
+<td class="instruction">JP C,<a href="40603.html#40629">ROWS_TOGETHER</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -130,11 +130,11 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40937"></span>9FE9</td>
-<td class="instruction">JP <a href="40603.html">CLIP_ROWS</a></td>
+<td class="instruction">JP <a href="40603.html">ERASE_DRAW_ROWS</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">DRAW_CLIPPED_0</td>
+<td class="asm-label">REDRAW_MOVED_0</td>
 <td class="address-2"><span id="40940"></span>9FEC</td>
 <td class="instruction">EXX</td>
 <td class="comment-0" rowspan="1"></td>
@@ -166,7 +166,7 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40948"></span>9FF4</td>
-<td class="instruction">JP C,<a href="40603.html#40628">CLIP_SWAP</a></td>
+<td class="instruction">JP C,<a href="40603.html#40628">ROWS_TOGETHER_SWAP</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -178,7 +178,7 @@ This entry point is used by the routine at <a href="40820.html">SETUP_BOTH_BANKS
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40952"></span>9FF8</td>
-<td class="instruction">JP <a href="40603.html#40648">CLIP_STORE</a></td>
+<td class="instruction">JP <a href="40603.html#40648">ROWS_DRAW_ONLY</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 </table>

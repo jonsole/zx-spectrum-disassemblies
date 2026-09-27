@@ -25,7 +25,7 @@ Next: <a href="38214.html">9546</a>
 </td>
 </tr>
 </table>
-<div class="description">94F5: Walk the doors, sixteen bytes at a time</div>
+<div class="description">94F5: Turn about half the plain doors into timed doors</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
@@ -34,13 +34,13 @@ Next: <a href="38214.html">9546</a>
 Used by the routine at <a href="32154.html">START_GAME</a>.
 </div>
 <div class="paragraph">
-Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next pair -- with the frame counter's low bits in H, and tests each sprite against $70. Doors in Atic Atac open and close of their own accord, and this is the sweep that decides which are which.
+Called once, by START_GAME, on the runtime copy. H' and L' make a pointer into the ROM from TICKS and FRAMES, stepped a byte per record, and the byte there is the random number: for each sixteen-byte record from $EEE0 whose halves are both type 1 (cave door) or both type 2 (door), a byte below $70 turns both halves into $22 or $20 -- a timed cave door or door -- and marks them shut. In the first game after loading that converted 47 of the 82 doors and 21 of the 43 cave doors (measured in the simulator). The walk stops when the address carries past the top of memory.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS</td>
 <td class="address-2"><span id="38133"></span>94F5</td>
 <td class="instruction">LD A,($5E12)</td>
 <td class="comment-1" rowspan="2">The frame counter drives it.</td>
@@ -95,7 +95,7 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <td class="instruction">LD BC,$0010</td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS_0</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS_0</td>
 <td class="address-2"><span id="38155"></span>950B</td>
 <td class="instruction">EXX</td>
 <td class="comment-1" rowspan="1"></td>
@@ -127,7 +127,7 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38161"></span>9511</td>
-<td class="instruction">JR NC,<a href="38133.html#38175">SCAN_DOORS_1</a></td>
+<td class="instruction">JR NC,<a href="38133.html#38175">CHOOSE_TIMED_DOORS_1</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -145,7 +145,7 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38165"></span>9515</td>
-<td class="instruction">JR NZ,<a href="38133.html#38175">SCAN_DOORS_1</a></td>
+<td class="instruction">JR NZ,<a href="38133.html#38175">CHOOSE_TIMED_DOORS_1</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -157,7 +157,7 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38169"></span>9519</td>
-<td class="instruction">JR Z,<a href="38133.html#38182">SCAN_DOORS_2</a></td>
+<td class="instruction">JR Z,<a href="38133.html#38182">CHOOSE_TIMED_DOORS_2</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -169,11 +169,11 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38173"></span>951D</td>
-<td class="instruction">JR Z,<a href="38133.html#38210">SCAN_DOORS_4</a></td>
+<td class="instruction">JR Z,<a href="38133.html#38210">CHOOSE_TIMED_DOORS_4</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS_1</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS_1</td>
 <td class="address-2"><span id="38175"></span>951F</td>
 <td class="instruction">ADD HL,BC</td>
 <td class="comment-1" rowspan="1"></td>
@@ -205,17 +205,17 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38180"></span>9524</td>
-<td class="instruction">JR <a href="38133.html#38155">SCAN_DOORS_0</a></td>
+<td class="instruction">JR <a href="38133.html#38155">CHOOSE_TIMED_DOORS_0</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS_2</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS_2</td>
 <td class="address-2"><span id="38182"></span>9526</td>
 <td class="instruction">LD A,$22</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS_3</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS_3</td>
 <td class="address-2"><span id="38184"></span>9528</td>
 <td class="instruction">LD (DE),A</td>
 <td class="comment-1" rowspan="1"></td>
@@ -349,11 +349,11 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38208"></span>9540</td>
-<td class="instruction">JR <a href="38133.html#38175">SCAN_DOORS_1</a></td>
+<td class="instruction">JR <a href="38133.html#38175">CHOOSE_TIMED_DOORS_1</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">SCAN_DOORS_4</td>
+<td class="asm-label">CHOOSE_TIMED_DOORS_4</td>
 <td class="address-2"><span id="38210"></span>9542</td>
 <td class="instruction">LD A,$20</td>
 <td class="comment-1" rowspan="1"></td>
@@ -361,7 +361,7 @@ Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the next
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="38212"></span>9544</td>
-<td class="instruction">JR <a href="38133.html#38184">SCAN_DOORS_3</a></td>
+<td class="instruction">JR <a href="38133.html#38184">CHOOSE_TIMED_DOORS_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

@@ -40,17 +40,18 @@ byte over.
 5488 bytes at <a href="asm/24589.html">INITIAL_STATE</a> are simply the whole runtime area -- $EA90 upwards --
 as it looks before the game starts, copied into place with one LDIR. It holds
 three empty records for the player, the weapon and the sound slot; 115 objects,
-among them sixteen mushrooms and ten each of six kinds of food; five monsters,
+among them sixteen mushrooms and ten each of eight kinds of food; five monsters,
 one each of the mummy, Dracula, the devil, Frankenstein's monster and the
-humpback; and 274 doors.
+humpback; and 274 sixteen-byte records, 205 doors and 69 pairs of furniture.
 The doors are sixteen bytes each, not eight -- one record holding both sides.
 The room lists prove it: of the 274, exactly 272 are named by two different
 rooms, which is what a door joining two rooms looks like from the data. That
 is also why DOOR_OTHER_SIDE flips bit 3 of an address rather than adding
 anything: it is moving between the two halves of one record.
-Three routines edit this template before it is copied, choosing rooms out of
-small tables using the frame counter. So the key pieces and a few other things
-are somewhere different every game, and the randomness is applied to the
+Two routines edit this template before it is copied, <a href="asm/38070.html">PLACE_ACG_KEY</a> and <a href="asm/39122.html">PLACE_KEYS</a>,
+choosing rooms out of small tables using the frame counter. So the key pieces,
+three of the keys and the mummy are somewhere different every game (except the
+first after loading, which the frozen frame counter always sets out alike), and the randomness is applied to the
 picture of the castle rather than to the castle itself.
 </div>
 </div>
@@ -58,18 +59,19 @@ picture of the castle rather than to the castle itself.
 <div class="box box-1">
 <div class="box-title">The sprites</div>
 <div class="paragraph">
-Every sprite's address is in <a href="asm/42174.html">SPRITE_TABLE</a>, 239 entries of two bytes. The graphics
-themselves carry no length: the first byte is the row count and every sprite is
-two bytes -- sixteen pixels -- wide.
+Every graphic's address is in <a href="asm/42174.html">SPRITE_TABLE</a>, 239 entries of two bytes: 161
+creatures and objects, 39 pieces of furniture, and the furniture's 39 colour
+tables. A creature or object carries no length: the first byte is the row count
+and every one is two bytes -- sixteen pixels -- wide.
 That was not read off a hex dump either. Each code was drawn on a machine of its
-own with the reads into the graphics region logged, and all 235 that draw read
-exactly one plus twice the row count, contiguously, from the address the table
+own with the reads into the graphics region logged, and every creature and
+object read exactly one plus twice the row count, contiguously, from the address the table
 holds. The fourteen graphics below <a href="asm/44334.html">GFX_0D</a> are the wider pieces the rooms are
 built from and carry a width as well, and those fourteen tile their region
 exactly, ending on the first byte of ROOM_TABLE.
-A few hundred bytes scattered through the region are pictures that nothing
-points at and nothing reads -- artwork that did not make it into the finished
-game.
+An earlier version of this page said a few hundred bytes here were artwork
+nothing points at. There is none: see "Code and data that nothing reaches"
+below.
 </div>
 </div>
 <div><span id="outlines"></span></div>

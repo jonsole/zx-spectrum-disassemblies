@@ -25,25 +25,25 @@ Next: <a href="37068.html">90CC</a>
 </td>
 </tr>
 </table>
-<div class="description">902B: Set up the records that belong to a room</div>
+<div class="description">902B: Test one axis of the player's step against the room's doorways and tables</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Used by the routine at <a href="36874.html">STEP_AND_TEST_2</a>.
+Used by the routine at <a href="36874.html">TEST_STEP_BOXES</a>.
 </div>
 <div class="paragraph">
-Every room has a list of the things in it -- its doors, and whatever else is fixed there. ROOM_CONTENTS holds one pointer per room, and this walks the list it finds, stopping at the $0000 that ends it.
+Called twice a frame from MOVE_PLAYER, through TEST_STEP_BOXES, with the proposed position in E and D and the bit for one axis in A' ($10 for x, $20 for y -- the bits of the player's +$02 that stop APPLY_HEADING moving that way). It walks the player's room's list of door and furniture halves, the same list MAIN_LOOP dispatches, and tests the point against each one's box.
 </div>
 <div class="paragraph">
-The addresses in the lists are not runtime addresses -- they point into the template at <a href="24589.html">INITIAL_STATE</a> that LOAD_INITIAL_STATE copies to $EA90, and taking <a href="30077.html">ROOM_CONTENTS</a> off one relocates it. That is not an arbitrary bias: $EA90 minus <a href="24589.html">INITIAL_STATE</a> is $8A83, and subtracting <a href="30077.html">ROOM_CONTENTS</a> is the same as adding $8A83 in sixteen bits. Room $00's list holds <a href="24589.html#25693">DOOR_R07_R00</a>, which is $0450 into the template and therefore $EEE0 once copied -- the door record a running game really has there.
+The box is in +$06 (x) and +$07 (y) of the half: the high nibble, signed, times 4 is an offset from the record's own x or y, the low nibble times 4 a size; it runs right from x plus the offset and up from y plus the offset. Inside a box with +$05 bit 3 set -- a shut door -- nothing happens. Inside one with bit 2 set -- a table, the only solid furniture -- the bit is set: the step is refused. Inside any other -- a doorway -- the bit is cleared: the step is allowed although it leaves the room's walk rectangle. So an open door is a channel through the wall, a shut one is wall, and a table is an obstacle.
 </div>
 <div class="paragraph">
-So the lists can be written once, against the template, and go on being correct after it has been moved.
+The lists hold template addresses (<a href="24589.html">INITIAL_STATE</a> onwards) plus <a href="30077.html">ROOM_CONTENTS</a>; taking <a href="30077.html">ROOM_CONTENTS</a> off gives the runtime address, as DISPATCH_FROM_LIST does. An earlier title, "Set up the records that belong to a room", described the walk but not the purpose: nothing is set up.
 </div>
 <div class="paragraph">
-The check part-way down is the door pairing again. A door is two records eight bytes apart, one per room; if the one named in the list belongs to the other room, eight is added to reach the half that belongs to this one.
+The check part-way down is the door pairing: if the half named in the list belongs to the other room, eight is added to reach the half in this one.
 </div>
 </div>
 <table class="input">
@@ -52,16 +52,24 @@ The check part-way down is the door pairing again. A door is two records eight b
 </tr>
 <tr>
 <td class="register">IX</td>
-<td class="register-desc">A record whose +$01 is the room to set up</td>
+<td class="register-desc">The player</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The proposed position: E x, D y</td>
+</tr>
+<tr>
+<td class="register">A'</td>
+<td class="register-desc">The axis bit: $10 or $20</td>
 </tr>
 </table>
 </td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM</td>
+<td class="asm-label">TEST_ROOM_BOXES</td>
 <td class="address-2"><span id="36907"></span>902B</td>
 <td class="instruction">LD C,(IX+$01)</td>
-<td class="comment-1" rowspan="2">The room number.</td>
+<td class="comment-1" rowspan="2">The player's room.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -106,7 +114,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <td class="instruction">LD B,(HL)</td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM_0</td>
+<td class="asm-label">TEST_ROOM_BOXES_0</td>
 <td class="address-2"><span id="36923"></span>903B</td>
 <td class="instruction">LD A,(BC)</td>
 <td class="comment-1" rowspan="8">The next entry, and $0000 ends the list.</td>
@@ -177,7 +185,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <td class="asm-label"></td>
 <td class="address-1"><span id="36939"></span>904B</td>
 <td class="instruction">LD A,(HL)</td>
-<td class="comment-1" rowspan="2">Is this the half that belongs to the room being set up?</td>
+<td class="comment-1" rowspan="2">Is this the half that belongs to the player's room?</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -187,7 +195,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36943"></span>904F</td>
-<td class="instruction">JR Z,<a href="36907.html#36949">POPULATE_ROOM_1</a></td>
+<td class="instruction">JR Z,<a href="36907.html#36949">TEST_ROOM_BOXES_1</a></td>
 <td class="comment-1" rowspan="2">No -- the other half is eight bytes along.</td>
 </tr>
 <tr>
@@ -202,7 +210,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM_1</td>
+<td class="asm-label">TEST_ROOM_BOXES_1</td>
 <td class="address-2"><span id="36949"></span>9055</td>
 <td class="instruction">INC HL</td>
 <td class="comment-1" rowspan="1"></td>
@@ -258,7 +266,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36959"></span>905F</td>
-<td class="instruction">JR NZ,<a href="36907.html#37019">POPULATE_ROOM_4</a></td>
+<td class="instruction">JR NZ,<a href="36907.html#37019">TEST_ROOM_BOXES_4</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -270,7 +278,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36963"></span>9063</td>
-<td class="instruction">JR NZ,<a href="36907.html#37016">POPULATE_ROOM_3</a></td>
+<td class="instruction">JR NZ,<a href="36907.html#37016">TEST_ROOM_BOXES_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -360,7 +368,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36984"></span>9078</td>
-<td class="instruction">JR C,<a href="36907.html#37016">POPULATE_ROOM_3</a></td>
+<td class="instruction">JR C,<a href="36907.html#37016">TEST_ROOM_BOXES_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -444,7 +452,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37003"></span>908B</td>
-<td class="instruction">JR C,<a href="36907.html#37016">POPULATE_ROOM_3</a></td>
+<td class="instruction">JR C,<a href="36907.html#37016">TEST_ROOM_BOXES_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -484,13 +492,13 @@ The check part-way down is the door pairing again. A door is two records eight b
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM_2</td>
+<td class="asm-label">TEST_ROOM_BOXES_2</td>
 <td class="address-2"><span id="37013"></span>9095</td>
 <td class="instruction">LD (IX+$02),A</td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM_3</td>
+<td class="asm-label">TEST_ROOM_BOXES_3</td>
 <td class="address-2"><span id="37016"></span>9098</td>
 <td class="instruction">POP BC</td>
 <td class="comment-1" rowspan="1"></td>
@@ -498,11 +506,11 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37017"></span>9099</td>
-<td class="instruction">JR <a href="36907.html#36923">POPULATE_ROOM_0</a></td>
+<td class="instruction">JR <a href="36907.html#36923">TEST_ROOM_BOXES_0</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">POPULATE_ROOM_4</td>
+<td class="asm-label">TEST_ROOM_BOXES_4</td>
 <td class="address-2"><span id="37019"></span>909B</td>
 <td class="instruction">LD A,(HL)</td>
 <td class="comment-1" rowspan="1"></td>
@@ -588,7 +596,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37038"></span>90AE</td>
-<td class="instruction">JR C,<a href="36907.html#37016">POPULATE_ROOM_3</a></td>
+<td class="instruction">JR C,<a href="36907.html#37016">TEST_ROOM_BOXES_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -672,7 +680,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37057"></span>90C1</td>
-<td class="instruction">JR C,<a href="36907.html#37016">POPULATE_ROOM_3</a></td>
+<td class="instruction">JR C,<a href="36907.html#37016">TEST_ROOM_BOXES_3</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -708,7 +716,7 @@ The check part-way down is the door pairing again. A door is two records eight b
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37066"></span>90CA</td>
-<td class="instruction">JR <a href="36907.html#37013">POPULATE_ROOM_2</a></td>
+<td class="instruction">JR <a href="36907.html#37013">TEST_ROOM_BOXES_2</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 </table>

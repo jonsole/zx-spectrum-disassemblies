@@ -25,22 +25,22 @@ Next: <a href="37362.html">91F2</a>
 </td>
 </tr>
 </table>
-<div class="description">91BC: Draw something twice over and make a noise</div>
+<div class="description">91BC: A trapdoor, closed (type $18): it opens every 256 passes</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Draws the thing with the low bits of its drawing mode forced on, then again with the bottom bit of its sprite flipped -- the other animation frame -- then puts the mode back and draws it properly, and finishes by jumping into SOUND_NOISE_BURST. Three overlapping draws and a rasp, which is what a thing being destroyed looks and sounds like.
+On a pass when TICKS' low byte is zero it swaps the picture: XOR the current one off (mode bits forced to XOR), flip bit 0 of the type -- $18 closed to $19 open -- XOR the new one on, restore the mode, draw the colours, and rasp. The open trapdoor's handler, TRAPDOOR, enters the same tail at <a href="37308.html#37324">TRAPDOOR_CLOSED_0</a> to close again, when the byte RUNNING_SUM happens to be zero. An earlier reading, "what a thing being destroyed looks and sounds like", was wrong.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">FLASH_AND_RASP</td>
+<td class="asm-label">TRAPDOOR_CLOSED</td>
 <td class="address-2"><span id="37308"></span>91BC</td>
 <td class="instruction">LD A,($5E12)</td>
-<td class="comment-1" rowspan="3">One gate before any of it.</td>
+<td class="comment-1" rowspan="3">Only when TICKS' low byte is zero: every 256 passes.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -55,7 +55,7 @@ Draws the thing with the low bits of its drawing mode forced on, then again with
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="37315"></span>91C3</td>
-<td class="instruction">JR <a href="37308.html#37324">FLASH_AND_RASP_0</a></td>
+<td class="instruction">JR <a href="37308.html#37324">TRAPDOOR_CLOSED_0</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -77,10 +77,10 @@ Draws the thing with the low bits of its drawing mode forced on, then again with
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">FLASH_AND_RASP_0</td>
+<td class="asm-label">TRAPDOOR_CLOSED_0</td>
 <td class="address-2"><span id="37324"></span>91CC</td>
 <td class="instruction">LD A,(IX+$05)</td>
-<td class="comment-1" rowspan="4">Force the low bits of the drawing mode on, and draw.</td>
+<td class="comment-1" rowspan="4">XOR the current picture off.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -107,7 +107,7 @@ Draws the thing with the low bits of its drawing mode forced on, then again with
 <td class="asm-label"></td>
 <td class="address-1"><span id="37336"></span>91D8</td>
 <td class="instruction">LD A,(IX+$00)</td>
-<td class="comment-1" rowspan="4">The other frame, over the top.</td>
+<td class="comment-1" rowspan="4">The other state's picture -- the type's bit 0 flipped -- XORed on.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -128,7 +128,7 @@ Draws the thing with the low bits of its drawing mode forced on, then again with
 <td class="asm-label"></td>
 <td class="address-1"><span id="37347"></span>91E3</td>
 <td class="instruction">POP AF</td>
-<td class="comment-1" rowspan="3">Put the mode back and draw it properly.</td>
+<td class="comment-1" rowspan="3">Put the mode back and draw the colours.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>

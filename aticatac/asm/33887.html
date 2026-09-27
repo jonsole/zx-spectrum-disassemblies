@@ -25,7 +25,7 @@ Next: <a href="34150.html">8566</a>
 </td>
 </tr>
 </table>
-<div class="description">845F: Move one actor, bounce it off the walls, animate it</div>
+<div class="description">845F: Drive the pumpkin and the spider: move, bounce off the walls, animate</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
@@ -96,7 +96,7 @@ Velocity lives in +$08 (x) and +$09 (y) and is nudged one step per call toward +
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="33907"></span>8473</td>
-<td class="instruction">JP Z,<a href="34586.html#34655">DRAW_MONSTER</a></td>
+<td class="instruction">JP Z,<a href="34586.html#34655">KILL_MONSTER</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
@@ -287,7 +287,7 @@ Velocity lives in +$08 (x) and +$09 (y) and is nudged one step per call toward +
 <span id="33997"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routines at <a href="34350.html">MOVE_BAT</a>, <a href="34418.html">MOVE_GHOST_ALT</a>, <a href="34586.html">MOVE_871A</a>, <a href="34726.html">MOVE_GHOST</a>, <a href="35208.html">MOVE_FRANKENSTEIN</a>, <a href="35375.html">MOVE_WITCH</a>, <a href="35456.html">MOVE_8A80</a> and <a href="35583.html">MOVE_HUMPBACK</a>.
+This entry point is used by the routines at <a href="34350.html">MOVE_BAT</a>, <a href="34418.html">MOVE_HOPPER</a>, <a href="34586.html">MOVE_FACE</a>, <a href="34726.html">MOVE_GHOST</a>, <a href="35208.html">MOVE_FRANKENSTEIN</a>, <a href="35375.html">MOVE_WITCH</a>, <a href="35456.html">MOVE_FACING_FLYER</a> and <a href="35583.html">MOVE_HUMPBACK</a>.
 </div>
 </div>
 </td>
@@ -524,7 +524,7 @@ This entry point is used by the routines at <a href="34350.html">MOVE_BAT</a>, <
 <td class="asm-label"></td>
 <td class="address-1"><span id="34096"></span>8530</td>
 <td class="instruction">LD A,(IX+$00)</td>
-<td class="comment-1" rowspan="3">Two kinds are exempt from the check below: the humpback, whose codes are $9C-$9F, and the four big monsters at $70-$7F -- the mummy, Frankenstein's monster, the devil and Dracula. Masking with $FC and $F0 tests a whole run of codes in one compare, without caring which frame is showing.</td>
+<td class="comment-1" rowspan="3">Two kinds are exempt from the test below: the humpback, whose codes are $9C-$9F, and the four big monsters at $70-$7F -- the mummy, Frankenstein's monster, the devil and Dracula, which come through STEP_ACTOR too. Masking with $FC and $F0 tests a whole run of codes in one compare, without caring which frame is showing.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -564,19 +564,17 @@ This entry point is used by the routines at <a href="34350.html">MOVE_BAT</a>, <
 <td class="asm-label"></td>
 <td class="address-1"><span id="34111"></span>853F</td>
 <td class="instruction">LD A,($EA90)</td>
-<td class="comment-1" rowspan="1"></td>
+<td class="comment-1" rowspan="3">Everything else is destroyed, with the 155 points of KILL_MONSTER, whenever the player is not in play -- sinking or rising. So dying clears the room of small creatures (measured in the simulator, 2026-09-27).</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="34114"></span>8542</td>
 <td class="instruction">CP $31</td>
-<td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="34116"></span>8544</td>
-<td class="instruction">JP NC,<a href="34586.html#34655">DRAW_MONSTER</a></td>
-<td class="comment-1" rowspan="1"></td>
+<td class="instruction">JP NC,<a href="34586.html#34655">KILL_MONSTER</a></td>
 </tr>
 <tr>
 <td class="asm-label">MOVE_ACTOR_7</td>

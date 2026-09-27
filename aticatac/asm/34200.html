@@ -25,7 +25,7 @@ Next: <a href="34226.html">85B2</a>
 </td>
 </tr>
 </table>
-<div class="description">8598: Take a chance on the refresh register</div>
+<div class="description">8598: A random coordinate near the middle of the room</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
@@ -34,13 +34,13 @@ Next: <a href="34226.html">85B2</a>
 Used by the routine at <a href="33770.html">SPAWN_MONSTER_INTO_ROOM</a>.
 </div>
 <div class="paragraph">
-Compares R against a threshold in B, so a caller gets a yes or no with roughly known odds and no state to keep. R is not random, but it advances on every instruction fetch, and against a threshold it is unpredictable enough for a monster's whim.
+Returns $60 plus or minus (R modulo the limit in B less 8), the sign from another bit of R. SPAWN_MONSTER_INTO_ROOM calls it once for x and once for y with the room's half-extents, so a new creature appears somewhere inside the walk area. It also steps HL on, to the next field.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">RANDOM_CHANCE</td>
+<td class="asm-label">RANDOM_POSITION</td>
 <td class="address-2"><span id="34200"></span>8598</td>
 <td class="instruction">LD A,B</td>
 <td class="comment-0" rowspan="1"></td>
@@ -70,7 +70,7 @@ Compares R against a threshold in B, so a caller gets a yes or no with roughly k
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">RANDOM_CHANCE_0</td>
+<td class="asm-label">RANDOM_POSITION_0</td>
 <td class="address-2"><span id="34207"></span>859F</td>
 <td class="instruction">CP B</td>
 <td class="comment-0" rowspan="1"></td>
@@ -78,7 +78,7 @@ Compares R against a threshold in B, so a caller gets a yes or no with roughly k
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="34208"></span>85A0</td>
-<td class="instruction">JR C,<a href="34200.html#34213">RANDOM_CHANCE_1</a></td>
+<td class="instruction">JR C,<a href="34200.html#34213">RANDOM_POSITION_1</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -90,11 +90,11 @@ Compares R against a threshold in B, so a caller gets a yes or no with roughly k
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="34211"></span>85A3</td>
-<td class="instruction">JR <a href="34200.html#34207">RANDOM_CHANCE_0</a></td>
+<td class="instruction">JR <a href="34200.html#34207">RANDOM_POSITION_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">RANDOM_CHANCE_1</td>
+<td class="asm-label">RANDOM_POSITION_1</td>
 <td class="address-2"><span id="34213"></span>85A5</td>
 <td class="instruction">LD C,A</td>
 <td class="comment-0" rowspan="1"></td>
@@ -120,7 +120,7 @@ Compares R against a threshold in B, so a caller gets a yes or no with roughly k
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="34220"></span>85AC</td>
-<td class="instruction">JR Z,<a href="34200.html#34224">RANDOM_CHANCE_2</a></td>
+<td class="instruction">JR Z,<a href="34200.html#34224">RANDOM_POSITION_2</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -136,7 +136,7 @@ Compares R against a threshold in B, so a caller gets a yes or no with roughly k
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">RANDOM_CHANCE_2</td>
+<td class="asm-label">RANDOM_POSITION_2</td>
 <td class="address-2"><span id="34224"></span>85B0</td>
 <td class="instruction">SUB C</td>
 <td class="comment-0" rowspan="1"></td>

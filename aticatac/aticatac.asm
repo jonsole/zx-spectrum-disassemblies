@@ -14,15 +14,16 @@ WEAPON_X EQU $EA9B
 WEAPON_Y EQU $EA9C
 WEAPON_DX EQU $EA9E
 WEAPON_DY EQU $EA9F
+WEAPON_LIFE EQU $EAA7
 SOUND_SLOT EQU $EAA0
 LIVE_OBJECTS EQU $EAA8
 LIVE_RED_KEY EQU $EAC8
-LIVE_COLLECTABLE_80 EQU $EAE0
+LIVE_MUMMY_LURE EQU $EAE0
 LIVE_DROP_SLOTS EQU $EAE8
 LIVE_COLLECTABLES EQU $EB18
 LIVE_FOOD EQU $EB58
 LIVE_MUSHROOMS EQU $EDD8
-MOVE_ROOM EQU $EE59
+DROP_CONTROL_ROOM EQU $EE59
 LIVE_MONSTERS EQU $EE60
 LIVE_DOORS EQU $EEE0
 FRAMES EQU $5C78
@@ -41,13 +42,13 @@ ROOM_DRAWN EQU $5E14
 WORK_SPRITE EQU $5E15
 WORK_X EQU $5E16
 WORK_Y EQU $5E17
-CLIP_COUNT EQU $5E18
-CLIP_LIMIT EQU $5E19
+ERASE_ROWS EQU $5E18
+DRAW_ROWS EQU $5E19
 ROOM_COLOUR EQU $5E1A
 LIST_POINTER EQU $5E1B
 ROOM_HALF_WIDTH EQU $5E1D
 ROOM_HALF_HEIGHT EQU $5E1E
-CARRYING EQU $5E1F
+PICKUP_USED EQU $5E1F
 PICKUP_KEY EQU $5E20
 LIVES EQU $5E21
 MENU_COLOUR EQU $5E22
@@ -60,7 +61,7 @@ FOOD_LEVEL EQU $5E28
 FOOD_DRAWN EQU $5E29
 SCORE EQU $5E2A
 SCORE_LOW EQU $5E2C
-FIRE_BLOCKED EQU $5E2D
+IN_DOORWAY EQU $5E2D
 DOOR_WAIT EQU $5E2E
 STEP_COUNTER EQU $5E2F
 CARRIED EQU $5E30
@@ -71,7 +72,7 @@ CLOCK EQU $5E3D
 CLOCK_SECONDS EQU $5E3F
 ROOMS_SEEN EQU $5E40
 ROOMS_EXPLORED EQU $5E54
-CURSOR EQU $5E55
+REGROW_CURSOR EQU $5E55
 
   ORG $6000
 
@@ -113,10 +114,11 @@ ENTRY:
 ;
 ; What is in it, read out of the data: three empty records for the player, the
 ; weapon and the sound slot, which are filled in when a game starts rather than
-; here; 115 objects of the 119 slots, among them sixteen mushrooms and ten each
-; of the six kinds of food; five monsters, one each of the mummy, Dracula, the
-; devil, Frankenstein's monster and the humpback; and 274 sixteen-byte records
-; for the doors and the furniture.
+; here; 115 objects of the 119 slots, among them sixteen mushrooms, ten each of
+; the eight kinds of food, and, last of them, the drop controller (sprite $31)
+; that runs PUT_DOWN; five monsters, one each of the mummy, Dracula, the devil,
+; Frankenstein's monster and the humpback; and 274 sixteen-byte records for the
+; doors and the furniture.
 ;
 ; The doors are the surprise. Every one is sixteen bytes, not eight -- one
 ; record holding both of its sides -- which is why DOOR_OTHER_SIDE flips bit 3
@@ -151,7 +153,7 @@ CYAN_KEY:
   DEFB $81,$53,$00,$58,$58,$45,$00,$00 ; Key: in room $53 at 88,88
 YELLOW_KEY:
   DEFB $81,$66,$00,$30,$87,$46,$00,$00 ; Key: in room $66 at 48,135
-COLLECTABLE_80:
+MUMMY_LURE:
   DEFB $80,$09,$00,$40,$40,$42,$00,$00 ; Collectable $80: in room $09 at 64,64
 DROP_SLOTS:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; An empty object slot
@@ -1142,7 +1144,7 @@ SKELETON_R33_R55:
 ; The lists themselves follow immediately, from ROOM_LIST_00 on. Their entries
 ; are addresses into the initial-state template at INITIAL_STATE rather than
 ; into the runtime tables, and subtracting ROOM_CONTENTS is exactly the
-; relocation from one to the other. See POPULATE_ROOM.
+; relocation from one to the other. See TEST_ROOM_BOXES.
 ROOM_CONTENTS:
   DEFB $A9,$76,$C3,$76,$CD,$76,$D7,$76
   DEFB $E5,$76,$F1,$76,$FB,$76,$0D,$77
@@ -1186,8 +1188,8 @@ ROOM_CONTENTS:
 ; What is in room $00
 ;
 ; 12 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: A.C.G. key, piece 1, A.C.G. key, piece 2, A.C.G. key, piece 3
@@ -1210,8 +1212,8 @@ ROOM_LIST_00:
 ; What is in room $01
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_01:
   DEFW CYAN_DOOR_R01_R00  ; A cyan door to room $00
   DEFW DOOR_R02_R01       ; A door to room $02
@@ -1222,8 +1224,8 @@ ROOM_LIST_01:
 ; What is in room $02
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1237,8 +1239,8 @@ ROOM_LIST_02:
 ; What is in room $03
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_03:
   DEFW DOOR_R03_R02       ; A door to room $02
   DEFW DOOR_R04_R03       ; A door to room $04
@@ -1251,8 +1253,8 @@ ROOM_LIST_03:
 ; What is in room $04
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1267,8 +1269,8 @@ ROOM_LIST_04:
 ; What is in room $05
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: key and collectable $8A.
@@ -1282,8 +1284,8 @@ ROOM_LIST_05:
 ; What is in room $06
 ;
 ; 8 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_06:
   DEFW DOOR_R06_R05       ; A door to room $05
   DEFW BIG_DOOR_R1A_R06   ; A door to room $1A
@@ -1298,8 +1300,8 @@ ROOM_LIST_06:
 ; What is in room $07
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1313,8 +1315,8 @@ ROOM_LIST_07:
 ; What is in room $08
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_08:
   DEFW GREEN_DOOR_R08_R06 ; A green door to room $06
   DEFW DOOR_R09_R08       ; A door to room $09
@@ -1325,8 +1327,8 @@ ROOM_LIST_08:
 ; What is in room $09
 ;
 ; 8 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $80 and food.
@@ -1344,8 +1346,8 @@ ROOM_LIST_09:
 ; What is in room $0A
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_0A:
   DEFW DOOR_R0A_R09       ; A door to room $09
   DEFW DOOR_R0B_R0A       ; A door to room $0B
@@ -1356,8 +1358,8 @@ ROOM_LIST_0A:
 ; What is in room $0B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1371,8 +1373,8 @@ ROOM_LIST_0B:
 ; What is in room $0C
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -1386,8 +1388,8 @@ ROOM_LIST_0C:
 ; What is in room $0D
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1403,8 +1405,8 @@ ROOM_LIST_0D:
 ; What is in room $0E
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_0E:
   DEFW DOOR_R0E_R0D       ; A door to room $0D
   DEFW DOOR_R0F_R0E       ; A door to room $0F
@@ -1416,8 +1418,8 @@ ROOM_LIST_0E:
 ; What is in room $0F
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1431,8 +1433,8 @@ ROOM_LIST_0F:
 ; What is in room $10
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_10:
   DEFW DOOR_R10_R0F       ; A door to room $0F
   DEFW RED_DOOR_R11_R10   ; A red door to room $11
@@ -1442,8 +1444,8 @@ ROOM_LIST_10:
 ; What is in room $11
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1457,8 +1459,8 @@ ROOM_LIST_11:
 ; What is in room $12
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1471,8 +1473,8 @@ ROOM_LIST_12:
 ; What is in room $13
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $86.
@@ -1488,8 +1490,8 @@ ROOM_LIST_13:
 ; What is in room $14
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_14:
   DEFW DOOR_R14_R13       ; A door to room $13
   DEFW DOOR_R15_R14       ; A door to room $15
@@ -1500,8 +1502,8 @@ ROOM_LIST_14:
 ; What is in room $15
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_15:
   DEFW DOOR_R15_R14       ; A door to room $14
   DEFW DOOR_R16_R15       ; A door to room $16
@@ -1514,8 +1516,8 @@ ROOM_LIST_15:
 ; What is in room $16
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_16:
   DEFW DOOR_R16_R15       ; A door to room $15
   DEFW RED_DOOR_R17_R16   ; A red door to room $17
@@ -1526,8 +1528,8 @@ ROOM_LIST_16:
 ; What is in room $17
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: key, food and mummy.
@@ -1542,8 +1544,8 @@ ROOM_LIST_17:
 ; What is in room $18
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_18:
   DEFW GREEN_DOOR_R18_R17 ; A green door to room $17
   DEFW DOOR_R18_R02       ; A door to room $02
@@ -1556,8 +1558,8 @@ ROOM_LIST_18:
 ; What is in room $19
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_19:
   DEFW DOOR_R19_R00       ; A door to room $00
   DEFW DOOR_R19_R04       ; A door to room $04
@@ -1568,8 +1570,8 @@ ROOM_LIST_19:
 ; What is in room $1A
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_1A:
   DEFW BIG_DOOR_R1A_R06   ; A big door to room $06
   DEFW DOOR_R1A_R1B       ; A door to room $1B
@@ -1578,8 +1580,8 @@ ROOM_LIST_1A:
 ; What is in room $1B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1593,8 +1595,8 @@ ROOM_LIST_1B:
 ; What is in room $1C
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_1C:
   DEFW DOOR_R1B_R1C       ; A big door to room $1B
   DEFW DOOR_R1C_R1D       ; A door to room $1D
@@ -1603,8 +1605,8 @@ ROOM_LIST_1C:
 ; What is in room $1D
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1616,8 +1618,8 @@ ROOM_LIST_1D:
 ; What is in room $1E
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1629,8 +1631,8 @@ ROOM_LIST_1E:
 ; What is in room $1F
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $88.
@@ -1643,8 +1645,8 @@ ROOM_LIST_1F:
 ; What is in room $20
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_20:
   DEFW DOOR_R1F_R20       ; A door to room $1F
   DEFW DOOR_R20_R21       ; A door to room $21
@@ -1654,8 +1656,8 @@ ROOM_LIST_20:
 ; What is in room $21
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_21:
   DEFW DOOR_R20_R21       ; A door to room $20
   DEFW DOOR_R21_R22       ; A door to room $22
@@ -1667,8 +1669,8 @@ ROOM_LIST_21:
 ; What is in room $22
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_22:
   DEFW DOOR_R21_R22       ; A door to room $21
   DEFW DOOR_R22_R23       ; A door to room $23
@@ -1678,8 +1680,8 @@ ROOM_LIST_22:
 ; What is in room $23
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_23:
   DEFW DOOR_R22_R23       ; A door to room $22
   DEFW DOOR_R23_R24       ; A door to room $24
@@ -1690,8 +1692,8 @@ ROOM_LIST_23:
 ; What is in room $24
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1706,8 +1708,8 @@ ROOM_LIST_24:
 ; What is in room $25
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1720,8 +1722,8 @@ ROOM_LIST_25:
 ; What is in room $26
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_26:
   DEFW DOOR_R24_R26       ; A big door to room $24
   DEFW DOOR_R02_R26       ; A door to room $02
@@ -1730,8 +1732,8 @@ ROOM_LIST_26:
 ; What is in room $27
 ;
 ; 7 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1748,8 +1750,8 @@ ROOM_LIST_27:
 ; What is in room $28
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1761,8 +1763,8 @@ ROOM_LIST_28:
 ; What is in room $29
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_29:
   DEFW CYAN_DOOR_R28_R29  ; A cyan door to room $28
   DEFW DOOR_R29_R2A       ; A door to room $2A
@@ -1775,8 +1777,8 @@ ROOM_LIST_29:
 ; What is in room $2A
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_2A:
   DEFW DOOR_R29_R2A       ; A door to room $29
   DEFW DOOR_R2A_R2B       ; A door to room $2B
@@ -1787,8 +1789,8 @@ ROOM_LIST_2A:
 ; What is in room $2B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1802,8 +1804,8 @@ ROOM_LIST_2B:
 ; What is in room $2C
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_2C:
   DEFW DOOR_R2B_R2C       ; A door to room $2B
   DEFW DOOR_R2C_R2D       ; A door to room $2D
@@ -1812,8 +1814,8 @@ ROOM_LIST_2C:
 ; What is in room $2D
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_2D:
   DEFW DOOR_R2C_R2D       ; A door to room $2C
   DEFW GREEN_DOOR_R2D_R2E ; A green door to room $2E
@@ -1826,8 +1828,8 @@ ROOM_LIST_2D:
 ; What is in room $2E
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_2E:
   DEFW GREEN_DOOR_R2D_R2E ; A green door to room $2D
   DEFW DOOR_R2E_R27       ; A door to room $27
@@ -1838,8 +1840,8 @@ ROOM_LIST_2E:
 ; What is in room $2F
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_2F:
   DEFW DOOR_R27_R2F       ; A big door to room $27
   DEFW YELLOW_DOOR_R20_R2F ; A yellow door to room $20
@@ -1848,8 +1850,8 @@ ROOM_LIST_2F:
 ; What is in room $30
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $8B.
@@ -1862,8 +1864,8 @@ ROOM_LIST_30:
 ; What is in room $31
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_31:
   DEFW CAVE_DOOR_R30_R31  ; A cave door to room $30
   DEFW CAVE_DOOR_R31_R32  ; A cave door to room $32
@@ -1872,8 +1874,8 @@ ROOM_LIST_31:
 ; What is in room $32
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_32:
   DEFW CAVE_DOOR_R31_R32  ; A cave door to room $31
   DEFW CAVE_DOOR_R32_R33  ; A cave door to room $33
@@ -1882,8 +1884,8 @@ ROOM_LIST_32:
 ; What is in room $33
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1897,8 +1899,8 @@ ROOM_LIST_33:
 ; What is in room $34
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_34:
   DEFW CAVE_DOOR_R33_R34  ; A cave door to room $33
   DEFW CAVE_DOOR_R34_R35  ; A cave door to room $35
@@ -1907,8 +1909,8 @@ ROOM_LIST_34:
 ; What is in room $35
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food, food and food.
@@ -1921,8 +1923,8 @@ ROOM_LIST_35:
 ; What is in room $36
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_36:
   DEFW CAVE_DOOR_R33_R36  ; A cave door to room $33
   DEFW CAVE_DOOR_R36_R37  ; A cave door to room $37
@@ -1931,8 +1933,8 @@ ROOM_LIST_36:
 ; What is in room $37
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1944,8 +1946,8 @@ ROOM_LIST_37:
 ; What is in room $38
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force.
@@ -1959,8 +1961,8 @@ ROOM_LIST_38:
 ; What is in room $39
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -1972,8 +1974,8 @@ ROOM_LIST_39:
 ; What is in room $3A
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -1986,8 +1988,8 @@ ROOM_LIST_3A:
 ; What is in room $3B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $82, mushroom, which drains the player's life force
@@ -2002,8 +2004,8 @@ ROOM_LIST_3B:
 ; What is in room $3C
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2015,8 +2017,8 @@ ROOM_LIST_3C:
 ; What is in room $3D
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_3D:
   DEFW CAVE_DOOR_R3B_R3D  ; A cave door to room $3B
   DEFW CAVE_DOOR_R3D_R3E  ; A cave door to room $3E
@@ -2028,8 +2030,8 @@ ROOM_LIST_3D:
 ; What is in room $3E
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2042,8 +2044,8 @@ ROOM_LIST_3E:
 ; What is in room $3F
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_3F:
   DEFW CYAN_CAVE_DOOR_R3D_R3F ; A cyan cave door to room $3D
   DEFW CAVE_DOOR_R3F_R40  ; A cave door to room $40
@@ -2052,8 +2054,8 @@ ROOM_LIST_3F:
 ; What is in room $40
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force.
@@ -2067,8 +2069,8 @@ ROOM_LIST_40:
 ; What is in room $41
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -2080,8 +2082,8 @@ ROOM_LIST_41:
 ; What is in room $42
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_42:
   DEFW CAVE_DOOR_R40_R42  ; A cave door to room $40
   DEFW CAVE_DOOR_R42_R43  ; A cave door to room $43
@@ -2090,8 +2092,8 @@ ROOM_LIST_42:
 ; What is in room $43
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force and devil.
@@ -2105,8 +2107,8 @@ ROOM_LIST_43:
 ; What is in room $44
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_44:
   DEFW CAVE_DOOR_R43_R44  ; A cave door to room $43
   DEFW RED_CAVE_DOOR_R44_R45 ; A red cave door to room $45
@@ -2115,8 +2117,8 @@ ROOM_LIST_44:
 ; What is in room $45
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and mushroom, which drains the player's life force.
@@ -2128,8 +2130,8 @@ ROOM_LIST_45:
 ; What is in room $46
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2142,8 +2144,8 @@ ROOM_LIST_46:
 ; What is in room $47
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_47:
   DEFW CAVE_DOOR_R46_R47  ; A cave door to room $46
   DEFW RED_CAVE_DOOR_R47_R48 ; A red cave door to room $48
@@ -2152,8 +2154,8 @@ ROOM_LIST_47:
 ; What is in room $48
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $83.
@@ -2167,8 +2169,8 @@ ROOM_LIST_48:
 ; What is in room $49
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $89 and food.
@@ -2180,8 +2182,8 @@ ROOM_LIST_49:
 ; What is in room $4A
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_4A:
   DEFW CYAN_CAVE_DOOR_R48_R4A ; A cyan cave door to room $48
   DEFW CAVE_DOOR_R4A_R4B  ; A cave door to room $4B
@@ -2190,8 +2192,8 @@ ROOM_LIST_4A:
 ; What is in room $4B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2205,8 +2207,8 @@ ROOM_LIST_4B:
 ; What is in room $4C
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2219,8 +2221,8 @@ ROOM_LIST_4C:
 ; What is in room $4D
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_4D:
   DEFW CAVE_DOOR_R48_R4D  ; A cave door to room $48
   DEFW RED_CAVE_DOOR_R4D_R4E ; A red cave door to room $4E
@@ -2229,8 +2231,8 @@ ROOM_LIST_4D:
 ; What is in room $4E
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -2243,8 +2245,8 @@ ROOM_LIST_4E:
 ; What is in room $4F
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2256,8 +2258,8 @@ ROOM_LIST_4F:
 ; What is in room $50
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force.
@@ -2270,8 +2272,8 @@ ROOM_LIST_50:
 ; What is in room $51
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_51:
   DEFW CAVE_DOOR_R50_R51  ; A cave door to room $50
   DEFW CAVE_DOOR_R46_R51  ; A cave door to room $46
@@ -2280,8 +2282,8 @@ ROOM_LIST_51:
 ; What is in room $52
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_52:
   DEFW GREEN_CAVE_DOOR_R50_R52 ; A green cave door to room $50
   DEFW CAVE_DOOR_R52_R53  ; A cave door to room $53
@@ -2290,8 +2292,8 @@ ROOM_LIST_52:
 ; What is in room $53
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: key, food, food and mushroom, which drains the player's life
@@ -2305,8 +2307,8 @@ ROOM_LIST_53:
 ; What is in room $54
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force.
@@ -2319,8 +2321,8 @@ ROOM_LIST_54:
 ; What is in room $55
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: frankenstein's monster.
@@ -2333,8 +2335,8 @@ ROOM_LIST_55:
 ; What is in room $56
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: humpback.
@@ -2350,8 +2352,8 @@ ROOM_LIST_56:
 ; What is in room $57
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2364,8 +2366,8 @@ ROOM_LIST_57:
 ; What is in room $58
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2378,8 +2380,8 @@ ROOM_LIST_58:
 ; What is in room $59
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_59:
   DEFW DOOR_R58_R59       ; A door to room $58
   DEFW YELLOW_DOOR_R59_R5D ; A yellow door to room $5D
@@ -2389,8 +2391,8 @@ ROOM_LIST_59:
 ; What is in room $5A
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_5A:
   DEFW DOOR_R5A_R5B       ; A door to room $5B
   DEFW DOOR_R56_R5A       ; A door to room $56
@@ -2402,8 +2404,8 @@ ROOM_LIST_5A:
 ; What is in room $5B
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2419,8 +2421,8 @@ ROOM_LIST_5B:
 ; What is in room $5C
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_5C:
   DEFW RED_DOOR_R5B_R5C   ; A red door to room $5B
   DEFW GREEN_DOOR_R5C_R5D ; A green door to room $5D
@@ -2433,8 +2435,8 @@ ROOM_LIST_5C:
 ; What is in room $5D
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_5D:
   DEFW GREEN_DOOR_R5C_R5D ; A green door to room $5C
   DEFW YELLOW_DOOR_R59_R5D ; A yellow door to room $59
@@ -2446,8 +2448,8 @@ ROOM_LIST_5D:
 ; What is in room $5E
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2460,8 +2462,8 @@ ROOM_LIST_5E:
 ; What is in room $5F
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_5F:
   DEFW RED_DOOR_R5E_R5F   ; A red door to room $5E
   DEFW RED_DOOR_R5F_R60   ; A red door to room $60
@@ -2473,8 +2475,8 @@ ROOM_LIST_5F:
 ; What is in room $60
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_60:
   DEFW RED_DOOR_R5F_R60   ; A red door to room $5F
   DEFW DOOR_R60_R61       ; A door to room $61
@@ -2486,8 +2488,8 @@ ROOM_LIST_60:
 ; What is in room $61
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_61:
   DEFW DOOR_R60_R61       ; A door to room $60
   DEFW DOOR_R5D_R61       ; A door to room $5D
@@ -2499,8 +2501,8 @@ ROOM_LIST_61:
 ; What is in room $62
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_62:
   DEFW DOOR_R62_R63       ; A door to room $63
   DEFW DOOR_R5E_R62       ; A door to room $5E
@@ -2511,8 +2513,8 @@ ROOM_LIST_62:
 ; What is in room $63
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_63:
   DEFW DOOR_R62_R63       ; A door to room $62
   DEFW DOOR_R63_R64       ; A door to room $64
@@ -2524,8 +2526,8 @@ ROOM_LIST_63:
 ; What is in room $64
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $84.
@@ -2539,8 +2541,8 @@ ROOM_LIST_64:
 ; What is in room $65
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2555,8 +2557,8 @@ ROOM_LIST_65:
 ; What is in room $66
 ;
 ; 9 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: key, food and food.
@@ -2575,8 +2577,8 @@ ROOM_LIST_66:
 ; What is in room $67
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2588,8 +2590,8 @@ ROOM_LIST_67:
 ; What is in room $68
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2601,8 +2603,8 @@ ROOM_LIST_68:
 ; What is in room $69
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food, food and food.
@@ -2614,8 +2616,8 @@ ROOM_LIST_69:
 ; What is in room $6A
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2628,8 +2630,8 @@ ROOM_LIST_6A:
 ; What is in room $6B
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $85.
@@ -2642,8 +2644,8 @@ ROOM_LIST_6B:
 ; What is in room $6C
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2657,8 +2659,8 @@ ROOM_LIST_6C:
 ; What is in room $6D
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: dracula.
@@ -2673,8 +2675,8 @@ ROOM_LIST_6D:
 ; What is in room $6E
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2689,8 +2691,8 @@ ROOM_LIST_6E:
 ; What is in room $6F
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_6F:
   DEFW CYAN_DOOR_R0D_R6F  ; A cyan door to room $0D
   DEFW DOOR_R6F_R70       ; A door to room $70
@@ -2700,8 +2702,8 @@ ROOM_LIST_6F:
 ; What is in room $70
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food, food and food.
@@ -2715,8 +2717,8 @@ ROOM_LIST_70:
 ; What is in room $71
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_71:
   DEFW DOOR_R70_R71       ; A big door to room $70
   DEFW DOOR_R71_R72       ; A door to room $72
@@ -2725,8 +2727,8 @@ ROOM_LIST_71:
 ; What is in room $72
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_72:
   DEFW DOOR_R71_R72       ; A big door to room $71
   DEFW DOOR_R72_R35       ; A door to room $35
@@ -2735,8 +2737,8 @@ ROOM_LIST_72:
 ; What is in room $73
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2750,8 +2752,8 @@ ROOM_LIST_73:
 ; What is in room $74
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food, mushroom, which drains the player's life force, mushroom,
@@ -2765,8 +2767,8 @@ ROOM_LIST_74:
 ; What is in room $75
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2779,8 +2781,8 @@ ROOM_LIST_75:
 ; What is in room $76
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_76:
   DEFW DOOR_R75_R76       ; A door to room $75
   DEFW DOOR_R76_R77       ; A door to room $77
@@ -2792,8 +2794,8 @@ ROOM_LIST_76:
 ; What is in room $77
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_77:
   DEFW DOOR_R76_R77       ; A door to room $76
   DEFW DOOR_R77_R78       ; A door to room $78
@@ -2802,8 +2804,8 @@ ROOM_LIST_77:
 ; What is in room $78
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2816,8 +2818,8 @@ ROOM_LIST_78:
 ; What is in room $79
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_79:
   DEFW DOOR_R78_R79       ; A door to room $78
   DEFW DOOR_R79_R7A       ; A door to room $7A
@@ -2826,8 +2828,8 @@ ROOM_LIST_79:
 ; What is in room $7A
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_7A:
   DEFW DOOR_R79_R7A       ; A door to room $79
   DEFW DOOR_R7A_R7B       ; A door to room $7B
@@ -2840,8 +2842,8 @@ ROOM_LIST_7A:
 ; What is in room $7B
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2853,8 +2855,8 @@ ROOM_LIST_7B:
 ; What is in room $7C
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_7C:
   DEFW YELLOW_DOOR_R7B_R7C ; A yellow door to room $7B
   DEFW YELLOW_DOOR_R7C_R7D ; A yellow door to room $7D
@@ -2865,8 +2867,8 @@ ROOM_LIST_7C:
 ; What is in room $7D
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2880,8 +2882,8 @@ ROOM_LIST_7D:
 ; What is in room $7E
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -2895,8 +2897,8 @@ ROOM_LIST_7E:
 ; What is in room $7F
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2910,8 +2912,8 @@ ROOM_LIST_7F:
 ; What is in room $80
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food, food and food.
@@ -2923,8 +2925,8 @@ ROOM_LIST_80:
 ; What is in room $81
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_81:
   DEFW DOOR_R82_R81       ; A door to room $82
   DEFW DOOR_R81_R7F       ; A door to room $7F
@@ -2934,8 +2936,8 @@ ROOM_LIST_81:
 ; What is in room $82
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_82:
   DEFW DOOR_R80_R82       ; A door to room $80
   DEFW DOOR_R82_R81       ; A door to room $81
@@ -2947,8 +2949,8 @@ ROOM_LIST_82:
 ; What is in room $83
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -2960,8 +2962,8 @@ ROOM_LIST_83:
 ; What is in room $84
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: collectable $87.
@@ -2975,8 +2977,8 @@ ROOM_LIST_84:
 ; What is in room $85
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -2988,8 +2990,8 @@ ROOM_LIST_85:
 ; What is in room $86
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -3001,8 +3003,8 @@ ROOM_LIST_86:
 ; What is in room $87
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -3017,8 +3019,8 @@ ROOM_LIST_87:
 ; What is in room $88
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_88:
   DEFW DOOR_R21_R88       ; A door to room $21
   DEFW DOOR_R87_R88       ; A door to room $87
@@ -3030,8 +3032,8 @@ ROOM_LIST_88:
 ; What is in room $89
 ;
 ; 5 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_89:
   DEFW YELLOW_DOOR_R84_R89 ; A yellow door to room $84
   DEFW DOOR_R89_R8D       ; A door to room $8D
@@ -3043,8 +3045,8 @@ ROOM_LIST_89:
 ; What is in room $8A
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food and food.
@@ -3060,8 +3062,8 @@ ROOM_LIST_8A:
 ; What is in room $8B
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_8B:
   DEFW DOOR_R87_R8B       ; A door to room $87
   DEFW DOOR_R8B_R8C       ; A door to room $8C
@@ -3072,8 +3074,8 @@ ROOM_LIST_8B:
 ; What is in room $8C
 ;
 ; 4 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: food.
@@ -3087,8 +3089,8 @@ ROOM_LIST_8C:
 ; What is in room $8D
 ;
 ; 6 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_8D:
   DEFW GREEN_DOOR_R8C_R8D ; A green door to room $8C
   DEFW DOOR_R89_R8D       ; A door to room $89
@@ -3101,8 +3103,8 @@ ROOM_LIST_8D:
 ; What is in room $8E
 ;
 ; 1 record, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_8E:
   DEFW A_C_G_DOOR_R00_R8E ; An A.C.G. door to room $00
   DEFW $0000              ; End of the list
@@ -3110,8 +3112,8 @@ ROOM_LIST_8E:
 ; What is in room $8F
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ;
 ; Also here when a game starts, found by their own room byte rather than named
 ; in the list: mushroom, which drains the player's life force, mushroom, which
@@ -3126,8 +3128,8 @@ ROOM_LIST_8F:
 ; What is in room $90
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_90:
   DEFW CAVE_DOOR_R54_R90  ; A cave door to room $54
   DEFW CAVE_DOOR_R90_R91  ; A cave door to room $91
@@ -3136,8 +3138,8 @@ ROOM_LIST_90:
 ; What is in room $91
 ;
 ; 3 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_91:
   DEFW CAVE_DOOR_R90_R91  ; A cave door to room $90
   DEFW CAVE_DOOR_R91_R92  ; A cave door to room $92
@@ -3147,8 +3149,8 @@ ROOM_LIST_91:
 ; What is in room $92
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_92:
   DEFW CAVE_DOOR_R91_R92  ; A cave door to room $91
   DEFW CAVE_DOOR_R92_R93  ; A cave door to room $93
@@ -3157,8 +3159,8 @@ ROOM_LIST_92:
 ; What is in room $93
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_93:
   DEFW CAVE_DOOR_R92_R93  ; A cave door to room $92
   DEFW CAVE_DOOR_R93_R94  ; A cave door to room $94
@@ -3167,8 +3169,8 @@ ROOM_LIST_93:
 ; What is in room $94
 ;
 ; 2 records, then a zero to end the list. Each entry is its record in
-; INITIAL_STATE, which POPULATE_ROOM relocates to where the running game keeps
-; it.
+; INITIAL_STATE, which DISPATCH_FROM_LIST relocates to where the running game
+; keeps it.
 ROOM_LIST_94:
   DEFW CAVE_DOOR_R93_R94  ; A cave door to room $93
   DEFW CAVE_DOOR_R3A_R94  ; A cave door to room $3A
@@ -3422,14 +3424,14 @@ START_GAME:
   LD A,$03
   LD (LIVES),A
   LD HL,LIVE_FOOD
-  LD (CURSOR),HL
+  LD (REGROW_CURSOR),HL
   CALL CLEAR_SCREEN
   CALL DRAW_SCROLL
   CALL DRAW_LIVES
-  CALL ROTATING_INDEX
+  CALL PLACE_ACG_KEY
   CALL PLACE_KEYS
   CALL LOAD_INITIAL_STATE
-  CALL SCAN_DOORS
+  CALL CHOOSE_TIMED_DOORS
   CALL PLACE_PLAYER
   JP ARRIVE_IN_ROOM
 
@@ -3437,24 +3439,31 @@ START_GAME:
 ;
 ; Used by the routines at MAIN_LOOP_MONSTERS and ENTER_ROOM.
 ;
-; Everything the game does happens here. It walks three tables of records and
-; hands each one to DISPATCH_ACTOR, which finds its handler from its sprite
-; byte; there is no other structure above this. Monsters, doors, objects, the
-; player and even the sound effects are all just records this loop reaches.
+; Everything the game does happens here. It walks two tables of records and the
+; player's room's list, and hands each record to DISPATCH_ACTOR, which finds
+; its handler from its sprite byte; there is no other structure above this.
+; Monsters, doors, objects, the player and even the sound effects are all just
+; records this loop reaches.
 ;
-; The three tables have different shapes and are treated differently. From
-; $EAA8 to $EE60 are eight-byte records -- objects, collectables, sounds -- and
-; those are only dispatched if their room matches the player's. From $EE60 to
-; $EEE0 are the sixteen-byte monster records, dispatched every pass whatever
-; room they are in, which is how creatures keep moving around a castle you
-; cannot see. From $EEE0 up are the doors, eight bytes again.
+; The three are treated differently. From $EAA8 to $EE60 are eight-byte records
+; -- objects, collectables, the drop controller -- and those are only
+; dispatched if their room matches the player's. From $EE60 to $EEE0 are the
+; sixteen-byte monster records, dispatched every pass whatever room they are
+; in, which is how creatures keep moving around a castle you cannot see. The
+; doors and furniture, sixteen-byte records from $EEE0 with a half in each of
+; two rooms, are not walked at all: ROOM_LIST_PASS dispatches the ones the
+; player's room's list names. On the first pass in a room the first two walks
+; are skipped. Measured in the simulator, a pass in room $00 takes about 1.7
+; frames: a fifth of it this loop's own walk over the objects, with a FRAMES
+; check between each, and a seventh INERT_SPRITE's delay in the three empty
+; monster slots.
 ;
 ; Two details in the first three instructions are worth more than they look.
 ; The stack pointer is reset at the top of every pass, so no handler has to
-; leave the stack as it found it -- which is what lets LOSE_FOOD_16 abandon its
-; caller and jump straight to the death routine. And the EI here is where the
-; DI at the entry point is finally lifted: everything before this runs with
-; interrupts off.
+; leave the stack as it found it -- which is what lets LOSE_FOOD_SIXTEEN
+; abandon its caller and jump straight to the death routine. And the EI here is
+; where the DI at the entry point is finally lifted: everything before this
+; runs with interrupts off.
 MAIN_LOOP:
   LD SP,$5E00             ; Reset the stack every pass; handlers need not
                           ; balance it.
@@ -3467,7 +3476,8 @@ MAIN_LOOP:
   LD A,(ROOM_DRAWN)
   BIT 0,A
   JR NZ,MAIN_LOOP_0
-  LD IX,LIVE_DOORS
+  LD IX,LIVE_DOORS        ; Never used: on the first pass in a room the loop
+                          ; goes straight to the room list, which reloads IX.
   JR ROOM_LIST_PASS
 MAIN_LOOP_0:
   LD A,(FRAMES)
@@ -3553,9 +3563,9 @@ MAIN_LOOP_MONSTERS_0:
   ADD A,L
   LD L,A
   LD (RUNNING_SUM),HL
-  CALL READ_FIRE_ROW
-  CALL CHECK_KEY_HELD
-  CALL ADVANCE_CURSOR
+  CALL READ_PICKUP_KEY
+  CALL PAUSE
+  CALL REGROW_FOOD
   LD A,(PLAYER_ROOM)
   CP $8E
   JP Z,SHOW_END_SCREEN
@@ -3752,14 +3762,14 @@ ACTOR_HANDLERS:
   DEFW SPIN_SPELL
   DEFW SPIN_SPELL
   DEFW SPIN_SPELL
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
-  DEFW SPIN_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
+  DEFW AIM_SWORD
   DEFW SPIN_AXE
   DEFW SPIN_AXE
   DEFW SPIN_AXE
@@ -3790,20 +3800,20 @@ ACTOR_HANDLERS:
   DEFW SPAWN_MONSTER
   DEFW MOVE_ACTOR
   DEFW MOVE_ACTOR
-  DEFW MOVE_GHOST_ALT
-  DEFW MOVE_GHOST_ALT
-  DEFW MOVE_871A
-  DEFW MOVE_871A
+  DEFW MOVE_HOPPER
+  DEFW MOVE_HOPPER
+  DEFW MOVE_FACE
+  DEFW MOVE_FACE
   DEFW MOVE_GHOST
   DEFW MOVE_GHOST
-  DEFW SOUND_64
-  DEFW SOUND_65
+  DEFW SOUND_CAUGHT
+  DEFW SOUND_NEW_ROOM
   DEFW MATERIALISING
   DEFW DYING
-  DEFW MOVE_GHOST_ALT
-  DEFW MOVE_GHOST_ALT
-  DEFW MOVE_BAT_ALT
-  DEFW MOVE_BAT_ALT
+  DEFW MOVE_HOPPER
+  DEFW MOVE_HOPPER
+  DEFW MOVE_ARCS
+  DEFW MOVE_ARCS
   DEFW COUNTDOWN_ACTOR
   DEFW COUNTDOWN_ACTOR
   DEFW COUNTDOWN_ACTOR
@@ -3844,19 +3854,19 @@ ACTOR_HANDLERS:
   DEFW MOVE_WITCH
   DEFW MOVE_WITCH
   DEFW MOVE_WITCH
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
-  DEFW MOVE_8A80
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
+  DEFW MOVE_FACING_FLYER
   DEFW MOVE_HUMPBACK
   DEFW MOVE_HUMPBACK
   DEFW MOVE_HUMPBACK
   DEFW MOVE_HUMPBACK
-  DEFW SOUND_A0
+  DEFW SOUND_EATING
   DEFW MUSHROOM
   DEFW INERT_SPRITE
   DEFW DOOR
@@ -3882,7 +3892,7 @@ ACTOR_HANDLERS:
   DEFW DRAW_DOOR
   DEFW DRAW_DOOR
   DEFW DOOR_WIZARD
-  DEFW FLASH_AND_RASP
+  DEFW TRAPDOOR_CLOSED
   DEFW TRAPDOOR
   DEFW DOOR_SERF
   DEFW DRAW_DOOR
@@ -3890,10 +3900,10 @@ ACTOR_HANDLERS:
   DEFW DRAW_DOOR
   DEFW DRAW_DOOR
   DEFW INERT_SPRITE
-  DEFW WAIT_THEN_ACT
-  DEFW WAIT_THEN_DOOR
-  DEFW WAIT_THEN_ACT
-  DEFW WAIT_THEN_DOOR
+  DEFW TIMED_DOOR_SHUT
+  DEFW TIMED_DOOR_OPEN
+  DEFW TIMED_DOOR_SHUT
+  DEFW TIMED_DOOR_OPEN
   DEFW ACG_DOOR
   DEFW DRAW_DOOR
   DEFW DRAW_DOOR
@@ -4083,7 +4093,7 @@ UPDATE_WIZARD_3:
 UPDATE_WIZARD_4:
   CALL READ_CONTROLS
   AND $10
-  CALL Z,TRY_FIRE_ALT
+  CALL Z,WIZARD_FIRE
   JP PLAYER_TICK
 UPDATE_WIZARD_5:
   LD A,E
@@ -4093,17 +4103,18 @@ UPDATE_WIZARD_5:
   ADD A,$04
   JR UPDATE_WIZARD_3
 
-; Fire, for the third character
+; The knight fires his axe
 ;
 ; Used by the routine at UPDATE_KNIGHT.
 ;
-; The third of the three per-character fire routines, alongside TRY_FIRE and
-; TRY_FIRE_ALT. Same three tests, same call to FIRE_WEAPON, and its own sound.
-TRY_FIRE_THIRD:
+; The knight's fire routine, called from UPDATE_KNIGHT. The same three tests
+; and FIRE_WEAPON as the other two, with SOUND_SWEEP_A41B for its noise and
+; sprite $40 for the axe.
+KNIGHT_FIRE:
   LD A,(WEAPON)
   AND A
   RET NZ
-  LD A,(FIRE_BLOCKED)
+  LD A,(IN_DOORWAY)
   AND A
   RET NZ
   CALL SOUND_SWEEP_A41B
@@ -4112,27 +4123,26 @@ TRY_FIRE_THIRD:
   LD (HL),$40
   JR LAUNCH_SHOT
 
-; Fire, for one of the other characters
+; The wizard fires his spell
 ;
 ; Used by the routine at UPDATE_WIZARD.
 ;
-; Instruction for instruction the same as TRY_FIRE -- refuse if a shot is
-; already in the air, refuse if $5E2D says not now, make a noise, launch -- but
-; it calls SOUND_SWEEP_DOWN where the other calls SOUND_SWEEP_UP. Each
-; character has its own copy of this so that each can have its own firing
-; sound, rather than one routine taking a parameter.
-TRY_FIRE_ALT:
+; The wizard's fire routine, called from UPDATE_WIZARD. The same tests as
+; SERF_FIRE -- refuse if a shot is already in the air or IN_DOORWAY is set,
+; make a noise, launch -- with SOUND_SWEEP_DOWN for its noise and sprite $34
+; for the spell.
+WIZARD_FIRE:
   LD A,(WEAPON)
   AND A
   RET NZ
-  LD A,(FIRE_BLOCKED)
+  LD A,(IN_DOORWAY)
   AND A
   RET NZ
   CALL SOUND_SWEEP_DOWN
   CALL FIRE_WEAPON
   LD HL,WEAPON
   LD (HL),$34
-; This entry point is used by the routines at TRY_FIRE_THIRD and TRY_FIRE.
+; This entry point is used by the routines at KNIGHT_FIRE and SERF_FIRE.
 LAUNCH_SHOT:
   INC HL
   LD A,(IX+$01)
@@ -4152,7 +4162,7 @@ LAUNCH_SHOT:
 
 ; Launch the player's weapon
 ;
-; Used by the routines at TRY_FIRE_THIRD, TRY_FIRE_ALT and TRY_FIRE.
+; Used by the routines at KNIGHT_FIRE, WIZARD_FIRE and SERF_FIRE.
 ;
 ; Sets the weapon's velocity from the direction the player is facing: +4, -4 or
 ; nothing on each axis, taken from the sign of +$06 and +$07. A shot therefore
@@ -4167,8 +4177,9 @@ LAUNCH_SHOT:
 FIRE_WEAPON:
   LD HL,WEAPON_DX         ; The weapon's velocity field, +$0E of the player's
                           ; record.
-  LD A,$30                ; Mark the weapon as in flight.
-  LD (SOUND_SLOT+$0007),A ;
+  LD A,$30                ; A lifetime of 48 frames, in +$0F of the weapon's
+  LD (WEAPON_LIFE),A      ; record (WEAPON_LIFE, which lies in the sound slot's
+                          ; unused tail).
   LD A,$00                ; And clear its contact flag.
   LD (WEAPON_HIT),A       ;
   LD A,(IX+$06)           ; Standing still: nothing to fire along.
@@ -4227,7 +4238,7 @@ FIRE_WEAPON_7:
 
 ; Drive the spinning axe
 ;
-; The axe's equivalent of SPIN_SWORD, over sprites $40 to $47 -- again eight
+; The axe's equivalent of AIM_SWORD, over sprites $40 to $47 -- again eight
 ; frames, one per compass point. It is the knight's weapon.
 SPIN_AXE:
   CALL ACTOR_TO_WORKSPACE
@@ -4262,7 +4273,7 @@ SPIN_SPELL:
   AND $02
   ADD A,$45
   LD (IX+$05),A
-; This entry point is used by the routines at SPIN_AXE and SPIN_SWORD.
+; This entry point is used by the routines at SPIN_AXE and AIM_SWORD.
 SPIN_WEAPON:
   LD DE,(ROOM_HALF_WIDTH)
   LD A,(PLAYER_ROOM)
@@ -4301,7 +4312,7 @@ SPIN_SPELL_4:
   NEG
   LD (IX+$07),A
   PUSH BC
-  CALL SOUND_SPELL_2
+  CALL SOUND_BOUNCE
   POP BC
   JR SPIN_SPELL_3
 SPIN_SPELL_5:
@@ -4310,13 +4321,13 @@ SPIN_SPELL_5:
   NEG
   LD (IX+$06),A
   PUSH BC
-  CALL SOUND_SPELL_2
+  CALL SOUND_BOUNCE
   POP BC
   JR SPIN_SPELL_1
 ; This entry point is used by the routine at COUNTDOWN_ACTOR.
 WEAPON_GONE:
   CALL ERASE_THING
-  CALL SOUND_SPELL
+  CALL SOUND_WEAPON_GONE
   LD A,(ROOM_COLOUR)
   LD (IX+$05),A
   CALL DRAW_FROM_RECORD
@@ -4325,19 +4336,21 @@ CLEAR_ACTOR:
   LD (IX+$00),$00
   RET
 
-; Fire, if there is nothing already in the air
+; The serf fires his sword
 ;
 ; Used by the routine at UPDATE_SERF.
 ;
-; Refuses outright if the weapon slot at $EA98 is occupied, so only one shot
-; exists at a time -- that single test is the whole of the game's rate of fire.
-; With the way clear it makes the sweep noise and calls FIRE_WEAPON to launch
-; one.
-TRY_FIRE:
+; The serf's fire routine, called from UPDATE_SERF. Refuses outright if the
+; weapon slot at $EA98 is occupied, so only one shot exists at a time -- that
+; single test is the whole of the game's rate of fire -- or if IN_DOORWAY says
+; the player is outside the room's walk area. With the way clear it makes the
+; rising sweep and calls FIRE_WEAPON, then picks the sword's first angle from
+; the velocity.
+SERF_FIRE:
   LD A,(WEAPON)
   AND A
   RET NZ
-  LD A,(FIRE_BLOCKED)
+  LD A,(IN_DOORWAY)
   AND A
   RET NZ
   CALL SOUND_SWEEP_UP
@@ -4345,39 +4358,39 @@ TRY_FIRE:
   LD C,$00
   LD A,(HL)
   AND A
-  JR Z,TRY_FIRE_3
-  JP P,TRY_FIRE_0
+  JR Z,SERF_FIRE_3
+  JP P,SERF_FIRE_0
   LD C,$04
-TRY_FIRE_0:
+SERF_FIRE_0:
   DEC HL
   LD A,(HL)
   AND A
-  JR Z,TRY_FIRE_1
-  JP P,TRY_FIRE_2
+  JR Z,SERF_FIRE_1
+  JP P,SERF_FIRE_2
   DEC C
-TRY_FIRE_1:
+SERF_FIRE_1:
   LD A,C
   AND $07
   ADD A,$38
   LD HL,WEAPON
   LD (HL),A
   JP LAUNCH_SHOT
-TRY_FIRE_2:
+SERF_FIRE_2:
   INC C
-  JR TRY_FIRE_1
-TRY_FIRE_3:
+  JR SERF_FIRE_1
+SERF_FIRE_3:
   DEC HL
   BIT 7,(HL)
-  JR Z,TRY_FIRE_4
+  JR Z,SERF_FIRE_4
   LD C,$06
-  JR TRY_FIRE_1
-TRY_FIRE_4:
+  JR SERF_FIRE_1
+SERF_FIRE_4:
   LD C,$02
-  JR TRY_FIRE_1
+  JR SERF_FIRE_1
 
 ; Turn a signed value into a direction code
 ;
-; Used by the routine at SPIN_SWORD.
+; Used by the routine at AIM_SWORD.
 ;
 ; Zero, positive or negative becomes 0 or 4 in C, which is then used to pick a
 ; sprite or a table entry. The game's usual way of turning "which way is it
@@ -4416,26 +4429,31 @@ SIGN_TO_DIRECTION_4:
   LD C,$02
   JR SIGN_TO_DIRECTION_1
 
-; Drive the spinning sword
+; Aim the serf's sword the way it flies
 ;
 ; Sprites $38 to $3F are one sword drawn at eight angles, a compass point
-; apart, and cycling through them is what makes it appear to spin.
+; apart. This does not cycle them: SIGN_TO_DIRECTION picks the one that matches
+; the signs of the weapon's velocity, so the sword points where it is going and
+; turns only when it bounces. (The axe, SPIN_AXE, is the one that spins.)
 ;
 ; This is the serf's weapon. Each character throws its own: firing as each in
 ; turn and reading the type out of the player record's upper half gives $3E for
 ; the serf, $41 to $47 for the knight's axe and $36 for the wizard's spell.
-SPIN_SWORD:
+AIM_SWORD:
   CALL ACTOR_TO_WORKSPACE
   LD (IX+$05),$46
   LD HL,WEAPON_DY
   CALL SIGN_TO_DIRECTION
   JP SPIN_WEAPON
 
-; Drive the other kind of bat
+; Drive the second bat, which flies in arcs
 ;
-; Sprites $6A and $6B. What it does differently from MOVE_BAT has not been
-; established -- only that the game keeps them apart.
-MOVE_BAT_ALT:
+; Sprites $6A and $6B, the second kind of bat. Every sixteen passes it picks a
+; random direction from R into +$08, and in between takes its steps from
+; STEP_VECTORS in order through ARC_STEP -- sixteen steps that swing from
+; horizontal to vertical, the axes swapped by bit 2 of +$08 -- so it flies in
+; arcs, bouncing off the walls.
+MOVE_ARCS:
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
   JP NZ,ACTOR_TICK_TIMER
@@ -4447,63 +4465,63 @@ MOVE_BAT_ALT:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   LD (IX+$0F),$00
   LD DE,(ROOM_HALF_WIDTH)
   LD A,(IX+$09)
   INC A
   AND $0F
   LD (IX+$09),A
-  JP NZ,MOVE_BAT_ALT_0
+  JP NZ,MOVE_ARCS_0
   LD A,R
   AND $07
   LD (IX+$08),A
-MOVE_BAT_ALT_0:
-  CALL VELOCITY_LOOKUP
+MOVE_ARCS_0:
+  CALL ARC_STEP
   LD (IX+$05),$43
-  JR NZ,MOVE_BAT_ALT_1
+  JR NZ,MOVE_ARCS_1
   INC HL
-MOVE_BAT_ALT_1:
+MOVE_ARCS_1:
   LD A,(HL)
   BIT 1,(IX+$08)
-  JR NZ,MOVE_BAT_ALT_2
+  JR NZ,MOVE_ARCS_2
   NEG
-MOVE_BAT_ALT_2:
+MOVE_ARCS_2:
   ADD A,(IX+$04)
   LD C,A
   SUB $68
-  JR C,MOVE_BAT_ALT_3
+  JR C,MOVE_ARCS_3
   CP D
-  JR NC,MOVE_BAT_ALT_10
-  JR MOVE_BAT_ALT_4
-MOVE_BAT_ALT_3:
+  JR NC,MOVE_ARCS_10
+  JR MOVE_ARCS_4
+MOVE_ARCS_3:
   NEG
   CP D
-  JR NC,MOVE_BAT_ALT_11
-MOVE_BAT_ALT_4:
+  JR NC,MOVE_ARCS_11
+MOVE_ARCS_4:
   LD (IX+$04),C
-MOVE_BAT_ALT_5:
-  CALL VELOCITY_LOOKUP
-  JR Z,MOVE_BAT_ALT_6
+MOVE_ARCS_5:
+  CALL ARC_STEP
+  JR Z,MOVE_ARCS_6
   INC HL
-MOVE_BAT_ALT_6:
+MOVE_ARCS_6:
   LD A,(HL)
   BIT 0,(IX+$08)
-  JR NZ,MOVE_BAT_ALT_7
+  JR NZ,MOVE_ARCS_7
   NEG
-MOVE_BAT_ALT_7:
+MOVE_ARCS_7:
   ADD A,(IX+$03)
   LD C,A
   SUB $58
-  JR C,MOVE_BAT_ALT_8
+  JR C,MOVE_ARCS_8
   CP E
-  JR NC,MOVE_BAT_ALT_13
-  JR MOVE_BAT_ALT_9
-MOVE_BAT_ALT_8:
+  JR NC,MOVE_ARCS_13
+  JR MOVE_ARCS_9
+MOVE_ARCS_8:
   NEG
   CP E
-  JR NC,MOVE_BAT_ALT_12
-MOVE_BAT_ALT_9:
+  JR NC,MOVE_ARCS_12
+MOVE_ARCS_9:
   LD (IX+$03),C
   LD A,(IX+$09)
   RRA
@@ -4516,30 +4534,29 @@ MOVE_BAT_ALT_9:
   LD (IX+$00),A
   LD A,(PLAYER)
   CP $31
-  JP NC,DRAW_MONSTER
+  JP NC,KILL_MONSTER
   JP REDRAW_ACTOR
-MOVE_BAT_ALT_10:
+MOVE_ARCS_10:
   RES 1,(IX+$08)
-  JR MOVE_BAT_ALT_5
-MOVE_BAT_ALT_11:
+  JR MOVE_ARCS_5
+MOVE_ARCS_11:
   SET 1,(IX+$08)
-  JR MOVE_BAT_ALT_5
-MOVE_BAT_ALT_12:
+  JR MOVE_ARCS_5
+MOVE_ARCS_12:
   SET 0,(IX+$08)
-  JR MOVE_BAT_ALT_9
-MOVE_BAT_ALT_13:
+  JR MOVE_ARCS_9
+MOVE_ARCS_13:
   RES 0,(IX+$08)
-  JR MOVE_BAT_ALT_9
+  JR MOVE_ARCS_9
 
-; Index a table by a creature's vertical speed
+; Look up the second bat's next step
 ;
-; Used by the routine at MOVE_BAT_ALT.
+; Used by the routine at MOVE_ARCS.
 ;
-; Doubles +$09 and adds it to a table at STEP_VECTORS, then tests bit 2 of
-; +$08. The pair of them are the velocity fields, so this is picking something
-; -- a sprite or an offset -- out of a table according to how fast and which
-; way a creature is moving.
-VELOCITY_LOOKUP:
+; For MOVE_ARCS, +$09 is a step counter from 0 to 15, not a speed: doubled, it
+; indexes STEP_VECTORS, and bit 2 of +$08 (tested on the way out) says whether
+; to swap the two components.
+ARC_STEP:
   LD C,(IX+$09)
   SLA C
   LD B,$00
@@ -4577,10 +4594,11 @@ STEP_VECTORS:
 ;
 ; Used by the routine at UPDATE_KNIGHT.
 ;
-; Monsters are not placed once and left. When the player is in the room named
-; by $5E26, a countdown at $5E27 runs down and a new creature is dropped into
-; the room when it expires -- which is why standing still in one place does not
-; make you safe.
+; Monsters are not placed once and left. Called once a frame from PLAYER_TICK:
+; entering a room names it in $5E26 and starts a 32-frame countdown at $5E27;
+; when that expires a creature is dropped into the room, and after that one
+; more on any frame the refresh register's low nibble is zero -- which is why
+; standing still in one place does not make you safe.
 ;
 ; It looks for a free slot among only the first three of the eight monster
 ; records, and gives up if all three are taken. Those three are also the ones
@@ -4636,16 +4654,16 @@ SPAWN_MONSTER_INTO_ROOM_2:
   LD (HL),A
   LD DE,(ROOM_HALF_WIDTH)
   LD B,E
-  CALL RANDOM_CHANCE
+  CALL RANDOM_POSITION
   LD (HL),A
   LD B,D
-  CALL RANDOM_CHANCE
+  CALL RANDOM_POSITION
   LD (HL),A
   POP DE
   PUSH IX
   LD IX,$0000
   ADD IX,DE
-  CALL RANDOM_VERTICAL
+  CALL RANDOM_VELOCITY
   CALL DRAW_THING
   POP IX
   RET
@@ -4660,7 +4678,7 @@ SPAWN_MONSTER_INTO_ROOM_4:
   RET NZ
   JR SPAWN_MONSTER_INTO_ROOM_0
 
-; Move one actor, bounce it off the walls, animate it
+; Drive the pumpkin and the spider: move, bounce off the walls, animate
 ;
 ; The per-actor update. Actors drift in a direction until they hit the edge of
 ; the room, then reverse; the direction is re-rolled at intervals from the
@@ -4681,7 +4699,7 @@ MOVE_ACTOR:
   CALL CHECK_SHOT_HIT     ; Two proximity tests: has the player shot this
                           ; monster, and has this monster caught the player.
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   CALL CHECK_HIT
   DEC E
   JP Z,MONSTER_CAUGHT_PLAYER
@@ -4718,8 +4736,8 @@ MOVE_ACTOR_2:
   AND $01                 ; tick, which is the walk animation.
   XOR (IX+$00)            ;
   LD (IX+$00),A
-; This entry point is used by the routines at MOVE_BAT, MOVE_GHOST_ALT,
-; MOVE_871A, MOVE_GHOST, MOVE_FRANKENSTEIN, MOVE_WITCH, MOVE_8A80 and
+; This entry point is used by the routines at MOVE_BAT, MOVE_HOPPER, MOVE_FACE,
+; MOVE_GHOST, MOVE_FRANKENSTEIN, MOVE_WITCH, MOVE_FACING_FLYER and
 ; MOVE_HUMPBACK.
 STEP_ACTOR:
   LD A,(IX+$03)           ; Provisional new x = x + x-velocity.
@@ -4765,19 +4783,22 @@ MOVE_ACTOR_6:
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
   RET NZ
-  LD A,(IX+$00)           ; Two kinds are exempt from the check below: the
+  LD A,(IX+$00)           ; Two kinds are exempt from the test below: the
   AND $FC                 ; humpback, whose codes are $9C-$9F, and the four big
   CP $9C                  ; monsters at $70-$7F -- the mummy, Frankenstein's
-                          ; monster, the devil and Dracula. Masking with $FC
-                          ; and $F0 tests a whole run of codes in one compare,
-                          ; without caring which frame is showing.
+                          ; monster, the devil and Dracula, which come through
+                          ; STEP_ACTOR too. Masking with $FC and $F0 tests a
+                          ; whole run of codes in one compare, without caring
+                          ; which frame is showing.
   JR Z,MOVE_ACTOR_7
   AND $F0
   CP $70
   JR Z,MOVE_ACTOR_7
-  LD A,(PLAYER)
-  CP $31
-  JP NC,DRAW_MONSTER
+  LD A,(PLAYER)           ; Everything else is destroyed, with the 155 points
+  CP $31                  ; of KILL_MONSTER, whenever the player is not in play
+  JP NC,KILL_MONSTER      ; -- sinking or rising. So dying clears the room of
+                          ; small creatures (measured in the simulator,
+                          ; 2026-09-27).
 MOVE_ACTOR_7:
   JP REDRAW_ACTOR
 MOVE_ACTOR_8:
@@ -4808,8 +4829,8 @@ MOVE_ACTOR_9:
 
 ; Has the player's shot hit this monster?
 ;
-; Used by the routines at MOVE_BAT_ALT, MOVE_ACTOR, MOVE_BAT, MOVE_GHOST_ALT,
-; MOVE_871A, MOVE_GHOST, MOVE_WITCH and MOVE_8A80.
+; Used by the routines at MOVE_ARCS, MOVE_ACTOR, MOVE_BAT, MOVE_HOPPER,
+; MOVE_FACE, MOVE_GHOST, MOVE_WITCH and MOVE_FACING_FLYER.
 ;
 ; The mirror image of CHECK_HIT. Same test, same 12-pixel box, but reading
 ; $EA98 onwards -- the upper half of the player's record, where a weapon in
@@ -4852,42 +4873,42 @@ CHECK_SHOT_HIT_1:
   LD E,$01
   RET
 
-; Take a chance on the refresh register
+; A random coordinate near the middle of the room
 ;
 ; Used by the routine at SPAWN_MONSTER_INTO_ROOM.
 ;
-; Compares R against a threshold in B, so a caller gets a yes or no with
-; roughly known odds and no state to keep. R is not random, but it advances on
-; every instruction fetch, and against a threshold it is unpredictable enough
-; for a monster's whim.
-RANDOM_CHANCE:
+; Returns $60 plus or minus (R modulo the limit in B less 8), the sign from
+; another bit of R. SPAWN_MONSTER_INTO_ROOM calls it once for x and once for y
+; with the room's half-extents, so a new creature appears somewhere inside the
+; walk area. It also steps HL on, to the next field.
+RANDOM_POSITION:
   LD A,B
   SUB $08
   LD B,A
   LD A,R
   INC HL
-RANDOM_CHANCE_0:
+RANDOM_POSITION_0:
   CP B
-  JR C,RANDOM_CHANCE_1
+  JR C,RANDOM_POSITION_1
   SUB B
-  JR RANDOM_CHANCE_0
-RANDOM_CHANCE_1:
+  JR RANDOM_POSITION_0
+RANDOM_POSITION_1:
   LD C,A
   LD A,R
   BIT 1,A
   LD A,$60
-  JR Z,RANDOM_CHANCE_2
+  JR Z,RANDOM_POSITION_2
   ADD A,C
   RET
-RANDOM_CHANCE_2:
+RANDOM_POSITION_2:
   SUB C
   RET
 
 ; Has this monster caught the player?
 ;
-; Used by the routines at MOVE_BAT_ALT, MOVE_ACTOR, MOVE_BAT, MOVE_GHOST_ALT,
-; MOVE_871A, MOVE_GHOST, MOVE_MUMMY, MOVE_DRACULA, MOVE_FRANKENSTEIN,
-; MOVE_DEVIL, MOVE_WITCH, MOVE_8A80 and MOVE_HUMPBACK.
+; Used by the routines at MOVE_ARCS, MOVE_ACTOR, MOVE_BAT, MOVE_HOPPER,
+; MOVE_FACE, MOVE_GHOST, MOVE_MUMMY, MOVE_DRACULA, MOVE_FRANKENSTEIN,
+; MOVE_DEVIL, MOVE_WITCH, MOVE_FACING_FLYER and MOVE_HUMPBACK.
 ;
 ; Compares the monster IX points at against the player's record at $EA90: same
 ; room, and within 12 pixels on both axes. Confirmed by breaking here and
@@ -4924,27 +4945,28 @@ CHECK_HIT_1:
   RET NC
   LD A,$01                ; Record the hit where the caller can find it...
   LD (PLAYER_FLAG),A      ;
-  CALL PLAY_SOUND         ; ...and make a noise about it.
+  CALL PLAY_SOUND_CAUGHT  ; ...and make a noise about it.
   LD E,$01
   RET
 
-; Cost the player thirty-two and carry on
+; A creature caught the player: thirty-two off, and the creature dies
 ;
-; Used by the routines at MOVE_BAT_ALT, MOVE_ACTOR, MOVE_BAT, MOVE_GHOST_ALT,
-; MOVE_871A, MOVE_GHOST, MOVE_WITCH and MOVE_8A80.
+; Used by the routines at MOVE_ARCS, MOVE_ACTOR, MOVE_BAT, MOVE_HOPPER,
+; MOVE_FACE, MOVE_GHOST, MOVE_WITCH and MOVE_FACING_FLYER.
 ;
-; The two-instruction path taken when a monster's proximity test succeeds:
-; LOSE_FOOD_32, then back into the creature's movement. Being caught is
-; expensive but not, on its own, fatal.
+; The two-instruction path taken when a small creature's proximity test
+; succeeds: LOSE_FOOD_THIRTY_TWO, then KILL_MONSTER. Being caught is expensive
+; but destroys the creature and scores 155, just as shooting it does (measured
+; in the simulator: five contacts, 160 units lost, 775 points).
 MONSTER_CAUGHT_PLAYER:
-  CALL LOSE_FOOD_32
-  JP DRAW_MONSTER
+  CALL LOSE_FOOD_THIRTY_TWO
+  JP KILL_MONSTER
 
 ; Count down the actor's timer, and act when it expires
 ;
-; Used by the routines at MOVE_BAT_ALT, MOVE_ACTOR, SPAWN_MONSTER, MOVE_BAT,
-; MOVE_GHOST_ALT, MOVE_871A, COUNTDOWN_ACTOR, MOVE_GHOST, MOVE_WITCH and
-; MOVE_8A80.
+; Used by the routines at MOVE_ARCS, MOVE_ACTOR, SPAWN_MONSTER, MOVE_BAT,
+; MOVE_HOPPER, MOVE_FACE, COUNTDOWN_ACTOR, MOVE_GHOST, MOVE_WITCH and
+; MOVE_FACING_FLYER.
 ;
 ; Field +$0F of the actor record is a countdown. Almost every call is a no-op
 ; that just decrements it; only on the tick where it reaches zero does control
@@ -4977,7 +4999,7 @@ SPAWN_MONSTER:
   LD (IX+$0F),$80
   LD A,(PLAYER)
   CP $31
-  JP NC,DRAW_MONSTER
+  JP NC,KILL_MONSTER
   JP REDRAW_ACTOR
 SPAWN_MONSTER_0:
   LD A,(IX+$02)
@@ -4987,7 +5009,7 @@ SPAWN_MONSTER_0:
 ; Drive a bat
 ;
 ; Sprites $4E and $4F. A second kind of bat, sprites $6A and $6B, is driven by
-; MOVE_BAT_ALT instead; the two look alike but are not the same creature and do
+; MOVE_ARCS instead; the two look alike but are not the same creature and do
 ; not share a routine.
 MOVE_BAT:
   CALL ACTOR_TO_WORKSPACE
@@ -5001,10 +5023,10 @@ MOVE_BAT:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   LD (IX+$05),$45
   INC (IX+$07)
-  CALL Z,RANDOM_VERTICAL
+  CALL Z,RANDOM_VELOCITY
   LD A,(IX+$07)
   RRA
   RRA
@@ -5018,12 +5040,13 @@ MOVE_BAT:
   LD (IX+$0F),$00
   JP STEP_ACTOR
 
-; Drive the other kind of ghost
+; Drive the hoppers: the spiky creature and the second ghost
 ;
-; Drives two separate runs of codes, $5E-$5F as well as $68-$69, so one routine
-; is behind two different-looking things. Only the second is known to be a
-; ghost.
-MOVE_GHOST_ALT:
+; Drives two runs of codes, $5E-$5F (a spiky creature) and $68-$69 (the second
+; ghost). A counter in +$0A climbs from -7 to 7 and, halved, is the vertical
+; velocity; each time it tops out it is reset and RANDOM_VELOCITY picks a new
+; direction, so these creatures hop.
+MOVE_HOPPER:
   CALL ACTOR_TO_WORKSPACE
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
@@ -5036,7 +5059,7 @@ MOVE_GHOST_ALT:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   LD A,(IX+$0A)
   RRA
   AND $01
@@ -5049,74 +5072,73 @@ MOVE_GHOST_ALT:
   INC (IX+$0A)
   LD A,(IX+$0A)
   CP $07
-  JR NZ,MOVE_GHOST_ALT_0
-  CALL RANDOM_VERTICAL
+  JR NZ,MOVE_HOPPER_0
+  CALL RANDOM_VELOCITY
   LD (IX+$0A),$F9
-MOVE_GHOST_ALT_0:
+MOVE_HOPPER_0:
   SRA A
   ADD A,(IX+$04)
   LD C,A
   SUB $68
-  JP P,MOVE_GHOST_ALT_2
+  JP P,MOVE_HOPPER_2
   NEG
   CP D
-  JR C,MOVE_GHOST_ALT_1
+  JR C,MOVE_HOPPER_1
   LD (IX+$09),$02
   SET 1,(IX+$06)
   BIT 7,(IX+$0A)
-  JR Z,MOVE_GHOST_ALT_1
+  JR Z,MOVE_HOPPER_1
   LD (IX+$0A),$00
-MOVE_GHOST_ALT_1:
+MOVE_HOPPER_1:
   LD (IX+$04),C
   JP STEP_ACTOR
-MOVE_GHOST_ALT_2:
+MOVE_HOPPER_2:
   CP D
-  JR C,MOVE_GHOST_ALT_1
+  JR C,MOVE_HOPPER_1
   RES 1,(IX+$06)
   LD (IX+$09),$FE
   LD (IX+$0A),$F9
-  JR MOVE_GHOST_ALT_1
+  JR MOVE_HOPPER_1
 
-; Give a creature a random up or down
+; Give a creature a random velocity
 ;
-; Used by the routines at SPAWN_MONSTER_INTO_ROOM, MOVE_BAT, MOVE_GHOST_ALT,
-; MOVE_871A, MOVE_WITCH and MOVE_8A80.
+; Used by the routines at SPAWN_MONSTER_INTO_ROOM, MOVE_BAT, MOVE_HOPPER,
+; MOVE_FACE, MOVE_WITCH and MOVE_FACING_FLYER.
 ;
-; Reads the refresh register, takes one bit to decide whether to act and two
-; more to make plus or minus two, and drops the result into the vertical
-; velocity. The same trick MOVE_ACTOR uses for direction, applied to one axis.
-RANDOM_VERTICAL:
+; Reads the refresh register twice: for each axis one bit picks a speed of 1 or
+; 2 and another its sign, and the results go into +$09 and +$08.
+RANDOM_VELOCITY:
   LD A,R
   BIT 0,A
-  JR Z,RANDOM_VERTICAL_2
+  JR Z,RANDOM_VELOCITY_2
   AND $04
   SUB $02
-RANDOM_VERTICAL_0:
+RANDOM_VELOCITY_0:
   LD (IX+$09),A
   LD A,R
   RRA
   BIT 0,A
-  JR Z,RANDOM_VERTICAL_3
+  JR Z,RANDOM_VELOCITY_3
   AND $04
   SUB $02
-RANDOM_VERTICAL_1:
+RANDOM_VELOCITY_1:
   LD (IX+$08),A
   RET
-RANDOM_VERTICAL_2:
+RANDOM_VELOCITY_2:
   AND $02
   SUB $01
-  JR RANDOM_VERTICAL_0
-RANDOM_VERTICAL_3:
+  JR RANDOM_VELOCITY_0
+RANDOM_VELOCITY_3:
   AND $02
   SUB $01
-  JR RANDOM_VERTICAL_1
+  JR RANDOM_VELOCITY_1
 
-; Drive the creature at $60-$61
+; Drive the small face at $60-$61
 ;
-; Two frames of a small squat monster, nine pixels tall, whose limbs pull in
-; and stretch out again -- eleven pixels wide in the first frame and fifteen in
-; the second. Which creature it is has not been established.
-MOVE_871A:
+; Two frames of a small face with two eyes, nine pixels tall, whose sides pull
+; in and stretch out again -- eleven pixels wide in the first frame and fifteen
+; in the second. A new random velocity every 17 passes, bouncing off the walls.
+MOVE_FACE:
   CALL ACTOR_TO_WORKSPACE
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
@@ -5129,13 +5151,13 @@ MOVE_871A:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   LD DE,(ROOM_HALF_WIDTH)
   DEC (IX+$0D)
-  JR NZ,MOVE_871A_0
+  JR NZ,MOVE_FACE_0
   LD (IX+$0D),$11
-  CALL RANDOM_VERTICAL
-MOVE_871A_0:
+  CALL RANDOM_VELOCITY
+MOVE_FACE_0:
   LD A,(IX+$0D)
   RRA
   AND $01
@@ -5145,11 +5167,15 @@ MOVE_871A_0:
   ADD A,C
   LD (IX+$00),A
   JP STEP_ACTOR
-; This entry point is used by the routines at MOVE_BAT_ALT, MOVE_ACTOR,
-; MONSTER_CAUGHT_PLAYER, SPAWN_MONSTER, MOVE_BAT, MOVE_GHOST_ALT, MOVE_GHOST,
-; MOVE_FRANKENSTEIN, MOVE_WITCH and MOVE_8A80.
-DRAW_MONSTER:
-  LD A,(IX+$05)
+; This entry point is used by the routines at MOVE_ARCS, MOVE_ACTOR,
+; MONSTER_CAUGHT_PLAYER, SPAWN_MONSTER, MOVE_BAT, MOVE_HOPPER, MOVE_GHOST,
+; MOVE_FRANKENSTEIN, MOVE_WITCH and MOVE_FACING_FLYER.
+KILL_MONSTER:
+  LD A,(IX+$05)           ; KILL_MONSTER: erase the creature, turn it into the
+                          ; burst $6C for sixteen passes (COUNTDOWN_ACTOR), and
+                          ; add 155 to the score. Reached when a small creature
+                          ; is shot, when it touches the player, and when the
+                          ; player is not in play.
   PUSH AF
   LD A,(ROOM_COLOUR)
   LD (IX+$05),A
@@ -5164,11 +5190,12 @@ DRAW_MONSTER:
   CALL DRAW_THING
   JP DRAW_FROM_RECORD
 
-; A creature on a timer
+; The burst a destroyed creature becomes
 ;
-; Skips everything if it is in another room, then counts +$0E down and hands
-; over when it reaches zero. Sprites $6C to $6F, the expanding burst, which is
-; exactly what a thing on a fuse looks like.
+; Sprites $6C to $6F, the expanding burst KILL_MONSTER turns a creature into.
+; Skips everything if it is in another room, then counts +$0E down from 16, one
+; frame a pass, and at zero goes to WEAPON_GONE: erased, SOUND_WEAPON_GONE,
+; slot freed.
 COUNTDOWN_ACTOR:
   CALL ACTOR_TO_WORKSPACE
   LD A,(PLAYER_ROOM)
@@ -5185,7 +5212,7 @@ COUNTDOWN_ACTOR:
 ; Drive a ghost
 ;
 ; Sprites $62 and $63. As with the bats there is a second ghost, sprites $68
-; and $69, with its own routine in MOVE_GHOST_ALT.
+; and $69, with its own routine in MOVE_HOPPER.
 MOVE_GHOST:
   CALL ACTOR_TO_WORKSPACE
   LD A,(PLAYER_ROOM)
@@ -5195,7 +5222,7 @@ MOVE_GHOST:
   INC (HL)
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   CALL CHECK_HIT
   DEC E
   JP Z,MONSTER_CAUGHT_PLAYER
@@ -5285,12 +5312,17 @@ HOME_IN_4:
 ; Drive the mummy
 ;
 ; Sprites $70 to $73 -- four frames rather than the two most creatures get.
+; PLACE_KEYS puts the mummy in the red key's room. If object $80 (MUMMY_LURE)
+; is in its room it walks to it and, on reaching it, sends it to room $6B.
+; Otherwise, while the red key is in its room, it walks back and forth between
+; two points; once the key has gone it sets bit 7 of +$06 and hunts the player
+; for the rest of the game. Touching costs eight a pass.
 MOVE_MUMMY:
   CALL ACTOR_TO_WORKSPACE
   CALL CHECK_HIT
   DEC E
-  CALL Z,LOSE_FOOD_8
-  LD HL,LIVE_COLLECTABLE_80
+  CALL Z,LOSE_FOOD_EIGHT
+  LD HL,LIVE_MUMMY_LURE
   LD A,(HL)
   AND A
   JR Z,MOVE_MUMMY_0
@@ -5348,7 +5380,7 @@ MOVE_MUMMY_4:
   CP $03
   JR NZ,MOVE_MUMMY_1
   PUSH IX
-  LD IX,LIVE_COLLECTABLE_80
+  LD IX,LIVE_MUMMY_LURE
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
   JR NZ,MOVE_MUMMY_5
@@ -5356,7 +5388,7 @@ MOVE_MUMMY_4:
 MOVE_MUMMY_5:
   POP IX
   LD A,$6B
-  LD (LIVE_COLLECTABLE_80+$0001),A ; LIVE_COLLECTABLE_80+1: its room
+  LD (LIVE_MUMMY_LURE+$0001),A ; LIVE_MUMMY_LURE+1: its room
   JR MOVE_MUMMY_2
 MOVE_MUMMY_6:
   SET 7,(IX+$06)
@@ -5367,12 +5399,18 @@ MOVE_MUMMY_7:
 
 ; Drive Dracula
 ;
-; Sprites $7C to $7F, four frames.
+; Sprites $7C to $7F, four frames. Touch: eight a pass. While the player
+; carries the yellow crucifix ($8A) he runs from the player. In the player's
+; room he hunts. Elsewhere, on a pass that falls in the frame when FRAMES is 0,
+; he picks a random room 0-127 and moves there if its shape is $00-$02 and it
+; is not the player's: he wanders the castle unseen. (His off-screen HOME_IN is
+; given the crucifix test's DE rather than the centre he has just stored in
+; +$0B and +$0C; harmless, since he is not drawn.)
 MOVE_DRACULA:
   CALL ACTOR_TO_WORKSPACE
   CALL CHECK_HIT
   DEC E
-  CALL Z,LOSE_FOOD_8
+  CALL Z,LOSE_FOOD_EIGHT
   LD DE,$468A
   CALL FIND_CARRIED
   JR NZ,MOVE_DRACULA_0
@@ -5437,8 +5475,11 @@ ROOM_SHAPE_OF:
 
 ; Drive Frankenstein's monster
 ;
-; Sprites $74 to $77, four frames. One of the four creatures whose touch costs
-; eight units of life force through LOSE_FOOD_8.
+; Sprites $74 to $77, four frames. Hunts the player. Touched while the player
+; carries the cyan spanner ($8B), it is killed: 1000 points, then
+; KILL_MONSTER's 155, and its slot is never refilled (measured in the
+; simulator: +1155). Otherwise its touch costs eight units of life force a
+; pass, through LOSE_FOOD_EIGHT.
 MOVE_FRANKENSTEIN:
   CALL ACTOR_TO_WORKSPACE
   CALL CHECK_HIT
@@ -5449,9 +5490,9 @@ MOVE_FRANKENSTEIN:
   JR NZ,MOVE_FRANKENSTEIN_0
   LD BC,$1000
   CALL ADD_SCORE
-  JP DRAW_MONSTER
+  JP KILL_MONSTER
 MOVE_FRANKENSTEIN_0:
-  CALL LOSE_FOOD_8
+  CALL LOSE_FOOD_EIGHT
 MOVE_FRANKENSTEIN_1:
   LD DE,(PLAYER_X)
   CALL HOME_IN
@@ -5486,13 +5527,13 @@ BIG_MONSTER_STEP:
 
 ; Drive the devil
 ;
-; Sprites $78 to $7B. One of the four whose touch costs eight units through
-; LOSE_FOOD_8.
+; Sprites $78 to $7B. Hunts the player; its touch costs eight units a pass
+; through LOSE_FOOD_EIGHT, and nothing in the code stops it.
 MOVE_DEVIL:
   CALL ACTOR_TO_WORKSPACE
   CALL CHECK_HIT
   DEC E
-  CALL Z,LOSE_FOOD_8
+  CALL Z,LOSE_FOOD_EIGHT
   LD DE,(PLAYER_X)
   CALL HOME_IN
   LD A,(IX+$00)
@@ -5514,8 +5555,13 @@ MOVE_DEVIL:
 ; The heavier of the two penalties. If it would go below zero the stack is
 ; dropped and control goes straight to the death routine, so the caller never
 ; returns.
-LOSE_FOOD_16:
-  LD A,(FOOD_LEVEL)       ; Sixteen, against the eight LOSE_FOOD_8 takes.
+;
+; Only the humpback calls it, on every pass it touches the player. Landing on
+; exactly zero is not caught here -- only a borrow is -- and the next drain in
+; PLAYER_TICK then turns the zero into 255 (measured in the simulator,
+; 2026-09-27).
+LOSE_FOOD_SIXTEEN:
+  LD A,(FOOD_LEVEL)       ; Sixteen, against the eight LOSE_FOOD_EIGHT takes.
   SUB $10                 ;
   JR C,FOOD_GONE
   JR SET_FOOD_LEVEL
@@ -5525,20 +5571,23 @@ LOSE_FOOD_16:
 ; Used by the routines at MOVE_MUMMY, MOVE_DRACULA, MOVE_FRANKENSTEIN and
 ; MOVE_DEVIL.
 ;
-; What touching most monsters costs -- four of the creature handlers call this
-; one. Both penalties share the tail: store the new level, redraw the
-; indicator, and on underflow die instead.
+; What touching one of the four big hunters costs -- the mummy, Dracula,
+; Frankenstein's monster and the devil call it on every pass they touch the
+; player. Both penalties share the tail: store the new level, redraw the
+; indicator, and on underflow die instead. As with LOSE_FOOD_SIXTEEN, a result
+; of exactly zero is stored and the player lives, until the next drain wraps it
+; to 255.
 ;
 ; A The new level
-LOSE_FOOD_8:
+LOSE_FOOD_EIGHT:
   LD A,(FOOD_LEVEL)       ; Eight.
   SUB $08                 ;
   JR C,FOOD_GONE
-; This entry point is used by the routine at LOSE_FOOD_16.
+; This entry point is used by the routine at LOSE_FOOD_SIXTEEN.
 SET_FOOD_LEVEL:
   LD (FOOD_LEVEL),A       ; Store it, then redraw the roast on the scroll.
   JP DRAW_FOOD            ;
-; This entry point is used by the routine at LOSE_FOOD_16.
+; This entry point is used by the routine at LOSE_FOOD_SIXTEEN.
 FOOD_GONE:
   POP HL
   JP LOSE_LIFE
@@ -5561,10 +5610,10 @@ MOVE_WITCH:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   DEC (IX+$0D)
   JR NZ,MOVE_WITCH_0
-  CALL RANDOM_VERTICAL
+  CALL RANDOM_VELOCITY
   SRA (IX+$09)
   LD (IX+$0D),$10
 MOVE_WITCH_0:
@@ -5584,14 +5633,14 @@ MOVE_WITCH_1:
   LD (IX+$05),$43
   JP STEP_ACTOR
 
-; Drive two unrelated creatures
+; Drive the cloaked figure and the third bat, facing the way they fly
 ;
-; Covers sprites $94 to $9B, which are not one creature in eight frames but two
-; in four each: $94-$97 is a running figure, $98-$9B a bat -- the third
-; distinct bat in the game, after those driven by MOVE_BAT and MOVE_BAT_ALT.
-; What the two have in common that lets them share a routine has not been
-; established, so the routine is left with a name that claims nothing.
-MOVE_8A80:
+; Covers sprites $94 to $9B, two creatures of four codes each: $94-$97 a
+; cloaked figure, $98-$9B the third kind of bat. Every 32 passes a random
+; velocity, x from bit 2 of FRAMES and y halved; the picture faces left or
+; right by the sign of +$08 and flaps between two frames. MOVE_WITCH is the
+; same with a period of 16.
+MOVE_FACING_FLYER:
   CALL ACTOR_TO_WORKSPACE
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
@@ -5603,23 +5652,23 @@ MOVE_8A80:
   JP Z,MONSTER_CAUGHT_PLAYER
   CALL CHECK_SHOT_HIT
   DEC E
-  JP Z,DRAW_MONSTER
+  JP Z,KILL_MONSTER
   DEC (IX+$0D)
-  JR NZ,MOVE_8A80_0
-  CALL RANDOM_VERTICAL
+  JR NZ,MOVE_FACING_FLYER_0
+  CALL RANDOM_VELOCITY
   LD A,(FRAMES)
   AND $04
   SUB $02
   LD (IX+$08),A
   SRA (IX+$09)
   LD (IX+$0D),$20
-MOVE_8A80_0:
+MOVE_FACING_FLYER_0:
   LD A,(IX+$00)
   AND $FC
   BIT 7,(IX+$08)
-  JR NZ,MOVE_8A80_1
+  JR NZ,MOVE_FACING_FLYER_1
   ADD A,$02
-MOVE_8A80_1:
+MOVE_FACING_FLYER_1:
   LD C,A
   LD A,(IX+$0D)
   RRA
@@ -5666,14 +5715,17 @@ SCAN_COLLECTABLES_1:
 
 ; Drive the humpback
 ;
-; Sprites $9C to $9F. MOVE_ACTOR singles this creature out by name: masking a
-; sprite code with $FC and comparing against $9C matches all four of its frames
-; at once, and those are let past a test the ordinary wanderers have to make.
+; Sprites $9C to $9F. If one of the eight collectables at $EB18 is in its room
+; (SCAN_COLLECTABLES) it walks to it and takes it -- the record is emptied, so
+; the object is gone for the game; otherwise it stands still. Its touch costs
+; sixteen a pass (LOSE_FOOD_SIXTEEN). While the player is not in play it walks
+; to the top of the room. MOVE_ACTOR's exemption mask singles it out: masking
+; with $FC and comparing against $9C matches all four of its frames.
 MOVE_HUMPBACK:
   CALL ACTOR_TO_WORKSPACE
   CALL CHECK_HIT
   DEC E
-  CALL Z,LOSE_FOOD_16
+  CALL Z,LOSE_FOOD_SIXTEEN
   XOR A
   LD (IX+$09),A
   LD (IX+$08),A
@@ -5721,16 +5773,16 @@ MOVE_HUMPBACK_2:
 
 ; A new monster, ready to copy
 ;
-; The sixteen bytes SPAWN_MONSTER_INTO_ROOM copies into a free slot. Read out
-; of the game they are 58 00 5C 68 68 44 00 00 02 02 00 00 00 10 20 00, and
-; every one of them means something already documented elsewhere.
+; The sixteen bytes SPAWN_MONSTER_INTO_ROOM copies into a free slot, every one
+; of them meaning something documented elsewhere.
 ;
 ; The sprite is $58 -- not a creature but the arrival animation, so a new
 ; monster appears by materialising rather than blinking into existence. +$03
-; and +$04 are $68 and $68, the centre of the room. +$08 and +$09 are its
-; starting velocities. And +$02 holds $5C, the spider: the same trick the
-; player uses when dying, where the sprite to turn into when the animation
-; finishes is parked in a spare field until it is needed.
+; and +$04 are the centre of the room, overwritten by RANDOM_POSITION. +$08 and
+; +$09 are its starting velocities. And +$02 is the creature to become when the
+; animation ends -- the same trick the player uses when dying -- though the
+; template's own value there, the spider, is never used: the spawner always
+; writes a code from SPAWN_TYPES over it.
 MONSTER_TEMPLATE:
   DEFB $58,$00,$5C,$68,$68,$44,$00,$00
   DEFB $02,$02,$00,$00,$00,$10,$20,$00
@@ -5756,8 +5808,8 @@ SPAWNABLE_SPRITES:
 
 ; Redraw the roast on the scroll
 ;
-; Used by the routines at LOSE_FOOD_8, EAT_FOOD, UPDATE_KNIGHT, LOSE_FOOD_32,
-; PLACE_PLAYER and MUSHROOM_DRAIN.
+; Used by the routines at LOSE_FOOD_EIGHT, EAT_FOOD, UPDATE_KNIGHT,
+; LOSE_FOOD_THIRTY_TWO, PLACE_PLAYER and MUSHROOM_DRAIN.
 ;
 ; The life force in $5E28 is drawn as the roast down the right-hand side, eaten
 ; away as it falls. $5E29 remembers the level the picture was last drawn at,
@@ -5885,10 +5937,10 @@ FOOD_RECORD:
 ;
 ; Used by the routine at LOSE_LIFE.
 ;
-; Reached from UPDATE_KNIGHT when the player's last life goes. It blanks the
-; play area, prints GAME OVER across it, and hands over to DRAW_SUMMARY for the
-; three figures underneath, then sits in a counting loop long enough to read
-; them.
+; Reached from LOSE_LIFE when a life is lost with none to spare, whatever took
+; it. It blanks the play area, prints GAME OVER across it, and hands over to
+; DRAW_SUMMARY for the three figures underneath, then sits in a counting loop
+; long enough to read them.
 ;
 ; Note the second and third instructions: the tile source has to be pointed
 ; back at the text font first. During play it holds FONT_DIGITS, the copy
@@ -5908,10 +5960,10 @@ END_DELAY:
   LD B,$14                ; A delay, and a long one: twenty times round a full
   LD HL,$0000             ; 16-bit count.
 GAME_OVER_0:
-  DEC HL                  ; About four seconds in all, with nothing else
-  LD A,H                  ; running.
-  OR L                    ;
-  JR NZ,GAME_OVER_0       ;
+  DEC HL                  ; Twenty times 65536 turns of 26 T-states: about ten
+  LD A,H                  ; seconds (9.8 s from here to the title, measured in
+  OR L                    ; the simulator), with interrupts off because the
+  JR NZ,GAME_OVER_0       ; death happened inside FRAME_TICK.
   DJNZ GAME_OVER_0        ;
   JP TITLE_AGAIN
 
@@ -5941,9 +5993,10 @@ EAT_FOOD:
   JR C,EAT_FOOD_0         ; No -- draw it and do nothing else.
   JP DRAW_AT_POSITION     ;
 EAT_FOOD_0:
-  CALL ERASE_THING        ; Rub it out and free its slot: eaten food does not
-  LD (IX+$00),$00         ; come back.
-  CALL PLAY_SOUND_A0      ; A noise.
+  CALL ERASE_THING        ; Rub it out and free its slot. REGROW_FOOD fills the
+  LD (IX+$00),$00         ; slot again, much later, while the player is
+                          ; elsewhere.
+  CALL PLAY_SOUND_EATING  ; A noise.
   LD C,$40                ; Sixty-four units of life force.
   LD A,(FOOD_LEVEL)       ;
   ADD A,C                 ;
@@ -5962,13 +6015,15 @@ EAT_FOOD_2:
 ;
 ; Counts $5E3C down and, while it lasts, sets bit 7 of the six attribute cells
 ; the score sits in -- the flash bit, so the ULA does the work and nothing has
-; to be redrawn. A beep every sixteenth step goes with it.
+; to be redrawn. A beep every sixteenth step goes with it. It runs at the start
+; of every life: PLACE_PLAYER sets the count to 104 and MATERIALISING calls
+; this instead of rising until it runs out.
 FLASH_SCORE:
   DEC A                   ; The countdown.
   LD (FLASH_COUNT),A      ;
   JR Z,FLASH_SCORE_1
   AND $0F                 ; A beep once every sixteen.
-  CALL Z,SOUND_BONUS      ;
+  CALL Z,SOUND_LIFE_PIP   ;
   LD HL,$50C8             ; The attributes under the score, not the pixels.
   CALL PIXEL_TO_ATTR      ;
   LD B,$06
@@ -5999,8 +6054,8 @@ FLASH_SCORE_2:
 ; seconds before a new game is really under way -- and why CHECK_HIT, which
 ; only counts sprites below $31 as a player, cannot register a hit during it.
 MATERIALISING:
-  LD A,(FLASH_COUNT)      ; A bonus flashing on the scroll takes priority over
-  AND A                   ; rising.
+  LD A,(FLASH_COUNT)      ; For the first 104 frames of a life the score
+  AND A                   ; flashes instead (FLASH_COUNT, set by PLACE_PLAYER).
   JR NZ,FLASH_SCORE
   LD A,(FRAMES)           ; One step in four frames.
   AND $03                 ;
@@ -6066,7 +6121,7 @@ MATERIALISING_0:
   CALL DRAW_AT_A
   POP AF
   LD (IX+$05),A
-  JP SOUND_FROM_HEADING
+  JP SOUND_RISE_SINK
 
 ; Turn back into the character and clear the animation
 ;
@@ -6086,12 +6141,13 @@ FINISH_MATERIALISING:
 
 ; Sink the player into the floor
 ;
-; The handler for sprite $67. Every fourth frame it counts +$06 down and shifts
-; the sprite further down the screen by that much, so the character appears to
-; sink. When the count passes zero it drops an object where the body was and
-; hands over to PLACE_PLAYER.
+; The handler for sprite $67. On three frames in four it counts +$06 down and
+; redraws the sprite that many rows shorter, so the character sinks; on the
+; fourth it only changes colour. (Measured: 19 steps in 25 frames for the
+; knight.) When the count passes zero it leaves a gravestone where the body was
+; and hands over to PLACE_PLAYER.
 DYING:
-  LD A,(FRAMES)           ; One step in four frames.
+  LD A,(FRAMES)           ; One frame in four: colour only.
   AND $03                 ;
   JR Z,ANIMATE_COLOUR
   DEC (IX+$06)            ; Down a little further, until it goes negative.
@@ -6100,7 +6156,7 @@ DYING:
   CALL SPRITE_ADDRESS
   JP ANIMATE_SHAPE
 DYING_0:
-  CALL DROP_OBJECT        ; Leave something behind, then carry on.
+  CALL DROP_GRAVESTONE    ; Leave something behind, then carry on.
   JP PLACE_PLAYER         ;
 
 ; Put the castle back the way it started
@@ -6145,14 +6201,17 @@ TICK_LOW_NIBBLE:
 ; down, bit 3 up, each tested for being clear because a zero bit is a pressed
 ; one. B holds the distance, so left is B negated and right is B as it stands.
 ;
-; The result goes through STEER rather than straight into the position, so the
-; player accelerates into a direction and coasts out of it instead of starting
-; and stopping dead.
+; The character handler passes a step in B ($20), a decay in DE and a value in
+; HL that is popped and never used. DECAY_HEADING takes the decay off the
+; heading, STEER adds the step and clamps it to 32, and SCALE_SIGNED makes two
+; pixels of 32. So all three characters reach full speed at once and differ in
+; how they stop: the knight's decay of 3 slides him five pixels, the serf's 1
+; sixteen, the wizard's 32 not at all (measured in the simulator).
 ;
 ; IX The player
 MOVE_PLAYER:
-  LD A,(PLAYER_ROOM)      ; Remember which room this is happening in.
-  LD (MOVE_ROOM),A        ;
+  LD A,(PLAYER_ROOM)       ; Keep the drop controller at $EE58 in the player's
+  LD (DROP_CONTROL_ROOM),A ; room, so MAIN_LOOP runs PUT_DOWN every pass.
   PUSH BC
   PUSH DE
   PUSH HL
@@ -6189,9 +6248,9 @@ MOVE_PLAYER_3:
   CALL DECAY_HEADING      ; Apply it...
   POP HL
   CALL STEER              ; ...through STEER, so the change is gradual.
-  CALL STEP_AND_TEST      ;
-  CALL WITHIN_ROOM_BOUNDS
-  CALL STEP_AND_TEST_2
+  CALL TEST_STEP_IN_ROOM  ;
+  CALL CHECK_IN_DOORWAY
+  CALL TEST_STEP_BOXES
   JP APPLY_HEADING
 
 ; Per-frame update for the serf
@@ -6241,7 +6300,7 @@ UPDATE_SERF_3:
 UPDATE_SERF_4:
   CALL READ_CONTROLS
   AND $10
-  CALL Z,TRY_FIRE
+  CALL Z,SERF_FIRE
   JP PLAYER_TICK
 UPDATE_SERF_5:
   LD A,E
@@ -6316,22 +6375,23 @@ UPDATE_KNIGHT_3:
 UPDATE_KNIGHT_4:
   CALL READ_CONTROLS
   AND $10
-  CALL Z,TRY_FIRE_THIRD
+  CALL Z,KNIGHT_FIRE
 ; This entry point is used by the routines at UPDATE_WIZARD and UPDATE_SERF.
 PLAYER_TICK:
   CALL SPAWN_MONSTER_INTO_ROOM
-  LD A,(TICKS)            ; Only every sixteenth tick.
-  AND $0F                 ;
-  JR NZ,REDRAW_ACTOR      ;
+  LD A,(TICKS)            ; Only while TICKS -- main-loop passes, not frames --
+  AND $0F                 ; is a multiple of sixteen; the gate stays open for
+  JR NZ,REDRAW_ACTOR      ; every frame of that pass, so it takes one or two
+                          ; units per sixteen passes.
   LD A,(FOOD_LEVEL)       ; The life force runs down on its own, a unit at a
   DEC A                   ; time. Reaching zero is death -- there is no way to
   JR Z,LOSE_LIFE          ; stand still and survive.
   LD (FOOD_LEVEL),A       ; Store it and redraw the roast, which only actually
   CALL DRAW_FOOD          ; redraws once an eighth has gone.
-; This entry point is used by the routines at SPIN_SPELL, MOVE_BAT_ALT,
+; This entry point is used by the routines at SPIN_SPELL, MOVE_ARCS,
 ; MOVE_ACTOR, SPAWN_MONSTER and COUNTDOWN_ACTOR.
 REDRAW_ACTOR:
-  CALL DRAW_CLIPPED
+  CALL REDRAW_MOVED
   JP DRAW_FROM_RECORD
 UPDATE_KNIGHT_5:
   LD A,E
@@ -6343,8 +6403,8 @@ UPDATE_KNIGHT_5:
 
 ; Take a life and start the player sinking
 ;
-; Used by the routines at LOSE_FOOD_8, UPDATE_KNIGHT, LOSE_FOOD_32 and
-; MUSHROOM_KILLED_PLAYER.
+; Used by the routines at LOSE_FOOD_EIGHT, UPDATE_KNIGHT, LOSE_FOOD_THIRTY_TWO
+; and MUSHROOM_KILLED_PLAYER.
 ;
 ; The single way out of the game. Both food penalties and the steady drain
 ; arrive here when the life force reaches zero, and with no lives left it goes
@@ -6356,9 +6416,8 @@ UPDATE_KNIGHT_5:
 ; happened; the sprite byte carries the whole state.
 ;
 ; Watched live by starving the player: lives went 3 to 2, the sprite went $08
-; to $67 to $66, the life force came back as $F0, and an object appeared in the
-; first of the four drop slots reading 8F 00 68 60 68 45 FF 08 -- sprite $8F at
-; the exact spot the player fell.
+; to $67 to $66, the life force came back as $F0, and a gravestone appeared in
+; the first of the four drop slots at the exact spot the player fell.
 LOSE_LIFE:
   LD A,(LIVES)            ; No lives left...
   AND A                   ;
@@ -6379,10 +6438,10 @@ LOSE_LIFE_0:
   LD (PLAYER),A           ; will find on the next pass.
   RET
 LOSE_LIFE_1:
-  LD A,(WORK_X)           ; A non-player dies where the workspace says it was,
-  LD (PLAYER_X),A         ; not where the player is.
-  LD A,(WORK_Y)           ;
-  LD (PLAYER_Y),A         ;
+  LD A,(WORK_X)           ; The player's own handler found the zero: put the
+  LD (PLAYER_X),A         ; player back where this frame began, from the
+  LD A,(WORK_Y)           ; workspace. When something else took the last unit,
+  LD (PLAYER_Y),A         ; the player stays where he is.
   LD A,(WORK_SPRITE)
   JR LOSE_LIFE_0
 
@@ -6394,17 +6453,17 @@ LOSE_LIFE_1:
 ; Unlike the other two this one clamps to zero rather than underflowing, then
 ; dies anyway -- the roast is redrawn empty before the life is taken, so the
 ; bar is seen to run out.
-LOSE_FOOD_32:
+LOSE_FOOD_THIRTY_TWO:
   LD A,(FOOD_LEVEL)       ; Thirty-two, against sixteen and eight elsewhere.
   SUB $20                 ;
-  JR Z,LOSE_FOOD_32_0     ; Exactly zero, or past it: either way the player is
-  JR NC,LOSE_FOOD_32_1    ; dead.
-  XOR A                   ;
-LOSE_FOOD_32_0:
+  JR Z,LOSE_FOOD_THIRTY_TWO_0  ; Exactly zero, or past it: either way the
+  JR NC,LOSE_FOOD_THIRTY_TWO_1 ; player is dead.
+  XOR A                        ;
+LOSE_FOOD_THIRTY_TWO_0:
   LD (FOOD_LEVEL),A       ; Show the empty bar first, then lose the life.
   CALL DRAW_FOOD          ;
   JR LOSE_LIFE
-LOSE_FOOD_32_1:
+LOSE_FOOD_THIRTY_TWO_1:
   LD (FOOD_LEVEL),A
   JP DRAW_FOOD
 
@@ -6512,13 +6571,13 @@ APPLY_HEADING_0:
   LD (IX+$04),A
   RET
 
-; Divide a signed value by eight
+; Divide a signed value by sixteen
 ;
 ; Used by the routine at STEER.
 ;
-; Negates a negative, shifts three times, and puts the sign back. It is how a
-; heading in +$06 and +$07 becomes a movement of a pixel or two rather than
-; tens of them.
+; Negates a negative, rotates four times and keeps four bits, and puts the sign
+; back. It is how a heading in +$06 and +$07 (up to 32) becomes a movement of
+; two pixels or one.
 SCALE_SIGNED:
   AND A
   JP P,SCALE_SIGNED_0
@@ -6581,20 +6640,22 @@ DECAY_HEADING_6:
   JP M,DECAY_HEADING_4
   JR DECAY_HEADING_3
 
-; Step a position and check what is there
+; Test the player's step against the room's walk rectangle, axis by axis
 ;
 ; Used by the routine at MOVE_PLAYER.
 ;
-; Adds the step to +$03 and +$04 and then runs a sixteen-iteration loop over
-; the result -- the check that stops a creature walking through a wall.
-STEP_AND_TEST:
+; Called once a frame from MOVE_PLAYER. For the proposed x with the old y, then
+; the old x with the proposed y, ALLOW_IF_IN_ROOM clears bit 4 or bit 5 of +$02
+; (the "do not move this way" bits MOVE_PLAYER has just set) if the point is
+; inside the walk rectangle. B holds the bit, not a count.
+TEST_STEP_IN_ROOM:
   PUSH DE
   LD A,E
   ADD A,(IX+$03)
   LD E,A
   LD D,(IX+$04)
   LD B,$10
-  CALL DISTANCE_FROM_CENTRE
+  CALL ALLOW_IF_IN_ROOM
   POP DE
   PUSH DE
   LD E,(IX+$03)
@@ -6602,32 +6663,32 @@ STEP_AND_TEST:
   ADD A,(IX+$04)
   LD D,A
   LD B,$20
-  CALL DISTANCE_FROM_CENTRE
+  CALL ALLOW_IF_IN_ROOM
   POP DE
   RET
 
-; How far from the middle of the room is this?
+; Allow a step that stays inside the walk rectangle
 ;
-; Used by the routine at STEP_AND_TEST.
+; Used by the routine at TEST_STEP_IN_ROOM.
 ;
-; Takes the distance from the room's centre column at $58, makes it positive,
-; and compares it with the half-width in $5E1D. The same test MOVE_ACTOR makes
-; inline, kept as a routine for the callers that need it separately.
-DISTANCE_FROM_CENTRE:
+; If |x - $58| is below the half-width at $5E1D and |y - $68| below the
+; half-height, clears the bit in B from the record's +$02. MOVE_ACTOR's own
+; test is the same comparison inline, for creatures, without the flag.
+ALLOW_IF_IN_ROOM:
   LD HL,ROOM_HALF_WIDTH
   LD A,E
   SUB $58
-  JP P,DISTANCE_FROM_CENTRE_0
+  JP P,ALLOW_IF_IN_ROOM_0
   NEG
-DISTANCE_FROM_CENTRE_0:
+ALLOW_IF_IN_ROOM_0:
   CP (HL)
   RET NC
   INC HL
   LD A,D
   SUB $68
-  JP P,DISTANCE_FROM_CENTRE_1
+  JP P,ALLOW_IF_IN_ROOM_1
   NEG
-DISTANCE_FROM_CENTRE_1:
+ALLOW_IF_IN_ROOM_1:
   CP (HL)
   RET NC
   LD A,B
@@ -6636,12 +6697,14 @@ DISTANCE_FROM_CENTRE_1:
   LD (IX+$02),A
   RET
 
-; Step a position and check it, the other way round
+; Test the player's step against the doorways and tables, axis by axis
 ;
 ; Used by the routine at MOVE_PLAYER.
 ;
-; The companion to STEP_AND_TEST, differing in which axis leads.
-STEP_AND_TEST_2:
+; As TEST_STEP_IN_ROOM, but calling TEST_ROOM_BOXES with the bit in A'. Runs
+; after it, so a doorway can allow a step the rectangle refused and a table
+; refuse one it allowed.
+TEST_STEP_BOXES:
   PUSH DE
   LD A,E
   ADD A,(IX+$03)
@@ -6649,7 +6712,7 @@ STEP_AND_TEST_2:
   LD D,(IX+$04)
   LD A,$10
   EX AF,AF'
-  CALL POPULATE_ROOM
+  CALL TEST_ROOM_BOXES
   POP DE
   PUSH DE
   LD E,(IX+$03)
@@ -6658,36 +6721,43 @@ STEP_AND_TEST_2:
   LD D,A
   LD A,$20
   EX AF,AF'
-  CALL POPULATE_ROOM
+  CALL TEST_ROOM_BOXES
   POP DE
   RET
 
-; Set up the records that belong to a room
+; Test one axis of the player's step against the room's doorways and tables
 ;
-; Used by the routine at STEP_AND_TEST_2.
+; Used by the routine at TEST_STEP_BOXES.
 ;
-; Every room has a list of the things in it -- its doors, and whatever else is
-; fixed there. ROOM_CONTENTS holds one pointer per room, and this walks the
-; list it finds, stopping at the $0000 that ends it.
+; Called twice a frame from MOVE_PLAYER, through TEST_STEP_BOXES, with the
+; proposed position in E and D and the bit for one axis in A' ($10 for x, $20
+; for y -- the bits of the player's +$02 that stop APPLY_HEADING moving that
+; way). It walks the player's room's list of door and furniture halves, the
+; same list MAIN_LOOP dispatches, and tests the point against each one's box.
 ;
-; The addresses in the lists are not runtime addresses -- they point into the
-; template at INITIAL_STATE that LOAD_INITIAL_STATE copies to $EA90, and taking
-; ROOM_CONTENTS off one relocates it. That is not an arbitrary bias: $EA90
-; minus INITIAL_STATE is $8A83, and subtracting ROOM_CONTENTS is the same as
-; adding $8A83 in sixteen bits. Room $00's list holds DOOR_R07_R00, which is
-; $0450 into the template and therefore $EEE0 once copied -- the door record a
-; running game really has there.
+; The box is in +$06 (x) and +$07 (y) of the half: the high nibble, signed,
+; times 4 is an offset from the record's own x or y, the low nibble times 4 a
+; size; it runs right from x plus the offset and up from y plus the offset.
+; Inside a box with +$05 bit 3 set -- a shut door -- nothing happens. Inside
+; one with bit 2 set -- a table, the only solid furniture -- the bit is set:
+; the step is refused. Inside any other -- a doorway -- the bit is cleared: the
+; step is allowed although it leaves the room's walk rectangle. So an open door
+; is a channel through the wall, a shut one is wall, and a table is an
+; obstacle.
 ;
-; So the lists can be written once, against the template, and go on being
-; correct after it has been moved.
+; The lists hold template addresses (INITIAL_STATE onwards) plus ROOM_CONTENTS;
+; taking ROOM_CONTENTS off gives the runtime address, as DISPATCH_FROM_LIST
+; does. An earlier title, "Set up the records that belong to a room", described
+; the walk but not the purpose: nothing is set up.
 ;
-; The check part-way down is the door pairing again. A door is two records
-; eight bytes apart, one per room; if the one named in the list belongs to the
-; other room, eight is added to reach the half that belongs to this one.
+; The check part-way down is the door pairing: if the half named in the list
+; belongs to the other room, eight is added to reach the half in this one.
 ;
-; IX A record whose +$01 is the room to set up
-POPULATE_ROOM:
-  LD C,(IX+$01)           ; The room number.
+; IX The player
+; DE The proposed position: E x, D y
+; A' The axis bit: $10 or $20
+TEST_ROOM_BOXES:
+  LD C,(IX+$01)           ; The player's room.
   LD B,$00                ;
   LD HL,ROOM_CONTENTS     ; Two bytes per room, into the table.
   SLA C                   ;
@@ -6696,7 +6766,7 @@ POPULATE_ROOM:
   LD C,(HL)               ; The start of this room's list.
   INC HL                  ;
   LD B,(HL)               ;
-POPULATE_ROOM_0:
+TEST_ROOM_BOXES_0:
   LD A,(BC)               ; The next entry, and $0000 ends the list.
   INC BC                  ;
   LD L,A                  ;
@@ -6710,12 +6780,12 @@ POPULATE_ROOM_0:
   AND A                   ;
   SBC HL,BC               ;
   INC HL                  ;
-  LD A,(HL)               ; Is this the half that belongs to the room being set
-  CP (IX+$01)             ; up?
-  JR Z,POPULATE_ROOM_1    ; No -- the other half is eight bytes along.
+  LD A,(HL)               ; Is this the half that belongs to the player's room?
+  CP (IX+$01)             ;
+  JR Z,TEST_ROOM_BOXES_1  ; No -- the other half is eight bytes along.
   LD BC,$0008             ;
   ADD HL,BC
-POPULATE_ROOM_1:
+TEST_ROOM_BOXES_1:
   INC HL
   INC HL
   LD C,(HL)
@@ -6725,9 +6795,9 @@ POPULATE_ROOM_1:
   LD A,(HL)
   INC HL
   BIT 2,A
-  JR NZ,POPULATE_ROOM_4
+  JR NZ,TEST_ROOM_BOXES_4
   BIT 3,A
-  JR NZ,POPULATE_ROOM_3
+  JR NZ,TEST_ROOM_BOXES_3
   LD A,(HL)
   SRA A
   SRA A
@@ -6742,7 +6812,7 @@ POPULATE_ROOM_1:
   AND $3C
   INC HL
   CP C
-  JR C,POPULATE_ROOM_3
+  JR C,TEST_ROOM_BOXES_3
   LD A,(HL)
   SRA A
   SRA A
@@ -6756,19 +6826,19 @@ POPULATE_ROOM_1:
   RLCA
   AND $3C
   CP B
-  JR C,POPULATE_ROOM_3
+  JR C,TEST_ROOM_BOXES_3
   EX AF,AF'
   LD C,A
   EX AF,AF'
   LD A,C
   CPL
   AND (IX+$02)
-POPULATE_ROOM_2:
+TEST_ROOM_BOXES_2:
   LD (IX+$02),A
-POPULATE_ROOM_3:
+TEST_ROOM_BOXES_3:
   POP BC
-  JR POPULATE_ROOM_0
-POPULATE_ROOM_4:
+  JR TEST_ROOM_BOXES_0
+TEST_ROOM_BOXES_4:
   LD A,(HL)
   SRA A
   SRA A
@@ -6783,7 +6853,7 @@ POPULATE_ROOM_4:
   AND $3C
   INC HL
   CP C
-  JR C,POPULATE_ROOM_3
+  JR C,TEST_ROOM_BOXES_3
   LD A,(HL)
   SRA A
   SRA A
@@ -6797,22 +6867,23 @@ POPULATE_ROOM_4:
   RLCA
   AND $3C
   CP B
-  JR C,POPULATE_ROOM_3
+  JR C,TEST_ROOM_BOXES_3
   EX AF,AF'
   LD C,A
   EX AF,AF'
   LD A,C
   OR (IX+$02)
-  JR POPULATE_ROOM_2
+  JR TEST_ROOM_BOXES_2
 
 ; Is the player standing in this doorway?
 ;
 ; Used by the routines at DOOR, DOOR_NEEDS_KEY and TRAPDOOR_FALL.
 ;
-; Unlike CHECK_HIT this box is deliberately lopsided. Both comparisons are
-; unsigned against a subtraction that is not made absolute, so the player only
-; registers from one side of the doorway -- walking into a door from behind
-; does nothing.
+; Unlike CHECK_HIT the box is not centred on the door. Both comparisons are
+; unsigned against a subtraction that is not made absolute, so the box starts
+; at the door's own corner (+$03, +$04) and runs right and up from it -- the
+; door's own cells. It also needs the player in play and the low nibble of the
+; player's +$02 clear.
 ;
 ; Bit 6 of +$05 says which way the doorway faces, and it halves the tolerance
 ; across the door rather than along it: a door in a side wall is generous
@@ -6914,7 +6985,9 @@ ENTER_ROOM:
   NEG                     ;
   ADD A,(IX+$04)          ;
   LD (PLAYER_Y),A         ;
-  CALL MODE_TO_INDEX
+  CALL SET_ARRIVAL_HEADING ; Head the player into the room, away from the wall
+                           ; this door is in; with the nibble set below, STEER
+                           ; keeps them walking that way for fifteen frames.
   LD A,(PLAYER_FLAG)      ; Set the flag that stops PLAYER_AT_DOOR firing again
   OR $0F                  ; on the way out.
   LD (PLAYER_FLAG),A      ;
@@ -6926,53 +6999,55 @@ ARRIVE_IN_ROOM:
   CALL DRAW_ROOM          ; panel to match.
   CALL PAINT_PANEL        ;
   CALL DRAW_INVENTORY
-  CALL PLAY_SOUND_65
+  CALL PLAY_SOUND_NEW_ROOM
   JP MAIN_LOOP
-; The doors themselves are 8-byte records in a table above the monsters, around
-; $EEE0: +$00 a sprite, +$01 the destination room, +$02 the packed arrival
-; offset, +$03 and +$04 the doorway's own position, +$05 flags with bit 6
-; giving its facing. Only the ones whose +$01 matches the room the player is in
-; get tested.
+; Each door is one sixteen-byte record whose two eight-byte halves are in the
+; two rooms it joins (+$00 type, +$01 the room this half is in, +$02 the packed
+; arrival offset, +$03 and +$04 the doorway's corner, +$05 orientation and
+; flags, +$06 and +$07 its walk box). The doors tested are the ones in the
+; player's room's list, dispatched by DISPATCH_FROM_LIST.
 
-; Count down, then behave as a door
+; A timed door, open (types $21 and $23)
 ;
-; The same delay WAIT_THEN_ACT runs, but ending in DOOR rather than a draw -- a
-; doorway that will not work until its counter has run out.
-WAIT_THEN_DOOR:
+; As TIMED_DOOR_SHUT, but acting as an ordinary DOOR while it waits, and not
+; toggling while IN_DOORWAY says the player is standing in a doorway.
+TIMED_DOOR_OPEN:
   LD A,(TICKS)
   AND $01
   JP NZ,DOOR
   LD A,(DOOR_WAIT)
   AND A
-  JR Z,WAIT_THEN_DOOR_0
+  JR Z,TIMED_DOOR_OPEN_0
   DEC A
   LD (DOOR_WAIT),A
   JP DOOR
-WAIT_THEN_DOOR_0:
-  LD A,(FIRE_BLOCKED)
+TIMED_DOOR_OPEN_0:
+  LD A,(IN_DOORWAY)
   AND A
   JP NZ,DOOR
-  JR RESTART_WAIT
+  JR TOGGLE_TIMED_DOOR
 
-; Count a delay down before doing anything
+; A timed door, shut (types $20 and $22)
 ;
-; Runs on alternate frames only, and while the counter at $5E2E is above zero
-; it does nothing but decrement it and draw. When it finally reaches zero the
-; routine below it runs. Reached from the handlers for sprites $C2 and $C4.
-WAIT_THEN_ACT:
+; Made by CHOOSE_TIMED_DOORS; reached through ACTOR_HANDLERS entries $C2 and
+; $C4 for types $20 and $22. On passes where TICKS is even it counts the shared
+; DOOR_WAIT ($5E2E) down; the door that finds it at zero runs
+; TOGGLE_TIMED_DOOR, which opens it. Otherwise it only draws itself.
+TIMED_DOOR_SHUT:
   LD A,(TICKS)
   AND $01
   JP NZ,DRAW_DOOR
   LD A,(DOOR_WAIT)
   AND A
-  JP Z,RESTART_WAIT
+  JP Z,TOGGLE_TIMED_DOOR
   DEC A
   LD (DOOR_WAIT),A
   JP DRAW_DOOR
-; This entry point is used by the routine at WAIT_THEN_DOOR.
-RESTART_WAIT:
-  LD A,$5E
-  LD (DOOR_WAIT),A
+; This entry point is used by the routine at TIMED_DOOR_OPEN.
+TOGGLE_TIMED_DOOR:
+  LD A,$5E                ; TOGGLE_TIMED_DOOR: reload the shared countdown,
+  LD (DOOR_WAIT),A        ; then swap this door between shut and open on both
+                          ; halves and rasp.
   LD A,(IX+$05)
   PUSH AF
   OR $03
@@ -6988,33 +7063,35 @@ RESTART_WAIT:
   CALL DRAW_DOOR
   JP SOUND_NOISE_BURST
 
-; Draw something twice over and make a noise
+; A trapdoor, closed (type $18): it opens every 256 passes
 ;
-; Draws the thing with the low bits of its drawing mode forced on, then again
-; with the bottom bit of its sprite flipped -- the other animation frame --
-; then puts the mode back and draws it properly, and finishes by jumping into
-; SOUND_NOISE_BURST. Three overlapping draws and a rasp, which is what a thing
-; being destroyed looks and sounds like.
-FLASH_AND_RASP:
-  LD A,(TICKS)            ; One gate before any of it.
-  AND A                   ;
+; On a pass when TICKS' low byte is zero it swaps the picture: XOR the current
+; one off (mode bits forced to XOR), flip bit 0 of the type -- $18 closed to
+; $19 open -- XOR the new one on, restore the mode, draw the colours, and rasp.
+; The open trapdoor's handler, TRAPDOOR, enters the same tail at
+; TRAPDOOR_CLOSED_0 to close again, when the byte RUNNING_SUM happens to be
+; zero. An earlier reading, "what a thing being destroyed looks and sounds
+; like", was wrong.
+TRAPDOOR_CLOSED:
+  LD A,(TICKS)            ; Only when TICKS' low byte is zero: every 256
+  AND A                   ; passes.
   JP NZ,DRAW_DOOR         ;
-  JR FLASH_AND_RASP_0
+  JR TRAPDOOR_CLOSED_0
 TRAPDOOR:
   LD A,(RUNNING_SUM)
   AND A
   JP NZ,TRAPDOOR_FALL
-FLASH_AND_RASP_0:
-  LD A,(IX+$05)           ; Force the low bits of the drawing mode on, and
-  PUSH AF                 ; draw.
+TRAPDOOR_CLOSED_0:
+  LD A,(IX+$05)           ; XOR the current picture off.
+  PUSH AF                 ;
   OR $03                  ;
   LD (IX+$05),A           ;
   CALL DRAW_RECORD
-  LD A,(IX+$00)           ; The other frame, over the top.
-  XOR $01                 ;
+  LD A,(IX+$00)           ; The other state's picture -- the type's bit 0
+  XOR $01                 ; flipped -- XORed on.
   LD (IX+$00),A           ;
   CALL DRAW_RECORD        ;
-  POP AF                  ; Put the mode back and draw it properly.
+  POP AF                  ; Put the mode back and draw the colours.
   LD (IX+$05),A           ;
   CALL DRAW_DOOR          ;
   JP SOUND_NOISE_BURST    ; And the rasp.
@@ -7024,7 +7101,7 @@ BIG_DOOR:
 
 ; An ordinary door
 ;
-; Used by the routines at WAIT_THEN_DOOR and DOOR_SERF.
+; Used by the routines at TIMED_DOOR_OPEN and DOOR_SERF.
 ;
 ; The plain doorway, and the routine every other kind falls back on once it has
 ; decided to let the player through. It offers $1111 as the tolerance, asks
@@ -7032,12 +7109,12 @@ BIG_DOOR:
 ; -- then draws itself either way.
 DOOR:
   LD BC,$1111
-; This entry point is used by the routines at FLASH_AND_RASP and ACG_DOOR.
+; This entry point is used by the routines at TRAPDOOR_CLOSED and ACG_DOOR.
 DOORWAY:
   CALL PLAYER_AT_DOOR
   CALL C,ENTER_ROOM
   JP DRAW_DOOR
-; This entry point is used by the routines at WAIT_THEN_ACT, FLASH_AND_RASP,
+; This entry point is used by the routines at TIMED_DOOR_SHUT, TRAPDOOR_CLOSED,
 ; DOOR_LOCKED_A, DOOR_LOCKED_B, DOOR_SERF, ACG_DOOR and TRAPDOOR_FALL.
 DRAW_DOOR:
   LD E,(IX+$03)
@@ -7049,8 +7126,8 @@ DRAW_DOOR:
   LD A,(ROOM_DRAWN)
   AND A
   RET NZ
-; This entry point is used by the routines at DRAW_FOOD, WAIT_THEN_ACT and
-; FLASH_AND_RASP.
+; This entry point is used by the routines at DRAW_FOOD, TIMED_DOOR_SHUT and
+; TRAPDOOR_CLOSED.
 DRAW_RECORD:
   LD E,(IX+$03)
   LD D,(IX+$04)
@@ -7091,9 +7168,12 @@ DOOR_NEEDS_KEY_0:
 
 ; A locked door of the first sort
 ;
-; Asks DOOR_NEEDS_KEY whether the player has the matching key. With one it sets
-; the sprite on both halves to $02 through SET_BOTH_HALVES and goes through to
-; ENTER_ROOM; without one it just draws itself shut.
+; Types $08-$0B, the red, green, cyan and yellow doors. Asks DOOR_NEEDS_KEY
+; whether the player has the matching key. With one, once the player is in the
+; doorway, it sets both halves' type to $02 -- a plain door -- through
+; SET_BOTH_HALVES and goes through ENTER_ROOM: the door stays an ordinary door
+; for the rest of the game, and the key is kept. Without one it just draws
+; itself shut.
 DOOR_LOCKED_A:
   CALL DOOR_NEEDS_KEY
   JP NC,DRAW_DOOR
@@ -7105,8 +7185,9 @@ OPEN_AND_ENTER:
 
 ; A locked door of the second sort
 ;
-; The same as DOOR_LOCKED_A but setting $01 rather than $02, so the two look
-; different once open. They share everything from the third instruction on.
+; Types $0C-$0F, the locked cave doors. The same as DOOR_LOCKED_A but setting
+; type $01, a plain cave door. They share everything from the third instruction
+; on.
 DOOR_LOCKED_B:
   CALL DOOR_NEEDS_KEY
   JP NC,DRAW_DOOR
@@ -7123,7 +7204,7 @@ DOOR_COLOURS:
 
 ; Give both halves of a door the same sprite
 ;
-; Used by the routines at WAIT_THEN_ACT and DOOR_LOCKED_A.
+; Used by the routines at TIMED_DOOR_SHUT and DOOR_LOCKED_A.
 ;
 ; Writes the sprite into the record IX points at, then flips bit 3 of the
 ; address -- the DOOR_OTHER_SIDE trick -- and writes it into the far half too.
@@ -7263,9 +7344,9 @@ DRAW_ROOM_CONTENTS_3:
 ; Reads $5E1F, ANDs out bit 1 and writes it back. Three instructions on their
 ; own, with no return -- it is fallen into rather than called.
 CLEAR_DRAW_FLAG:
-  LD A,(CARRYING)
+  LD A,(PICKUP_USED)
   AND $FD
-  LD (CARRYING),A
+  LD (PICKUP_USED),A
 
 ; Draw a thing where its record says it is
 ;
@@ -7312,7 +7393,7 @@ PICK_UP:
   LD A,(PICKUP_KEY)       ; Two gates before anything else is considered.
   AND A                   ;
   JR Z,CLEAR_DRAW_FLAG    ;
-  LD A,(CARRYING)         ;
+  LD A,(PICKUP_USED)      ;
   AND $03                 ;
   JR NZ,DRAW_AT_POSITION  ;
   LD A,(PLAYER)           ; And the player has to actually be in play, the same
@@ -7321,9 +7402,9 @@ PICK_UP:
   JR NC,DRAW_AT_POSITION
   CALL NEAR_PLAYER        ; Standing on it?
   JR NC,DRAW_AT_POSITION  ;
-  LD A,(CARRYING)         ; Mark that something is being carried.
-  OR $03                  ;
-  LD (CARRYING),A         ;
+  LD A,(PICKUP_USED)      ; Mark this press of the pick-up key as used (bit 1),
+  OR $03                  ; and a pick-up as done this pass (bit 0), so
+  LD (PICKUP_USED),A      ; PUT_DOWN does not act on the same press.
   CALL DROP_CARRIED       ; Put the oldest of the three back into the world...
   CALL SHIFT_CARRIED      ; ...shift the other two along...
   CALL REMEMBER_CARRIED   ; ...and record the new one at the front.
@@ -7416,14 +7497,14 @@ DROP_CARRIED:
   POP IX
   RET
 
-; Read one key and remember whether it is down
+; Read the pick-up key, SYMBOL SHIFT
 ;
 ; Used by the routine at MAIN_LOOP_MONSTERS.
 ;
-; Selects the half-row holding B, N, M, symbol shift and space, keeps one bit
-; of it and leaves the answer at $5E20 for other routines to look at rather
-; than reading the keyboard again.
-READ_FIRE_ROW:
+; Selects the half-row holding B, N, M, SYMBOL SHIFT and SPACE, keeps bit 1 --
+; SYMBOL SHIFT -- and leaves it at $5E20 for PICK_UP and PUT_DOWN. It is read
+; whatever the control method; fire is bit 4 of READ_CONTROLS.
+READ_PICKUP_KEY:
   LD A,$7E
   OUT ($FD),A
   IN A,($FE)
@@ -7520,11 +7601,15 @@ READ_CONTROLS_0:
 
 ; Put a carried object down
 ;
-; The counterpart to PICK_UP, and gated the same way: the player has to be in
-; play, and the flags at $5E20 and $5E1F have to agree that something is being
-; carried. Where PICK_UP takes an object out of the room and into the three
-; slots, this takes one back out of the slots and leaves it where the player is
-; standing.
+; Run every pass by the drop controller, the sprite-$31 record at $EE58 whose
+; room MOVE_PLAYER keeps equal to the player's. With the player in play, the
+; pick-up key held and the press not yet used (PICKUP_USED clear), it marks the
+; press used, lets the third slot's object fall at the player's feet
+; (DROP_CARRIED), shifts the queue along, clears the first slot and redraws the
+; inventory. When the key is up it clears the used bit, so each press does one
+; thing. So a press with nothing underfoot moves the queue on one place; an
+; object falls out only when pushed past the third slot (measured in the
+; simulator).
 PUT_DOWN:
   LD A,(PLAYER)
   DEC A
@@ -7533,11 +7618,11 @@ PUT_DOWN:
   LD A,(PICKUP_KEY)
   AND A
   JR Z,PUT_DOWN_1
-  LD A,(CARRYING)
+  LD A,(PICKUP_USED)
   AND $03
   JR NZ,PUT_DOWN_0
   OR $02
-  LD (CARRYING),A
+  LD (PICKUP_USED),A
   CALL DROP_CARRIED
   CALL SHIFT_CARRIED
   LD HL,$0000
@@ -7545,14 +7630,14 @@ PUT_DOWN:
   LD (CARRIED_SPRITE),HL
   CALL DRAW_INVENTORY
 PUT_DOWN_0:
-  LD A,(CARRYING)
+  LD A,(PICKUP_USED)
   AND $FE
-  LD (CARRYING),A
+  LD (PICKUP_USED),A
   RET
 PUT_DOWN_1:
-  LD A,(CARRYING)
+  LD A,(PICKUP_USED)
   AND $FD
-  LD (CARRYING),A
+  LD (PICKUP_USED),A
   JR PUT_DOWN_0
 
 ; A door the serf can use
@@ -7561,8 +7646,10 @@ PUT_DOWN_1:
 ; sprite from the player's current one and asks whether what is left is under
 ; $10 -- which is exactly "is the player this character", since each character
 ; owns sixteen consecutive sprite codes. DOOR_SERF takes $21 for the serf,
-; DOOR_WIZARD takes $11 for the wizard and DOOR_KNIGHT takes 1 for the knight,
-; and the three sprites that reach them are $BC, $B9 and $B2.
+; DOOR_WIZARD takes $11 for the wizard and DOOR_KNIGHT takes 1 for the knight.
+; The records that reach them are types $1A (a barrel), $17 (a bookcase) and
+; $10 (a grandfather clock), drawn as graphics $BB, $B8 and $B1 --
+; handler-table entries $BC, $B9 and $B2.
 ;
 ; Pass the test and the thing behaves as an ordinary door, through the same
 ; DOOR that every other door goes through. Fail it and control goes to
@@ -7638,19 +7725,21 @@ PLACE_PLAYER_0:
 
 ; A player, ready to copy
 ;
-; 66 00 00 60 68 47 FF 00. Sprite $66 is the materialising animation, $60 and
-; $68 the position, and the last byte is patched by PLACE_PLAYER with the
-; sprite to turn into once the player has finished rising.
+; Sprite $66 is the materialising animation, $60 and $68 the position, and the
+; last byte is patched by PLACE_PLAYER with the sprite to turn into once the
+; player has finished rising.
 PLAYER_TEMPLATE:
   DEFB $66,$00,$00,$60,$68,$47,$FF,$00
 
-; Look at a key with interrupts off
+; Pause while SPACE is pressed on its own
 ;
 ; Used by the routine at MAIN_LOOP_MONSTERS.
 ;
-; Turns interrupts off before reading the keyboard directly, so the answer
-; cannot be disturbed half way. Returns at once unless the key is down.
-CHECK_KEY_HELD:
+; Once a pass, with interrupts off: if SPACE is down and none of B, N, M or
+; SYMBOL SHIFT is, wait for SPACE to be released, then pressed again, then
+; released. FRAMES does not move meanwhile, so the clock stops too (measured in
+; the simulator). Interrupts come back on at the top of the next pass.
+PAUSE:
   DI
   LD A,$7E
   OUT ($FD),A
@@ -7660,33 +7749,37 @@ CHECK_KEY_HELD:
   CPL
   AND $1E
   RET NZ
-CHECK_KEY_HELD_0:
+PAUSE_0:
   LD A,$7E
   OUT ($FD),A
   IN A,($FE)
   BIT 0,A
-  JR Z,CHECK_KEY_HELD_0
-CHECK_KEY_HELD_1:
+  JR Z,PAUSE_0
+PAUSE_1:
   LD A,$7E
   OUT ($FD),A
   IN A,($FE)
   BIT 0,A
-  JR NZ,CHECK_KEY_HELD_1
-CHECK_KEY_HELD_2:
+  JR NZ,PAUSE_1
+PAUSE_2:
   LD A,$7E
   OUT ($FD),A
   IN A,($FE)
   BIT 0,A
-  JR Z,CHECK_KEY_HELD_2
+  JR Z,PAUSE_2
   RET
 
-; A number that changes every frame
+; Hide the three pieces of the A.C.G. key
 ;
 ; Used by the routine at START_GAME.
 ;
-; Adds the frame counter to $5E12 and keeps three bits, so callers get a value
-; that walks 0 to 7 over time without anyone having to keep a counter for it.
-ROTATING_INDEX:
+; Called once, by START_GAME, before the template is copied: (FRAMES + TICKS)
+; AND 7 picks one of the eight sets in KEY_ROOM_SETS, and its three rooms are
+; written into the room bytes of the three pieces' records. TICKS has just been
+; cleared and interrupts have been off since the title screen, so the first
+; game after loading always gets the same set (rooms $17, $10 and $2B from the
+; build's snapshot, measured in the simulator).
+PLACE_ACG_KEY:
   LD A,(FRAMES)
   LD C,A
   LD A,(TICKS)
@@ -7703,7 +7796,7 @@ ROTATING_INDEX:
   LD HL,ACG_KEY_PARTS+$0001 ; ACG_KEY_PARTS+1: the first piece's room
   LD BC,$0008
   LD A,$03
-ROTATING_INDEX_0:
+PLACE_ACG_KEY_0:
   EX AF,AF'
   LD A,(DE)
   LD (HL),A
@@ -7711,7 +7804,7 @@ ROTATING_INDEX_0:
   INC DE
   EX AF,AF'
   DEC A
-  JR NZ,ROTATING_INDEX_0
+  JR NZ,PLACE_ACG_KEY_0
   RET
 
 ; Eight sets of three rooms, for hiding the key
@@ -7736,15 +7829,19 @@ KEY_ROOM_SETS:
   DEFB $4D,$73,$7C
   DEFB $17,$10,$2B
 
-; Walk the doors, sixteen bytes at a time
+; Turn about half the plain doors into timed doors
 ;
 ; Used by the routine at START_GAME.
 ;
-; Steps through the door table in pairs -- $EEE0 and $EEE8 together, then the
-; next pair -- with the frame counter's low bits in H, and tests each sprite
-; against $70. Doors in Atic Atac open and close of their own accord, and this
-; is the sweep that decides which are which.
-SCAN_DOORS:
+; Called once, by START_GAME, on the runtime copy. H' and L' make a pointer
+; into the ROM from TICKS and FRAMES, stepped a byte per record, and the byte
+; there is the random number: for each sixteen-byte record from $EEE0 whose
+; halves are both type 1 (cave door) or both type 2 (door), a byte below $70
+; turns both halves into $22 or $20 -- a timed cave door or door -- and marks
+; them shut. In the first game after loading that converted 47 of the 82 doors
+; and 21 of the 43 cave doors (measured in the simulator). The walk stops when
+; the address carries past the top of memory.
+CHOOSE_TIMED_DOORS:
   LD A,(TICKS)            ; The frame counter drives it.
   LD L,A                  ;
   LD A,(FRAMES)           ; Low bits of the frame, with bit 4 forced on.
@@ -7755,30 +7852,30 @@ SCAN_DOORS:
   LD HL,LIVE_DOORS        ; The two halves of the first door, sixteen bytes to
   LD DE,LIVE_DOORS+$0008  ; the next pair.
   LD BC,$0010             ;
-SCAN_DOORS_0:
+CHOOSE_TIMED_DOORS_0:
   EXX
   LD A,(HL)
   INC HL
   EXX
   CP $70
-  JR NC,SCAN_DOORS_1
+  JR NC,CHOOSE_TIMED_DOORS_1
   LD A,(DE)
   CP (HL)
-  JR NZ,SCAN_DOORS_1
+  JR NZ,CHOOSE_TIMED_DOORS_1
   CP $01
-  JR Z,SCAN_DOORS_2
+  JR Z,CHOOSE_TIMED_DOORS_2
   CP $02
-  JR Z,SCAN_DOORS_4
-SCAN_DOORS_1:
+  JR Z,CHOOSE_TIMED_DOORS_4
+CHOOSE_TIMED_DOORS_1:
   ADD HL,BC
   EX DE,HL
   ADD HL,BC
   RET C
   EX DE,HL
-  JR SCAN_DOORS_0
-SCAN_DOORS_2:
+  JR CHOOSE_TIMED_DOORS_0
+CHOOSE_TIMED_DOORS_2:
   LD A,$22
-SCAN_DOORS_3:
+CHOOSE_TIMED_DOORS_3:
   LD (DE),A
   LD (HL),A
   PUSH DE
@@ -7801,17 +7898,18 @@ SCAN_DOORS_3:
   OR $08
   LD (HL),A
   POP HL
-  JR SCAN_DOORS_1
-SCAN_DOORS_4:
+  JR CHOOSE_TIMED_DOORS_1
+CHOOSE_TIMED_DOORS_4:
   LD A,$20
-  JR SCAN_DOORS_3
+  JR CHOOSE_TIMED_DOORS_3
 
-; Open or shut a door, according to its sprite
+; Open or shut a door, according to its type
 ;
-; Used by the routine at WAIT_THEN_ACT.
+; Used by the routine at TIMED_DOOR_SHUT.
 ;
-; Bit 0 of the sprite says which, so a door's own number carries whether it is
-; currently open, and the two routines below do the work on both halves.
+; Bit 0 of the type says which: $21 and $23 (timed doors, open) are odd, $20
+; and $22 (shut) even. OPEN_DOOR and SHUT_DOOR below do the work on both
+; halves.
 DOOR_OPEN_OR_SHUT:
   LD A,(IX+$00)
   AND $01
@@ -7821,10 +7919,12 @@ DOOR_OPEN_OR_SHUT:
 ;
 ; Used by the routines at DOOR_NEEDS_KEY, DOOR_SERF and ACG_DOOR.
 ;
-; Clear bit 3 of the drawing mode -- the bit that says a door is shut -- and
-; clear it on the far side too, so the two halves never disagree about whether
-; the door is open. DOOR_NEEDS_KEY calls it when the player is carrying the
-; right key, and the character doors when the right character walks up.
+; Clear bit 3 of the drawing mode -- the bit that says a door is shut, which
+; TEST_ROOM_BOXES reads to decide whether the doorway lets the player through
+; -- and clear it on the far side too, so the two halves never disagree about
+; whether the door is open. DOOR_NEEDS_KEY calls it when the player is carrying
+; the right key, the character doors when the right character walks up,
+; TIMED_DOOR_SHUT's toggle, and ACG_DOOR.
 OPEN_DOOR:
   LD A,(IX+$05)           ; Bit 3 off: open.
   AND $F7                 ;
@@ -7858,14 +7958,16 @@ SHUT_DOOR:
   POP IX
   RET
 
-; Is this position inside the room?
+; Note whether the player is standing in a doorway
 ;
 ; Used by the routine at MOVE_PLAYER.
 ;
-; Compares a record's position against the room's half-extents at $5E1D, one
-; more than the limit on each axis so that the boundary itself counts as
-; inside.
-WITHIN_ROOM_BOUNDS:
+; Compares the player's position with the room's half-extents at $5E1D, one
+; more than the limit on each axis, and stores the number of axes on which it
+; is outside in IN_DOORWAY ($5E2D). Non-zero means the player is outside the
+; walk rectangle, in a doorway: the three fire routines refuse to fire, and an
+; open timed door will not shut.
+CHECK_IN_DOORWAY:
   PUSH DE
   LD B,$00
   LD HL,(ROOM_HALF_WIDTH)
@@ -7875,24 +7977,24 @@ WITHIN_ROOM_BOUNDS:
   LD D,(IX+$04)
   LD A,E
   SUB $58
-  JP P,WITHIN_ROOM_BOUNDS_0
+  JP P,CHECK_IN_DOORWAY_0
   NEG
-WITHIN_ROOM_BOUNDS_0:
+CHECK_IN_DOORWAY_0:
   CP L
-  JR C,WITHIN_ROOM_BOUNDS_1
+  JR C,CHECK_IN_DOORWAY_1
   INC B
-WITHIN_ROOM_BOUNDS_1:
+CHECK_IN_DOORWAY_1:
   LD A,D
   SUB $68
-  JP P,WITHIN_ROOM_BOUNDS_2
+  JP P,CHECK_IN_DOORWAY_2
   NEG
-WITHIN_ROOM_BOUNDS_2:
+CHECK_IN_DOORWAY_2:
   CP H
-  JR C,WITHIN_ROOM_BOUNDS_3
+  JR C,CHECK_IN_DOORWAY_3
   INC B
-WITHIN_ROOM_BOUNDS_3:
+CHECK_IN_DOORWAY_3:
   LD A,B
-  LD (FIRE_BLOCKED),A
+  LD (IN_DOORWAY),A
   POP DE
   RET
 
@@ -7909,18 +8011,18 @@ WITHIN_ROOM_BOUNDS_3:
 ; The copy is what makes it cheap: because an object and an actor share the
 ; same eight-byte header, placing one is one LDIR rather than half a dozen
 ; assignments.
-DROP_OBJECT:
+DROP_GRAVESTONE:
   LD HL,LIVE_DROP_SLOTS   ; Four slots, eight bytes apart.
   LD DE,$0008             ;
   LD B,$04                ;
-DROP_OBJECT_0:
+DROP_GRAVESTONE_0:
   LD A,(HL)               ; A zero sprite means the slot is free.
   AND A                   ;
-  JR Z,DROP_OBJECT_1      ;
+  JR Z,DROP_GRAVESTONE_1  ;
   ADD HL,DE               ; All four taken, so give up.
-  DJNZ DROP_OBJECT_0      ;
+  DJNZ DROP_GRAVESTONE_0  ;
   RET                     ;
-DROP_OBJECT_1:
+DROP_GRAVESTONE_1:
   LD A,$45
   LD (PLAYER_MODE),A
   PUSH HL
@@ -7943,13 +8045,12 @@ PLACE_RECORD:
 ; The gravestone left where the player died
 ;
 ; Sprite $8F, and nothing more than a jump into the routine that draws a thing
-; and leaves it alone. DROP_OBJECT is what puts one down: on dying, seven bytes
-; of the player's record are copied into a free slot and given this sprite, so
-; the stone stands exactly where the body fell.
+; and leaves it alone. DROP_GRAVESTONE is what puts one down: on dying, seven
+; bytes of the player's record are copied into a free slot and given this
+; sprite, so the stone stands exactly where the body fell.
 ;
 ; Confirmed live by starving the player -- the first of the four slots came
-; back reading 8F 00 68 60 68 45 FF 08, sprite $8F at the player's own
-; position.
+; back holding sprite $8F at the player's own position.
 GRAVESTONE:
   JP DRAW_AT_POSITION
 
@@ -8019,6 +8120,11 @@ PRINT_CLOCK:
 ; (OPEN_DOOR) and behaves as one, with a wider doorway than most. Anything less
 ; and it is drawn shut (SHUT_DOOR). Through it is room $8E, and reaching that
 ; ends the game.
+;
+; New pickups go into the first slot, so this order means collecting $8E first
+; and $8C last. Measured in the simulator: $8C, $8D, $8E opened it and walking
+; in reached SHOW_END_SCREEN; the opposite order left it shut. The door is in
+; room $00, the starting room, on its east wall.
 ACG_DOOR:
   LD HL,CARRIED_SPRITE
   LD DE,$0004
@@ -8052,6 +8158,9 @@ ACG_DOOR_0:
 ; It assumes the text font is already selected, which is why GAME_OVER repoints
 ; $5E01 before calling. Halfway through it switches to the digit-biased copy
 ; for the numbers.
+;
+; The third line is a percent sign -- "$" in this font -- and the
+; rooms-explored figure: the share of the castle seen.
 DRAW_SUMMARY:
   CALL COUNT_ROOMS_EXPLORED ; Work out the proportion of the castle seen before
                             ; printing it.
@@ -8062,7 +8171,7 @@ DRAW_SUMMARY:
   LD DE,SCORE_LABEL
   CALL PRINT_STRING
   LD HL,$6040
-  LD DE,TIME_LABEL
+  LD DE,PERCENT_LABEL
   CALL PRINT_STRING
   LD HL,FONT_DIGITS       ; From here on the numbers, so bias the tile source
   LD (TILE_SOURCE),HL     ; to the digits.
@@ -8079,13 +8188,14 @@ DRAW_SUMMARY:
 ; The three words on the end-of-game screen
 ;
 ; Sixteen bytes each: a colour, then the word padded out with spaces to the
-; width of the field, with bit 7 set on the last one. PRINT_END_FIGURES draws
-; the numbers into the gap the padding leaves.
+; width of the field, with bit 7 set on the last one. DRAW_SUMMARY draws the
+; numbers into the gap the padding leaves. The third is not a word: "$" is this
+; font's percent sign, for the share of the castle seen.
 END_LABELS:
   DEFM "ETIME       #  ",$A0
 SCORE_LABEL:
   DEFM "ESCORE         ",$A0
-TIME_LABEL:
+PERCENT_LABEL:
   DEFM "E$             ",$A0
 
 ; Mark a room as seen, by writing the instruction that does it
@@ -8148,6 +8258,9 @@ SET_BIT_OP:
 ; and it never has to carry into a third digit, which a single byte of BCD
 ; could not hold: setting all 152 bits by hand does overflow it, and $5E54
 ; comes back $01, but no game can get there.
+;
+; It is a percentage: DRAW_SUMMARY prints it after the font's percent sign (the
+; "$" of PERCENT_LABEL is drawn as %), so every room seen reads 99%.
 COUNT_ROOMS_EXPLORED:
   LD HL,ROOMS_SEEN        ; 19 bytes, 8 bits each.
   LD BC,$0813             ;
@@ -8210,7 +8323,7 @@ ESCAPED_TEXT:
 
 ; Fall through a trapdoor
 ;
-; Used by the routine at FLASH_AND_RASP.
+; Used by the routine at TRAPDOOR_CLOSED.
 ;
 ; Reached only from the trapdoor's handler, TRAPDOOR, and only while the player
 ; is standing on it -- PLAYER_AT_DOOR with a tolerance of $1818. It draws room
@@ -8249,9 +8362,9 @@ TRAPDOOR_FALL_1:
   LD A,(FRAMES)
   CP C
   JR Z,TRAPDOOR_FALL_1
-  AND $07                 ; Bit 3 of the counter picks $00 or $47 -- black or
-  LD A,$00                ; white.
-  JR NZ,TRAPDOOR_FALL_2   ;
+  AND $07                 ; Low three bits of the counter all clear -- one
+  LD A,$00                ; frame in eight -- gives $47, white; otherwise $00,
+  JR NZ,TRAPDOOR_FALL_2   ; black.
   LD A,$47                ;
 TRAPDOOR_FALL_2:
   LD L,A
@@ -8383,13 +8496,17 @@ SHAPE_EDGES_0C:
   DEFB $2C,$2D,$2F,$FF,$2E,$2D,$2F,$FF
   DEFB $FF
 
-; Turn a drawing mode into a table index
+; Head the player into the room, away from the arrival door
 ;
 ; Used by the routine at ENTER_ROOM.
 ;
-; Rotates +$05 down and masks to $06, which turns the top bits of the drawing
-; mode into an even number -- an index into a table of word-sized entries.
-MODE_TO_INDEX:
+; Called by ENTER_ROOM with IX on the arrival half. Bits 7 and 6 of its +$05
+; say which wall the door is in; doubled, they index ARRIVAL_HEADINGS, and the
+; pair found is written into the player's heading at +$06 and +$07: down from
+; the north wall, up from the south, right from the west, left from the east.
+; With the low nibble of +$02 set to 15, STEER keeps the player walking that
+; way for fifteen frames.
+SET_ARRIVAL_HEADING:
   LD A,(IX+$05)
   RLCA
   RLCA
@@ -8397,7 +8514,7 @@ MODE_TO_INDEX:
   AND $06
   LD C,A
   LD B,$00
-  LD HL,DRIFT_OFFSETS
+  LD HL,ARRIVAL_HEADINGS
   ADD HL,BC
   LD A,(HL)
   INC HL
@@ -8406,13 +8523,14 @@ MODE_TO_INDEX:
   LD (PLAYER_DY),A
   RET
 
-; Eight small steps
+; The heading to arrive with, for each wall
 ;
-; $00 $20 $E0 $00 $00 $E0 $20 $00 -- read by the LD HL at MODE_TO_INDEX+11. As
-; signed bytes they are 0, +32, -32, 0, 0, -32, +32, 0: a pair of nudges one
-; way and then the other, which is what the mushroom's wander looks like on
-; screen.
-DRIFT_OFFSETS:
+; Four pairs, x then y, read by the LD HL at SET_ARRIVAL_HEADING+11: nothing
+; and +32 (down, for a north door), -32 and nothing (left, east), nothing and
+; -32 (up, south), +32 and nothing (right, west). 32 is a full-speed heading.
+; An earlier note took these for the mushroom's wander; only ENTER_ROOM reads
+; them.
+ARRIVAL_HEADINGS:
   DEFB $00,$20,$E0,$00,$00,$E0,$20,$00
 
 ; The mushroom that drains you
@@ -8458,7 +8576,7 @@ MUSHROOM_DRAIN:
   LD (FOOD_LEVEL),A       ;
   JP Z,MUSHROOM_KILLED_PLAYER ; It has run out: die.
   CALL DRAW_FOOD          ; Otherwise redraw the roast and make a noise about
-  CALL PLAY_SOUND         ; it...
+  CALL PLAY_SOUND_CAUGHT  ; it...
   JP MUSHROOM_COLOUR_STEP ; ...and go round again while the player is still on
                           ; it.
 
@@ -8486,11 +8604,10 @@ MUSHROOM_KILLED_PLAYER:
 ;
 ; Writes into INITIAL_STATE before START_GAME copies it: the rooms of
 ; GREEN_KEY, RED_KEY and CYAN_KEY, each one of eight from RANDOM_ROOMS_ONE,
-; RANDOM_ROOMS_TWO and RANDOM_ROOMS_THREE, chosen by the frame counter mixed
-; with the running values at $5E12 and $5E13. The mummy goes into the same room
-; as the red key. The yellow key's room is not touched, and neither is anything
-; else here -- so these are the things that are somewhere different in every
-; game.
+; RANDOM_ROOMS_TWO and RANDOM_ROOMS_THREE, chosen from the frame counter. The
+; running values at $5E12 and $5E13 are added in too, but they have just been
+; cleared, so green and red use the same index. The mummy goes into the same
+; room as the red key. The yellow key's room is not touched.
 PLACE_KEYS:
   LD A,(FRAMES)
   LD HL,RANDOM_ROOMS_ONE
@@ -8549,30 +8666,33 @@ RANDOM_ROOMS_TWO:
 RANDOM_ROOMS_THREE:
   DEFB $53,$8F,$41,$94,$33,$91,$39,$4C
 
-; Step a cursor on by one record
+; Grow the food back, one slot every 512 passes
 ;
 ; Used by the routine at MAIN_LOOP_MONSTERS.
 ;
-; Adds eight to the pointer kept at $5E55, but only on frames where the low
-; bits of $5E12 and $5E13 are both clear -- so it creeps through a table a
-; record at a time over many frames rather than sweeping it in one go.
-ADVANCE_CURSOR:
+; On a pass when TICKS' low byte is zero and bit 0 of its high byte clear --
+; once in 512 -- REGROW_CURSOR ($5E55) steps to the next of the eighty food
+; records, wrapping from the mushrooms back to the first. If that slot is empty
+; and not in the player's room, it is refilled with a random kind of food, $50
+; + FRAMES AND 7, in its old place (measured in the simulator). A whole round
+; of the eighty takes 512 times 80 passes, about half an hour.
+REGROW_FOOD:
   LD A,(TICKS)
   LD C,A
   LD A,(TICKS_HIGH)
   AND $01
   OR C
   RET NZ
-  LD HL,(CURSOR)
+  LD HL,(REGROW_CURSOR)
   LD DE,$0008
   ADD HL,DE
-  LD (CURSOR),HL
+  LD (REGROW_CURSOR),HL
   PUSH HL
   POP IX
   LD DE,LIVE_MUSHROOMS
   AND A
   SBC HL,DE
-  JR NC,ADVANCE_CURSOR_0
+  JR NC,REGROW_FOOD_0
   LD A,(PLAYER_ROOM)
   CP (IX+$01)
   RET Z
@@ -8584,9 +8704,9 @@ ADVANCE_CURSOR:
   ADD A,$50
   LD (IX+$00),A
   RET
-ADVANCE_CURSOR_0:
+REGROW_FOOD_0:
   LD HL,LIVE_FOOD
-  LD (CURSOR),HL
+  LD (REGROW_CURSOR),HL
   RET
 
 ; Draw a sprite, choosing the routine from the drawing mode
@@ -8622,16 +8742,22 @@ DRAW_WITH_MODE:
 
 ; Eight ways of putting a sprite's pixels on the screen
 ;
-; Chosen by DRAW_SPRITE_PIXELS from the drawing mode.
+; Chosen by DRAW_SPRITE_PIXELS from the top three bits of the drawing mode.
+; Used only for doors and furniture; creatures are drawn by DRAW_THING. The
+; eight are the eight ways to lay a rectangle down: 0 as stored, 1 mirrored, 2
+; turned a quarter clockwise, 3 transposed (mirrored across the diagonal), 4
+; upside down, 5 a half turn, 6 transposed the other way, 7 turned a quarter
+; anticlockwise. A door's mode is its wall, which is how one picture serves all
+; four.
 PIXEL_DRAWERS:
   DEFW BLIT_SPRITE
   DEFW BLIT_SPRITE_MIRRORED
-  DEFW DRAW_PIXELS_2
-  DEFW DRAW_PIXELS_3
-  DEFW DRAW_PIXELS_4
+  DEFW DRAW_TURNED_RIGHT
+  DEFW DRAW_TRANSPOSED
+  DEFW DRAW_UPSIDE_DOWN
   DEFW BLIT_SPRITE_FLIPPED
-  DEFW DRAW_PIXELS_6
-  DEFW DRAW_PIXELS_7
+  DEFW DRAW_ANTI_TRANSPOSED
+  DEFW DRAW_TURNED_LEFT
 
 ; Draw a sprite from the other set of eight routines
 ;
@@ -8647,22 +8773,24 @@ DRAW_SPRITE_COLOURS:
 
 ; Eight ways of putting a sprite's colours on the screen
 ;
-; Chosen by DRAW_SPRITE_COLOURS from the drawing mode.
+; Chosen by DRAW_SPRITE_COLOURS from the drawing mode: the same eight
+; orientations as PIXEL_DRAWERS, applied to a graphic's colour table. A colour
+; of $00 leaves the cell alone and $FF writes the room's colour.
 COLOUR_DRAWERS:
-  DEFW DRAW_COLOURS_0
-  DEFW DRAW_COLOURS_1
-  DEFW DRAW_COLOURS_2
-  DEFW DRAW_COLOURS_3
-  DEFW DRAW_COLOURS_4
-  DEFW DRAW_COLOURS_5
-  DEFW DRAW_COLOURS_6
-  DEFW DRAW_COLOURS_7
+  DEFW COLOURS_AS_STORED
+  DEFW COLOURS_MIRRORED
+  DEFW COLOURS_TURNED_RIGHT
+  DEFW COLOURS_TRANSPOSED
+  DEFW COLOURS_UPSIDE_DOWN
+  DEFW COLOURS_HALF_TURN
+  DEFW COLOURS_ANTI_TRANSPOSED
+  DEFW COLOURS_TURNED_LEFT
 
 ; Look up a sprite's bitmap and work out where it goes
 ;
-; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_PIXELS_2,
-; DRAW_PIXELS_3, DRAW_PIXELS_4, BLIT_SPRITE_FLIPPED, DRAW_PIXELS_6 and
-; DRAW_PIXELS_7.
+; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
+; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED
+; and DRAW_TURNED_LEFT.
 ;
 ; Sprite numbers are 1-based, so the number is decremented before being doubled
 ; into the table of addresses at FURNITURE_SPRITES. The first two bytes of the
@@ -8708,9 +8836,9 @@ FETCH_SPRITE:
 
 ; Look up a sprite's colours
 ;
-; Used by the routines at DRAW_COLOURS_0, DRAW_COLOURS_1, DRAW_COLOURS_2,
-; DRAW_COLOURS_3, DRAW_COLOURS_4, DRAW_COLOURS_5, DRAW_COLOURS_6 and
-; DRAW_COLOURS_7.
+; Used by the routines at COLOURS_AS_STORED, COLOURS_MIRRORED,
+; COLOURS_TURNED_RIGHT, COLOURS_TRANSPOSED, COLOURS_UPSIDE_DOWN,
+; COLOURS_HALF_TURN, COLOURS_ANTI_TRANSPOSED and COLOURS_TURNED_LEFT.
 ;
 ; The same routine as FETCH_SPRITE but based at FURNITURE_COLOURS -- the 200th
 ; entry of SPRITE_TABLE rather than the 161st -- and ending in PIXEL_TO_ATTR
@@ -8816,15 +8944,17 @@ BLIT_MIRRORED_OP:
   JR NZ,BLIT_SPRITE_MIRRORED_0
   RET
 
-; Drawing mode 2: a sprite's pixels, the right way up
+; Drawing mode 2: furniture's pixels turned a quarter clockwise
 ;
-; Entry 2 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by
-; row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the
-; same as every other routine in the two tables.
-DRAW_PIXELS_2:
+; Entry 2 of PIXEL_DRAWERS. Each screen byte is gathered a bit at a time from
+; one bit column of eight successive rows, starting from the right-hand column,
+; so the source's bottom edge ends up on the left: the picture turned a quarter
+; clockwise. The combining instruction is patched in by SPRITE_COMBINE_OPCODE,
+; as in every routine of the two tables.
+DRAW_TURNED_RIGHT:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_PIXELS_2_OP),A
+  LD (DRAW_TURNED_RIGHT_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
@@ -8833,34 +8963,34 @@ DRAW_PIXELS_2:
   EXX
   CALL NEXT_SPRITE_ROW
   DEC DE
-DRAW_PIXELS_2_0:
+DRAW_TURNED_RIGHT_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_PIXELS_2_1:
+DRAW_TURNED_RIGHT_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_PIXELS_2_2
+  JR Z,DRAW_TURNED_RIGHT_2
   SCF
-DRAW_PIXELS_2_2:
+DRAW_TURNED_RIGHT_2:
   RL H
   EXX
   CALL NEXT_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_PIXELS_2_1
+  JR NZ,DRAW_TURNED_RIGHT_1
   EXX
   LD A,H
   EXX
-DRAW_PIXELS_2_OP:
+DRAW_TURNED_RIGHT_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_PIXELS_2_1
+  JR NZ,DRAW_TURNED_RIGHT_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -8868,57 +8998,56 @@ DRAW_PIXELS_2_OP:
   EXX
   RLC L
   EXX
-  JR NC,DRAW_PIXELS_2_0
+  JR NC,DRAW_TURNED_RIGHT_0
   EXX
   DEC B
   EXX
   RET Z
   DEC DE
-  JR DRAW_PIXELS_2_0
+  JR DRAW_TURNED_RIGHT_0
 
-; Drawing mode 3: a sprite's pixels, the right way up
+; Drawing mode 3: furniture's pixels transposed
 ;
-; Entry 3 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by
-; row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the
-; same as every other routine in the two tables.
-DRAW_PIXELS_3:
+; Entry 3 of PIXEL_DRAWERS. Gathers bits as DRAW_TURNED_RIGHT does, but from
+; the left-hand column rightwards: the picture mirrored across its diagonal.
+DRAW_TRANSPOSED:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_PIXELS_3_OP),A
+  LD (DRAW_TRANSPOSED_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
   LD B,A
   LD L,$80
   EXX
-DRAW_PIXELS_3_0:
+DRAW_TRANSPOSED_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_PIXELS_3_1:
+DRAW_TRANSPOSED_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_PIXELS_3_2
+  JR Z,DRAW_TRANSPOSED_2
   SCF
-DRAW_PIXELS_3_2:
+DRAW_TRANSPOSED_2:
   RL H
   EXX
   CALL NEXT_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_PIXELS_3_1
+  JR NZ,DRAW_TRANSPOSED_1
   EXX
   LD A,H
   EXX
-DRAW_PIXELS_3_OP:
+DRAW_TRANSPOSED_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_PIXELS_3_1
+  JR NZ,DRAW_TRANSPOSED_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -8926,13 +9055,13 @@ DRAW_PIXELS_3_OP:
   EXX
   RRC L
   EXX
-  JR NC,DRAW_PIXELS_3_0
+  JR NC,DRAW_TRANSPOSED_0
   EXX
   DEC B
   EXX
   RET Z
   INC DE
-  JR DRAW_PIXELS_3_0
+  JR DRAW_TRANSPOSED_0
 
 ; Turn a byte back to front
 ;
@@ -8962,9 +9091,10 @@ REVERSE_BITS_0:
 
 ; Step the sprite pointer on by one row
 ;
-; Used by the routines at BLIT_SPRITE_MIRRORED, DRAW_PIXELS_2, DRAW_PIXELS_3,
-; BLIT_SPRITE_FLIPPED, DRAW_PIXELS_6, DRAW_COLOURS_1, DRAW_COLOURS_2,
-; DRAW_COLOURS_3, DRAW_COLOURS_5 and DRAW_COLOURS_6.
+; Used by the routines at BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
+; DRAW_TRANSPOSED, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED, COLOURS_MIRRORED,
+; COLOURS_TURNED_RIGHT, COLOURS_TRANSPOSED, COLOURS_HALF_TURN and
+; COLOURS_ANTI_TRANSPOSED.
 ;
 ; DE += B, where B is the width in bytes. The counterpart at
 ; PREVIOUS_SPRITE_ROW subtracts instead, for the routines that read a sprite
@@ -8980,8 +9110,9 @@ NEXT_SPRITE_ROW:
 
 ; Step the sprite pointer back one row
 ;
-; Used by the routines at DRAW_PIXELS_4, DRAW_PIXELS_6, DRAW_PIXELS_7,
-; DRAW_COLOURS_4, DRAW_COLOURS_6 and DRAW_COLOURS_7.
+; Used by the routines at DRAW_UPSIDE_DOWN, DRAW_ANTI_TRANSPOSED,
+; DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN, COLOURS_ANTI_TRANSPOSED and
+; COLOURS_TURNED_LEFT.
 ;
 ; DE -= B. The mirror of NEXT_SPRITE_ROW, for the drawing modes that read a
 ; sprite from the bottom up.
@@ -8998,9 +9129,8 @@ PREVIOUS_SPRITE_ROW:
 ;
 ; Used by the routines at DRAW_FOOD and START_AT_LAST_ROW.
 ;
-; Shift and add, eight times: the only multiply the game has, and the Z80's
-; excuse for not having one. START_AT_LAST_ROW uses it to find the bottom of a
-; sprite, and DRAW_ROOM to index the six-byte shape entries.
+; Shift and add, eight times. START_AT_LAST_ROW uses it to find the bottom of a
+; sprite, and DRAW_FOOD to move the roast's pointer past the eaten rows.
 MULTIPLY:
   LD HL,$0000
   LD B,$08
@@ -9015,9 +9145,9 @@ MULTIPLY_1:
 
 ; Point at the bottom row of a sprite
 ;
-; Used by the routines at DRAW_PIXELS_4, BLIT_SPRITE_FLIPPED, DRAW_PIXELS_6,
-; DRAW_PIXELS_7, DRAW_COLOURS_4, DRAW_COLOURS_5, DRAW_COLOURS_6 and
-; DRAW_COLOURS_7.
+; Used by the routines at DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED,
+; DRAW_ANTI_TRANSPOSED, DRAW_TURNED_LEFT, COLOURS_UPSIDE_DOWN,
+; COLOURS_HALF_TURN, COLOURS_ANTI_TRANSPOSED and COLOURS_TURNED_LEFT.
 ;
 ; Multiplies the width by the height less one and adds it to the data pointer,
 ; so drawing can start from the far end. Called by every drawing routine whose
@@ -9042,49 +9172,49 @@ START_AT_LAST_ROW:
   POP HL
   RET
 
-; Drawing mode 4: a sprite's pixels, upside down
+; Drawing mode 4: furniture's pixels upside down
 ;
 ; Entry 4 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by
 ; row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the
 ; same as every other routine in the two tables.
-DRAW_PIXELS_4:
+DRAW_UPSIDE_DOWN:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_PIXELS_4_OP),A
+  LD (DRAW_UPSIDE_DOWN_OP),A
   CALL FETCH_SPRITE
   CALL START_AT_LAST_ROW
-DRAW_PIXELS_4_0:
+DRAW_UPSIDE_DOWN_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_PIXELS_4_1:
+DRAW_UPSIDE_DOWN_1:
   LD A,(DE)
   INC DE
-DRAW_PIXELS_4_OP:
+DRAW_UPSIDE_DOWN_OP:
   NOP
   LD (HL),A
   INC L
-  DJNZ DRAW_PIXELS_4_1
+  DJNZ DRAW_UPSIDE_DOWN_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
   POP BC
   CALL PREVIOUS_SPRITE_ROW
   DEC C
-  JR NZ,DRAW_PIXELS_4_0
+  JR NZ,DRAW_UPSIDE_DOWN_0
   RET
 
-; Copy a sprite mirrored and upside down
+; Drawing mode 5: furniture turned a half turn (mirrored and upside down)
 ;
 ; Mirrored like BLIT_SPRITE_MIRRORED, and turned over as well: the call to
 ; START_AT_LAST_ROW moves the data pointer to the last row before anything is
 ; drawn, so the rows come out in the opposite order.
 ;
 ; This is why there are eight drawing routines in each family rather than one.
-; Four are the four orientations a sprite can be put on the screen in -- as
-; stored, mirrored, upside down, or both -- and the drawing mode in the top
-; three bits of an actor's +$05 picks between them. A creature that walks in
-; four directions is one set of bytes.
+; They are the eight symmetries of a rectangle -- the four ways to flip it (as
+; stored, mirrored, upside down, both, which is a half turn) and the same four
+; turned through a right angle -- and the top three bits of a door's or piece
+; of furniture's +$05 pick between them.
 BLIT_SPRITE_FLIPPED:
   POP BC                     ; The combining opcode.
   CALL SPRITE_COMBINE_OPCODE ;
@@ -9111,15 +9241,14 @@ BLIT_FLIPPED_OP:
   JR NZ,BLIT_SPRITE_FLIPPED_0
   RET
 
-; Drawing mode 6: a sprite's pixels, upside down
+; Drawing mode 6: furniture's pixels transposed the other way
 ;
-; Entry 6 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by
-; row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the
-; same as every other routine in the two tables.
-DRAW_PIXELS_6:
+; Entry 6 of PIXEL_DRAWERS. DRAW_TURNED_RIGHT's bit gathering, reading the rows
+; from the top down: the picture mirrored across its other diagonal.
+DRAW_ANTI_TRANSPOSED:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_PIXELS_6_OP),A
+  LD (DRAW_ANTI_TRANSPOSED_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
@@ -9129,34 +9258,34 @@ DRAW_PIXELS_6:
   CALL NEXT_SPRITE_ROW
   DEC DE
   CALL START_AT_LAST_ROW
-DRAW_PIXELS_6_0:
+DRAW_ANTI_TRANSPOSED_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_PIXELS_6_1:
+DRAW_ANTI_TRANSPOSED_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_PIXELS_6_2
+  JR Z,DRAW_ANTI_TRANSPOSED_2
   SCF
-DRAW_PIXELS_6_2:
+DRAW_ANTI_TRANSPOSED_2:
   RL H
   EXX
   CALL PREVIOUS_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_PIXELS_6_1
+  JR NZ,DRAW_ANTI_TRANSPOSED_1
   EXX
   LD A,H
   EXX
-DRAW_PIXELS_6_OP:
+DRAW_ANTI_TRANSPOSED_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_PIXELS_6_1
+  JR NZ,DRAW_ANTI_TRANSPOSED_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -9164,23 +9293,22 @@ DRAW_PIXELS_6_OP:
   EXX
   RLC L
   EXX
-  JR NC,DRAW_PIXELS_6_0
+  JR NC,DRAW_ANTI_TRANSPOSED_0
   EXX
   DEC B
   EXX
   RET Z
   DEC DE
-  JR DRAW_PIXELS_6_0
+  JR DRAW_ANTI_TRANSPOSED_0
 
-; Drawing mode 7: a sprite's pixels, upside down
+; Drawing mode 7: furniture's pixels turned a quarter anticlockwise
 ;
-; Entry 7 of PIXEL_DRAWERS. It fetches through FETCH_SPRITE, then copies row by
-; row with the combining instruction patched in by SPRITE_COMBINE_OPCODE, the
-; same as every other routine in the two tables.
-DRAW_PIXELS_7:
+; Entry 7 of PIXEL_DRAWERS. DRAW_TRANSPOSED's bit gathering, reading the rows
+; from the top down: the picture turned a quarter anticlockwise.
+DRAW_TURNED_LEFT:
   POP BC
   CALL SPRITE_COMBINE_OPCODE
-  LD (DRAW_PIXELS_7_OP),A
+  LD (DRAW_TURNED_LEFT_OP),A
   CALL FETCH_SPRITE
   LD A,B
   EXX
@@ -9188,34 +9316,34 @@ DRAW_PIXELS_7:
   LD L,$80
   EXX
   CALL START_AT_LAST_ROW
-DRAW_PIXELS_7_0:
+DRAW_TURNED_LEFT_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_PIXELS_7_1:
+DRAW_TURNED_LEFT_1:
   LD A,(DE)
   EXX
   AND L
-  JR Z,DRAW_PIXELS_7_2
+  JR Z,DRAW_TURNED_LEFT_2
   SCF
-DRAW_PIXELS_7_2:
+DRAW_TURNED_LEFT_2:
   RL H
   EXX
   CALL PREVIOUS_SPRITE_ROW
   DEC C
   LD A,C
   AND $07
-  JR NZ,DRAW_PIXELS_7_1
+  JR NZ,DRAW_TURNED_LEFT_1
   EXX
   LD A,H
   EXX
-DRAW_PIXELS_7_OP:
+DRAW_TURNED_LEFT_OP:
   NOP
   LD (HL),A
   INC L
   LD A,C
   AND A
-  JR NZ,DRAW_PIXELS_7_1
+  JR NZ,DRAW_TURNED_LEFT_1
   POP HL
   CALL SCREEN_ROW_UP
   POP DE
@@ -9223,18 +9351,18 @@ DRAW_PIXELS_7_OP:
   EXX
   RRC L
   EXX
-  JR NC,DRAW_PIXELS_7_0
+  JR NC,DRAW_TURNED_LEFT_0
   EXX
   DEC B
   EXX
   RET Z
   INC DE
-  JR DRAW_PIXELS_7_0
+  JR DRAW_TURNED_LEFT_0
 
 ; Convert pixel coordinates to a display file address
 ;
 ; Used by the routines at PRINT_MENU_LINE, DRAW_FOOD, TICK_CLOCK, DRAW_SUMMARY,
-; FETCH_SPRITE, PIXEL_MASK, SETUP_ERASE, SETUP_SPRITE_DRAW, ERASE_STRIP,
+; FETCH_SPRITE, PLOT_PIXEL, SETUP_ERASE, SETUP_SPRITE_DRAW, ERASE_STRIP,
 ; ADD_SCORE, PRINT_STRING and DRAW_SCROLL.
 ;
 ; The standard 48K display address computation, done in place on HL. Builds
@@ -9444,23 +9572,22 @@ TO_VERTEX_Y:
   POP BC
   JR DRAW_OUTLINE_0
 
-; Build a mask for one pixel in a byte
+; Plot one pixel
 ;
 ; Used by the routine at DRAW_LINE.
 ;
-; Takes the low three bits of an x coordinate and rotates a single set bit into
-; that position. DRAW_LINE needs it for every point it plots, since a pixel is
-; one bit of a byte the rest of which must survive.
-PIXEL_MASK:
+; Takes the low three bits of x, rotates a single set bit into that position,
+; and ORs it into the screen at the pixel's address -- DRAW_LINE's plot.
+PLOT_PIXEL:
   LD A,L
   AND $07
   INC A
   LD B,A
   XOR A
   SCF
-PIXEL_MASK_0:
+PLOT_PIXEL_0:
   RRA
-  DJNZ PIXEL_MASK_0
+  DJNZ PLOT_PIXEL_0
   PUSH HL
   PUSH AF
   EX AF,AF'
@@ -9516,7 +9643,7 @@ DRAW_LINE_1:
   LD D,$00
   LD L,D
   LD H,B
-  CALL MULTIPLY_2
+  CALL DIVIDE_SLOPE
   LD A,(LINE_WORK_NEXT)
   BIT 0,A
   JR NZ,DRAW_LINE_2
@@ -9537,7 +9664,7 @@ DRAW_LINE_3:
   EX AF,AF'
 DRAW_LINE_4:
   PUSH BC
-  CALL PIXEL_MASK
+  CALL PLOT_PIXEL
   LD A,L
   EX AF,AF'
   LD L,A
@@ -9549,7 +9676,7 @@ DRAW_LINE_4:
   LD L,A
   DJNZ DRAW_LINE_4
   POP HL
-  JP PIXEL_MASK
+  JP PLOT_PIXEL
 DRAW_LINE_5:
   EX AF,AF'
   LD A,B
@@ -9561,7 +9688,7 @@ DRAW_LINE_5:
   LD D,$00
   LD L,D
   LD H,A
-  CALL MULTIPLY_2
+  CALL DIVIDE_SLOPE
   LD A,(LINE_WORK_NEXT)
   BIT 1,A
   JR NZ,DRAW_LINE_6
@@ -9582,7 +9709,7 @@ DRAW_LINE_7:
   EX AF,AF'
 DRAW_LINE_8:
   PUSH BC
-  CALL PIXEL_MASK
+  CALL PLOT_PIXEL
   LD A,H
   EX AF,AF'
   LD H,L
@@ -9596,13 +9723,13 @@ DRAW_LINE_8:
   LD H,A
   DJNZ DRAW_LINE_8
   POP HL
-  JP PIXEL_MASK
+  JP PLOT_PIXEL
 
 ; Choose the instruction that puts a sprite byte on the screen
 ;
-; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_PIXELS_2,
-; DRAW_PIXELS_3, DRAW_PIXELS_4, BLIT_SPRITE_FLIPPED, DRAW_PIXELS_6 and
-; DRAW_PIXELS_7.
+; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
+; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED
+; and DRAW_TURNED_LEFT.
 ;
 ; Returns an opcode rather than a flag, for BLIT_SPRITE to write into the
 ; middle of its own loop. The drawing mode is packed into B: the low two bits
@@ -9622,66 +9749,66 @@ SPRITE_COMBINE_OPCODE:
                           ; what is already there.
   RET
 
-; Drawing mode 0: a sprite's colours, the right way up
+; Drawing mode 0: furniture's colours as stored
 ;
 ; Entry 0 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_0:
+COLOURS_AS_STORED:
   POP BC
   CALL FETCH_SPRITE_ATTRS
-DRAW_COLOURS_0_0:
+COLOURS_AS_STORED_0:
   PUSH BC
   PUSH HL
-DRAW_COLOURS_0_1:
+COLOURS_AS_STORED_1:
   LD A,(DE)
   INC DE
   AND A
-  JR Z,DRAW_COLOURS_0_3
+  JR Z,COLOURS_AS_STORED_3
   CP $FF
-  JR NZ,DRAW_COLOURS_0_2
+  JR NZ,COLOURS_AS_STORED_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_0_2:
+COLOURS_AS_STORED_2:
   LD (HL),A
-DRAW_COLOURS_0_3:
+COLOURS_AS_STORED_3:
   INC L
-  DJNZ DRAW_COLOURS_0_1
+  DJNZ COLOURS_AS_STORED_1
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,DRAW_COLOURS_0_0
+  JR NZ,COLOURS_AS_STORED_0
   RET
 
-; Drawing mode 1: a sprite's colours, the right way up
+; Drawing mode 1: furniture's colours mirrored
 ;
 ; Entry 1 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_1:
+COLOURS_MIRRORED:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   DEC DE
-DRAW_COLOURS_1_0:
+COLOURS_MIRRORED_0:
   CALL NEXT_SPRITE_ROW
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_1_1:
+COLOURS_MIRRORED_1:
   LD A,(DE)
   DEC DE
   AND A
-  JR Z,DRAW_COLOURS_1_3
+  JR Z,COLOURS_MIRRORED_3
   CP $FF
-  JR NZ,DRAW_COLOURS_1_2
+  JR NZ,COLOURS_MIRRORED_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_1_2:
+COLOURS_MIRRORED_2:
   LD (HL),A
-DRAW_COLOURS_1_3:
+COLOURS_MIRRORED_3:
   INC L
-  DJNZ DRAW_COLOURS_1_1
+  DJNZ COLOURS_MIRRORED_1
   POP HL
   LD BC,$0020
   AND A
@@ -9689,15 +9816,15 @@ DRAW_COLOURS_1_3:
   POP DE
   POP BC
   DEC C
-  JR NZ,DRAW_COLOURS_1_0
+  JR NZ,COLOURS_MIRRORED_0
   RET
 
-; Drawing mode 2: a sprite's colours, the right way up
+; Drawing mode 2: furniture's colours turned a quarter clockwise
 ;
 ; Entry 2 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_2:
+COLOURS_TURNED_RIGHT:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
@@ -9705,25 +9832,25 @@ DRAW_COLOURS_2:
   LD B,A
   EXX
   CALL NEXT_SPRITE_ROW
-DRAW_COLOURS_2_0:
+COLOURS_TURNED_RIGHT_0:
   DEC DE
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_2_1:
+COLOURS_TURNED_RIGHT_1:
   LD A,(DE)
   AND A
-  JR Z,DRAW_COLOURS_2_3
+  JR Z,COLOURS_TURNED_RIGHT_3
   CP $FF
-  JR NZ,DRAW_COLOURS_2_2
+  JR NZ,COLOURS_TURNED_RIGHT_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_2_2:
+COLOURS_TURNED_RIGHT_2:
   LD (HL),A
-DRAW_COLOURS_2_3:
+COLOURS_TURNED_RIGHT_3:
   CALL NEXT_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,DRAW_COLOURS_2_1
+  JR NZ,COLOURS_TURNED_RIGHT_1
   POP HL
   LD BC,$0020
   AND A
@@ -9733,39 +9860,39 @@ DRAW_COLOURS_2_3:
   EXX
   DEC B
   EXX
-  JR NZ,DRAW_COLOURS_2_0
+  JR NZ,COLOURS_TURNED_RIGHT_0
   RET
 
-; Drawing mode 3: a sprite's colours, the right way up
+; Drawing mode 3: furniture's colours transposed
 ;
 ; Entry 3 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_3:
+COLOURS_TRANSPOSED:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
   EXX
   LD B,A
   EXX
-DRAW_COLOURS_3_0:
+COLOURS_TRANSPOSED_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_3_1:
+COLOURS_TRANSPOSED_1:
   LD A,(DE)
   AND A
-  JR Z,DRAW_COLOURS_3_3
+  JR Z,COLOURS_TRANSPOSED_3
   CP $FF
-  JR NZ,DRAW_COLOURS_3_2
+  JR NZ,COLOURS_TRANSPOSED_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_3_2:
+COLOURS_TRANSPOSED_2:
   LD (HL),A
-DRAW_COLOURS_3_3:
+COLOURS_TRANSPOSED_3:
   CALL NEXT_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,DRAW_COLOURS_3_1
+  JR NZ,COLOURS_TRANSPOSED_1
   POP HL
   LD BC,$0020
   AND A
@@ -9776,35 +9903,35 @@ DRAW_COLOURS_3_3:
   EXX
   DEC B
   EXX
-  JR NZ,DRAW_COLOURS_3_0
+  JR NZ,COLOURS_TRANSPOSED_0
   RET
 
-; Drawing mode 4: a sprite's colours, upside down
+; Drawing mode 4: furniture's colours upside down
 ;
 ; Entry 4 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_4:
+COLOURS_UPSIDE_DOWN:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   CALL START_AT_LAST_ROW
-DRAW_COLOURS_4_0:
+COLOURS_UPSIDE_DOWN_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_4_1:
+COLOURS_UPSIDE_DOWN_1:
   LD A,(DE)
   INC DE
   AND A
-  JR Z,DRAW_COLOURS_4_3
+  JR Z,COLOURS_UPSIDE_DOWN_3
   CP $FF
-  JR NZ,DRAW_COLOURS_4_2
+  JR NZ,COLOURS_UPSIDE_DOWN_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_4_2:
+COLOURS_UPSIDE_DOWN_2:
   LD (HL),A
-DRAW_COLOURS_4_3:
+COLOURS_UPSIDE_DOWN_3:
   INC L
-  DJNZ DRAW_COLOURS_4_1
+  DJNZ COLOURS_UPSIDE_DOWN_1
   POP HL
   LD BC,$0020
   AND A
@@ -9813,51 +9940,51 @@ DRAW_COLOURS_4_3:
   POP BC
   CALL PREVIOUS_SPRITE_ROW
   DEC C
-  JR NZ,DRAW_COLOURS_4_0
+  JR NZ,COLOURS_UPSIDE_DOWN_0
   RET
 
-; Drawing mode 5: a sprite's colours, upside down
+; Drawing mode 5: furniture's colours turned a half turn
 ;
 ; Entry 5 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_5:
+COLOURS_HALF_TURN:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   CALL START_AT_LAST_ROW
   CALL NEXT_SPRITE_ROW
   DEC DE
-DRAW_COLOURS_5_0:
+COLOURS_HALF_TURN_0:
   PUSH BC
   PUSH HL
-DRAW_COLOURS_5_1:
+COLOURS_HALF_TURN_1:
   LD A,(DE)
   DEC DE
   AND A
-  JR Z,DRAW_COLOURS_5_3
+  JR Z,COLOURS_HALF_TURN_3
   CP $FF
-  JR NZ,DRAW_COLOURS_5_2
+  JR NZ,COLOURS_HALF_TURN_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_5_2:
+COLOURS_HALF_TURN_2:
   LD (HL),A
-DRAW_COLOURS_5_3:
+COLOURS_HALF_TURN_3:
   INC L
-  DJNZ DRAW_COLOURS_5_1
+  DJNZ COLOURS_HALF_TURN_1
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,DRAW_COLOURS_5_0
+  JR NZ,COLOURS_HALF_TURN_0
   RET
 
-; Drawing mode 6: a sprite's colours, upside down
+; Drawing mode 6: furniture's colours transposed the other way
 ;
 ; Entry 6 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_6:
+COLOURS_ANTI_TRANSPOSED:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
@@ -9866,25 +9993,25 @@ DRAW_COLOURS_6:
   EXX
   CALL START_AT_LAST_ROW
   CALL NEXT_SPRITE_ROW
-DRAW_COLOURS_6_0:
+COLOURS_ANTI_TRANSPOSED_0:
   DEC DE
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_6_1:
+COLOURS_ANTI_TRANSPOSED_1:
   LD A,(DE)
   AND A
-  JR Z,DRAW_COLOURS_6_3
+  JR Z,COLOURS_ANTI_TRANSPOSED_3
   CP $FF
-  JR NZ,DRAW_COLOURS_6_2
+  JR NZ,COLOURS_ANTI_TRANSPOSED_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_6_2:
+COLOURS_ANTI_TRANSPOSED_2:
   LD (HL),A
-DRAW_COLOURS_6_3:
+COLOURS_ANTI_TRANSPOSED_3:
   CALL PREVIOUS_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,DRAW_COLOURS_6_1
+  JR NZ,COLOURS_ANTI_TRANSPOSED_1
   POP HL
   LD BC,$0020
   AND A
@@ -9894,15 +10021,15 @@ DRAW_COLOURS_6_3:
   EXX
   DEC B
   EXX
-  JR NZ,DRAW_COLOURS_6_0
+  JR NZ,COLOURS_ANTI_TRANSPOSED_0
   RET
 
-; Drawing mode 7: a sprite's colours, upside down
+; Drawing mode 7: furniture's colours turned a quarter anticlockwise
 ;
 ; Entry 7 of COLOUR_DRAWERS. It fetches through FETCH_SPRITE_ATTRS, then copies
 ; row by row with the combining instruction patched in by
 ; SPRITE_COMBINE_OPCODE, the same as every other routine in the two tables.
-DRAW_COLOURS_7:
+COLOURS_TURNED_LEFT:
   POP BC
   CALL FETCH_SPRITE_ATTRS
   LD A,B
@@ -9910,24 +10037,24 @@ DRAW_COLOURS_7:
   LD B,A
   EXX
   CALL START_AT_LAST_ROW
-DRAW_COLOURS_7_0:
+COLOURS_TURNED_LEFT_0:
   PUSH BC
   PUSH DE
   PUSH HL
-DRAW_COLOURS_7_1:
+COLOURS_TURNED_LEFT_1:
   LD A,(DE)
   AND A
-  JR Z,DRAW_COLOURS_7_3
+  JR Z,COLOURS_TURNED_LEFT_3
   CP $FF
-  JR NZ,DRAW_COLOURS_7_2
+  JR NZ,COLOURS_TURNED_LEFT_2
   LD A,(ROOM_COLOUR)
-DRAW_COLOURS_7_2:
+COLOURS_TURNED_LEFT_2:
   LD (HL),A
-DRAW_COLOURS_7_3:
+COLOURS_TURNED_LEFT_3:
   CALL PREVIOUS_SPRITE_ROW
   INC L
   DEC C
-  JR NZ,DRAW_COLOURS_7_1
+  JR NZ,COLOURS_TURNED_LEFT_1
   POP HL
   LD BC,$0020
   AND A
@@ -9938,7 +10065,7 @@ DRAW_COLOURS_7_3:
   EXX
   DEC B
   EXX
-  JR NZ,DRAW_COLOURS_7_0
+  JR NZ,COLOURS_TURNED_LEFT_0
   RET
 
 ; Find the graphics for what is in the workspace
@@ -9984,63 +10111,65 @@ SPRITE_OF_ACTOR:
   LD A,(IX+$00)
   JR SPRITE_ADDRESS
 
-; Draw only the rows that fit
+; Erase the old rows and draw the new, interleaved
 ;
-; Used by the routines at DRAW_THING, ERASE_THING and DRAW_CLIPPED.
+; Used by the routines at DRAW_THING, ERASE_THING and REDRAW_MOVED.
 ;
-; Part of the drawing path that deals with a sprite hanging off an edge: it
-; counts rows down in C and drops out early rather than letting the blitter run
-; past the end of the play area. The alternate register set holds the second of
-; the two counts, which is why it is full of EXX.
-CLIP_ROWS:
+; The loop behind REDRAW_MOVED, DRAW_THING and ERASE_THING. One register bank
+; holds the erase of a thing at its old place (through ERASE_SHIFT_CHAIN), the
+; other the draw at its new place (through SHIFT_CHAIN), each with a row count
+; in C; the loop takes a row from each in turn, bottom up, both XORed onto the
+; screen. ERASE_ROWS and DRAW_ROWS ($5E18, $5E19) hold the rows still to do
+; once ALIGN_ROWS has done the rows the two do not share. Nothing is clipped
+; against the play area.
+ERASE_DRAW_ROWS:
   LD A,C
   AND A
-  JR Z,CLIP_ROWS_2
+  JR Z,ERASE_DRAW_ROWS_2
   DEC C
   CALL FETCH_ROW
   EXX
   LD A,C
   AND A
-  JR Z,CLIP_ROWS_1
-CLIP_ROWS_0:
+  JR Z,ERASE_DRAW_ROWS_1
+ERASE_DRAW_ROWS_0:
   DEC C
   CALL SHIFT_AND_PLOT
-CLIP_ROWS_1:
+ERASE_DRAW_ROWS_1:
   EXX
-  JR CLIP_ROWS
-CLIP_ROWS_2:
+  JR ERASE_DRAW_ROWS
+ERASE_DRAW_ROWS_2:
   EXX
   LD A,C
   AND A
-  JR NZ,CLIP_ROWS_0
-; This entry point is used by the routine at DRAW_CLIPPED.
-CLIP_SWAP:
+  JR NZ,ERASE_DRAW_ROWS_0
+; This entry point is used by the routine at REDRAW_MOVED.
+ROWS_TOGETHER_SWAP:
   EXX
-; This entry point is used by the routine at DRAW_CLIPPED.
-CLIP_TOP:
-  LD A,(CLIP_COUNT)
+; This entry point is used by the routine at REDRAW_MOVED.
+ROWS_TOGETHER:
+  LD A,(ERASE_ROWS)
   LD C,A
-  LD A,(CLIP_LIMIT)
+  LD A,(DRAW_ROWS)
   OR C
   RET Z
   XOR A
-  LD (CLIP_COUNT),A
+  LD (ERASE_ROWS),A
   EXX
-  LD A,(CLIP_LIMIT)
+  LD A,(DRAW_ROWS)
   LD C,A
   XOR A
-; This entry point is used by the routine at DRAW_CLIPPED.
-CLIP_STORE:
-  LD (CLIP_LIMIT),A
+; This entry point is used by the routine at REDRAW_MOVED.
+ROWS_DRAW_ONLY:
+  LD (DRAW_ROWS),A
   EXX
-  JR CLIP_ROWS
+  JR ERASE_DRAW_ROWS
 
-; Put two bytes on the screen with XOR
+; XOR two unshifted bytes: the erase path's plot for a thing on a cell boundary
 ;
-; The ending both shift chains fall into: XOR the shifted bytes onto what is
-; already there, which both draws a sprite and rubs it out again on a second
-; pass.
-PLOT_XOR:
+; Where ERASE_JR lands when the thing's x needs no shift: XOR the two bytes
+; onto the screen, which rubs the thing out.
+ERASE_UNSHIFTED:
   EX DE,HL
   EX (SP),HL
   LD A,D
@@ -10056,7 +10185,7 @@ PLOT_XOR:
 
 ; Read two bytes of a sprite row
 ;
-; Used by the routine at CLIP_ROWS.
+; Used by the routine at ERASE_DRAW_ROWS.
 ;
 ; Loads a row into DE ready for shifting, and steps the pointer on.
 FETCH_ROW:
@@ -10071,12 +10200,13 @@ FETCH_ROW:
 ERASE_JR:
   JR ERASE_JR
 
-; The second unrolled shift chain
+; The erase path's unrolled shift chain
 ;
-; Seven more ADD HL,HL and ADC A,A pairs, entered part-way down by a patched
-; jump exactly as SHIFT_CHAIN is. There are two because the two plot endings --
-; one XORing, one storing -- each need their own chain to fall into.
-SHIFT_CHAIN_2:
+; Seven more ADD HL,HL and ADC A,A pairs, entered part-way down by the jump at
+; ERASE_JR, which SETUP_ERASE patches exactly as SETUP_SPRITE_DRAW patches the
+; one before SHIFT_CHAIN. There are two because the erase and the draw run
+; interleaved, each in its own register bank, with its own shift.
+ERASE_SHIFT_CHAIN:
   ADD HL,HL
   ADC A,A
   ADD HL,HL
@@ -10111,9 +10241,9 @@ XOR_BYTE:
 
 ; Move a display file address up one pixel row
 ;
-; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_PIXELS_2,
-; DRAW_PIXELS_3, DRAW_PIXELS_4, BLIT_SPRITE_FLIPPED, DRAW_PIXELS_6,
-; DRAW_PIXELS_7, PLOT_XOR, PLOT_XOR_2 and ERASE_STRIP.
+; Used by the routines at BLIT_SPRITE, BLIT_SPRITE_MIRRORED, DRAW_TURNED_RIGHT,
+; DRAW_TRANSPOSED, DRAW_UPSIDE_DOWN, BLIT_SPRITE_FLIPPED, DRAW_ANTI_TRANSPOSED,
+; DRAW_TURNED_LEFT, ERASE_UNSHIFTED, DRAW_UNSHIFTED and ERASE_STRIP.
 ;
 ; The counterpart to PIXEL_TO_SCREEN's arithmetic, done as cheaply as possible
 ; because BLIT_SPRITE calls it once per row of every sprite on the screen.
@@ -10138,10 +10268,10 @@ SCREEN_ROW_UP:
   LD H,A                  ;
   RET
 
-; The other XOR ending
+; XOR two unshifted bytes: the draw path's plot for a thing on a cell boundary
 ;
-; As PLOT_XOR, reached from the other chain.
-PLOT_XOR_2:
+; Where DRAW_JR lands when no shift is needed; the same as ERASE_UNSHIFTED.
+DRAW_UNSHIFTED:
   EX DE,HL
   EX (SP),HL
   LD A,D
@@ -10157,7 +10287,7 @@ PLOT_XOR_2:
 
 ; Shift one row of a sprite into place and draw it
 ;
-; Used by the routine at CLIP_ROWS.
+; Used by the routine at ERASE_DRAW_ROWS.
 ;
 ; Reads two bytes of the row into HL and then jumps into the chain below at
 ; whatever depth SETUP_SPRITE_DRAW patched in. Each step there is ADD HL,HL
@@ -10217,9 +10347,9 @@ SETUP_ALT_ENTRIES:
 
 ; Draw a record's sprite
 ;
-; Used by the routines at TRY_FIRE_ALT, SPAWN_MONSTER_INTO_ROOM, MOVE_871A,
+; Used by the routines at WIZARD_FIRE, SPAWN_MONSTER_INTO_ROOM, MOVE_FACE,
 ; MOVE_MUMMY, MOVE_HUMPBACK, MATERIALISING, DRAW_ROOM_CONTENTS, DROP_CARRIED,
-; PLACE_PLAYER, DROP_OBJECT, DRAW_LIST, DRAW_LIVES and DRAW_TITLE_ICONS.
+; PLACE_PLAYER, DROP_GRAVESTONE, DRAW_LIST, DRAW_LIVES and DRAW_TITLE_ICONS.
 ;
 ; Sets the drawing up through SETUP_SPRITE_DRAW, clears the working count at
 ; $5E18, and draws. The entry most handlers use when they simply want something
@@ -10230,13 +10360,13 @@ DRAW_THING:
 DRAW_THING_ALT:
   EXX
   XOR A
-  LD (CLIP_COUNT),A
+  LD (ERASE_ROWS),A
   LD C,A
-  JP CLIP_ROWS
+  JP ERASE_DRAW_ROWS
 
 ; Rub a record's sprite out
 ;
-; Used by the routines at SPIN_SPELL, MOVE_871A, EAT_FOOD, REMEMBER_CARRIED and
+; Used by the routines at SPIN_SPELL, MOVE_FACE, EAT_FOOD, REMEMBER_CARRIED and
 ; MUSHROOM_KILLED_PLAYER.
 ;
 ; The counterpart to DRAW_THING, working from the position saved in the
@@ -10249,8 +10379,8 @@ ERASE_THING_ALT:
   EXX
   XOR A
   LD C,A
-  LD (CLIP_LIMIT),A
-  LD A,(CLIP_COUNT)
+  LD (DRAW_ROWS),A
+  LD A,(ERASE_ROWS)
   LD (DRAW_SHIFT),A
   LD A,L
   AND $07
@@ -10260,13 +10390,13 @@ ERASE_THING_ALT:
 ERASE_THING_0:
   LD (DRAW_WIDTH),A
   EXX
-  JP CLIP_ROWS
+  JP ERASE_DRAW_ROWS
 
 ; Set up the drawing address in both register banks
 ;
 ; Runs the same setup twice, once per bank, keeping DE across the first call so
 ; the second gets the same argument, and then joins the erase path at
-; CLIP_BOTTOM.
+; ALIGN_ROWS.
 ;
 ; Like NEXT_PIXEL_ROW, nothing reaches it: no call, no jump, no table entry.
 ; SETUP_ERASE immediately after it is the version the game actually uses.
@@ -10277,11 +10407,11 @@ SETUP_BOTH_BANKS:
   POP DE                  ;
   CALL SETUP_AT_POSITION  ;
   EXX
-  JR CLIP_BOTTOM
+  JR ALIGN_ROWS
 
 ; Work out where a thing used to be
 ;
-; Used by the routines at ERASE_THING and DRAW_CLIPPED.
+; Used by the routines at ERASE_THING and REDRAW_MOVED.
 ;
 ; Looks the sprite up from the workspace and computes the display address of
 ; the position saved in $5E16, so ERASE_THING can blank exactly the cells the
@@ -10303,7 +10433,7 @@ SETUP_ERASE_0:
   LD (ERASE_JR+$0001),A   ; ERASE_JR+1: the jump's displacement
   CALL PIXEL_TO_SCREEN
   LD A,(DE)
-  LD (CLIP_COUNT),A
+  LD (ERASE_ROWS),A
 ; This entry point is used by the routine at SETUP_SPRITE_DRAW.
 SETUP_DONE:
   LD C,$00
@@ -10312,7 +10442,7 @@ SETUP_DONE:
 
 ; Work out where a sprite goes, and how far to shift it
 ;
-; Used by the routines at DRAW_THING and DRAW_CLIPPED.
+; Used by the routines at DRAW_THING and REDRAW_MOVED.
 ;
 ; Sprites in this family are two bytes wide in the data and land on the screen
 ; straddling two or three, because x is a pixel position and not a character
@@ -10350,53 +10480,54 @@ SETUP_SPRITE_DRAW_1:
   LD (DRAW_WIDTH),A       ; How wide to erase and redraw.
   CALL PIXEL_TO_SCREEN
   LD A,(DE)               ; The first byte of a sprite's data is its height in
-  LD (CLIP_LIMIT),A       ; rows.
+  LD (DRAW_ROWS),A        ; rows.
   LD (DRAW_SHIFT),A       ;
   JR SETUP_DONE
 
-; Draw a sprite that may not fit
+; Redraw a thing that may have moved
 ;
 ; Used by the routine at UPDATE_KNIGHT.
 ;
-; Sets the drawing up through SETUP_SPRITE_DRAW, then compares the thing's
-; position against the workspace to work out how much of it is off the edge,
-; handing the whole-sprite case and the two clipped cases to different
-; routines. Called from the character handlers, which are the sprites most
-; likely to be walking off the edge of the play area.
-DRAW_CLIPPED:
+; The end of most handlers (through REDRAW_ACTOR). Sets up the draw at the
+; record's position through SETUP_SPRITE_DRAW, and in the other register bank
+; the erase at the position saved in the workspace through SETUP_ERASE; then
+; ALIGN_ROWS compares the two y positions, erases (or draws) the rows the old
+; and new pictures do not share, and hands the rest to ERASE_DRAW_ROWS, so each
+; screen row is rubbed out and redrawn close together.
+REDRAW_MOVED:
   CALL SETUP_SPRITE_DRAW
   EXX
   CALL SETUP_ERASE
 ; This entry point is used by the routine at SETUP_BOTH_BANKS.
-CLIP_BOTTOM:
+ALIGN_ROWS:
   LD A,(WORK_Y)
   SUB (IX+$04)
-  JP Z,CLIP_TOP
-  JP M,DRAW_CLIPPED_0
+  JP Z,ROWS_TOGETHER
+  JP M,REDRAW_MOVED_0
   LD C,A
-  LD A,(CLIP_COUNT)
+  LD A,(ERASE_ROWS)
   CP C
-  JP C,CLIP_TOP
+  JP C,ROWS_TOGETHER
   SUB C
-  LD (CLIP_COUNT),A
-  JP CLIP_ROWS
-DRAW_CLIPPED_0:
+  LD (ERASE_ROWS),A
+  JP ERASE_DRAW_ROWS
+REDRAW_MOVED_0:
   EXX
   NEG
   LD C,A
-  LD A,(CLIP_LIMIT)
+  LD A,(DRAW_ROWS)
   CP C
-  JP C,CLIP_SWAP
+  JP C,ROWS_TOGETHER_SWAP
   SUB C
-  JP CLIP_STORE
+  JP ROWS_DRAW_ONLY
 
 ; Copy an actor's position and sprite into the drawing workspace
 ;
-; Used by the routines at SPIN_AXE, SPIN_SPELL, SPIN_SWORD, MOVE_BAT_ALT,
-; MOVE_ACTOR, SPAWN_MONSTER, MOVE_BAT, MOVE_GHOST_ALT, MOVE_871A,
-; COUNTDOWN_ACTOR, MOVE_GHOST, MOVE_MUMMY, MOVE_DRACULA, MOVE_FRANKENSTEIN,
-; MOVE_DEVIL, MOVE_WITCH, MOVE_8A80, MOVE_HUMPBACK, EAT_FOOD, MOVE_PLAYER,
-; PICK_UP and MUSHROOM.
+; Used by the routines at SPIN_AXE, SPIN_SPELL, AIM_SWORD, MOVE_ARCS,
+; MOVE_ACTOR, SPAWN_MONSTER, MOVE_BAT, MOVE_HOPPER, MOVE_FACE, COUNTDOWN_ACTOR,
+; MOVE_GHOST, MOVE_MUMMY, MOVE_DRACULA, MOVE_FRANKENSTEIN, MOVE_DEVIL,
+; MOVE_WITCH, MOVE_FACING_FLYER, MOVE_HUMPBACK, EAT_FOOD, MOVE_PLAYER, PICK_UP
+; and MUSHROOM.
 ;
 ; Lifts three fields out of the record IX points at into fixed locations at
 ; $5E15-$5E17, so the drawing code can reach them without IX.
@@ -10437,7 +10568,7 @@ WORKSPACE_AND_DRAW:
   LD (WORK_X),A           ;
   LD A,(IX+$04)           ; ...kept for the pass that will erase it.
   LD (WORK_Y),A           ;
-; This entry point is used by the routines at SPIN_SPELL, MOVE_871A,
+; This entry point is used by the routines at SPIN_SPELL, MOVE_FACE,
 ; UPDATE_KNIGHT, DRAW_AT_POSITION and REMEMBER_CARRIED.
 DRAW_FROM_RECORD:
   LD L,(IX+$03)
@@ -10479,7 +10610,7 @@ WORKSPACE_AND_DRAW_3:
   LD A,B
   POP BC
   PUSH HL
-  LD HL,FILL_HANDLERS
+  LD HL,COLOUR_FILLERS
   SLA A
   CALL ADD_A_TO_HL
   LD A,(HL)
@@ -10488,89 +10619,91 @@ WORKSPACE_AND_DRAW_3:
   LD L,A
   JP (HL)
 
-; Where to go for each way of filling a run
+; Which attribute filler to use, by the way a thing moved
 ;
-; Eleven addresses, picked up two at a time and entered with JP (HL). Two of
-; the eleven are INERT_SPRITE rather than a routine in this group, which is the
-; same trick the actor table uses: an entry that does nothing useful points at
-; something harmless instead of being left out.
-FILL_HANDLERS:
-  DEFW FILL_ATTRS
-  DEFW FILL_ATTRS_BACK
-  DEFW FILL_ATTRS_2
+; Eleven addresses, indexed by 0, 1 or 2 for x unchanged, increased or
+; decreased, plus 4 if y increased (moved down) or 8 if it decreased: nine
+; fillers. The two unused slots are INERT_SPRITE rather than a routine in this
+; group, the same trick the actor table uses: an entry that does nothing useful
+; points at something harmless instead of being left out.
+COLOUR_FILLERS:
+  DEFW COLOUR_STILL
+  DEFW COLOUR_MOVED_RIGHT
+  DEFW COLOUR_MOVED_LEFT
   DEFW INERT_SPRITE
-  DEFW FILL_ATTRS_3
-  DEFW FILL_ATTRS_ALT
-  DEFW FILL_ATTRS_4
+  DEFW COLOUR_MOVED_DOWN
+  DEFW COLOUR_MOVED_DOWN_RIGHT
+  DEFW COLOUR_MOVED_DOWN_LEFT
   DEFW INERT_SPRITE
-  DEFW FILL_ATTRS_ROW
-  DEFW FILL_ATTRS_ROW_3
-  DEFW FILL_ATTRS_ROW_2
+  DEFW COLOUR_MOVED_UP
+  DEFW COLOUR_MOVED_UP_RIGHT
+  DEFW COLOUR_MOVED_UP_LEFT
 
-; Write a sprite's colours into the attribute file
+; Colour a thing that has not moved
 ;
-; The colour family's inner loop: a row of attribute cells written from D,
-; stepping along with INC L. The seven routines that follow are the same loop
-; with the direction reversed, the row stepped by $20 instead, or the second
-; colour in E used -- one per drawing mode, exactly as the pixel family has one
-; per mode.
-FILL_ATTRS:
+; The first of nine attribute fillers DRAW_FROM_RECORD picks by comparing a
+; thing's old and new position: each paints the thing's block of cells in D,
+; its own colour, and the column or row it has just moved out of in E, the
+; room's colour -- so a creature carries its colour with it and hands the
+; room's back. This one, for a thing that has not moved, only paints the block.
+COLOUR_STILL:
   POP HL
-; This entry point is used by the routine at FILL_ATTRS_ROW.
-FILL_ATTRS_BODY:
+; This entry point is used by the routine at COLOUR_MOVED_UP.
+COLOUR_STILL_BODY:
   PUSH BC
   PUSH HL
-FILL_ATTRS_0:
+COLOUR_STILL_0:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_0
+  DJNZ COLOUR_STILL_0
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_BODY
+  JR NZ,COLOUR_STILL_BODY
   RET
 
-; The same, written backwards
+; Colour a thing that moved right
 ;
-; DEC L rather than INC L, for the mirrored drawing modes.
-FILL_ATTRS_BACK:
+; The room's colour into the column to the left of the block, which the thing
+; has just left, then the block.
+COLOUR_MOVED_RIGHT:
   POP HL
-; This entry point is used by the routine at FILL_ATTRS_ROW_3.
-FILL_ATTRS_BACK_BODY:
+; This entry point is used by the routine at COLOUR_MOVED_UP_RIGHT.
+COLOUR_RIGHT_BODY:
   PUSH BC
   PUSH HL
   DEC L
   LD (HL),E
   INC L
-FILL_ATTRS_BACK_0:
+COLOUR_MOVED_RIGHT_0:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_BACK_0
+  DJNZ COLOUR_MOVED_RIGHT_0
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_BACK_BODY
+  JR NZ,COLOUR_RIGHT_BODY
   RET
 
-; Another of the eight colour writers
+; Colour a thing that moved left
 ;
-; As FILL_ATTRS, for a different drawing mode.
-FILL_ATTRS_2:
+; The block, then the room's colour into the column to its right.
+COLOUR_MOVED_LEFT:
   POP HL
-; This entry point is used by the routine at FILL_ATTRS_ROW_2.
-FILL_ATTRS_SECOND_BODY:
+; This entry point is used by the routine at COLOUR_MOVED_UP_LEFT.
+COLOUR_LEFT_BODY:
   PUSH BC
   PUSH HL
-FILL_ATTRS_2_0:
+COLOUR_MOVED_LEFT_0:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_2_0
+  DJNZ COLOUR_MOVED_LEFT_0
   LD (HL),E
   POP HL
   LD BC,$0020
@@ -10578,72 +10711,73 @@ FILL_ATTRS_2_0:
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_SECOND_BODY
+  JR NZ,COLOUR_LEFT_BODY
   RET
 
-; Another of the eight colour writers
+; Colour a thing that moved down
 ;
-; As FILL_ATTRS, for a different drawing mode.
-FILL_ATTRS_3:
+; The block, then (COLOUR_TRAIL_ABOVE) the room's colour into the row above it,
+; unless that is above the attribute file.
+COLOUR_MOVED_DOWN:
   POP HL
-FILL_ATTRS_3_0:
+COLOUR_MOVED_DOWN_0:
   PUSH BC
   PUSH HL
-FILL_ATTRS_3_1:
+COLOUR_MOVED_DOWN_1:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_3_1
+  DJNZ COLOUR_MOVED_DOWN_1
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_3_0
-; This entry point is used by the routines at FILL_ATTRS_ALT and FILL_ATTRS_4.
-FILL_ATTRS_LIMIT:
+  JR NZ,COLOUR_MOVED_DOWN_0
+; This entry point is used by the routines at COLOUR_MOVED_DOWN_RIGHT and
+; COLOUR_MOVED_DOWN_LEFT.
+COLOUR_TRAIL_ABOVE:
   LD A,H
   CP $58
   RET C
-FILL_ATTRS_3_2:
+COLOUR_MOVED_DOWN_2:
   LD (HL),E
   INC L
-  DJNZ FILL_ATTRS_3_2
+  DJNZ COLOUR_MOVED_DOWN_2
   RET
 
-; A colour writer using the second colour
+; Colour a thing that moved down and right
 ;
-; Writes from E rather than D, so a sprite drawn through this mode comes out in
-; its alternate colour.
-FILL_ATTRS_ALT:
+; The room's colour to the left of each row and in the row above, the block in
+; D. E is the room's colour, not a second colour of the thing's.
+COLOUR_MOVED_DOWN_RIGHT:
   POP HL
-FILL_ATTRS_ALT_0:
+COLOUR_MOVED_DOWN_RIGHT_0:
   PUSH BC
   PUSH HL
   DEC L
   LD (HL),E
   INC L
-FILL_ATTRS_ALT_1:
+COLOUR_MOVED_DOWN_RIGHT_1:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_ALT_1
+  DJNZ COLOUR_MOVED_DOWN_RIGHT_1
   POP HL
   LD BC,$0020
   AND A
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_ALT_0
+  JR NZ,COLOUR_MOVED_DOWN_RIGHT_0
   DEC L
   LD (HL),E
   INC L
-  JR FILL_ATTRS_LIMIT
+  JR COLOUR_TRAIL_ABOVE
 
-; A colour writer that steps a whole row
+; Colour a thing that moved up
 ;
-; Adds $20 between cells -- one attribute row -- so it fills a column rather
-; than a line.
-FILL_ATTRS_ROW:
+; The room's colour into the row below the block, then the block.
+COLOUR_MOVED_UP:
   POP HL
   PUSH BC
   PUSH HL
@@ -10651,18 +10785,19 @@ FILL_ATTRS_ROW:
   LD BC,$0020
   ADD HL,BC
   POP BC
-FILL_ATTRS_ROW_0:
+COLOUR_MOVED_UP_0:
   LD (HL),E
   INC L
-  DJNZ FILL_ATTRS_ROW_0
+  DJNZ COLOUR_MOVED_UP_0
   POP HL
   POP BC
-  JP FILL_ATTRS_BODY
+  JP COLOUR_STILL_BODY
 
-; Another column-wise colour writer
+; Colour a thing that moved up and left
 ;
-; As FILL_ATTRS_ROW, for a different mode.
-FILL_ATTRS_ROW_2:
+; The room's colour into the row below, one cell wider, then the block with the
+; column to its right.
+COLOUR_MOVED_UP_LEFT:
   POP HL
   PUSH BC
   PUSH HL
@@ -10671,26 +10806,27 @@ FILL_ATTRS_ROW_2:
   ADD HL,BC
   POP BC
   INC B
-FILL_ATTRS_ROW_2_0:
+COLOUR_MOVED_UP_LEFT_0:
   LD (HL),E
   INC L
-  DJNZ FILL_ATTRS_ROW_2_0
+  DJNZ COLOUR_MOVED_UP_LEFT_0
   POP HL
   POP BC
-  JR FILL_ATTRS_SECOND_BODY
+  JR COLOUR_LEFT_BODY
 
-; The last of the eight colour writers
+; Colour a thing that moved down and left
 ;
-; As FILL_ATTRS, for the remaining mode.
-FILL_ATTRS_4:
+; The block with the room's colour to the right of each row, then the row
+; above.
+COLOUR_MOVED_DOWN_LEFT:
   POP HL
-FILL_ATTRS_4_0:
+COLOUR_MOVED_DOWN_LEFT_0:
   PUSH BC
   PUSH HL
-FILL_ATTRS_4_1:
+COLOUR_MOVED_DOWN_LEFT_1:
   LD (HL),D
   INC L
-  DJNZ FILL_ATTRS_4_1
+  DJNZ COLOUR_MOVED_DOWN_LEFT_1
   LD (HL),E
   POP HL
   LD BC,$0020
@@ -10698,14 +10834,15 @@ FILL_ATTRS_4_1:
   SBC HL,BC
   POP BC
   DEC C
-  JR NZ,FILL_ATTRS_4_0
+  JR NZ,COLOUR_MOVED_DOWN_LEFT_0
   INC B
-  JP FILL_ATTRS_LIMIT
+  JP COLOUR_TRAIL_ABOVE
 
-; A column-wise colour writer for the mirrored modes
+; Colour a thing that moved up and right
 ;
-; The $20 step of FILL_ATTRS_ROW with the reversal of FILL_ATTRS_BACK.
-FILL_ATTRS_ROW_3:
+; The room's colour into the row below and the column to the left, then the
+; block.
+COLOUR_MOVED_UP_RIGHT:
   POP HL
   PUSH BC
   PUSH HL
@@ -10715,13 +10852,13 @@ FILL_ATTRS_ROW_3:
   POP BC
   DEC L
   INC B
-FILL_ATTRS_ROW_3_0:
+COLOUR_MOVED_UP_RIGHT_0:
   LD (HL),E
   INC L
-  DJNZ FILL_ATTRS_ROW_3_0
+  DJNZ COLOUR_MOVED_UP_RIGHT_0
   POP HL
   POP BC
-  JP FILL_ATTRS_BACK_BODY
+  JP COLOUR_RIGHT_BODY
 
 ; Draw the three carried objects on the scroll
 ;
@@ -10790,9 +10927,9 @@ DRAW_LIST_0:
 ;
 ; That it is eight bytes and not sixteen is the useful part. A monster's record
 ; is sixteen, but only its first eight describe the thing itself: sprite, room,
-; a flag, x, y, drawing mode. The doors above $EEE0 are eight bytes too. So the
-; short form is the common one, and an actor is that plus another eight for how
-; it moves and what it has in the air.
+; a flag, x, y, drawing mode. Each half of a door or furniture record is eight
+; bytes too. So the short form is the common one, and an actor is that plus
+; another eight for how it moves and what it has in the air.
 UI_RECORD:
   DEFS $08
 
@@ -10819,7 +10956,7 @@ ERASE_STRIP_0:
 
 ; Add to the score and redraw it
 ;
-; Used by the routines at MOVE_871A and MOVE_FRANKENSTEIN.
+; Used by the routines at MOVE_FACE and MOVE_FRANKENSTEIN.
 ;
 ; The score is three bytes of BCD at $5E2A-$5E2C, printed as six digits. The
 ; three DAAs carry across the whole of it, so a caller only has to hand over
@@ -11187,43 +11324,44 @@ TITLE_ICONS:
   DEFB $11,$00,$00,$28,$7F,$47,$00,$00
   DEFB $21,$00,$00,$28,$97,$47,$00,$00
 
-; Another multiply
+; Divide, for a line's slope
 ;
 ; Used by the routine at DRAW_LINE.
 ;
-; The same shift-and-add as MULTIPLY, kept separately for the sound routines so
-; that they do not disturb the registers the drawing code is using.
-MULTIPLY_2:
+; Eight rounds of shift, trial subtract and set a quotient bit: the shorter
+; side of a line over the longer, as an 8-bit fraction. Its only callers are
+; the two halves of DRAW_LINE.
+DIVIDE_SLOPE:
   LD L,H
   LD H,$00
   EXX
   LD HL,$0000
   LD B,$08
-MULTIPLY_2_0:
+DIVIDE_SLOPE_0:
   EXX
   SLA L
   RL H
   PUSH HL
   AND A
   SBC HL,DE
-  JR C,MULTIPLY_2_2
+  JR C,DIVIDE_SLOPE_2
   POP AF
   EXX
   ADD HL,HL
   INC HL
-MULTIPLY_2_1:
-  DJNZ MULTIPLY_2_0
+DIVIDE_SLOPE_1:
+  DJNZ DIVIDE_SLOPE_0
   PUSH HL
   EXX
   LD E,L
   LD D,H
   POP HL
   RET
-MULTIPLY_2_2:
+DIVIDE_SLOPE_2:
   POP HL
   EXX
   ADD HL,HL
-  JR MULTIPLY_2_1
+  JR DIVIDE_SLOPE_1
 
 ; Negate HL
 ;
@@ -11243,7 +11381,7 @@ NEGATE_HL:
 ; Square wave on the beeper
 ;
 ; Used by the routines at TRAPDOOR_FALL, SOUND_SWEEP_A41B, SOUND_SWEEP_UP,
-; SOUND_SWEEP_DOWN and SOUND_SPELL.
+; SOUND_SWEEP_DOWN and SOUND_WEAPON_GONE.
 ;
 ; Toggles bit 4 of port $FE with a busy-wait either side, which is the only way
 ; a 48K makes a sound. Every sound effect in the game is a call here, or a
@@ -11256,8 +11394,8 @@ BEEP:
                           ; callers wanting a longer note enter below with C
                           ; already set.
 ; This entry point is used by the routines at BEEP_ENTRIES, SOUND_FOOTSTEP,
-; SOUND_BONUS, SOUND_64, SOUND_65, SOUND_FROM_HEADING, SOUND_A0 and
-; SOUND_SPELL_2.
+; SOUND_LIFE_PIP, SOUND_CAUGHT, SOUND_NEW_ROOM, SOUND_RISE_SINK, SOUND_EATING
+; and SOUND_BOUNCE.
 BEEP_BC:
   LD A,$10                ; Speaker bit high.
   OUT ($FE),A             ;
@@ -11301,10 +11439,10 @@ SHORT_HIGH_BEEP:
 ; the work: bit 0 decides whether to make a sound at all, so only every other
 ; call does, and bit 1 chooses which of two notes.
 ;
-; The two are $6004 and $4004 -- four cycles each, of half-period $60 and $40
-; -- which measure at about 1360 Hz and 2005 Hz. They alternate, so a walking
-; character produces low, high, low, high rather than one repeated click. That
-; is the whole footstep: two tones and a counter.
+; The two are four cycles each, of half-period $60 and $40 -- which measure at
+; about 1360 Hz and 2005 Hz. They alternate, so a walking character produces
+; low, high, low, high rather than one repeated click. That is the whole
+; footstep: two tones and a counter.
 ;
 ; None; it reads and advances $5E2F itself
 SOUND_FOOTSTEP:
@@ -11323,19 +11461,18 @@ SOUND_FOOTSTEP_0:
   LD BC,$6004             ; The lower, about 1360 Hz.
   JR BEEP_BC              ;
 
-; The note that goes with the flashing score
+; The pip that goes with the flashing score at the start of a life
 ;
 ; Used by the routine at FLASH_SCORE.
 ;
-; One call from FLASH_SCORE, once every sixteen steps of its countdown. BC is
-; $8060 -- half-period $80, and $60 is 96 cycles of it -- which measures as 96
-; milliseconds at about 1030 Hz: a clear steady pip rather than a sweep, and
-; long enough to be heard over everything else.
-SOUND_BONUS:
+; One call from FLASH_SCORE, once every sixteen steps of its 104-frame
+; countdown. B is half-period $80 and C is 96 cycles of it, which measures as
+; 96 milliseconds at about 1030 Hz: a clear steady pip rather than a sweep.
+SOUND_LIFE_PIP:
   LD BC,$8060
   JR BEEP_BC
 
-; Start a sound effect
+; Start sound $64, the one for being caught
 ;
 ; Used by the routines at CHECK_HIT and MUSHROOM_DRAIN.
 ;
@@ -11349,15 +11486,20 @@ SOUND_BONUS:
 ; same field holds in every other record, and the sprite is one of the codes
 ; that draws nothing -- $64, $65 and $A0 are sounds wearing an actor's clothes.
 ;
-; Three routines share the tail with different values: $6410 here, $650A from
-; PLAY_SOUND_65 and $A010 from PLAY_SOUND_A0. Watched live, writing $64 and $10
-; into the two bytes by hand makes the count fall 0C, 07, 03 over the following
-; frames and then the slot empties itself.
+; Three routines share the tail with different values: sound $64 for 16 frames
+; here, $65 for 10 from PLAY_SOUND_NEW_ROOM (a room entered) and $A0 for 16
+; from PLAY_SOUND_EATING (food eaten). This one is started by CHECK_HIT when a
+; creature touches the player, and by MUSHROOM_DRAIN on every pass the player
+; stands on a mushroom. There is one slot, so a new sound replaces one still
+; playing. Watched live, writing $64 and $10 into the two bytes by hand makes
+; the count fall 0C, 07, 03 over the following frames and then the slot empties
+; itself.
 ;
 ; BC B = which sound, C = how many frames it lasts
-PLAY_SOUND:
+PLAY_SOUND_CAUGHT:
   LD BC,$6410             ; This entry's sound and length.
-; This entry point is used by the routines at PLAY_SOUND_65 and PLAY_SOUND_A0.
+; This entry point is used by the routines at PLAY_SOUND_NEW_ROOM and
+; PLAY_SOUND_EATING.
 PLAY_SOUND_BC:
   LD HL,SOUND_SLOT        ; Sprite first, then the count -- the field an
   LD (HL),B               ; ordinary record uses for its room.
@@ -11365,7 +11507,7 @@ PLAY_SOUND_BC:
   LD (HL),C               ;
   RET
 
-; Sound $64, one frame of it
+; Sound $64 (being caught), one frame of it
 ;
 ; Called once a frame while the sound lasts. The pitch is taken from however
 ; much of the countdown is left, so the note slides as it plays rather than
@@ -11373,7 +11515,7 @@ PLAY_SOUND_BC:
 ; starting count.
 ;
 ; IX The sound's record
-SOUND_64:
+SOUND_CAUGHT:
   DEC (IX+$01)            ; One frame less to go; at zero the sound is over.
   JR Z,END_SOUND          ;
   LD A,(IX+$01)           ; What is left of the count is how many cycles to
@@ -11385,7 +11527,7 @@ SOUND_64:
 
 ; Free the slot when a sound finishes
 ;
-; Used by the routines at SOUND_64, SOUND_65 and SOUND_A0.
+; Used by the routines at SOUND_CAUGHT, SOUND_NEW_ROOM and SOUND_EATING.
 ;
 ; Zeroing the sprite is all it takes: the dispatcher skips a record with sprite
 ; $00, so the sound simply stops being found. Shared by all three sound
@@ -11398,17 +11540,19 @@ END_SOUND:
 ;
 ; Used by the routine at ENTER_ROOM.
 ;
-; Hands $650A to PLAY_SOUND's tail: sound $65, lasting ten frames.
-PLAY_SOUND_65:
+; Hands sound $65 and a length of ten frames to PLAY_SOUND_CAUGHT's tail.
+; ARRIVE_IN_ROOM calls it for every room entered.
+PLAY_SOUND_NEW_ROOM:
   LD BC,$650A
   JR PLAY_SOUND_BC
 
-; Sound $65, one frame of it
+; Sound $65 (entering a room), one frame of it
 ;
-; The same shape as SOUND_64 with the pitch derived differently -- three
+; The same shape as SOUND_CAUGHT with the pitch derived differently -- three
 ; rotations, complemented, folded about $40 -- which is what makes it a
-; different effect rather than the same one at another speed.
-SOUND_65:
+; different effect rather than the same one at another speed. ARRIVE_IN_ROOM
+; starts it through PLAY_SOUND_NEW_ROOM whenever a room is entered.
+SOUND_NEW_ROOM:
   DEC (IX+$01)            ; Counting down.
   JR Z,END_SOUND          ;
   LD A,(IX+$01)           ; Cycles from the count.
@@ -11423,10 +11567,10 @@ SOUND_65:
 
 ; A short sweep
 ;
-; Used by the routine at TRY_FIRE_THIRD.
+; Used by the routine at KNIGHT_FIRE.
 ;
 ; Twelve steps of BEEP with the pitch walked down, about nine milliseconds.
-; Reached from TRY_FIRE_THIRD, so it is one of the three firing noises.
+; Reached from KNIGHT_FIRE, so it is one of the three firing noises.
 SOUND_SWEEP_A41B:
   LD D,$0C
 SOUND_SWEEP_A41B_0:
@@ -11440,11 +11584,11 @@ SOUND_SWEEP_A41B_0:
 
 ; A rising sweep
 ;
-; Used by the routine at TRY_FIRE.
+; Used by the routine at SERF_FIRE.
 ;
 ; Sixteen calls to BEEP with the pitch walked from one end to the other, so the
 ; note climbs. Measured at roughly 16 milliseconds, sweeping from about 500 Hz
-; upwards. Reached from the serf's handler by way of TRY_FIRE.
+; upwards. Reached from the serf's handler by way of SERF_FIRE.
 SOUND_SWEEP_UP:
   LD D,$10                ; Sixteen steps.
 SOUND_SWEEP_UP_0:
@@ -11462,7 +11606,7 @@ SOUND_SWEEP_UP_0:
 
 ; A short falling sweep
 ;
-; Used by the routine at TRY_FIRE_ALT.
+; Used by the routine at WIZARD_FIRE.
 ;
 ; Eight steps rather than sixteen, and the pitch complemented so it falls where
 ; SOUND_SWEEP_UP rises. About 14 milliseconds, and barely moving -- 520 to 556
@@ -11479,15 +11623,16 @@ SOUND_SWEEP_DOWN_0:
   JR NZ,SOUND_SWEEP_DOWN_0
   RET
 
-; The wizard's spell
+; The sound of a weapon's flight ending, or a burst ending
 ;
 ; Used by the routine at SPIN_SPELL.
 ;
-; Called from SPIN_SPELL, along with SOUND_SPELL_2. Unlike the fixed sweeps
-; this one takes its starting pitch from $5E25, the count of actors in the
-; room, so the spell does not sound quite the same twice. Measured at about 6
-; milliseconds across 1900 to 3700 Hz.
-SOUND_SPELL:
+; Called from WEAPON_GONE in SPIN_WEAPON, which all three weapons share, and so
+; also at the end of every burst (COUNTDOWN_ACTOR jumps there). It takes its
+; starting pitch from $5E25, the count of creatures in the room, so it does not
+; sound quite the same twice. Measured at about 6 milliseconds across 1900 to
+; 3700 Hz.
+SOUND_WEAPON_GONE:
   LD A,(ACTORS_HERE)
   INC A
   RLCA
@@ -11497,7 +11642,7 @@ SOUND_SPELL:
   OR $0F
   AND $7F
   LD D,A
-SOUND_SPELL_0:
+SOUND_WEAPON_GONE_0:
   LD A,D
   XOR $20
   LD B,A
@@ -11506,15 +11651,17 @@ SOUND_SPELL_0:
   RET Z
   DEC D
   RET Z
-  JR SOUND_SPELL_0
+  JR SOUND_WEAPON_GONE_0
 
-; A sound whose pitch comes from a creature's heading
+; The note of the player sinking or rising
 ;
 ; Used by the routine at MATERIALISING.
 ;
-; Takes +$06, complements and masks it, and uses the result as the half-period
-; -- so the noise a thing makes depends on which way it is going.
-SOUND_FROM_HEADING:
+; Takes +$06, complements and masks it, and uses the result as the half-period.
+; Its only caller is the colour step shared by DYING and MATERIALISING, where
+; +$06 is the number of rows of the figure showing -- so the note moves as the
+; player sinks or rises.
+SOUND_RISE_SINK:
   LD A,(IX+$06)
   CPL
   RLCA
@@ -11526,19 +11673,19 @@ SOUND_FROM_HEADING:
 
 ; A short burst of noise
 ;
-; Used by the routines at WAIT_THEN_ACT and FLASH_AND_RASP.
+; Used by the routines at TIMED_DOOR_SHUT and TRAPDOOR_CLOSED.
 ;
 ; Run from a cold machine it lasts about 8 milliseconds and puts out 119
 ; speaker edges with the gaps between them swinging wildly -- 843 Hz at the
 ; widest and far above hearing at the narrowest. That is not a note; it is a
 ; rasp.
 ;
-; Reached from FLASH_AND_RASP, and by JP rather than CALL, so it returns to
-; whoever called that rather than to the jump. That also makes it awkward to
-; capture on its own during play: there is no return address on the stack to
-; stop at. An earlier note put the caller at WAIT_THEN_ACT, which was wrong --
-; the call site sits inside a block the automatic pass had left as data, so it
-; was attributed to the nearest entry above it.
+; Reached by JP from TOGGLE_TIMED_DOOR (a timed door slamming or opening) and
+; from the tail of TRAPDOOR_CLOSED (a trapdoor opening or closing), so it
+; returns to whoever called those. Its noise is the ROM: eight bits of each of
+; 48 bytes from address 0 go to the speaker. An earlier note put the caller at
+; TIMED_DOOR_SHUT, which was wrong -- that is the timed door's handler, two
+; calls away.
 ;
 ; An earlier note here claimed this was a full second of sound sweeping the
 ; audible range, which was wrong. The measurement behind it came from running
@@ -11566,17 +11713,18 @@ SOUND_NOISE_BURST_1:
 ;
 ; Used by the routine at EAT_FOOD.
 ;
-; Hands $A010 to the same tail: sound $A0, sixteen frames.
-PLAY_SOUND_A0:
+; Hands sound $A0 and a length of sixteen frames to the same tail. EAT_FOOD
+; calls it.
+PLAY_SOUND_EATING:
   LD BC,$A010
   JP PLAY_SOUND_BC
 
 ; Sound $A0, one frame of it
 ;
-; The third of the sound handlers, alongside SOUND_64 and SOUND_65. It takes
-; its pitch from a table at SWEEP_PITCHES rather than computing it, so its
-; sweep is a shape someone chose rather than an arithmetic accident.
-SOUND_A0:
+; The third of the sound handlers, alongside SOUND_CAUGHT and SOUND_NEW_ROOM.
+; It takes its pitch from a table at SWEEP_PITCHES rather than computing it, so
+; its sweep is a shape someone chose rather than an arithmetic accident.
+SOUND_EATING:
   DEC (IX+$01)
   JP M,END_SOUND
   LD C,(IX+$01)
@@ -11590,18 +11738,18 @@ SOUND_A0:
 ; The pitches the sweep steps through
 ;
 ; $80 and $90 alternating four times, then $80 walked down to $10 in steps of
-; $10. So the sound wavers on one note and then climbs away from it, which is
-; cheaper than computing a curve and is why the sweep sounds the way it does
-; rather than gliding smoothly.
+; $10. SOUND_EATING reads it from the last entry down, so in time the note
+; falls from high to low and ends wavering between two pitches.
 SWEEP_PITCHES:
   DEFB $80,$90,$80,$90,$80,$90,$80,$90,$80,$70,$60,$50,$40,$30,$20,$10
 
-; The spell's second noise
+; The sound of a weapon bouncing off a wall
 ;
 ; Used by the routine at SPIN_SPELL.
 ;
-; The other of the two sounds SPIN_SPELL makes, alongside SOUND_SPELL.
-SOUND_SPELL_2:
+; Called twice in SPIN_WEAPON, when any of the three weapons reverses at the
+; edge of the walk area.
+SOUND_BOUNCE:
   LD D,$40
   DEC D
   RET Z
@@ -11928,9 +12076,10 @@ ATTRS_DA:
 ; Colour and shape of each room
 ;
 ; Two bytes per room, indexed by room number: the first is the attribute the
-; whole play area is filled with, the second is an index into ROOM_SHAPES. With
-; 152 rooms sharing a much smaller set of outlines, this is most of what makes
-; the castle fit in memory.
+; whole play area is filled with, the second is an index into ROOM_SHAPES. The
+; table has 151 entries: the 149 rooms, then entry $95, black, and entry $96,
+; the shape TRAPDOOR_FALL draws. With 149 rooms sharing thirteen outlines, this
+; is most of what makes the castle fit in memory.
 ROOM_TABLE:
   DEFB $42,$00,$43,$02,$44,$03,$45,$02
   DEFB $46,$04,$47,$02,$46,$03,$45,$02
@@ -15157,7 +15306,7 @@ GFX_5D:
   DEFB $1F,$F8
   DEFB $0F,$F0
 
-; Monster, not yet identified, drawn for sprite $5E
+; Spiky creature, hops, drawn for sprite $5E
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -15180,7 +15329,7 @@ GFX_5E:
   DEFB $03,$1C
   DEFB $02,$00
 
-; Monster, not yet identified, drawn for sprite $5F
+; Spiky creature, hops, drawn for sprite $5F
 ;
 ; 16 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -15203,7 +15352,7 @@ GFX_5F:
   DEFB $63,$62
   DEFB $01,$20
 
-; Monster, not yet identified, drawn for sprite $60
+; Small face with two eyes, drawn for sprite $60
 ;
 ; 11 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.
@@ -15221,7 +15370,7 @@ GFX_60:
   DEFB $38,$38
   DEFB $F0,$1E
 
-; Monster, not yet identified, drawn for sprite $61
+; Small face with two eyes, drawn for sprite $61
 ;
 ; 9 rows of 16 pixels. The first byte is the row count; the rest are the rows,
 ; two bytes each, top down.

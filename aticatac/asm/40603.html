@@ -25,22 +25,22 @@ Next: <a href="40654.html">9ECE</a>
 </td>
 </tr>
 </table>
-<div class="description">9E9B: Draw only the rows that fit</div>
+<div class="description">9E9B: Erase the old rows and draw the new, interleaved</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-Used by the routines at <a href="40778.html">DRAW_THING</a>, <a href="40790.html">ERASE_THING</a> and <a href="40906.html">DRAW_CLIPPED</a>.
+Used by the routines at <a href="40778.html">DRAW_THING</a>, <a href="40790.html">ERASE_THING</a> and <a href="40906.html">REDRAW_MOVED</a>.
 </div>
 <div class="paragraph">
-Part of the drawing path that deals with a sprite hanging off an edge: it counts rows down in C and drops out early rather than letting the blitter run past the end of the play area. The alternate register set holds the second of the two counts, which is why it is full of EXX.
+The loop behind REDRAW_MOVED, DRAW_THING and ERASE_THING. One register bank holds the erase of a thing at its old place (through ERASE_SHIFT_CHAIN), the other the draw at its new place (through SHIFT_CHAIN), each with a row count in C; the loop takes a row from each in turn, bottom up, both XORed onto the screen. ERASE_ROWS and DRAW_ROWS ($5E18, $5E19) hold the rows still to do once ALIGN_ROWS has done the rows the two do not share. Nothing is clipped against the play area.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_ROWS</td>
+<td class="asm-label">ERASE_DRAW_ROWS</td>
 <td class="address-2"><span id="40603"></span>9E9B</td>
 <td class="instruction">LD A,C</td>
 <td class="comment-0" rowspan="1"></td>
@@ -54,7 +54,7 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40605"></span>9E9D</td>
-<td class="instruction">JR Z,<a href="40603.html#40623">CLIP_ROWS_2</a></td>
+<td class="instruction">JR Z,<a href="40603.html#40623">ERASE_DRAW_ROWS_2</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -90,11 +90,11 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40614"></span>9EA6</td>
-<td class="instruction">JR Z,<a href="40603.html#40620">CLIP_ROWS_1</a></td>
+<td class="instruction">JR Z,<a href="40603.html#40620">ERASE_DRAW_ROWS_1</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_ROWS_0</td>
+<td class="asm-label">ERASE_DRAW_ROWS_0</td>
 <td class="address-2"><span id="40616"></span>9EA8</td>
 <td class="instruction">DEC C</td>
 <td class="comment-0" rowspan="1"></td>
@@ -106,7 +106,7 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_ROWS_1</td>
+<td class="asm-label">ERASE_DRAW_ROWS_1</td>
 <td class="address-2"><span id="40620"></span>9EAC</td>
 <td class="instruction">EXX</td>
 <td class="comment-0" rowspan="1"></td>
@@ -114,11 +114,11 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40621"></span>9EAD</td>
-<td class="instruction">JR <a href="40603.html#40603">CLIP_ROWS</a></td>
+<td class="instruction">JR <a href="40603.html#40603">ERASE_DRAW_ROWS</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_ROWS_2</td>
+<td class="asm-label">ERASE_DRAW_ROWS_2</td>
 <td class="address-2"><span id="40623"></span>9EAF</td>
 <td class="instruction">EXX</td>
 <td class="comment-0" rowspan="1"></td>
@@ -138,7 +138,7 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40626"></span>9EB2</td>
-<td class="instruction">JR NZ,<a href="40603.html#40616">CLIP_ROWS_0</a></td>
+<td class="instruction">JR NZ,<a href="40603.html#40616">ERASE_DRAW_ROWS_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -146,13 +146,13 @@ Part of the drawing path that deals with a sprite hanging off an edge: it counts
 <span id="40628"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>.
+This entry point is used by the routine at <a href="40906.html">REDRAW_MOVED</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_SWAP</td>
+<td class="asm-label">ROWS_TOGETHER_SWAP</td>
 <td class="address-2"><span id="40628"></span>9EB4</td>
 <td class="instruction">EXX</td>
 <td class="comment-0" rowspan="1"></td>
@@ -162,13 +162,13 @@ This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>
 <span id="40629"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>.
+This entry point is used by the routine at <a href="40906.html">REDRAW_MOVED</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_TOP</td>
+<td class="asm-label">ROWS_TOGETHER</td>
 <td class="address-2"><span id="40629"></span>9EB5</td>
 <td class="instruction">LD A,($5E18)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -238,13 +238,13 @@ This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>
 <span id="40648"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>.
+This entry point is used by the routine at <a href="40906.html">REDRAW_MOVED</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">CLIP_STORE</td>
+<td class="asm-label">ROWS_DRAW_ONLY</td>
 <td class="address-2"><span id="40648"></span>9EC8</td>
 <td class="instruction">LD ($5E19),A</td>
 <td class="comment-0" rowspan="1"></td>
@@ -258,7 +258,7 @@ This entry point is used by the routine at <a href="40906.html">DRAW_CLIPPED</a>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="40652"></span>9ECC</td>
-<td class="instruction">JR <a href="40603.html#40603">CLIP_ROWS</a></td>
+<td class="instruction">JR <a href="40603.html#40603">ERASE_DRAW_ROWS</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 </table>

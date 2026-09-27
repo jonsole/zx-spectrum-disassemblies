@@ -25,7 +25,7 @@ Next: <a href="39266.html">9962</a>
 </td>
 </tr>
 </table>
-<div class="description">9924: Step a cursor on by one record</div>
+<div class="description">9924: Grow the food back, one slot every 512 passes</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
@@ -34,13 +34,13 @@ Next: <a href="39266.html">9962</a>
 Used by the routine at <a href="32275.html">MAIN_LOOP_MONSTERS</a>.
 </div>
 <div class="paragraph">
-Adds eight to the pointer kept at $5E55, but only on frames where the low bits of $5E12 and $5E13 are both clear -- so it creeps through a table a record at a time over many frames rather than sweeping it in one go.
+On a pass when TICKS' low byte is zero and bit 0 of its high byte clear -- once in 512 -- REGROW_CURSOR ($5E55) steps to the next of the eighty food records, wrapping from the mushrooms back to the first. If that slot is empty and not in the player's room, it is refilled with a random kind of food, $50 + FRAMES AND 7, in its old place (measured in the simulator). A whole round of the eighty takes 512 times 80 passes, about half an hour.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">ADVANCE_CURSOR</td>
+<td class="asm-label">REGROW_FOOD</td>
 <td class="address-2"><span id="39204"></span>9924</td>
 <td class="instruction">LD A,($5E12)</td>
 <td class="comment-0" rowspan="1"></td>
@@ -132,7 +132,7 @@ Adds eight to the pointer kept at $5E55, but only on frames where the low bits o
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="39234"></span>9942</td>
-<td class="instruction">JR NC,<a href="39204.html#39259">ADVANCE_CURSOR_0</a></td>
+<td class="instruction">JR NC,<a href="39204.html#39259">REGROW_FOOD_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -202,7 +202,7 @@ Adds eight to the pointer kept at $5E55, but only on frames where the low bits o
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">ADVANCE_CURSOR_0</td>
+<td class="asm-label">REGROW_FOOD_0</td>
 <td class="address-2"><span id="39259"></span>995B</td>
 <td class="instruction">LD HL,$EB58</td>
 <td class="comment-0" rowspan="1"></td>

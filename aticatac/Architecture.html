@@ -42,7 +42,7 @@ The player and every monster share one record. The first eight bytes describe th
 <tr><td>+$05</td><td>drawing mode: top three bits pick the drawing routine, low two how the sprite combines with the screen, bit 6 a doorway's facing</td></tr>
 </table>
 For a monster the rest is how it moves &mdash; +$08 and +$09 are x and y velocity, nudged one step at a time towards a limit of plus or minus 2, and +$0D and +$0F are countdowns. For the player the rest is the weapon it has in flight: +$08 its type ($00 when there is nothing in the air), +$09 its room, +$0B and +$0C its position and +$0E its signed velocity. The same offsets, read two different ways depending on whose record it is.
-Doors, the title screen's pictures and the scratch records the interface is drawn from are eight bytes only &mdash; the common header and nothing after it.
+The title screen's pictures and the scratch records the interface is drawn from are eight bytes only &mdash; the common header and nothing after it. A door, or a pair of pieces of furniture, is one sixteen-byte record whose two eight-byte halves stand in the two rooms it belongs to; for those, +$06 and +$07 are a walk box (see <a href="asm/36907.html">TEST_ROOM_BOXES</a>).
 The player's record is at 0xEA90 and the monsters occupy eight from 0xEE60 to 0xEED0. None of it appears in this disassembly: it is all above the loaded block, so it is runtime state.
 </div>
 </div>
@@ -50,17 +50,17 @@ The player's record is at 0xEA90 and the monsters occupy eight from 0xEE60 to 0x
 <div class="box box-2">
 <div class="box-title">One loop, three tables</div>
 <div class="paragraph">
-<a href="asm/32195.html">MAIN_LOOP</a> is the whole of the game's structure. It walks three tables of records and hands each to the dispatcher; nothing sits above it.
+<a href="asm/32195.html">MAIN_LOOP</a> is the whole of the game's structure. It walks two tables of records and the player's room's list, and hands each record to the dispatcher; nothing sits above it.
 <table class="default">
 <tr><th>Table</th><th>Record</th><th>What is in it</th><th>Dispatched</th></tr>
 <tr><td>$EA90-$EAA7</td><td>8 bytes</td><td>the player, its weapon, the sound slot</td><td>once per frame, by <a href="asm/32434.html">FRAME_TICK</a></td></tr>
 <tr><td>$EAA8-$EE5F</td><td>8 bytes</td><td>objects, collectables, sounds</td><td>only if in the player's room</td></tr>
 <tr><td>$EE60-$EEDF</td><td>16 bytes</td><td>the monsters</td><td>every pass, wherever they are</td></tr>
-<tr><td>$EEE0 up</td><td>8 bytes</td><td>doors</td><td>only if in the player's room</td></tr>
+<tr><td>$EEE0 up</td><td>16 bytes, a half per room</td><td>doors and furniture</td><td>only through the player's room's list, from <a href="asm/32275.html#32291">ROOM_LIST_PASS</a></td></tr>
 </table>
-The first of those four is not walked by the loop itself. <a href="asm/32434.html">FRAME_TICK</a> does it, and only when the ROM's frame counter has moved on, so the player and its weapon are updated at a steady 50Hz while everything below them is dispatched as fast as the loop can go. A crowded room slows the monsters down; it does not slow the player.
+The first of those four is not walked by the loop itself. <a href="asm/32434.html">FRAME_TICK</a> does it, and only when the ROM's frame counter has moved on, so the player and its weapon are updated at a steady 50Hz while everything below them is dispatched as fast as the loop can go &mdash; about 23 passes a second in the starting room, measured in the simulator. A crowded room slows the monsters down; it does not slow the player.
 Monsters being dispatched without a room test is what keeps the castle alive behind you: they go on moving through rooms you cannot see, and are where you left them when you come back.
-Two instructions at the top of the loop carry more weight than their size suggests. <code>LD SP,$5E00</code> resets the stack on every pass, so no handler has to leave it as it found it &mdash; which is what lets a routine like <a href="asm/35349.html">LOSE_FOOD_16</a> abandon its caller and jump straight to the death routine when the life force runs out. And the <code>EI</code> beside it is where the <code>DI</code> from the entry point is finally lifted; everything before this runs with interrupts off.
+Two instructions at the top of the loop carry more weight than their size suggests. <code>LD SP,$5E00</code> resets the stack on every pass, so no handler has to leave it as it found it &mdash; which is what lets a routine like <a href="asm/35349.html">LOSE_FOOD_SIXTEEN</a> abandon its caller and jump straight to the death routine when the life force runs out. And the <code>EI</code> beside it is where the <code>DI</code> from the entry point is finally lifted; everything before this runs with interrupts off.
 The dispatch itself is a jump, not a call. The loop puts the address to come back to in HL, and <a href="asm/32382.html">DISPATCH_ACTOR</a> pushes it before jumping to the handler, so the handler's own RET lands back in the loop.
 </div>
 </div>
@@ -99,7 +99,7 @@ This is what makes the threshold in <a href="asm/34226.html">CHECK_HIT</a> meani
 <div class="box box-1">
 <div class="box-title">What is in a room</div>
 <div class="paragraph">
-A room's furniture is not searched for. <a href="asm/30077.html">ROOM_CONTENTS</a> holds one pointer per room to a $0000-terminated list of the records that belong to it, and <a href="asm/36907.html">POPULATE_ROOM</a> walks that list when the room is set up. Room $00's list names $EEE0, $EEF0 and $EF00, which are the three door records a running game really does have there.
+A room's furniture is not searched for. <a href="asm/30077.html">ROOM_CONTENTS</a> holds one pointer per room to a $0000-terminated list of the records that belong to it, and the main loop walks that list on every pass, from <a href="asm/32275.html#32291">ROOM_LIST_PASS</a>, dispatching each record through <a href="asm/32403.html">DISPATCH_FROM_LIST</a>; <a href="asm/36907.html">TEST_ROOM_BOXES</a> walks it too, twice a frame, to test the player's step against each door's and table's box. Room $00's list names $EEE0, $EEF0 and $EF00, which are the three door records a running game really does have there.
 The addresses in the lists are stored with <a href="asm/30077.html">ROOM_CONTENTS</a> added to them, so each has to have it taken off again. That looks like obfuscation and is not: BC still holds <a href="asm/30077.html">ROOM_CONTENTS</a> from the lookup two instructions earlier, so both the bias and its removal are free. It is the same habit as the tile source at $5E01 and the sprite bases at <a href="asm/42174.html#42496">FURNITURE_SPRITES</a> &mdash; a pointer's base made to carry information rather than a separate field doing it.
 </div>
 </div>
@@ -110,14 +110,14 @@ The addresses in the lists are stored with <a href="asm/30077.html">ROOM_CONTENT
 Every door exists twice, once in each room it joins, and the two halves are put eight bytes apart on purpose. Finding the far side is then one instruction:
 <pre>LD A,L / XOR $08 / LD L,A     ; IX now points at the other half</pre>
 No pointer and no lookup. Each half carries the destination room and the position you arrive at going that way, so stepping through a door means reading the half you did <em>not</em> touch &mdash; which is the first thing <a href="asm/37143.html">ENTER_ROOM</a> does.
-The open-or-shut state is bit 3 of the drawing mode, and <a href="asm/38221.html">OPEN_DOOR</a> and <a href="asm/38245.html">SHUT_DOOR</a> always set or clear it on both halves at once, so the two sides can never disagree. A locked door is not a separate kind of thing: it is an ordinary door whose handler shuts it again unless the player is carrying a key of the matching colour.
+The open-or-shut state is bit 3 of the drawing mode, and <a href="asm/38221.html">OPEN_DOOR</a> and <a href="asm/38245.html">SHUT_DOOR</a> always set or clear it on both halves at once, so the two sides can never disagree. A locked door is not a separate kind of thing: it is an ordinary door whose handler shuts it again unless the player is carrying a key of the matching colour &mdash; and once the player has walked through it, the handler turns both halves into a plain door for good. The key is not used up.
 </div>
 </div>
 <div><span id="characterdoors"></span></div>
 <div class="box box-1">
 <div class="box-title">Doors that know who you are</div>
 <div class="paragraph">
-Three of the doors will only open for one character: sprite $B2 for the knight, $B9 for the wizard and $BC for the serf. The test costs four instructions and no extra state, because a character's identity is already in the player's sprite byte -- each owns sixteen consecutive codes, so subtracting a character's first code and asking whether what is left is under $10 answers "is the player this one".
+Three kinds of door will only open for one character: the grandfather clock (type $10, graphic $B1) for the knight, the bookcase ($17, $B8) for the wizard and the barrel ($1A, $BB) for the serf. The test costs four instructions and no extra state, because a character's identity is already in the player's sprite byte -- each owns sixteen consecutive codes, so subtracting a character's first code and asking whether what is left is under $10 answers "is the player this one".
 <pre>LD A,($EA90)     ; the player's sprite
 SUB $21          ; the serf's first code -- or $11, or 1
 CP $10           ; sixteen codes per character
@@ -146,9 +146,9 @@ As a correctness check the generated assembly is fed back through sjasmplus and 
 <div class="box box-2">
 <div class="box-title">Eight ways to draw a sprite</div>
 <div class="paragraph">
-There are eight drawing routines in each of the two families, and the reason is that a sprite is only ever stored once. Four of them are the four ways a set of bytes can be put on the screen &mdash; as stored, mirrored left to right, turned upside down, or both &mdash; and the top three bits of an actor's +$05 choose between them.
-Mirroring costs two changes to the copying loop: the row is walked with <code>DEC DE</code> instead of <code>INC DE</code>, and every byte passes through <a href="asm/39570.html">REVERSE_BITS</a>, which rolls its eight bits out of one register and into another in the opposite order. Turning a sprite over costs one call before the loop starts, to move the data pointer to the last row.
-So a creature that faces four ways is one set of bytes and a number in +$05. It is the same economy as the room outlines, where three shapes share an edge list and differ only in their vertices.
+There are eight drawing routines in each of the two families, and the reason is that a piece of furniture is only ever stored once. They are the eight ways to lay a rectangle down &mdash; as stored, mirrored, upside down, a half turn, and the same four turned through a right angle &mdash; and the top three bits of a door's or a piece of furniture's +$05 choose between them. A door's mode is its wall, which is how one door picture serves all four walls.
+Mirroring costs two changes to the copying loop: the row is walked with <code>DEC DE</code> instead of <code>INC DE</code>, and every byte passes through <a href="asm/39570.html">REVERSE_BITS</a>, which rolls its eight bits out of one register and into another in the opposite order. Turning a picture over costs one call before the loop starts, to move the data pointer to the last row. Turning it through a right angle (<a href="asm/39434.html">DRAW_TURNED_RIGHT</a> and its three relatives) builds each screen byte a bit at a time from one bit column of eight successive rows.
+Creatures do not use this: each heading of a character or creature is its own picture, and +$05 is simply its colour. It is the same economy as the room outlines, where three shapes share an edge list and differ only in their vertices.
 </div>
 </div>
 <div><span id="sounds"></span></div>

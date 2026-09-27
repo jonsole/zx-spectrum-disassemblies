@@ -25,19 +25,19 @@ Next: <a href="41101.html">A08D</a>
 </td>
 </tr>
 </table>
-<div class="description">A07A: Write a sprite's colours into the attribute file</div>
+<div class="description">A07A: Colour a thing that has not moved</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
-The colour family's inner loop: a row of attribute cells written from D, stepping along with INC L. The seven routines that follow are the same loop with the direction reversed, the row stepped by $20 instead, or the second colour in E used -- one per drawing mode, exactly as the pixel family has one per mode.
+The first of nine attribute fillers DRAW_FROM_RECORD picks by comparing a thing's old and new position: each paints the thing's block of cells in D, its own colour, and the column or row it has just moved out of in E, the room's colour -- so a creature carries its colour with it and hands the room's back. This one, for a thing that has not moved, only paints the block.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">FILL_ATTRS</td>
+<td class="asm-label">COLOUR_STILL</td>
 <td class="address-2"><span id="41082"></span>A07A</td>
 <td class="instruction">POP HL</td>
 <td class="comment-0" rowspan="1"></td>
@@ -47,13 +47,13 @@ The colour family's inner loop: a row of attribute cells written from D, steppin
 <span id="41083"></span>
 <div class="comments">
 <div class="paragraph">
-This entry point is used by the routine at <a href="41196.html">FILL_ATTRS_ROW</a>.
+This entry point is used by the routine at <a href="41196.html">COLOUR_MOVED_UP</a>.
 </div>
 </div>
 </td>
 </tr>
 <tr>
-<td class="asm-label">FILL_ATTRS_BODY</td>
+<td class="asm-label">COLOUR_STILL_BODY</td>
 <td class="address-2"><span id="41083"></span>A07B</td>
 <td class="instruction">PUSH BC</td>
 <td class="comment-0" rowspan="1"></td>
@@ -65,7 +65,7 @@ This entry point is used by the routine at <a href="41196.html">FILL_ATTRS_ROW</
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
-<td class="asm-label">FILL_ATTRS_0</td>
+<td class="asm-label">COLOUR_STILL_0</td>
 <td class="address-2"><span id="41085"></span>A07D</td>
 <td class="instruction">LD (HL),D</td>
 <td class="comment-0" rowspan="1"></td>
@@ -79,7 +79,7 @@ This entry point is used by the routine at <a href="41196.html">FILL_ATTRS_ROW</
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="41087"></span>A07F</td>
-<td class="instruction">DJNZ <a href="41082.html#41085">FILL_ATTRS_0</a></td>
+<td class="instruction">DJNZ <a href="41082.html#41085">COLOUR_STILL_0</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>
@@ -121,7 +121,7 @@ This entry point is used by the routine at <a href="41196.html">FILL_ATTRS_ROW</
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="41098"></span>A08A</td>
-<td class="instruction">JR NZ,<a href="41082.html#41083">FILL_ATTRS_BODY</a></td>
+<td class="instruction">JR NZ,<a href="41082.html#41083">COLOUR_STILL_BODY</a></td>
 <td class="comment-0" rowspan="1"></td>
 </tr>
 <tr>

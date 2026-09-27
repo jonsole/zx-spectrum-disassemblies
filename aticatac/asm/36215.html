@@ -37,7 +37,7 @@ Used by the routines at <a href="32978.html">UPDATE_WIZARD</a>, <a href="36292.h
 The other end of READ_CONTROLS. It takes the byte that routine returns and turns it into a signed step on each axis: bit 0 right, bit 1 left, bit 2 down, bit 3 up, each tested for being clear because a zero bit is a pressed one. B holds the distance, so left is B negated and right is B as it stands.
 </div>
 <div class="paragraph">
-The result goes through STEER rather than straight into the position, so the player accelerates into a direction and coasts out of it instead of starting and stopping dead.
+The character handler passes a step in B ($20), a decay in DE and a value in HL that is popped and never used. DECAY_HEADING takes the decay off the heading, STEER adds the step and clamps it to 32, and SCALE_SIGNED makes two pixels of 32. So all three characters reach full speed at once and differ in how they stop: the knight's decay of 3 slides him five pixels, the serf's 1 sixteen, the wizard's 32 not at all (measured in the simulator).
 </div>
 </div>
 <table class="input">
@@ -55,7 +55,7 @@ The result goes through STEER rather than straight into the position, so the pla
 <td class="asm-label">MOVE_PLAYER</td>
 <td class="address-2"><span id="36215"></span>8D77</td>
 <td class="instruction">LD A,($EA91)</td>
-<td class="comment-1" rowspan="2">Remember which room this is happening in.</td>
+<td class="comment-1" rowspan="2">Keep the drop controller at $EE58 in the player's room, so MAIN_LOOP runs PUT_DOWN every pass.</td>
 </tr>
 <tr>
 <td class="asm-label"></td>
@@ -242,18 +242,18 @@ The result goes through STEER rather than straight into the position, so the pla
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36280"></span>8DB8</td>
-<td class="instruction">CALL <a href="36810.html">STEP_AND_TEST</a></td>
+<td class="instruction">CALL <a href="36810.html">TEST_STEP_IN_ROOM</a></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36283"></span>8DBB</td>
-<td class="instruction">CALL <a href="38269.html">WITHIN_ROOM_BOUNDS</a></td>
+<td class="instruction">CALL <a href="38269.html">CHECK_IN_DOORWAY</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
 <td class="asm-label"></td>
 <td class="address-1"><span id="36286"></span>8DBE</td>
-<td class="instruction">CALL <a href="36874.html">STEP_AND_TEST_2</a></td>
+<td class="instruction">CALL <a href="36874.html">TEST_STEP_BOXES</a></td>
 <td class="comment-1" rowspan="1"></td>
 </tr>
 <tr>
