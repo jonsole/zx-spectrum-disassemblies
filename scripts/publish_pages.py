@@ -53,6 +53,9 @@ GAMES = {
     "pentagram": (ROOT / "game_disassembly" / "pentagram" / "html" / "pentagram",
                   ROOT / "scripts" / "build_pentagram.py",
                   ROOT / "game_disassembly" / "pentagram" / "pentagram.asm"),
+    "alien8": (ROOT / "game_disassembly" / "alien8" / "html" / "alien8",
+               ROOT / "scripts" / "build_alien8.py",
+               ROOT / "game_disassembly" / "alien8" / "alien8.asm"),
 }
 # What each build is given to build from. Knight Lore is built from a snapshot
 # of the loaded game, not a tape; --tape passes it on under its own name.

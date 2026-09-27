@@ -71,7 +71,8 @@ PERCENT = 0xA74D
 
 IMAGES = "images/reference"
 WORDS = ["none", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
-KNIGHTLORE = "../knightlore"
+KNIGHTLORE = "../knightlore"               # from a top-level page (Architecture)
+KNIGHTLORE_FROM_REFERENCE = "../../knightlore"   # from Bugs, Pokes, Facts in reference/
 
 
 # --------------------------------------------------------------------------
@@ -495,7 +496,7 @@ it: the menu worked, with ROM 0 paged in by the tune's key test; at the first
 turn of play READ_KEYS was called with $7F from the keyboard reader, the
 paging port became $7F, locked, and the machine ended in the ROM, reset.
 So on a 128K the game must be run in 48 mode. Knight Lore's
-<a href="{KNIGHTLORE}/asm/46583.html">keyboard routine</a> has the same OUT,
+<a href="{KNIGHTLORE_FROM_REFERENCE}/asm/46583.html">keyboard routine</a> has the same OUT,
 and its callers pass $7E too; it was not tried on a 128K. The poke that
 removes the OUT is with the pokes.""",
 
@@ -555,7 +556,7 @@ note table's and a helper's), and #R$D718(NOTES), 61 rows of three bytes, is
 Knight Lore's table to the byte, with the same odd row 18 that repeats row 17's
 pitch. Compared byte for byte with Knight Lore's loaded game. The sound effects
 in play are Pentagram's own: short beeps, one note a turn, from #R$D5F2. See
-<a href="{KNIGHTLORE}/Sounds.html">Knight Lore's sounds</a>.""",
+<a href="{KNIGHTLORE_FROM_REFERENCE}/Sounds.html">Knight Lore's sounds</a>.""",
 
         "Fact:points:Points are made from a graphic's bits": f"""\
 Shooting down a thing from the sky is the only way to score, and the points

@@ -1,50 +1,60 @@
-"""Disassemble Pentagram (1986, Ultimate Play the Game) from its tape.
+"""Disassemble Alien 8 (1985, Ultimate Play the Game) from its tape.
 
-THE TAPE. Three files, each a header and a data block: a one-line BASIC
-loader "pent" (LINE 1), "pp" (CODE 24576,6912) and "game" (CODE
-24064,31390). The loader is
+THE TAPE. Three files, each a header and a data block: a BASIC loader
+"Alien8.1" (LINE 1), "Alien8.2" (CODE 16384,6912) and "Alien8.3" (CODE
+25341,40195). The loader is
 
-    1 BORDER 0: INK 0: PAPER 0: CLS : PRINT AT 19,0;" ";: CLEAR 24064:
-      LOAD ""SCREEN$ : PRINT AT 19,0;: LOAD ""CODE 24064: PRINT USR 24064
+    1 BORDER NOT PI: PAPER NOT PI: INK NOT PI: CLEAR VAL "25340":
+      LOAD "Alien8.2"SCREEN$ : PRINT AT VAL "20",NOT PI;: LOAD "Alien8.3"CODE
+   30 RANDOMIZE USR 25344
 
-so the loading screen, whatever the address in its header says, goes to the
-screen: LOAD ""SCREEN$ loads 6912 bytes to 16384 and ignores the header's
-24576. CLEAR 24064 puts RAMTOP and the machine stack just below $5E00, and
-the game block loads from $5E00 to $D89D. USR 24064 enters it at $5E00, which
-is DI, LD SP,$5E00 and JP $AF87. There is no protection and nothing is
-encrypted: the block is the game exactly as it runs.
+so the loading screen goes to the screen, CLEAR 25340 puts RAMTOP at $62FC,
+and the game block loads from $62FD to the very top of memory, $FFFF.
+RANDOMIZE USR 25344 enters it at $6300 -- three bytes in -- which is DI, LD
+SP,$F100, NOP and JP $A631. There is no protection and nothing is encrypted:
+the block is the game exactly as it runs.
 
-tap2sna runs the ROM's own LOAD on a simulated machine and stops at $5E00,
-before the game has run a single instruction. That matters here more than
-usual: the game mirrors and flips sprites in place, toggling bits in their
-headers and rewriting their bytes, so a snapshot taken once it has drawn
-anything is not the tape any more. The disassembly is of the loaded image.
+tap2sna runs the ROM's own LOAD on a simulated machine and stops at $6300,
+before the game has run a single instruction. That matters here as it does
+for Knight Lore and Pentagram: the game turns sprites round in place,
+toggling bits in their headers and rewriting their bytes, and rewrites the
+rooms' colour bits and the places the valves lie at every new game, so a
+snapshot taken once it has run is not the tape any more. The disassembly is of
+the loaded image.
 
-WHAT IS DISASSEMBLED: $5E00 to the top of memory. The block ends at $D89D;
-everything above it the game builds at run time -- the screen buffer rooms
-are drawn into (it starts at $D88F, in the block's last bytes), a bit-reversal
-table at $F100 and tables of pre-shifted masks at $F200-$FFFF -- and those are
-described as buffers, their bytes whatever the snapshot holds.
+WHAT IS DISASSEMBLED: $5B00 to the top of memory. Below the block, from
+$5B00, are the game's variables and its 56 object records, which the game
+clears before it uses them: their bytes in the snapshot are whatever the
+ROM and the BASIC loader left there (the printer buffer, the system
+variables, the loader), and are described as the game's work areas. The
+block's top end holds bytes that are not the game's -- the loader's machine
+saved them along with it, because the block runs on to $FFFF: a copyright
+line from 1984, the Spectrum ROM's letters, what looks like Interface 1 ROM
+code and its error messages, another font, and stack debris. All of them lie
+where the game puts its screen buffer ($D200-$E9FF), its stack (up to
+$F100) and its lookup tables ($F100-$FFFF), which it writes before it reads,
+so none of them is used; the listing says what each is.
 
-SEPARATING CODE FROM DATA the way the Ant Attack build does: play the game in
-SkoolKit's simulator from $5E00 and record every address executed, in
-sessions that pick each control method and start, walk, turn, jump, fire,
-pick up and put down, pause, and visit every room; and in staged scenes for
-what play will not reach in a sensible time. Then follow the branches out of
-what ran (scripts/codemap.py), which invents nothing. See build_aticatac.py
-for why that is the safe direction to be wrong in, and why the round trip at
-the end cannot catch data dressed as code.
+SEPARATING CODE FROM DATA the way the Pentagram build does: play the game in
+SkoolKit's simulator from $6300 and record every address executed, in
+sessions that pick each control method and start, walk, turn, jump, pick up
+and put down, pause, and visit every room; and in staged scenes for what play
+will not reach in a sensible time (game over, the chambers, the ending, the
+clock running out). Then follow the branches out of what ran
+(scripts/codemap.py), which invents nothing. See build_aticatac.py for why
+that is the safe direction to be wrong in, and why the round trip at the end
+cannot catch data dressed as code.
 
-THE LEVEL DATA -- the room directory, the scenery and object templates, the
-graphic table, the sprites and the font -- is laid out a record per line by
-scripts/pentagram_data.py from the snapshot at every build, so the game's
-design is never written into a committed file.
+THE LEVEL DATA -- the room directory, the object templates, the backgrounds,
+the places the valves lie, the graphic table, the sprites and the font -- is
+laid out a record per line by scripts/alien8_data.py from the snapshot at
+every build, so the game's design is never written into a committed file.
 
-The game and everything built from it is copyrighted ((c) 1986 Ultimate Play
+The game and everything built from it is copyrighted ((c) 1985 Ultimate Play
 the Game / A.C.G.). Built locally, gitignored, never committed. See README.md.
 
 Usage:
-    python scripts/build_pentagram.py --tape "path/to/Pentagram.tzx" [--html]
+    python scripts/build_alien8.py --tape "path/to/Alien 8.tap" [--html]
 """
 from __future__ import annotations
 
@@ -61,33 +71,35 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-OUT_DIR = PROJECT_ROOT / "game_disassembly" / "pentagram"
+OUT_DIR = PROJECT_ROOT / "game_disassembly" / "alien8"
 # Hand-written comments, layered over the generated control file. Source, not
 # output: addresses and prose only, so it is committed.
-ANNOTATIONS = PROJECT_ROOT / "scripts" / "pentagram_annotations.ctl"
-REF = PROJECT_ROOT / "scripts" / "pentagram.ref"
+ANNOTATIONS = PROJECT_ROOT / "scripts" / "alien8_annotations.ctl"
+REF = PROJECT_ROOT / "scripts" / "alien8.ref"
 ROM = PROJECT_ROOT / "roms" / "48.rom"
 SJASMPLUS = PROJECT_ROOT / "tools" / "sjasmplus" / "sjasmplus.exe"
 
-# Where USR 24064 enters the game, and where tap2sna stops.
-ENTRY = 0x5E00
-# The disassembly: the game block and everything above it.
-BLOCK_START = 0x5E00
+# Where RANDOMIZE USR 25344 enters the game, and where tap2sna stops.
+ENTRY = 0x6300
+# The disassembly: the game's variables and object records below the block,
+# the block, and everything it overlaps above.
+BLOCK_START = 0x5B00
 BLOCK_END = 0x10000
-# The end of the game block on the tape; above it is only what the game
-# builds while it runs.
-LOADED_END = 0xD89E
-# The code, for following branches: from the entry to the end of the block.
-DESCENT_START = 0x5E00
-DESCENT_END = LOADED_END
+# The game block on the tape: $62FD (CLEAR 25340 + 1) to the top of memory.
+LOADED_START = 0x62FD
+LOADED_END = 0x10000
+# The code, for following branches: from the entry to the end of the
+# game's own bytes, before the screen buffer.
+DESCENT_START = 0x6300
+DESCENT_END = 0xD200
 
 TSTATES_PER_SECOND = 3500000
 NEWLINE = chr(10)
 
 # The update routine for each graphic: a word each, the main loop's jump
-# table (see pentagram_data.py, which lays it out).
-HANDLERS = 0xAE2F
-GRAPHIC_COUNT = 172
+# table (see alien8_data.py, which lays it out).
+HANDLERS = 0xA7EA
+HANDLER_COUNT = 131
 
 
 def _log(message: str) -> None:
@@ -115,7 +127,7 @@ def _word(memory, address: int) -> int:
 # --------------------------------------------------------------------------
 
 def make_snapshot(tape: Path, out: Path) -> None:
-    """Simulate the real LOAD, stopping where USR 24064 enters the game."""
+    """Simulate the real LOAD, stopping where USR 25344 enters the game."""
     from skoolkit import tap2sna
 
     _log(f"Loading {tape.name} (simulated LOAD)...")
@@ -131,24 +143,44 @@ def make_snapshot(tape: Path, out: Path) -> None:
 # --------------------------------------------------------------------------
 
 # The variables the sessions read and write. See the annotations for each.
-CONTROL = 0xA709            # bits 1-2: 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II
-PLAYER = 0xA76F             # the player's legs; his body is the next record
-PLAYER_ROOM = 0xA777        # +8 of his record
-PLAYER_STATE = 0xA77C       # +$0D: bit 6 set means killed
-TEMPLATE_ROOM = 0xC407      # +8 of the player template restarts copy back
-LIVES = 0xA721
-DROP_TIMER = 0xA73D         # turns to the next thing falling from the sky
-TURN = 0xA715               # the turn counter, a word
-CARRIED = 0xA722            # four entries of four bytes; +$0C is put down next
-BUCKET_OUT = 0xA70E
-PENTAGRAM_ON = 0xA70F
-QUEST_DONE = 0xA74C
-PLACED = 0xA74B
-QUEST_RECORDS = 0xD432      # 18 records of 16 bytes, copied from $D312 at a new game
-QUEST_SIZE = 16
-ROOM_PENTAGRAM = 82
+CONTROL = 0x5B04            # bits 1-2: 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II;
+                            # bit 3 directional control
+LIVES = 0x5B1A
+GAME_OVER = 0x5B24          # 1 while the re-programming scene after a game runs
+PLAYER = 0x5B88             # the robot's legs; his top is the next record
+PLAYER_TOP = 0x5BA8
+PLAYER_ROOM = 0x5B90        # +8 of his record
+# The two records a new life copies into the player's (#R$CA07): +1 and
+# +2 of each are the U and V he appears at, +8 the room.
+START_LEGS = 0xCA1D
+START_TOP = 0xCA3D
+# The places the valves (and the extra lives) lie: 36 records of 9 bytes,
+# +0 the graphic and +5-+8 the U, V, Z and room it is at now (#R$AE99).
+PLACES = 0x76E3
+PLACE_SIZE = 9
+# A room's two records for what lies in it from the places (#R$AE99): the
+# first holds the first place in the table that is in the room.
+VALVE = 0x5BC8
+ROOM_RECORDS = 0x5C08       # records 4-55: what the room builder makes
+# The three carried things, four bytes each; the last is put down next
+# (#R$BD6B).
+CARRIED_LAST = 0x5B84
+CHAMBERS = 0x5B40           # chambers activated, BCD; 24 ends the game
+WON = 0x5B23                # set with the twenty-fourth
+CLOCK = 0x5B36              # the light years left: four bytes (#R$AD66)
+CLOCK_TICK = 0xAD66         # where the main loop counts them down, once a turn
+VALVE_GRAPHIC = 96          # 96-99: the four kinds of valve
+EXTRA_LIFE = 12             # the graphic that gives a life when touched (#R$BEE0)
+SOCKETS = range(112, 116)   # a chamber's socket, one graphic per kind of valve
+# The graphics his legs have while he is walking about: 16-23, two views
+# (from behind and from the front) of four step frames each; the four
+# facings come from bit 2 of the graphic and the mirror flag (the update
+# routine at $C0BE). While he turns they are 24-27, the part-way views.
+LEGS = range(16, 24)
+# The first graphic of the sparkle he dies in (#R$B39A).
+DYING = 0x30
 
-# Kempston bits, as IN A,($1F) reads them at #R$BE40.
+# Kempston bits, as IN A,($1F) reads them at #R$C954.
 J_RIGHT, J_LEFT, J_DOWN, J_UP, J_FIRE = 1, 2, 4, 8, 16
 
 
@@ -195,15 +227,23 @@ class Until:
 class Repeat:
     """A session step: play some steps over again until test(memory) is
     true, at most `times` times, or fail -- for what takes the game a
-    variable number of tries, like a well that gives a bucket only after
-    enough shots."""
+    variable number of tries."""
 
     def __init__(self, what: str, steps: list, test, times: int):
         self.what, self.steps, self.test, self.times = what, steps, test, times
 
 
+class At:
+    """A session step: run until the game reaches an address, or fail -- for
+    a poke that has to land at a known point in the game's turn rather than
+    wherever the simulator happened to stop."""
+
+    def __init__(self, what: str, address: int, seconds: float = 20.0):
+        self.what, self.address, self.seconds = what, address, seconds
+
+
 class Machine:
-    """The game on a simulated 48K Spectrum, from the snapshot at $5E00."""
+    """The game on a simulated 48K Spectrum, from the snapshot at $6300."""
 
     def __init__(self, snapshot: Path, executed: set | None = None):
         from skoolkit import CSimulator, read_bin_file
@@ -214,6 +254,8 @@ class Machine:
         memory[:0x4000] = read_bin_file(str(ROM))
         self.simulator = (CSimulator or Simulator)(
             memory, state={"iff": 0, "im": 1, "tstates": 0})
+        # The game's first instructions set their own stack; this one only
+        # has to be somewhere harmless until then.
         self.simulator.registers[SP] = ENTRY
         self.tracer = _key_tracer_class()(self.simulator)
         self.simulator.set_tracer(self.tracer)
@@ -234,6 +276,20 @@ class Machine:
                         True, None, self.executed, None, None, None)
         self.pc = simulator.registers[PC]
 
+    def run_to(self, step: At, label: str) -> None:
+        from skoolkit.simutils import PC, T
+
+        self.tracer.keys = set()
+        self.tracer.kempston = 0
+        simulator = self.simulator
+        simulator.trace(self.pc, step.address, 0,
+                        simulator.registers[T] + int(step.seconds * TSTATES_PER_SECOND),
+                        True, None, self.executed, None, None, None)
+        self.pc = simulator.registers[PC]
+        if self.pc != step.address:
+            sys.exit(f"error: session {label!r}: ran {step.seconds} s and never reached "
+                     f"{step.what} (${step.address:04X}; PC ${self.pc:04X})")
+
     def until(self, step: Until, label: str) -> None:
         waited = 0.0
         while not step.test(self.memory):
@@ -247,6 +303,8 @@ class Machine:
         for step in steps:
             if isinstance(step, Until):
                 self.until(step, label)
+            elif isinstance(step, At):
+                self.run_to(step, label)
             elif isinstance(step, Repeat):
                 for _ in range(step.times):
                     self.play(step.steps, label)
@@ -264,48 +322,69 @@ class Machine:
 
 
 def _playing(memory) -> bool:
-    """In a room, alive and not dying: his legs have a graphic and the
-    killed bit is clear."""
-    return memory[PLAYER] != 0 and not memory[PLAYER_STATE] & 0x40
+    """In a room and walking about: his legs have one of their eight graphics
+    (not the materialising at a new life, nor the sparkle of a death)."""
+    return memory[PLAYER] in LEGS
 
 
 def _in_room(room: int):
     return lambda memory: memory[PLAYER_ROOM] == room and _playing(memory)
 
 
+def _in_game_over(memory) -> bool:
+    """The re-programming scene after a game (#R$B761 sets the flag)."""
+    return memory[GAME_OVER] != 0
+
+
 def _at_menu(memory) -> bool:
-    """Back at the menu after a game: #R$AF93 has cleared the variables and
-    the object records, so there is no player and no turn counted."""
-    return memory[PLAYER] == 0 and memory[TURN] == 0 and memory[TURN + 1] == 0
+    """Back at the menu after a game: the scene is over and the object
+    records have been cleared (#R$A647)."""
+    return memory[GAME_OVER] == 0 and memory[PLAYER] == 0 and memory[PLAYER_TOP] == 0
 
 
 def _lives(memory) -> None:
-    """Five lives, BCD, whatever has happened: the sessions die a lot."""
-    memory[LIVES] = 0x05
+    """Five lives, whatever has happened: the sessions die a lot."""
+    memory[LIVES] = 5
 
 
-def _go(room: int) -> list:
-    """Into a room by the game's own restart: the room goes where the restart
-    copies the player from (#R$C2EC), and the killed bit ends this life."""
+def _kill(memory) -> None:
+    """Start his death the way #R$B39A does: both records turned into the
+    first frame of the sparkle and out of collisions. The sparkle runs its
+    frames, empties the records, and the main loop starts a new life."""
+    for record in (PLAYER, PLAYER_TOP):
+        memory[record] = DYING
+        memory[record + 7] |= 0x02
+
+
+def _go(room: int, spot: tuple[int, int] | None = None) -> list:
+    """Into a room by the game's own restart: the room -- and, if given, the
+    U and V to appear at -- goes where a new life copies the player from
+    (#R$CA07), and a death ends this life. Without a spot he appears where
+    he last came through a doorway, which in another room may be inside
+    something, or something deadly; the tour does not mind."""
     def poke(memory):
         _lives(memory)
-        memory[PLAYER_ROOM] = room
-        memory[TEMPLATE_ROOM] = room
-        memory[PLAYER_STATE] |= 0x40
-    return [Until("a live player", _playing), poke,
-            Until(f"room {room}", _in_room(room), 30.0), ([], 0.5)]
+        for record in (START_LEGS, START_TOP):
+            memory[record + 8] = room
+            if spot is not None:
+                memory[record + 1], memory[record + 2] = spot
+        _kill(memory)
+    return [Until("a live player", _playing, 30.0), poke,
+            Until(f"room ${room:02X}", _in_room(room), 30.0), ([], 0.5)]
 
 
-def _start(choice: str) -> list:
+def _start(*choices: str) -> list:
     """From the menu, with a control method, through the start tune into
     the first room."""
-    return [([], 1.0), ([choice], 0.3), ([], 0.5), (["0"], 0.3),
-            Until("the first room", _playing, 30.0), ([], 0.5)]
+    steps = [([], 1.0)]
+    for choice in choices:
+        steps += [([choice], 0.3), ([], 0.5)]
+    return steps + [(["0"], 0.3), Until("the first room", _playing, 30.0), ([], 0.5)]
 
 
-# A round of keyboard play: walk (the A-G and H-ENTER rows), turn both ways
-# (CAPS-V, and SPACE-B), jump (Q E T U O), fire (W R Y I P), and pick up or
-# put down (1-0). Rotational control: every walk is the way he faces.
+# A round of keyboard play (#R$C9A5 reads the rows): walk (the A-G and H-ENTER
+# rows), turn both ways (CAPS-V, and SPACE-B), jump (the Q-T and Y-P rows),
+# and pick up or put down (1-0).
 KEYBOARD_ROUND = [
     (["a"], 1.2), (["z"], 0.15), (["h"], 1.0), (["x"], 0.15), (["s"], 1.5),
     (["q"], 0.3), ([], 0.6), (["a", "e"], 0.8), (["w"], 0.2), ([], 0.5),
@@ -314,32 +393,29 @@ KEYBOARD_ROUND = [
     (["n"], 0.15), (["g"], 1.5), (["p"], 0.2), (["o"], 0.3), ([], 0.4),
     (["SS"], 0.15), (["c"], 0.15), (["v"], 0.15), (["j"], 1.0),
 ]
-# The same with a Kempston joystick: left and right turn, up walks, down
-# jumps, fire fires; the bottom row's keys pick up and put down.
+# The same with a Kempston joystick (#R$C954): left and right turn, up walks,
+# fire jumps, down picks up and puts down.
 STICK_ROUND = [
     ([], 1.2, J_UP), ([], 0.15, J_LEFT), ([], 1.0, J_UP), ([], 0.15, J_RIGHT),
-    ([], 0.3, J_DOWN), ([], 0.6), ([], 0.8, J_UP | J_DOWN), ([], 0.2, J_FIRE),
-    ([], 0.4), (["z"], 0.2), ([], 0.4), ([], 1.0, J_UP | J_LEFT), (["b"], 0.2),
-    ([], 1.2, J_UP),
+    ([], 0.3, J_FIRE), ([], 0.6), ([], 0.8, J_UP | J_FIRE), ([], 0.2, J_DOWN),
+    ([], 0.4), ([], 1.0, J_UP | J_LEFT), ([], 0.2, J_DOWN), ([], 1.2, J_UP),
 ]
-# Cursor keys: 5 left, 8 right, 7 walk, 6 jump, 0 fire.
+# Cursor keys (#R$C979): 5 left, 8 right, 7 walk, 0 jump, 6 pick up.
 CURSOR_ROUND = [
-    (["7"], 1.2), (["5"], 0.15), (["7"], 1.0), (["8"], 0.15), (["6"], 0.3),
-    ([], 0.5), (["0"], 0.2), ([], 0.4), (["x"], 0.2), ([], 0.4), (["7", "8"], 1.0),
+    (["7"], 1.2), (["5"], 0.15), (["7"], 1.0), (["8"], 0.15), (["0"], 0.3),
+    ([], 0.5), (["6"], 0.2), ([], 0.4), (["7", "8"], 1.0), (["6"], 0.2), ([], 0.4),
 ]
-# Interface II, the first stick: 6 left, 7 right, 8 down, 9 up, 0 fire --
-# and the second, 1-5, which the game reads in the same half-row pass.
+# Interface II, the first stick: 6 left, 7 right, 8 down, 9 up, 0 fire.
 SINCLAIR_ROUND = [
-    (["9"], 1.2), (["6"], 0.15), (["9"], 1.0), (["7"], 0.15), (["8"], 0.3),
-    ([], 0.5), (["0"], 0.2), ([], 0.4), (["c"], 0.2), ([], 0.4), (["4"], 1.0),
-    (["1"], 0.15), (["2"], 0.15), (["3"], 0.3), (["5"], 0.2),
+    (["9"], 1.2), (["6"], 0.15), (["9"], 1.0), (["7"], 0.15), (["0"], 0.3),
+    ([], 0.5), (["8"], 0.2), ([], 0.4), (["9", "7"], 1.0), (["8"], 0.2), ([], 0.4),
 ]
-# SPACE on its own pauses; SPACE again goes on (#R$B4E0).
+# SPACE on its own pauses; SPACE again goes on (#R$CE22).
 PAUSE = [(["SPACE"], 0.2), ([], 1.0), (["SPACE"], 0.2), ([], 0.5)]
 
 
 def _rooms(snapshot: Path) -> list[int]:
-    from pentagram_data import room_records
+    from alien8_data import room_records
 
     return [record["number"] for record in room_records(game_memory(snapshot))]
 
@@ -362,112 +438,141 @@ def _tour(rooms: list[int], seconds: float, round_=KEYBOARD_ROUND[:6]) -> list:
 
 
 def _game_over(memory) -> None:
-    """No lives left, and killed: #R$C2EC finds none to take, and it is over."""
+    """No lives left, and dying: the new life #R$CA07 would start finds none
+    to take, and it is over."""
     memory[LIVES] = 0
-    memory[PLAYER_STATE] |= 0x40
+    _kill(memory)
 
 
-def _drop_soon(memory) -> None:
-    """Something falls from the sky within a turn or two (#R$CBAB)."""
-    memory[DROP_TIMER] = 1
-
-
-# The quest, as the game sets it: a well gives a bucket when it has been
-# shot at enough (#R$CFD2 counts the bolts that touch it); a bucket put down
-# where a quest item is flies to it (#R$D0AC), and the item is done
-# (#R$CF68); when all four are, the pentagram's pieces appear in room 82
-# (#R$D13A); and the five collectables brought there fly to their places
-# (#R$CD16), the fifth ending the game (#R$C302). The sessions stage only
-# where things are -- the player beside the well or the bucket, the
-# collectables already in room 82 -- and let the game do the rest.
-WELL_ROOM = 71              # a well with no monsters, ringed by still hazards
-WELL_SPOT = (120, 148)      # inside the ring, the well ahead of him
-QUEST_ROOMS = [122, 128, 17, 33]    # where quest items 0-3 lie ($D312)
-BUCKET = 90                 # the bucket's graphic
-COLLECTABLES = range(4, 9)  # quest records 4-8: graphics 148 down to 144
-# Where #R$CD16 sends each collectable in room 82, by graphic: the table at
-# $D562 read the way the game reads it, graphic AND 7 as the index.
-COLLECTABLE_TARGETS = 0xD562
-
-
-def _place(u: int, v: int):
-    """Stand the player (both his records) at U, V."""
+def _put(place: int, graphic: int, room: int, u: int, v: int, z: int):
+    """A place record holding `graphic` at U, V, Z in `room`: what the next
+    visit to that room builds into its first free valve record."""
     def poke(memory):
-        for record in (PLAYER, PLAYER + 32):
-            memory[record + 1], memory[record + 2] = u, v
+        record = PLACES + PLACE_SIZE * place
+        memory[record] = graphic
+        memory[record + 5:record + 9] = bytes((u, v, z, room))
     return poke
 
 
-def _record_of(memory, graphic: int) -> int | None:
-    for record in range(PLAYER, PLAYER + 54 * 32, 32):
-        if memory[record] == graphic:
-            return record
-    return None
+def _beside_valve(memory) -> None:
+    """The player just short of the valve in V, near enough to pick it up
+    (#R$BEA7 widens his box by four each way)."""
+    u, v = memory[VALVE + 1], memory[VALVE + 2]
+    for record in (PLAYER, PLAYER_TOP):
+        memory[record + 1], memory[record + 2] = u, v - 14
 
 
-def _beside_bucket(memory) -> None:
-    """The player just short of the bucket in V, where #R$BF79 finds it."""
-    record = _record_of(memory, BUCKET)
-    if record is None:
-        sys.exit("error: session 'the quest': no bucket to stand beside")
-    _place(memory[record + 1], memory[record + 2] - 14)(memory)
-
-
-# Shooting: a dozen shots (fire is taken once a press, #R$C126), then a
-# quarter turn, and again, until the well has had enough.
-VOLLEY = [_lives, (["w"], 0.15), ([], 0.25)] * 12 + [(["z"], 0.15), ([], 0.3)]
+# Chambers, one of each kind of socket (the room data's object templates
+# 24-27), and a spot in each room that is clear of what is deadly there.
+CHAMBER_ROOMS = [(0x0C, 0), (0x62, 1), (0x1D, 2), (0x0A, 3)]
+LAST_CHAMBER = (0x41, 1)
+CLEAR_SPOT = (96, 160)
+# The room the simulator's games start in: the seed at $5B00 picks one of
+# four (#R$CA6D), and a simulated start is the same every time.
+START_ROOM = 0x4E
 PRESS = [_lives, (["1"], 0.2), ([], 0.8)]
 
 
-def _quest_item(room: int, done: int) -> list:
-    """A bucket from the well, carried to a quest item's room and put down."""
-    return (_go(WELL_ROOM) + [([], 1.0), _place(*WELL_SPOT), ([], 0.5),
-                              Repeat("a bucket from the well", VOLLEY,
-                                     lambda memory: memory[BUCKET_OUT], 8),
-                              ([], 2.0), _beside_bucket, ([], 0.5),
-                              # Each press passes what he carries one place
-                              # along (#R$C091); from the last it is put down.
-                              Repeat("the bucket carried, next to put down", PRESS,
-                                     lambda memory: memory[CARRIED + 12] == BUCKET, 6)]
-            + _go(room) + [([], 1.0),
-                           Repeat("the bucket put down", PRESS,
-                                  lambda memory: memory[CARRIED + 12] == 0, 3),
-                           Until(f"quest item {done} done",
-                                 lambda memory: memory[QUEST_DONE] == done, 30.0)])
+def _over_socket(memory) -> None:
+    """The valve, if it has not found the socket by itself, held high above
+    it to fall on it: in some rooms the socket stands on something, and the
+    valve steering itself arrives underneath."""
+    if not VALVE_GRAPHIC <= memory[VALVE] < VALVE_GRAPHIC + 4:
+        return
+    for record in range(PLAYER, PLAYER + 56 * 32, 32):
+        if memory[record] in SOCKETS:
+            memory[VALVE + 1], memory[VALVE + 2] = memory[record + 1], memory[record + 2]
+            memory[VALVE + 3] = memory[record + 3] + 30
+            return
+    sys.exit("error: staged chamber: no socket in the room")
 
 
-def _collectables_in_room_82(memory) -> None:
-    """The five collectables on the floor of room 82, each sixteen units
-    short of its place towards the middle, with a clear line to it."""
-    for number in COLLECTABLES:
-        record = QUEST_RECORDS + QUEST_SIZE * number
-        graphic = memory[record]
-        target = COLLECTABLE_TARGETS + 2 * (graphic & 7)
-        u, v = memory[target], memory[target + 1]
-        if abs(128 - u) >= abs(128 - v):
-            u += 16 if u < 128 else -16
-        else:
-            v += 16 if v < 128 else -16
-        memory[record + 1], memory[record + 2], memory[record + 3] = u, v, 128
-        memory[record + 8] = ROOM_PENTAGRAM
+def _chamber(place: int, room: int, kind: int, count: int) -> list:
+    """A valve of the socket's kind put high in the chamber's room, and held
+    over the socket: it falls on it (#R$AF79 steers it the last of the way),
+    and the chamber is activated and counted. Waiting on the room and the
+    count, not on the player: the twenty-fourth ends the game before he has
+    finished appearing."""
+    def poke(memory):
+        _lives(memory)
+        for record in (START_LEGS, START_TOP):
+            memory[record + 8] = room
+            memory[record + 1], memory[record + 2] = CLEAR_SPOT
+        _kill(memory)
+    return [_put(place, VALVE_GRAPHIC + kind, room, 128, 128, 200),
+            Until("a live player", _playing, 30.0), poke,
+            Until(f"room ${room:02X} built with the valve in it",
+                  lambda memory: (memory[PLAYER_ROOM] == room
+                                  and memory[VALVE] in (VALVE_GRAPHIC + kind, VALVE_GRAPHIC + 4 + kind)),
+                  30.0),
+            _over_socket,
+            Until(f"chamber ${room:02X} activated", lambda memory: memory[CHAMBERS] == count, 30.0)]
 
 
-def _quest() -> list:
+def _chambers() -> list:
+    """Every kind of chamber activated, one revisited, then the last of the
+    24 (the count staged at 23) and the ending, back to the menu, and a new
+    game after it -- which puts the rooms' colours back (#R$CAD2)."""
     steps = _start("1")
-    for done, room in enumerate(QUEST_ROOMS, 1):
-        steps += _quest_item(room, done)
-    steps += [Until("the pentagram's pieces", lambda memory: memory[PENTAGRAM_ON], 5.0)]
-    steps += _go(ROOM_PENTAGRAM) + _alive([([], 2.0), (["a"], 0.5), ([], 1.0)])
-    steps += [_collectables_in_room_82] + _go(ROOM_PENTAGRAM)
-    steps += [Until("the fifth collectable in its place", lambda memory: memory[PLACED] >= 5, 40.0),
-              Until("the menu after the ending", _at_menu, 60.0)]
+    for place, (room, kind) in enumerate(CHAMBER_ROOMS):
+        steps += _chamber(place, room, kind, place + 1)
+        steps += _alive([([], 1.0), (["a"], 0.5), ([], 0.5)])
+    steps += _go(CHAMBER_ROOMS[0][0], CLEAR_SPOT) + _alive([([], 1.5), (["a"], 0.5)])
+    room, kind = LAST_CHAMBER
+    steps += [lambda memory: memory.__setitem__(CHAMBERS, 0x23)]
+    steps += _chamber(len(CHAMBER_ROOMS), room, kind, 0x24)
+    steps += [Until("the twenty-fourth chamber", lambda memory: memory[WON] != 0, 10.0),
+              Until("the scene after the ending", _in_game_over, 90.0),
+              Until("the menu after the ending", _at_menu, 120.0)]
     return steps + _start("1") + _alive(KEYBOARD_ROUND)
 
 
-def _directional(memory) -> None:
-    """Bit 3 of the control byte: the joystick steers by direction, turning
-    him to face the way pushed (#R$C4C8). No menu choice sets it."""
-    memory[CONTROL] |= 0x08
+def _records_of(memory, graphics) -> list[int]:
+    """The room's object records holding any of the graphics, in order."""
+    return [record for record in range(ROOM_RECORDS, PLAYER + 56 * 32, 32)
+            if memory[record] in graphics]
+
+
+def _onto(graphic: int, which: int = 0):
+    """The player dropped on top of the room's `which`th object of a graphic
+    -- a button, a pad -- to land on it the way a jump would."""
+    def poke(memory):
+        records = _records_of(memory, (graphic,))
+        if len(records) <= which:
+            sys.exit(f"error: staged scene: no graphic {graphic} number {which} in the room")
+        record = records[which]
+        for part in (PLAYER, PLAYER_TOP):
+            memory[part + 1], memory[part + 2] = memory[record + 1], memory[record + 2]
+        memory[PLAYER + 3] = memory[record + 3] + memory[record + 6] + 8
+        memory[PLAYER_TOP + 3] = memory[PLAYER + 3] + 12
+    return poke
+
+
+def _under(graphic: int):
+    """The player on the floor straight under the room's first object of a
+    graphic."""
+    def poke(memory):
+        records = _records_of(memory, (graphic,))
+        if not records:
+            sys.exit(f"error: staged scene: no graphic {graphic} in the room")
+        for part in (PLAYER, PLAYER_TOP):
+            memory[part + 1], memory[part + 2] = memory[records[0] + 1], memory[records[0] + 2]
+    return poke
+
+
+# The remote-controlled robots (graphics 124-127): a room of them, with the
+# buttons that drive them (122 and 123, two of each) and the pad (128) that
+# stops them. Landing on one sets the robots' orders at $5B42 (#R$AA63).
+REMOTE_ROOM = 0x0B
+BUTTONS = [(122, 0), (123, 0), (128, 0), (122, 1), (123, 1)]
+# The things that drop from the ceiling when the player is under them
+# (graphic 73, #R$AD13) -- but only once something has been picked up in
+# an even-numbered room ($5B3B, cleared by a pick-up), and only on a turn
+# the random byte at $5B05 is under 16, which the scene makes this turn.
+DROP_ROOM = 0x1C
+DROP_LATCH = 0x5B3B
+DROP_TEST = 0xAD2A
+RANDOM = 0x5B05
 
 
 def sessions(snapshot: Path, cycles: int) -> list:
@@ -476,25 +581,61 @@ def sessions(snapshot: Path, cycles: int) -> list:
     kempston = _start("2") + _alive(STICK_ROUND * cycles + PAUSE)
     cursor = _start("3") + _alive(CURSOR_ROUND * cycles)
     sinclair = _start("4") + _alive(SINCLAIR_ROUND * cycles)
-    tour = _start("1") + _tour(rooms, 1.0)
+    directional = _start("2", "5") + _alive(STICK_ROUND * cycles)
+    tour = _start("1") + _tour(rooms, 3.0, KEYBOARD_ROUND[:14])
     over = (_start("1") + _alive(KEYBOARD_ROUND) + [Until("a live player", _playing), _game_over,
-                                                    Until("the menu again", _at_menu, 60.0)]
+                                                    Until("the game-over scene", _in_game_over, 60.0),
+                                                    Until("the menu again", _at_menu, 120.0)]
             + _start("1") + _alive(KEYBOARD_ROUND))
-    # Room 30 is empty and nothing bans a drop there; fire at what falls.
-    flyers = _start("1") + _go(30)
-    for _ in range(cycles):
-        flyers += [_drop_soon] + _alive([([], 1.5), (["w"], 0.2), (["z"], 0.15), (["r"], 0.2),
-                                         ([], 1.0), (["a"], 0.8), (["y"], 0.2), ([], 2.0)])
+    # A valve beside him in the start room: picked up, passed along the
+    # three carried places (each press moves them on, #R$BE60), put down.
+    valves = (_start("1") + [_put(0, VALVE_GRAPHIC + 1, START_ROOM, 128, 156, 64)]
+              + _go(START_ROOM, (128, 128))
+              + [_lives, _beside_valve, ([], 0.3),
+                 Repeat("the valve carried, next to put down", PRESS,
+                        lambda memory: memory[CARRIED_LAST] != 0, 4),
+                 (["z"], 0.3), (["a"], 0.6),
+                 Repeat("the valve put down", PRESS,
+                        lambda memory: memory[CARRIED_LAST] == 0, 2)]
+              + _alive(KEYBOARD_ROUND))
+    # An extra life lying against where he appears: #R$BEE0 widens his box
+    # by one, finds it touching, gives a life and empties its place.
+    extra = (_start("1") + [_put(1, EXTRA_LIFE, START_ROOM, 128, 140, 64)]
+             + _go(START_ROOM, (128, 128))
+             + [Until("the extra life taken",
+                      lambda memory: memory[PLACES + PLACE_SIZE] == 0, 10.0)]
+             + _alive(KEYBOARD_ROUND[:6]))
+    # The clock all but out as #R$AD66 starts its turn. (0,0,0,1) is the
+    # last digit 0 still rolling one row -- each byte's low three bits are a
+    # roll count -- and the turn's count runs it out and ends the game; one
+    # whole light year left would be (0,0,0,$10). Poked anywhere else in the
+    # turn, the half-done borrow can wrap the count round to 9s instead.
+    clock = (_start("1") + _alive(KEYBOARD_ROUND[:6])
+             + [At("the clock's turn", CLOCK_TICK),
+                lambda memory: memory.__setitem__(slice(CLOCK, CLOCK + 4), bytes((0, 0, 0, 1))),
+                Until("the scene after the clock ran out", _in_game_over, 90.0),
+                Until("the menu again", _at_menu, 120.0)])
+    remote = _start("1") + _go(REMOTE_ROOM, CLEAR_SPOT)
+    for graphic, which in BUTTONS:
+        remote += [_lives, _onto(graphic, which), ([], 3.0)]
+    drop = (_start("1") + _go(DROP_ROOM, CLEAR_SPOT)
+            + [_lives, _under(73), lambda memory: memory.__setitem__(DROP_LATCH, 0),
+               At("the drop's random test", DROP_TEST),
+               lambda memory: memory.__setitem__(RANDOM, 0), ([], 3.0)])
     return [
         ("keyboard", keyboard),
         ("Kempston joystick", kempston),
         ("cursor joystick", cursor),
         ("Interface II", sinclair),
+        ("directional control", directional),
         ("every room", tour),
         ("game over", over),
-        ("things from the sky", flyers),
-        ("the quest and the ending", _quest()),
-        ("directional joystick", _start("2") + [_directional] + _alive(STICK_ROUND * cycles)),
+        ("valves carried", valves),
+        ("an extra life", extra),
+        ("the chambers and the ending", _chambers()),
+        ("the clock runs out", clock),
+        ("remote control", remote),
+        ("things that drop", drop),
     ]
 
 
@@ -529,7 +670,7 @@ def build_code_map(snapshot: Path, out: Path, cycles: int) -> None:
 def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     """Follow the game's own branches out from everything that ran.
 
-    The same method as build_antattack.py's (and build_hobbit.py's, which
+    The same method as build_pentagram.py's (and build_hobbit.py's, which
     says at length why): seeds are addresses a CPU executed, branches are
     only followed out of those, and the CPU's instruction boundaries overrule
     the decoder's wherever they meet.
@@ -537,11 +678,11 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     import codemap
 
     # And the update routines, one per graphic, that the main loop jumps to
-    # through the table at $AE2F (JP (HL) at $B00B): a jump table is a list
+    # through the table at $A7EA (JP (HL) at $A6BF): a jump table is a list
     # of edges, not a guess, and a graphic no session met still has its
     # routine there.
     seeds = set(executed) | {_word(memory, HANDLERS + 2 * graphic)
-                             for graphic in range(GRAPHIC_COUNT)}
+                             for graphic in range(HANDLER_COUNT)}
     forbidden: set[int] = set()
     for _ in range(12):
         code, indirect, _ = codemap.walk(memory, seeds, DESCENT_START, DESCENT_END,
@@ -570,7 +711,6 @@ def extend_by_descent(memory: list, executed: set[int]) -> set[int]:
     _log(f"  following branches from there: +{len(code - executed)} more "
          f"instruction starts ({len(indirect)} indirect jumps stopped it)")
     return code
-
 
 # --------------------------------------------------------------------------
 # Step 3: map -> control file -> skool -> asm.
@@ -704,7 +844,7 @@ def check_structure(generated: str, owned: list[tuple[int, int]],
 
     The round trip cannot see any of this: a table sliced into pieces, a
     block whose sub-blocks stop short, two blocks claiming the same bytes all
-    still reassemble. So: the ranges pentagram_data.py owns and the spans the
+    still reassemble. So: the ranges alien8_data.py owns and the spans the
     annotations declare must not overlap; and inside every generated block
     the sub-blocks must run on from one another, with no gap and no overlap,
     to the next block or the end of the range.
@@ -786,7 +926,7 @@ def label_unlabelled(skool_text: str) -> str:
 def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path) -> int:
     from skoolkit import skool2asm, sna2ctl, sna2skool
 
-    import pentagram_data
+    import alien8_data
 
     _log("Generating control file...")
     auto_ctl = _capture(sna2ctl.main, [
@@ -796,9 +936,9 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
     auto_ctl = NEWLINE.join(line for line in auto_ctl.splitlines()
                             if not re.match(r"^@ \$[0-9A-F]{4} (start|org)$", line))
     memory = game_memory(snapshot)
-    generated = pentagram_data.data_blocks(memory)
-    (OUT_DIR / "pentagram-data.ctl").write_text(generated, encoding="utf-8")
-    owned = pentagram_data.OWNED
+    generated = alien8_data.data_blocks(memory)
+    (OUT_DIR / "alien8-data.ctl").write_text(generated, encoding="utf-8")
+    owned = alien8_data.OWNED
     spans = declared_spans()
     check_structure(generated, owned, spans)
     merged = take_over(auto_ctl, owned, keep_start=False)
@@ -824,7 +964,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
         # Disassemble once with only the annotations' block directives, to
         # learn where the instruction boundaries are, so that a comment whose
         # length splits an instruction is reported by line number.
-        structure = OUT_DIR / "pentagram-structure.ctl"
+        structure = OUT_DIR / "alien8-structure.ctl"
         structure.write_text(NEWLINE.join(
             " ".join(line.split(" ", 2)[:2])
             for line in ANNOTATIONS.read_text(encoding="utf-8").splitlines()
@@ -845,7 +985,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
     _log("Generating assembly...")
     text = _capture(skool2asm.main, ["-H", "-c", str(skool)], warnings)
     asm.write_text("    DEVICE ZXSPECTRUM48\n" + text, encoding="utf-8")
-    report = OUT_DIR / "pentagram-warnings.txt"
+    report = OUT_DIR / "alien8-warnings.txt"
     report.write_text(NEWLINE.join(warnings) + NEWLINE, encoding="utf-8")
     _log(f"  {len(warnings)} warning(s)" + (f" -- see {report.name}" if warnings else ""))
     return len(warnings)
@@ -854,7 +994,7 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
 def report_coverage(snapshot: Path, code_map: Path, skool: Path, out: Path) -> None:
     """How much is code, how much data, and which code never ran.
 
-    Written to pentagram-coverage.txt beside the listing, a line per run of
+    Written to alien8-coverage.txt beside the listing, a line per run of
     instructions that recursive descent found but no session executed, with
     the entry each is in -- the list of what the sessions have yet to reach,
     and of what a description of it rests on reading alone.
@@ -895,9 +1035,9 @@ def report_coverage(snapshot: Path, code_map: Path, skool: Path, out: Path) -> N
         return found
 
     total = BLOCK_END - BLOCK_START
-    loaded = LOADED_END - BLOCK_START
+    loaded = LOADED_END - LOADED_START
     lines = [f"{total} bytes disassembled (${BLOCK_START:04X}-${BLOCK_END - 1:04X}); "
-             f"{loaded} of them loaded from the tape",
+             f"{loaded} of them loaded from the tape (${LOADED_START:04X} up)",
              f"{code_bytes} bytes are code: {len(code_starts)} instructions, "
              f"{len(ran & code_starts)} executed in the sessions and "
              f"{len(unrun)} found only by following branches",
@@ -923,7 +1063,7 @@ def report_coverage(snapshot: Path, code_map: Path, skool: Path, out: Path) -> N
 
 def assemble(asm: Path, sld: Path) -> bytes:
     sjasmplus = str(SJASMPLUS) if SJASMPLUS.exists() else "sjasmplus"
-    raw = OUT_DIR / "pentagram.rawbin"
+    raw = OUT_DIR / "alien8.rawbin"
     _log("Assembling with sjasmplus...")
     result = subprocess.run(
         [sjasmplus, asm.name, f"--sld={sld.name}", "--fullpath", f"--raw={raw.name}"],
@@ -954,9 +1094,9 @@ def verify(game_bytes: bytes, snapshot: Path) -> None:
 # --------------------------------------------------------------------------
 
 def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
-    """The snapshot tap2sna made, with $5E00 up replaced by the assembled bytes.
+    """The snapshot tap2sna made, with $5B00 up replaced by the assembled bytes.
 
-    The header -- PC at $5E00, the registers and the rest -- is carried
+    The header -- PC at $6300, the registers and the rest -- is carried
     across from the one read, so the file written must be that file again
     byte for byte: the check covers what verify() cannot, that the splice
     went in at the right place and nothing else moved.
@@ -984,13 +1124,13 @@ def write_snapshot(game_bytes: bytes, snapshot: Path, out: Path) -> None:
 
 # Everything below writes pages that quote the game -- its sprites, its
 # rooms -- so, like the disassembly itself, it is built locally and not
-# committed. The prose pages are scripts/pentagram.ref, which is.
+# committed. The prose pages are scripts/alien8.ref, which is.
 
 SPRITE_SCALE = 3
 
 
 def sprite_image(memory, address: int, scale: int = SPRITE_SCALE):
-    """The sprite at `address` as #R$B44F draws it, on a clear background.
+    """The sprite at `address` as #R$D013 draws it, on a clear background.
 
     The pairs are a mask byte and an image byte, bottom row first. The
     drawing keeps the screen where neither is set, clears it where the mask
@@ -1017,13 +1157,13 @@ def sprite_image(memory, address: int, scale: int = SPRITE_SCALE):
 
 
 def draw_sprites(snapshot: Path, out_dir: Path) -> int:
-    import pentagram_data
+    import alien8_data
 
     memory = game_memory(snapshot)
     out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
-    for address in pentagram_data.picture_sprites(memory):
-        sprite_image(memory, address).save(out_dir / pentagram_data.sprite_picture_name(address))
+    for address in alien8_data.picture_sprites(memory):
+        sprite_image(memory, address).save(out_dir / alien8_data.sprite_picture_name(address))
         count += 1
     return count
 
@@ -1032,8 +1172,8 @@ def draw_sprites(snapshot: Path, out_dir: Path) -> int:
 # beside this script: build(snapshot, html_dir, log) draws its pictures and
 # records its sounds into html_dir and returns its ref sections, name to body.
 # A module not written yet is skipped, so the pages can arrive one at a time.
-PAGE_MODULES = ["pentagram_howitworks", "pentagram_world", "pentagram_graphics",
-                "pentagram_animations", "pentagram_sounds", "pentagram_reference"]
+PAGE_MODULES = ["alien8_howitworks", "alien8_world", "alien8_graphics",
+                "alien8_animations", "alien8_sounds", "alien8_reference"]
 
 
 def write_pages_ref(snapshot: Path, html_dir: Path, path: Path) -> list[str]:
@@ -1054,10 +1194,10 @@ def build_html(skool: Path, snapshot: Path, out: Path) -> None:
     from skoolkit import skool2html
 
     _log("Writing HTML disassembly...")
-    game_dir = out / "pentagram"
+    game_dir = out / "alien8"
     count = draw_sprites(snapshot, game_dir / "images" / "sprites")
     _log(f"  {count} sprites drawn")
-    pages_ref = OUT_DIR / "pentagram-pages.ref"
+    pages_ref = OUT_DIR / "alien8-pages.ref"
     built = write_pages_ref(snapshot, game_dir, pages_ref)
     _log(f"  page modules: {', '.join(built) if built else 'none yet'}")
     # -a: the pages use the annotations' labels. -S: the style sheets the ref
@@ -1071,10 +1211,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--tape", required=True, type=Path,
-                        help="the Pentagram .tzx or .tap to disassemble")
+                        help="the Alien 8 .tap or .tzx to disassemble")
     parser.add_argument("--html", action="store_true",
                         help="also write a browsable HTML disassembly under "
-                             "game_disassembly/pentagram/html/")
+                             "game_disassembly/alien8/html/")
     parser.add_argument("--cycles", type=int, default=8,
                         help="rounds of play per playing session (default 8)")
     args = parser.parse_args()
@@ -1086,19 +1226,19 @@ def main() -> None:
 
     started = time.time()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    snapshot = OUT_DIR / "pentagram.z80"
-    code_map = OUT_DIR / "pentagram.map"
-    ctl = OUT_DIR / "pentagram.ctl"
-    skool = OUT_DIR / "pentagram.skool"
-    asm = OUT_DIR / "pentagram.asm"
-    sld = OUT_DIR / "pentagram.sld"
-    rebuilt = OUT_DIR / "pentagram-rebuilt.z80"
+    snapshot = OUT_DIR / "alien8.z80"
+    code_map = OUT_DIR / "alien8.map"
+    ctl = OUT_DIR / "alien8.ctl"
+    skool = OUT_DIR / "alien8.skool"
+    asm = OUT_DIR / "alien8.asm"
+    sld = OUT_DIR / "alien8.sld"
+    rebuilt = OUT_DIR / "alien8-rebuilt.z80"
 
     make_snapshot(args.tape, snapshot)
     _log("Playing the game to map out which addresses are code...")
     build_code_map(snapshot, code_map, args.cycles)
     warnings = build_asm(snapshot, code_map, ctl, skool, asm)
-    report_coverage(snapshot, code_map, skool, OUT_DIR / "pentagram-coverage.txt")
+    report_coverage(snapshot, code_map, skool, OUT_DIR / "alien8-coverage.txt")
     game_bytes = assemble(asm, sld)
     verify(game_bytes, snapshot)
     write_snapshot(game_bytes, snapshot, rebuilt)
@@ -1108,13 +1248,13 @@ def main() -> None:
     _log("")
     _log(f"Wrote {asm}, {sld} and {rebuilt} in {time.time() - started:.0f} s")
     if args.html:
-        _log(f"HTML disassembly: {OUT_DIR / 'html' / 'pentagram' / 'index.html'}")
+        _log(f"HTML disassembly: {OUT_DIR / 'html' / 'alien8' / 'index.html'}")
     _log("Load roms/48.rom first, then the .z80 + .sld.")
     if warnings:
         # Everything is written, so the warnings can be looked at in place;
         # but a build with any is not a finished one.
         sys.exit(f"error: {warnings} warning(s) from sna2skool and skool2asm -- see "
-                 f"{OUT_DIR / 'pentagram-warnings.txt'}")
+                 f"{OUT_DIR / 'alien8-warnings.txt'}")
 
 
 if __name__ == "__main__":
