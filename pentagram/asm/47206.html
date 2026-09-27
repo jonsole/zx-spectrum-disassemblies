@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B866</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47072.html">B7E0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47206">Map</a></td>
+<td class="next">
+Next: <a href="47248.html">B890</a>
+</td>
+</tr>
+</table>
+<div class="description">B866: Be carried along by a block of graphic 140-143</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>.
+</div>
+<div class="paragraph">
+Called by <a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a> when the object met in Z is one of graphics 140-143. These four share the plain block's sprite but move what meets them, in practice what stands on them: on every other turn (bit 0 of TURNS set) the mover's step gets two units in the direction the graphic's low two bits pick from the table at <a href="54026.html">CONVEYOR_STEPS</a> -- 140 +U, 141 -U, 142 +V, 143 -V. Only the first mover in a turn is pushed: bit 3 of the block's +$0D, set by <a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a> just after this, is cleared only by the block's own update routine (<a href="53982.html">CONVEYOR_PLUS_U</a> and its three neighbours).
+</div>
+<div class="paragraph">
+None of this ran in the build's sessions. It was run in the simulator instead: the player's legs falling onto each of the four graphics were given +2 U, -2 U, +2 V and -2 V on an odd turn, nothing on an even one, and nothing with the block's bit 3 already set.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the obstacle's graphic</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the mover</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the block</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CONVEYOR_PUSH</td>
+<td class="address-2"><span id="47206"></span>B866</td>
+<td class="instruction">BIT 3,(IY+$0D)</td>
+<td class="comment-1" rowspan="2">something has met the block already this turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47210"></span>B86A</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47211"></span>B86B</td>
+<td class="instruction">AND $03</td>
+<td class="comment-1" rowspan="6">DE = the graphic's low two bits, times two</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47213"></span>B86D</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47214"></span>B86E</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47215"></span>B86F</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47216"></span>B870</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47218"></span>B872</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47219"></span>B873</td>
+<td class="instruction">LD A,(<a href="42761.html#42773">TURNS</a>)</td>
+<td class="comment-1" rowspan="3">only on odd turns</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47222"></span>B876</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47224"></span>B878</td>
+<td class="instruction">JR Z,<a href="47206.html#47245">CONVEYOR_PUSH_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47226"></span>B87A</td>
+<td class="instruction">LD HL,<a href="54026.html">CONVEYOR_STEPS</a></td>
+<td class="comment-1" rowspan="9">the table's dU and dV added to the mover's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47229"></span>B87D</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47230"></span>B87E</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47231"></span>B87F</td>
+<td class="instruction">ADD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47234"></span>B882</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47237"></span>B885</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47238"></span>B886</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47239"></span>B887</td>
+<td class="instruction">ADD A,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47242"></span>B88A</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label">CONVEYOR_PUSH_0</td>
+<td class="address-2"><span id="47245"></span>B88D</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">DE and HL back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47246"></span>B88E</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47247"></span>B88F</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47072.html">B7E0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47206">Map</a></td>
+<td class="next">
+Next: <a href="47248.html">B890</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

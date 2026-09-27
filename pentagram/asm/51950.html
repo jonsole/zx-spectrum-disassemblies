@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CAEE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51842.html">CA82</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51950">Map</a></td>
+<td class="next">
+Next: <a href="51989.html">CB15</a>
+</td>
+</tr>
+</table>
+<div class="description">CAEE: Line the player up with the arch he comes in by</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51842.html">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE</a>.
+</div>
+<div class="paragraph">
+The code takes the room's doorways to be its first scenery entries, two pieces each, and each entry's second piece -- the first pillar, graphic 6 or 8, at the second record from the top and every other record down from there -- is what this looks at, until one is not an arch piece (graphics 6 to 9) or four have been tried. The one in the wall he comes in by (U or V at least 192 for a wall at the high end, below 64 for the low) gives him the middle of the arch along the wall and its Z; the body goes 12 above.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The wall: 0 high U, 1 low U, 2 high V, 3 low V</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The player's legs</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_ENTRY_ARCH</td>
+<td class="address-2"><span id="51950"></span>CAEE</td>
+<td class="instruction">LD IY,<a href="42863.html#44527">ROOM_SECOND</a></td>
+<td class="comment-1" rowspan="3">Four doorways at most, two records apart</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51954"></span>CAF2</td>
+<td class="instruction">LD DE,<a href="65024.html#65472">$FFC0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51957"></span>CAF5</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_ENTRY_ARCH_0</td>
+<td class="address-2"><span id="51959"></span>CAF7</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="4">Not an arch piece: no more doorways</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51962"></span>CAFA</td>
+<td class="instruction">SUB $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51964"></span>CAFC</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51966"></span>CAFE</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51967"></span>CAFF</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="7">Which wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51968"></span>CB00</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51969"></span>CB01</td>
+<td class="instruction">JR Z,<a href="52019.html">ARCH_AT_HIGH_U</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51971"></span>CB03</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51972"></span>CB04</td>
+<td class="instruction">JR Z,<a href="52028.html">ARCH_AT_LOW_U</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51974"></span>CB06</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51975"></span>CB07</td>
+<td class="instruction">JR Z,<a href="52037.html">ARCH_AT_HIGH_V</a></td>
+</tr>
+<tr>
+<td class="asm-label">ARCH_AT_LOW_V</td>
+<td class="address-1"><span id="51977"></span>CB09</td>
+<td class="instruction">LD A,(IY+$02)</td>
+<td class="comment-1" rowspan="3">Low V: an arch with V below 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51980"></span>CB0C</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51982"></span>CB0E</td>
+<td class="instruction">JR C,<a href="52009.html">ALIGN_U_TO_ARCH</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51984"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="52019.html">ARCH_AT_HIGH_U</a>, <a href="52028.html">ARCH_AT_LOW_U</a> and <a href="52037.html">ARCH_AT_HIGH_V</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">NEXT_ARCH</td>
+<td class="address-2"><span id="51984"></span>CB10</td>
+<td class="instruction">ADD IY,DE</td>
+<td class="comment-1" rowspan="2">The next doorway</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51986"></span>CB12</td>
+<td class="instruction">DJNZ <a href="51950.html#51959">FIND_ENTRY_ARCH_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51988"></span>CB14</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">None in that wall: he keeps the U or V he left with</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51842.html">CA82</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51950">Map</a></td>
+<td class="next">
+Next: <a href="51989.html">CB15</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

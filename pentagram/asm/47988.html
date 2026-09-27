@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BB74</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47979.html">BB6B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47988">Map</a></td>
+<td class="next">
+Next: <a href="48088.html">BBD8</a>
+</td>
+</tr>
+</table>
+<div class="description">BB74: The menu</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44935.html">START</a>.
+</div>
+<div class="paragraph">
+Called by <a href="44935.html">START</a> before every game. It stops every line's flash, clears the buffer, draws the menu's text and frame (<a href="48308.html">DISPLAY_MENU</a>, which draws the frame and shows the buffer only the first time, as the flag cleared here tells it) and flashes the chosen control method (<a href="48088.html">FLASH_MENU</a>). Then round a loop: print the text again (its attributes, with the flashing, go straight to the screen), play the tune if it has not been heard (<a href="54940.html">PLAY_TUNE_ONCE</a>, which a key cuts short), and read the keys.
+</div>
+<div class="paragraph">
+Keys 1 to 4 set bits 1 and 2 of CONTROL to 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II, and key 0 starts the game. If several are held the highest wins, since each is applied in turn. Key 5 is not read, and nothing here sets bit 3 of CONTROL, though <a href="48088.html">FLASH_MENU</a> flashes a sixth line of the menu when it is set.
+</div>
+<div class="paragraph">
+Two leftovers do nothing: HL is loaded with one variable's address and at once with another's, and the CP after them sets flags nothing reads -- perhaps a test, once, for whether the choice had changed.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MENU</td>
+<td class="address-2"><span id="47988"></span>BB74</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">the menu's frame is still to be drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47989"></span>BB75</td>
+<td class="instruction">LD (<a href="42761.html#42804">FRAME_DRAWN</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47992"></span>BB78</td>
+<td class="instruction">LD HL,<a href="48113.html">MENU_COLOURS</a></td>
+<td class="comment-1" rowspan="5">no line flashing; the loop takes in the byte after the seven attributes as well, whose bit 7 is clear anyway</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47995"></span>BB7B</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_0</td>
+<td class="address-2"><span id="47997"></span>BB7D</td>
+<td class="instruction">RES 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47999"></span>BB7F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48000"></span>BB80</td>
+<td class="instruction">DJNZ <a href="47988.html#47997">MENU_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48002"></span>BB82</td>
+<td class="instruction">CALL <a href="52097.html">CLEAR_BUFFER</a></td>
+<td class="comment-1" rowspan="3">a clear buffer; the text, the frame and the choice</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48005"></span>BB85</td>
+<td class="instruction">CALL <a href="48308.html">DISPLAY_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48008"></span>BB88</td>
+<td class="instruction">CALL <a href="48088.html">FLASH_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label">MENU_1</td>
+<td class="address-2"><span id="48011"></span>BB8B</td>
+<td class="instruction">CALL <a href="48308.html">DISPLAY_MENU</a></td>
+<td class="comment-1" rowspan="3">the text again; the tune, once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48014"></span>BB8E</td>
+<td class="instruction">LD DE,<a href="55247.html">TUNE_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48017"></span>BB91</td>
+<td class="instruction">CALL <a href="54940.html">PLAY_TUNE_ONCE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48020"></span>BB94</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="5">the keys 1 to 5; CONTROL as it was, into CONTROL_BEFORE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48022"></span>BB96</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48025"></span>BB99</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48026"></span>BB9A</td>
+<td class="instruction">LD A,(<a href="42761.html">CONTROL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48029"></span>BB9D</td>
+<td class="instruction">LD (<a href="42761.html#42764">CONTROL_BEFORE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48032"></span>BBA0</td>
+<td class="instruction">BIT 0,E</td>
+<td class="comment-1" rowspan="3">1: keyboard</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48034"></span>BBA2</td>
+<td class="instruction">JR Z,<a href="47988.html#48038">MENU_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48036"></span>BBA4</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_2</td>
+<td class="address-2"><span id="48038"></span>BBA6</td>
+<td class="instruction">BIT 1,E</td>
+<td class="comment-1" rowspan="4">2: Kempston</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48040"></span>BBA8</td>
+<td class="instruction">JR Z,<a href="47988.html#48046">MENU_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48042"></span>BBAA</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48044"></span>BBAC</td>
+<td class="instruction">OR $02</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_3</td>
+<td class="address-2"><span id="48046"></span>BBAE</td>
+<td class="instruction">BIT 2,E</td>
+<td class="comment-1" rowspan="4">3: cursor keys</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48048"></span>BBB0</td>
+<td class="instruction">JR Z,<a href="47988.html#48054">MENU_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48050"></span>BBB2</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48052"></span>BBB4</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_4</td>
+<td class="address-2"><span id="48054"></span>BBB6</td>
+<td class="instruction">BIT 3,E</td>
+<td class="comment-1" rowspan="3">4: Interface II</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48056"></span>BBB8</td>
+<td class="instruction">JR Z,<a href="47988.html#48060">MENU_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48058"></span>BBBA</td>
+<td class="instruction">OR $06</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_5</td>
+<td class="address-2"><span id="48060"></span>BBBC</td>
+<td class="instruction">LD (<a href="42761.html">CONTROL</a>),A</td>
+<td class="comment-1" rowspan="1">the new choice</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48063"></span>BBBF</td>
+<td class="instruction">LD HL,<a href="42761.html#42805">MENU_SPARE</a></td>
+<td class="comment-1" rowspan="3">leftovers: a load at once overwritten, and a compare nothing reads</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48066"></span>BBC2</td>
+<td class="instruction">LD HL,<a href="42761.html#42764">CONTROL_BEFORE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48069"></span>BBC5</td>
+<td class="instruction">CP (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48070"></span>BBC6</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="4">key 0: start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48072"></span>BBC8</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48075"></span>BBCB</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48077"></span>BBCD</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48078"></span>BBCE</td>
+<td class="instruction">LD HL,<a href="42761.html#42762">MENU_PASSES</a></td>
+<td class="comment-1" rowspan="2">count the passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48081"></span>BBD1</td>
+<td class="instruction">INC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48082"></span>BBD2</td>
+<td class="instruction">CALL <a href="48088.html">FLASH_MENU</a></td>
+<td class="comment-1" rowspan="2">flash the choice; round again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48085"></span>BBD5</td>
+<td class="instruction">JP <a href="47988.html#48011">MENU_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47979.html">BB6B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47988">Map</a></td>
+<td class="next">
+Next: <a href="48088.html">BBD8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

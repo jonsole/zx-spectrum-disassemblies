@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B097</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45068.html">B00C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45207">Map</a></td>
+<td class="next">
+Next: <a href="45333.html">B115</a>
+</td>
+</tr>
+</table>
+<div class="description">B097: Put the quest things in this room into the object records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44935.html">START</a>.
+</div>
+<div class="paragraph">
+The quest things -- the four quest items, the five collectables, the eight pieces of the pentagram and the bucket -- are not in the room directory. They live in 18 records of 16 bytes at <a href="54322.html">QUEST_RECORDS</a>, each with its room at +8, and are copied into the object records when he enters a room, after the room is built (<a href="44935.html">START</a>). <a href="45333.html">QUEST_OUT_OF_ROOM</a> copies them back when he leaves.
+</div>
+<div class="paragraph">
+Each thing in this room goes into the lowest free record of the room's 48, with its flag to be drawn set, the address of its quest record in +10 and +11, and the rest of the record zeroed. Two exceptions: the pieces of the pentagram stay out until all four quest items are done (PENTAGRAM_ON, <a href="42761.html">CONTROL</a>), and anything but a piece is lifted 12 at a time until it overlaps nothing (<a href="48923.html">DO_ANY_OBJS_INTERSECT</a>), so that it stands on whatever it was left on top of -- in the sessions the lift never ran; poked in, a quest item put where a hazard stands came in 12 higher (measured). With no free record left it gives up on the rest.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM</td>
+<td class="address-2"><span id="45207"></span>B097</td>
+<td class="instruction">LD IY,<a href="54034.html#54306">QUEST_START_BUCKET</a></td>
+<td class="comment-1" rowspan="2">IY 16 bytes before the live quest records, since the loop adds 16 before it looks; 18 records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45211"></span>B09B</td>
+<td class="instruction">LD B,$12</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_0</td>
+<td class="address-2"><span id="45213"></span>B09D</td>
+<td class="instruction">LD DE,$0010</td>
+<td class="comment-1" rowspan="3">C = the room he is in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45216"></span>B0A0</td>
+<td class="instruction">LD A,(<a href="42863.html#42871">PLAYER_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45219"></span>B0A3</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_1</td>
+<td class="address-2"><span id="45220"></span>B0A4</td>
+<td class="instruction">ADD IY,DE</td>
+<td class="comment-1" rowspan="4">The next record; graphic 0 has nothing to place: a thing being carried, or the bucket before the well gives it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45222"></span>B0A6</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45225"></span>B0A9</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45226"></span>B0AA</td>
+<td class="instruction">JR Z,<a href="45207.html#45234">QUEST_INTO_ROOM_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45228"></span>B0AC</td>
+<td class="instruction">LD A,(IY+$08)</td>
+<td class="comment-1" rowspan="3">In this room?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45231"></span>B0AF</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45232"></span>B0B0</td>
+<td class="instruction">JR Z,<a href="45207.html#45237">QUEST_INTO_ROOM_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_2</td>
+<td class="address-2"><span id="45234"></span>B0B2</td>
+<td class="instruction">DJNZ <a href="45207.html#45220">QUEST_INTO_ROOM_1</a></td>
+<td class="comment-1" rowspan="2">No: the next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45236"></span>B0B4</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_3</td>
+<td class="address-2"><span id="45237"></span>B0B5</td>
+<td class="instruction">LD HL,<a href="42863.html#43055">ROOM_OBJECTS</a></td>
+<td class="comment-1" rowspan="9">Find the lowest empty record of the room's 48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45240"></span>B0B8</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45243"></span>B0BB</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45244"></span>B0BC</td>
+<td class="instruction">LD B,$30</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_4</td>
+<td class="address-2"><span id="45246"></span>B0BE</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45247"></span>B0BF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45248"></span>B0C0</td>
+<td class="instruction">JR Z,<a href="45207.html#45255">QUEST_INTO_ROOM_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45250"></span>B0C2</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45251"></span>B0C3</td>
+<td class="instruction">DJNZ <a href="45207.html#45246">QUEST_INTO_ROOM_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45253"></span>B0C5</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="2">None free: give up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45254"></span>B0C6</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_5</td>
+<td class="address-2"><span id="45255"></span>B0C7</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="1">DE = the free record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45256"></span>B0C8</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="7">A piece of the pentagram (graphics 128 to 135) stays out until all four quest items are done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45259"></span>B0CB</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45261"></span>B0CD</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45263"></span>B0CF</td>
+<td class="instruction">JR NZ,<a href="45207.html#45271">QUEST_INTO_ROOM_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45265"></span>B0D1</td>
+<td class="instruction">LD A,(<a href="42761.html#42767">PENTAGRAM_ON</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45268"></span>B0D4</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45269"></span>B0D5</td>
+<td class="instruction">JR Z,<a href="45207.html#45329">QUEST_INTO_ROOM_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_6</td>
+<td class="address-2"><span id="45271"></span>B0D7</td>
+<td class="instruction">SET 4,(IY+$07)</td>
+<td class="comment-1" rowspan="1">To be drawn: set in the quest record itself, so the copy carries it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45275"></span>B0DB</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">The quest record's 16 bytes into the object record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45277"></span>B0DD</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45278"></span>B0DE</td>
+<td class="instruction">LD BC,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45281"></span>B0E1</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45283"></span>B0E3</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="6">Its address into +10 and +11, so the thing can find its record again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45285"></span>B0E5</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45286"></span>B0E6</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45287"></span>B0E7</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45288"></span>B0E8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45289"></span>B0E9</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45290"></span>B0EA</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45291"></span>B0EB</td>
+<td class="instruction">LD B,$0E</td>
+<td class="comment-1" rowspan="5">+12 to +1F zeroed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45293"></span>B0ED</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_7</td>
+<td class="address-2"><span id="45294"></span>B0EE</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45295"></span>B0EF</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45296"></span>B0F0</td>
+<td class="instruction">DJNZ <a href="45207.html#45294">QUEST_INTO_ROOM_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45298"></span>B0F2</td>
+<td class="instruction">LD DE,<a href="65024.html#65504">$FFE0</a></td>
+<td class="comment-1" rowspan="4">IX = the record: back 32 from its end</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45301"></span>B0F5</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45302"></span>B0F6</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45303"></span>B0F7</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45305"></span>B0F9</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">A piece of the pentagram lies where it is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45308"></span>B0FC</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45310"></span>B0FE</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45312"></span>B100</td>
+<td class="instruction">JR Z,<a href="45207.html#45329">QUEST_INTO_ROOM_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_8</td>
+<td class="address-2"><span id="45314"></span>B102</td>
+<td class="instruction">CALL <a href="48923.html">DO_ANY_OBJS_INTERSECT</a></td>
+<td class="comment-1" rowspan="2">Anything else: does it overlap something?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45317"></span>B105</td>
+<td class="instruction">JR NC,<a href="45207.html#45329">QUEST_INTO_ROOM_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45319"></span>B107</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="4">Yes: lift it 12 and try again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45322"></span>B10A</td>
+<td class="instruction">ADD A,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45324"></span>B10C</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45327"></span>B10F</td>
+<td class="instruction">JR <a href="45207.html#45314">QUEST_INTO_ROOM_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_INTO_ROOM_9</td>
+<td class="address-2"><span id="45329"></span>B111</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">The next quest record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45330"></span>B112</td>
+<td class="instruction">DJNZ <a href="45207.html#45213">QUEST_INTO_ROOM_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45332"></span>B114</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45068.html">B00C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45207">Map</a></td>
+<td class="next">
+Next: <a href="45333.html">B115</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

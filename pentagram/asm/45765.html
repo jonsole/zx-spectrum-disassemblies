@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B2C5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45722.html">B29A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45765">Map</a></td>
+<td class="next">
+Next: <a href="45806.html">B2EE</a>
+</td>
+</tr>
+</table>
+<div class="description">B2C5: Project an object's position onto the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="46035.html">DRAW_OBJECT</a>, <a href="47416.html">CALC_2D_INFO</a>, <a href="49017.html">TAKE_OR_LEAVE</a>, <a href="52139.html">SKY_DROP</a> and <a href="53202.html">WELL</a>.
+</div>
+<div class="paragraph">
+The isometric projection. U, V and Z (+1 to +3) become a pixel x in +1A and a pixel y in +1B, counted up from the bottom of the screen: pixel x = U + V - 128, and pixel y = (V - U + 128) / 2 + Z - 104, each with the drawing nudge (+12, +13) added.
+</div>
+<div class="paragraph">
+Knight Lore's, with one addition: a picture whose x would come out below 0 is drawn from x 0. That rests on every nudge being negative -- adding one to an x that stays on the screen carries -- and so an object with a nudge of 0 would always be drawn at x 0. The update routines set the nudges, through the short routines from <a href="51019.html">DRAW_AT_L8</a> on; in room 100, measured, all 38 records in use had negative nudges.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">carry set if the pixel y is below 192, that is on the screen</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CALC_PIXEL_XY</td>
+<td class="address-2"><span id="45765"></span>B2C5</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="3">U + V - 128</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45768"></span>B2C8</td>
+<td class="instruction">ADD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45771"></span>B2CB</td>
+<td class="instruction">SUB $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45773"></span>B2CD</td>
+<td class="instruction">ADD A,(IX+$12)</td>
+<td class="comment-1" rowspan="3">Plus the nudge: no carry means it went below 0, so 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45776"></span>B2D0</td>
+<td class="instruction">JR C,<a href="45765.html#45779">CALC_PIXEL_XY_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45778"></span>B2D2</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">CALC_PIXEL_XY_0</td>
+<td class="address-2"><span id="45779"></span>B2D3</td>
+<td class="instruction">LD (IX+$1A),A</td>
+<td class="comment-1" rowspan="1">Pixel x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45782"></span>B2D6</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="6">(V - U + 128) / 2 + Z - 104</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45785"></span>B2D9</td>
+<td class="instruction">SUB (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45788"></span>B2DC</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45790"></span>B2DE</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45792"></span>B2E0</td>
+<td class="instruction">ADD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45795"></span>B2E3</td>
+<td class="instruction">SUB $68</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45797"></span>B2E5</td>
+<td class="instruction">ADD A,(IX+$13)</td>
+<td class="comment-1" rowspan="2">Plus the nudge: pixel y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45800"></span>B2E8</td>
+<td class="instruction">LD (IX+$1B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45803"></span>B2EB</td>
+<td class="instruction">CP $C0</td>
+<td class="comment-1" rowspan="2">Carry set if it is on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45805"></span>B2ED</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45722.html">B29A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45765">Map</a></td>
+<td class="next">
+Next: <a href="45806.html">B2EE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B531</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46368.html">B520</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46385">Map</a></td>
+<td class="next">
+Next: <a href="46426.html">B55A</a>
+</td>
+</tr>
+</table>
+<div class="description">B531: List the objects to be drawn</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called by the main loop (<a href="45068.html">OBJECT_DONE</a>) once every object has been updated. Writes into <a href="46426.html">DRAW_LIST</a> the number (0-53) of every record in use whose draw flag, bit 4 of +$07, is set, in record order, and an $FF after the last. <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> wipes the objects' old places from this list and <a href="46474.html">SORT_AND_DRAW</a> draws from it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN</td>
+<td class="address-2"><span id="46385"></span>B531</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">54 records from <a href="42863.html">OBJECTS</a>; HL = the list; C = the number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46387"></span>B533</td>
+<td class="instruction">LD B,$36</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46389"></span>B535</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46392"></span>B538</td>
+<td class="instruction">LD IX,<a href="42863.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46396"></span>B53C</td>
+<td class="instruction">LD HL,<a href="46426.html">DRAW_LIST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46399"></span>B53F</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN_0</td>
+<td class="address-2"><span id="46401"></span>B541</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">an empty record: not listed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46404"></span>B544</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46405"></span>B545</td>
+<td class="instruction">JR Z,<a href="46385.html#46415">LIST_DRAWN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46407"></span>B547</td>
+<td class="instruction">BIT 4,(IX+$07)</td>
+<td class="comment-1" rowspan="2">not to be drawn this turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46411"></span>B54B</td>
+<td class="instruction">JR Z,<a href="46385.html#46415">LIST_DRAWN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46413"></span>B54D</td>
+<td class="instruction">LD (HL),C</td>
+<td class="comment-1" rowspan="2">list its number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46414"></span>B54E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN_1</td>
+<td class="address-2"><span id="46415"></span>B54F</td>
+<td class="instruction">INC C</td>
+<td class="comment-1" rowspan="3">the next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46416"></span>B550</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46418"></span>B552</td>
+<td class="instruction">DJNZ <a href="46385.html#46401">LIST_DRAWN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46420"></span>B554</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="4">end the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46422"></span>B556</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46423"></span>B557</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46425"></span>B559</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46368.html">B520</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46385">Map</a></td>
+<td class="next">
+Next: <a href="46426.html">B55A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

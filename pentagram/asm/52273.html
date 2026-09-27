@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CC31</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52241.html">CC11</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52273">Map</a></td>
+<td class="next">
+Next: <a href="52299.html">CC4B</a>
+</td>
+</tr>
+</table>
+<div class="description">CC31: Reset the drop timer: 80 turns while the first quest item is still to do, 8 after</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="44935.html">START</a> and <a href="52139.html">SKY_DROP</a>.
+</div>
+<div class="paragraph">
+Meant, by its shape, to count the quest items still to do -- records of <a href="54322.html">QUEST_RECORDS</a> whose graphic is 112 to 115; a quest item done becomes 116 to 119 -- and set DROP_TIMER to four times two more than that: 8 to 24 turns. But DE is loaded with the record length and never added to HL, so it tests the first record eighteen times: 80 turns while the first quest item is to do, 8 once it is done, whatever the other three are. Measured in the simulator: 80 with none done, 80 with the other three done, 8 with only the first done.
+</div>
+<div class="paragraph">
+It runs at the start of every room (<a href="44935.html">START</a>) as well as after each drop, so the first drop in a room is always at least that many turns away.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RESET_DROP_TIMER</td>
+<td class="address-2"><span id="52273"></span>CC31</td>
+<td class="instruction">LD HL,<a href="54322.html">QUEST_RECORDS</a></td>
+<td class="comment-1" rowspan="3">Eighteen records of 16 bytes, C starting at 2 -- but HL never moves on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52276"></span>CC34</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52279"></span>CC37</td>
+<td class="instruction">LD BC,$1202</td>
+</tr>
+<tr>
+<td class="asm-label">RESET_DROP_TIMER_0</td>
+<td class="address-2"><span id="52282"></span>CC3A</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">A quest item still to do?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52283"></span>CC3B</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52285"></span>CC3D</td>
+<td class="instruction">CP $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52287"></span>CC3F</td>
+<td class="instruction">JR NZ,<a href="52273.html#52290">RESET_DROP_TIMER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52289"></span>CC41</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">RESET_DROP_TIMER_1</td>
+<td class="address-2"><span id="52290"></span>CC42</td>
+<td class="instruction">DJNZ <a href="52273.html#52282">RESET_DROP_TIMER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52292"></span>CC44</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">Four turns for each</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52293"></span>CC45</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52294"></span>CC46</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52295"></span>CC47</td>
+<td class="instruction">LD (<a href="42761.html#42813">DROP_TIMER</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52298"></span>CC4A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52241.html">CC11</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52273">Map</a></td>
+<td class="next">
+Next: <a href="52299.html">CC4B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

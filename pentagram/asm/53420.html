@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D0AC</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53381.html">D085</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53420">Map</a></td>
+<td class="next">
+Next: <a href="53562.html">D13A</a>
+</td>
+</tr>
+</table>
+<div class="description">D0AC: The update routine for the bucket</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphic 90. Bit 0 of +14 says whether it has a quest item to go to. Until it has, it falls one unit a turn, and looks for a quest item not yet done (graphics 112 to 115) among the room's records each turn; the well's rooms have none, so it falls to the ground there and waits to be carried (<a href="49017.html">TAKE_OR_LEAVE</a>). Put down where a quest item is, it finds it, takes its U and V as the target, and from then on rises one unit a turn to a height of 176 while it steers towards the item (<a href="53381.html">HEAD_FOR_TARGET</a>), without falling.
+</div>
+<div class="paragraph">
+When it can move no more -- above the item at the top of its rise, or stopped by something in every direction -- it finds the quest item in the room again and sets bit 0 of its +16, which <a href="53096.html">QUEST_ITEM</a> acts on. Then the bucket's work is done: BUCKET_OUT is cleared so the well can give another, the quest-item tune plays, the bucket's quest record is emptied, and the bucket turns into a puff (<a href="49415.html">START_PUFF</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the bucket's object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET</td>
+<td class="address-2"><span id="53420"></span>D0AC</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53423"></span>D0AF</td>
+<td class="instruction">BIT 0,(IX+$14)</td>
+<td class="comment-1" rowspan="2">not yet going to a quest item</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53427"></span>D0B3</td>
+<td class="instruction">JR Z,<a href="53420.html#53516">BUCKET_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53429"></span>D0B5</td>
+<td class="instruction">CALL <a href="53381.html">HEAD_FOR_TARGET</a></td>
+<td class="comment-1" rowspan="5">going: steer to it, and rise while below 176</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53432"></span>D0B8</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53435"></span>D0BB</td>
+<td class="instruction">CP $B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53437"></span>D0BD</td>
+<td class="instruction">JR NC,<a href="53420.html#53443">BUCKET_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53439"></span>D0BF</td>
+<td class="instruction">LD (IX+$0B),$01</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_0</td>
+<td class="address-2"><span id="53443"></span>D0C3</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+<td class="comment-1" rowspan="5">move without falling; moved: stop, and redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53446"></span>D0C6</td>
+<td class="instruction">LD A,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53449"></span>D0C9</td>
+<td class="instruction">OR (IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53452"></span>D0CC</td>
+<td class="instruction">OR (IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53455"></span>D0CF</td>
+<td class="instruction">JP NZ,<a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53458"></span>D0D2</td>
+<td class="instruction">CALL <a href="53361.html">ROOM_OBJECT_LOOP</a></td>
+<td class="comment-1" rowspan="9">stuck: find the quest item not yet done in this room; none: stop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53461"></span>D0D5</td>
+<td class="instruction">LD C,$70</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_1</td>
+<td class="address-2"><span id="53463"></span>D0D7</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53466"></span>D0DA</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53468"></span>D0DC</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53469"></span>D0DD</td>
+<td class="instruction">JR Z,<a href="53420.html#53478">BUCKET_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53471"></span>D0DF</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53473"></span>D0E1</td>
+<td class="instruction">DJNZ <a href="53420.html#53463">BUCKET_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53475"></span>D0E3</td>
+<td class="instruction">JP <a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_2</td>
+<td class="address-2"><span id="53478"></span>D0E6</td>
+<td class="instruction">SET 0,(IY+$16)</td>
+<td class="comment-1" rowspan="1">tell it the bucket has reached it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53482"></span>D0EA</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">the well may give another bucket; the quest-item tune</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53483"></span>D0EB</td>
+<td class="instruction">LD (<a href="42761.html#42766">BUCKET_OUT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53486"></span>D0EE</td>
+<td class="instruction">LD DE,<a href="55367.html">TUNE_QUEST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53489"></span>D0F1</td>
+<td class="instruction">CALL <a href="54965.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53492"></span>D0F4</td>
+<td class="instruction">CALL <a href="53371.html">QUEST_RECORD_LOOP</a></td>
+<td class="comment-1" rowspan="7">empty the bucket's quest record...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53495"></span>D0F7</td>
+<td class="instruction">LD A,$5A</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_3</td>
+<td class="address-2"><span id="53497"></span>D0F9</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53500"></span>D0FC</td>
+<td class="instruction">JR Z,<a href="53420.html#53509">BUCKET_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53502"></span>D0FE</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53504"></span>D100</td>
+<td class="instruction">DJNZ <a href="53420.html#53497">BUCKET_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53506"></span>D102</td>
+<td class="instruction">JP <a href="49415.html">START_PUFF</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_4</td>
+<td class="address-2"><span id="53509"></span>D105</td>
+<td class="instruction">LD (IY+$00),$00</td>
+<td class="comment-1" rowspan="2">...and the bucket becomes a puff</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53513"></span>D109</td>
+<td class="instruction">JP <a href="49415.html">START_PUFF</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_5</td>
+<td class="address-2"><span id="53516"></span>D10C</td>
+<td class="instruction">LD (IX+$0B),$FF</td>
+<td class="comment-1" rowspan="2">not going anywhere: fall one unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53520"></span>D110</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53523"></span>D113</td>
+<td class="instruction">CALL <a href="53361.html">ROOM_OBJECT_LOOP</a></td>
+<td class="comment-1" rowspan="9">a quest item not yet done in this room? None: stop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53526"></span>D116</td>
+<td class="instruction">LD C,$70</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_6</td>
+<td class="address-2"><span id="53528"></span>D118</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53531"></span>D11B</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53533"></span>D11D</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53534"></span>D11E</td>
+<td class="instruction">JR Z,<a href="53420.html#53543">BUCKET_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53536"></span>D120</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53538"></span>D122</td>
+<td class="instruction">DJNZ <a href="53420.html#53528">BUCKET_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53540"></span>D124</td>
+<td class="instruction">JP <a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_7</td>
+<td class="address-2"><span id="53543"></span>D127</td>
+<td class="instruction">LD A,(IY+$01)</td>
+<td class="comment-1" rowspan="6">there is: its U and V are the target, and the bucket is on its way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53546"></span>D12A</td>
+<td class="instruction">LD (IX+$15),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53549"></span>D12D</td>
+<td class="instruction">LD A,(IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53552"></span>D130</td>
+<td class="instruction">LD (IX+$16),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53555"></span>D133</td>
+<td class="instruction">SET 0,(IX+$14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53559"></span>D137</td>
+<td class="instruction">JP <a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53381.html">D085</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53420">Map</a></td>
+<td class="next">
+Next: <a href="53562.html">D13A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

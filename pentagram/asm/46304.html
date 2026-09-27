@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B4E0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46205.html">B47D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46304">Map</a></td>
+<td class="next">
+Next: <a href="46355.html">B513</a>
+</td>
+</tr>
+</table>
+<div class="description">B4E0: Pause, when SPACE or CAPS SHIFT is pressed on its own</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called once a turn by the main loop (<a href="45068.html">OBJECT_DONE</a>). Half-rows $7F and $FE are read together, so bit 0 is SPACE or CAPS SHIFT and bits 1-4 are the other eight keys of the two rows; the pause needs bit 0 and none of the others, so no key that plays the game can start one. The game beeps (<a href="54743.html">PAUSE_BEEP</a>), waits for the key to be let go, then for a press and a release, and beeps again.
+</div>
+<div class="paragraph">
+While it waits, interrupts are on: IY is set to the ROM's system variables and EI lets the ROM's frame interrupt run, the only place the game allows it. DI turns them off again before the game goes on. IY is left pointing at the system variables; nothing that follows expects it to hold anything else.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE</td>
+<td class="address-2"><span id="46304"></span>B4E0</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">not SPACE or CAPS SHIFT: no pause</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46306"></span>B4E2</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46309"></span>B4E5</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46311"></span>B4E7</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46312"></span>B4E8</td>
+<td class="instruction">AND $1E</td>
+<td class="comment-1" rowspan="2">another key with it: no pause</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46314"></span>B4EA</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46315"></span>B4EB</td>
+<td class="instruction">CALL <a href="54743.html">PAUSE_BEEP</a></td>
+<td class="comment-1" rowspan="1">a beep</td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_0</td>
+<td class="address-2"><span id="46318"></span>B4EE</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">wait for it to be let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46320"></span>B4F0</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46323"></span>B4F3</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46325"></span>B4F5</td>
+<td class="instruction">JR NZ,<a href="46304.html#46318">PAUSE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46327"></span>B4F7</td>
+<td class="instruction">LD IY,$5C3A</td>
+<td class="comment-1" rowspan="2">the ROM's interrupt routine may run while the game waits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46331"></span>B4FB</td>
+<td class="instruction">EI</td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_1</td>
+<td class="address-2"><span id="46332"></span>B4FC</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">wait for a press</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46334"></span>B4FE</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46337"></span>B501</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46339"></span>B503</td>
+<td class="instruction">JR Z,<a href="46304.html#46332">PAUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_2</td>
+<td class="address-2"><span id="46341"></span>B505</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">and for it to be let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46343"></span>B507</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46346"></span>B50A</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46348"></span>B50C</td>
+<td class="instruction">JR NZ,<a href="46304.html#46341">PAUSE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46350"></span>B50E</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="3">interrupts off again; a beep</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46351"></span>B50F</td>
+<td class="instruction">CALL <a href="54743.html">PAUSE_BEEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46354"></span>B512</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46205.html">B47D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46304">Map</a></td>
+<td class="next">
+Next: <a href="46355.html">B513</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

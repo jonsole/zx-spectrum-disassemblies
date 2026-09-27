@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at C440</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50239.html">C43F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50240">Map</a></td>
+<td class="next">
+Next: <a href="50338.html">C4A2</a>
+</td>
+</tr>
+</table>
+<div class="description">C440: The player's update routine: legs (graphics 32 to 39)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The player's turn, in order: read the controls (<a href="48632.html">READ_CONTROLS</a>), turn (<a href="50376.html">HANDLE_LEFT_RIGHT</a>), step the legs' frame, with a footstep sound (<a href="50573.html">HANDLE_FORWARD</a>), start a jump (<a href="50540.html">HANDLE_JUMP</a>), pick up or put down (<a href="49017.html">TAKE_OR_LEAVE</a>). Then, if he stands in a doorway -- past the line of the room's walls -- he may not rise, only fall. The move is resolved and made (<a href="50717.html">MOVE_PLAYER</a>), with the body out of the way of the collision tests, and he may fire (<a href="49446.html">FIRE</a>).
+</div>
+<div class="paragraph">
+If he has been killed (bit 6 of +$0D), the body is killed too and the legs become a puff.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record, <a href="42863.html">OBJECTS</a></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS</td>
+<td class="address-2"><span id="50240"></span>C440</td>
+<td class="instruction">CALL <a href="51061.html">DRAW_AT_L12_D6</a></td>
+<td class="comment-1" rowspan="1">the legs' drawing nudge (-12, -6)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50243"></span>C443</td>
+<td class="instruction">BIT 6,(IX+$0D)</td>
+<td class="comment-1" rowspan="4">killed: the body too (+$0D of the next record), and a puff</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50247"></span>C447</td>
+<td class="instruction">JR Z,<a href="50240.html#50256">PLAYER_LEGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50249"></span>C449</td>
+<td class="instruction">SET 6,(IX+$2D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50253"></span>C44D</td>
+<td class="instruction">JP <a href="49415.html">START_PUFF</a></td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_0</td>
+<td class="address-2"><span id="50256"></span>C450</td>
+<td class="instruction">CALL <a href="48632.html">READ_CONTROLS</a></td>
+<td class="comment-1" rowspan="4">this turn's controls in A and C; no step in U or V yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50259"></span>C453</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50260"></span>C454</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50263"></span>C457</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50266"></span>C45A</td>
+<td class="instruction">CALL <a href="50376.html">HANDLE_LEFT_RIGHT</a></td>
+<td class="comment-1" rowspan="4">turn, walk, jump, pick up or put down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50269"></span>C45D</td>
+<td class="instruction">CALL <a href="50573.html">HANDLE_FORWARD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50272"></span>C460</td>
+<td class="instruction">CALL <a href="50540.html">HANDLE_JUMP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50275"></span>C463</td>
+<td class="instruction">CALL <a href="49017.html">TAKE_OR_LEAVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50278"></span>C466</td>
+<td class="instruction">CALL <a href="50339.html">CHK_PLYR_OOB</a></td>
+<td class="comment-1" rowspan="2">in a doorway, beyond the walls?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50281"></span>C469</td>
+<td class="instruction">JR NC,<a href="50240.html#50325">LEGS_IN_DOORWAY</a></td>
+</tr>
+<tr>
+<td class="asm-label">LEGS_MOVE</td>
+<td class="address-2"><span id="50283"></span>C46B</td>
+<td class="instruction">SET 1,(IX+$27)</td>
+<td class="comment-1" rowspan="1">the body (+7 of the next record) out of the collision tests while the legs move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50287"></span>C46F</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="4">no higher than Z 240 (this never ran in the build's sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50290"></span>C472</td>
+<td class="instruction">CP $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50292"></span>C474</td>
+<td class="instruction">JR C,<a href="50240.html#50298">PLAYER_LEGS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50294"></span>C476</td>
+<td class="instruction">LD (IX+$03),$F0</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_1</td>
+<td class="address-2"><span id="50298"></span>C47A</td>
+<td class="instruction">CALL <a href="50717.html">MOVE_PLAYER</a></td>
+<td class="comment-1" rowspan="2">make the move, and fire</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50301"></span>C47D</td>
+<td class="instruction">CALL <a href="49446.html">FIRE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50304"></span>C480</td>
+<td class="instruction">RES 1,(IX+$27)</td>
+<td class="comment-1" rowspan="1">the body back in the collision tests</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50308"></span>C484</td>
+<td class="instruction">RES 0,(IX+$07)</td>
+<td class="comment-1" rowspan="1">bit 0 of his flags, set at a doorway to let the move cross the line of the walls (<a href="51202.html">HANDLE_EXIT_SCREEN</a>), lasts one turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50312"></span>C488</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">count down the top four bits of +$0C: the turns he walks on by himself after coming through a doorway (<a href="51267.html">EXIT_LOW_U</a> sets 3)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50315"></span>C48B</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50317"></span>C48D</td>
+<td class="instruction">JR C,<a href="50240.html#50322">PLAYER_LEGS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50319"></span>C48F</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_2</td>
+<td class="address-2"><span id="50322"></span>C492</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">mark him to be redrawn</td>
+</tr>
+<tr>
+<td class="asm-label">LEGS_IN_DOORWAY</td>
+<td class="address-2"><span id="50325"></span>C495</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="3">in a doorway: falling is allowed...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50328"></span>C498</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50329"></span>C499</td>
+<td class="instruction">JP M,<a href="50240.html#50283">LEGS_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50332"></span>C49C</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">...rising is not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50333"></span>C49D</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50336"></span>C4A0</td>
+<td class="instruction">JR <a href="50240.html#50283">LEGS_MOVE</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50239.html">C43F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50240">Map</a></td>
+<td class="next">
+Next: <a href="50338.html">C4A2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

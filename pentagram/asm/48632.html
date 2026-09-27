@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BDF8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48606.html">BDDE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48632">Map</a></td>
+<td class="next">
+Next: <a href="48909.html">BF0D</a>
+</td>
+</tr>
+</table>
+<div class="description">BDF8: Read the controls into INPUT</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50240.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Reads the keyboard or a joystick, by the method in bits 1-2 of CONTROL, into one byte for this turn, kept in INPUT for the rest of the turn's code (<a href="48998.html">CHK_PICKUP_DROP</a>, <a href="49446.html">FIRE</a>). Bit 5 is never set, nor bit 7.
+</div>
+<div class="paragraph">
+The keyboard: Z, C, M and B turn left and X, V, SYMBOL SHIFT and N right; the whole of the A-G and H-ENTER rows walk; Q, E, T, U and O jump; W, R, Y, I and P fire; any number key picks up or puts down. Every key in a half-row does the same, except the top letter row, which is shared between jump and fire key by key. SPACE and CAPS SHIFT do nothing here; <a href="46304.html">PAUSE</a> reads SPACE for the pause.
+</div>
+<div class="paragraph">
+A joystick: left and right turn, up walks, down jumps and fire fires, and any key on the bottom row but CAPS SHIFT and SPACE picks up or puts down. The Kempston stick is read from port 31; the cursor keys are 5 left, 8 right, 7 up, 6 down and 0 fire; Interface II is the 6-0 keys for one stick and 1-5 for the other, read together. Knight Lore's joysticks also had direction controls with pick-up moved to bit 5; Pentagram offers neither.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the controls: bit 0 turn left, 1 turn right, 2 walk, 3 jump, 4 pick up or put down, 6 fire</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the same</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS</td>
+<td class="address-2"><span id="48632"></span>BDF8</td>
+<td class="instruction">LD A,(<a href="42761.html">CONTROL</a>)</td>
+<td class="comment-1" rowspan="8">bits 1-2 of CONTROL: 0 keyboard, 1 Kempston, 2 cursor keys...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48635"></span>BDFB</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48636"></span>BDFC</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48638"></span>BDFE</td>
+<td class="instruction">JP Z,<a href="48632.html#48785">READ_KEYBOARD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48641"></span>BE01</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48642"></span>BE02</td>
+<td class="instruction">JR Z,<a href="48632.html#48704">READ_KEMPSTON</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48644"></span>BE04</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48645"></span>BE05</td>
+<td class="instruction">JR Z,<a href="48632.html#48741">READ_CURSOR</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48647"></span>
+<div class="comments">
+<div class="paragraph">
+Interface II: its two sticks are the keys 6-0 and 1-5.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48647"></span>BE07</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="10">...3 Interface II: keys 1-5, their order reversed into C, so that 5 is bit 0 and 1 is bit 4, the same as 0 and 6 on the other half-row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48649"></span>BE09</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48652"></span>BE0C</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48653"></span>BE0D</td>
+<td class="instruction">LD B,$05</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_0</td>
+<td class="address-2"><span id="48655"></span>BE0F</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48656"></span>BE10</td>
+<td class="instruction">RL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48658"></span>BE12</td>
+<td class="instruction">DJNZ <a href="48632.html#48655">READ_CONTROLS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48660"></span>BE14</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48661"></span>BE15</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48662"></span>BE16</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48663"></span>BE17</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="3">OR in keys 6-0: bit 0 fire (0 or 5), 1 up (9 or 4), 2 down (8 or 3), 3 right (7 or 2), 4 left (6 or 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48665"></span>BE19</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48668"></span>BE1C</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48669"></span>BE1D</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="4">fire</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48671"></span>BE1F</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48673"></span>BE21</td>
+<td class="instruction">JR Z,<a href="48632.html#48677">READ_CONTROLS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48675"></span>BE23</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_1</td>
+<td class="address-2"><span id="48677"></span>BE25</td>
+<td class="instruction">BIT 1,A</td>
+<td class="comment-1" rowspan="3">up: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48679"></span>BE27</td>
+<td class="instruction">JR Z,<a href="48632.html#48683">READ_CONTROLS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48681"></span>BE29</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_2</td>
+<td class="address-2"><span id="48683"></span>BE2B</td>
+<td class="instruction">BIT 2,A</td>
+<td class="comment-1" rowspan="3">down: jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48685"></span>BE2D</td>
+<td class="instruction">JR Z,<a href="48632.html#48689">READ_CONTROLS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48687"></span>BE2F</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_3</td>
+<td class="address-2"><span id="48689"></span>BE31</td>
+<td class="instruction">BIT 3,A</td>
+<td class="comment-1" rowspan="3">right: turn right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48691"></span>BE33</td>
+<td class="instruction">JR Z,<a href="48632.html#48695">READ_CONTROLS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48693"></span>BE35</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_4</td>
+<td class="address-2"><span id="48695"></span>BE37</td>
+<td class="instruction">BIT 4,A</td>
+<td class="comment-1" rowspan="4">left: turn left; then the bottom row for pick-up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48697"></span>BE39</td>
+<td class="instruction">JR Z,<a href="48632.html#48701">READ_CONTROLS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48699"></span>BE3B</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_5</td>
+<td class="address-2"><span id="48701"></span>BE3D</td>
+<td class="instruction">JP <a href="48632.html#48893">READ_BOTTOM_ROW</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48704"></span>
+<div class="comments">
+<div class="paragraph">
+The Kempston joystick: bit 0 right, 1 left, 2 down, 3 up, 4 fire.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_KEMPSTON</td>
+<td class="address-2"><span id="48704"></span>BE40</td>
+<td class="instruction">IN A,($1F)</td>
+<td class="comment-1" rowspan="5">right: turn right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48706"></span>BE42</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48708"></span>BE44</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48710"></span>BE46</td>
+<td class="instruction">JR Z,<a href="48632.html#48714">READ_CONTROLS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48712"></span>BE48</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_6</td>
+<td class="address-2"><span id="48714"></span>BE4A</td>
+<td class="instruction">BIT 1,A</td>
+<td class="comment-1" rowspan="3">left: turn left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48716"></span>BE4C</td>
+<td class="instruction">JR Z,<a href="48632.html#48720">READ_CONTROLS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48718"></span>BE4E</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_7</td>
+<td class="address-2"><span id="48720"></span>BE50</td>
+<td class="instruction">BIT 2,A</td>
+<td class="comment-1" rowspan="3">down: jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48722"></span>BE52</td>
+<td class="instruction">JR Z,<a href="48632.html#48726">READ_CONTROLS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48724"></span>BE54</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_8</td>
+<td class="address-2"><span id="48726"></span>BE56</td>
+<td class="instruction">BIT 3,A</td>
+<td class="comment-1" rowspan="3">up: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48728"></span>BE58</td>
+<td class="instruction">JR Z,<a href="48632.html#48732">READ_CONTROLS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48730"></span>BE5A</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_9</td>
+<td class="address-2"><span id="48732"></span>BE5C</td>
+<td class="instruction">BIT 4,A</td>
+<td class="comment-1" rowspan="4">fire; then the bottom row for pick-up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48734"></span>BE5E</td>
+<td class="instruction">JR Z,<a href="48632.html#48738">READ_CONTROLS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48736"></span>BE60</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_10</td>
+<td class="address-2"><span id="48738"></span>BE62</td>
+<td class="instruction">JP <a href="48632.html#48893">READ_BOTTOM_ROW</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48741"></span>
+<div class="comments">
+<div class="paragraph">
+The cursor keys: 5 left, 6 down, 7 up, 8 right, 0 fire.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CURSOR</td>
+<td class="address-2"><span id="48741"></span>BE65</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="6">5: turn left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48743"></span>BE67</td>
+<td class="instruction">LD A,$F7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48745"></span>BE69</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48748"></span>BE6C</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48750"></span>BE6E</td>
+<td class="instruction">JR Z,<a href="48632.html#48754">READ_CONTROLS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48752"></span>BE70</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_11</td>
+<td class="address-2"><span id="48754"></span>BE72</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="5">0: fire</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48756"></span>BE74</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48759"></span>BE77</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48761"></span>BE79</td>
+<td class="instruction">JR Z,<a href="48632.html#48765">READ_CONTROLS_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48763"></span>BE7B</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_12</td>
+<td class="address-2"><span id="48765"></span>BE7D</td>
+<td class="instruction">BIT 3,A</td>
+<td class="comment-1" rowspan="3">7: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48767"></span>BE7F</td>
+<td class="instruction">JR Z,<a href="48632.html#48771">READ_CONTROLS_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48769"></span>BE81</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_13</td>
+<td class="address-2"><span id="48771"></span>BE83</td>
+<td class="instruction">BIT 2,A</td>
+<td class="comment-1" rowspan="3">8: turn right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48773"></span>BE85</td>
+<td class="instruction">JR Z,<a href="48632.html#48777">READ_CONTROLS_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48775"></span>BE87</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_14</td>
+<td class="address-2"><span id="48777"></span>BE89</td>
+<td class="instruction">BIT 4,A</td>
+<td class="comment-1" rowspan="4">6: jump; then the bottom row for pick-up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48779"></span>BE8B</td>
+<td class="instruction">JR Z,<a href="48632.html#48893">READ_BOTTOM_ROW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48781"></span>BE8D</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48783"></span>BE8F</td>
+<td class="instruction">JR <a href="48632.html#48893">READ_BOTTOM_ROW</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48785"></span>
+<div class="comments">
+<div class="paragraph">
+The keyboard.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_KEYBOARD</td>
+<td class="address-2"><span id="48785"></span>BE91</td>
+<td class="instruction">LD A,$FE</td>
+<td class="comment-1" rowspan="10">CAPS SHIFT to V: bits 1 and 2 (Z and X) and bits 3 and 4 (C and V) are both brought down to bits 0 and 1, turn left and turn right; CAPS SHIFT is dropped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48787"></span>BE93</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48790"></span>BE96</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48791"></span>BE97</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48792"></span>BE98</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48794"></span>BE9A</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48796"></span>BE9C</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48798"></span>BE9E</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48799"></span>BE9F</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48801"></span>BEA1</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48802"></span>BEA2</td>
+<td class="instruction">LD A,$7F</td>
+<td class="comment-1" rowspan="5">SYMBOL SHIFT or N turns right...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48804"></span>BEA4</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48807"></span>BEA7</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48809"></span>BEA9</td>
+<td class="instruction">JR Z,<a href="48632.html#48813">READ_CONTROLS_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48811"></span>BEAB</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_15</td>
+<td class="address-2"><span id="48813"></span>BEAD</td>
+<td class="instruction">BIT 2,A</td>
+<td class="comment-1" rowspan="3">...M turns left...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48815"></span>BEAF</td>
+<td class="instruction">JR Z,<a href="48632.html#48819">READ_CONTROLS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48817"></span>BEB1</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_16</td>
+<td class="address-2"><span id="48819"></span>BEB3</td>
+<td class="instruction">BIT 3,A</td>
+<td class="comment-1" rowspan="3">...N turns right...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48821"></span>BEB5</td>
+<td class="instruction">JR Z,<a href="48632.html#48825">READ_CONTROLS_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48823"></span>BEB7</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_17</td>
+<td class="address-2"><span id="48825"></span>BEB9</td>
+<td class="instruction">BIT 4,A</td>
+<td class="comment-1" rowspan="3">...B turns left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48827"></span>BEBB</td>
+<td class="instruction">JR Z,<a href="48632.html#48831">READ_CONTROLS_18</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48829"></span>BEBD</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_18</td>
+<td class="address-2"><span id="48831"></span>BEBF</td>
+<td class="instruction">LD A,$BD</td>
+<td class="comment-1" rowspan="4">any key on the A-G or H-ENTER rows (both half-rows read at once): walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48833"></span>BEC1</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48836"></span>BEC4</td>
+<td class="instruction">JR Z,<a href="48632.html#48840">READ_CONTROLS_19</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48838"></span>BEC6</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_19</td>
+<td class="address-2"><span id="48840"></span>BEC8</td>
+<td class="instruction">LD A,$DF</td>
+<td class="comment-1" rowspan="5">O or U: jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48842"></span>BECA</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48845"></span>BECD</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48846"></span>BECE</td>
+<td class="instruction">AND $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48848"></span>BED0</td>
+<td class="instruction">JR NZ,<a href="48632.html#48860">READ_CONTROLS_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48850"></span>BED2</td>
+<td class="instruction">LD A,$FB</td>
+<td class="comment-1" rowspan="6">or Q, E or T: jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48852"></span>BED4</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48855"></span>BED7</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48856"></span>BED8</td>
+<td class="instruction">AND $15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48858"></span>BEDA</td>
+<td class="instruction">JR Z,<a href="48632.html#48862">READ_CONTROLS_21</a></td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_20</td>
+<td class="address-2"><span id="48860"></span>BEDC</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_21</td>
+<td class="address-2"><span id="48862"></span>BEDE</td>
+<td class="instruction">LD A,$E7</td>
+<td class="comment-1" rowspan="4">any number key (both half-rows at once): pick up or put down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48864"></span>BEE0</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48867"></span>BEE3</td>
+<td class="instruction">JR Z,<a href="48632.html#48871">READ_CONTROLS_22</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48869"></span>BEE5</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_22</td>
+<td class="address-2"><span id="48871"></span>BEE7</td>
+<td class="instruction">LD A,$DF</td>
+<td class="comment-1" rowspan="4">P, I or Y: fire</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48873"></span>BEE9</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48876"></span>BEEC</td>
+<td class="instruction">AND $15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48878"></span>BEEE</td>
+<td class="instruction">JR NZ,<a href="48632.html#48889">READ_CONTROLS_23</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48880"></span>BEF0</td>
+<td class="instruction">LD A,$FB</td>
+<td class="comment-1" rowspan="6">or W or R: fire; done, without the bottom row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48882"></span>BEF2</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48885"></span>BEF5</td>
+<td class="instruction">AND $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48887"></span>BEF7</td>
+<td class="instruction">JR Z,<a href="48632.html#48904">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_23</td>
+<td class="address-2"><span id="48889"></span>BEF9</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48891"></span>BEFB</td>
+<td class="instruction">JR <a href="48632.html#48904">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label">READ_BOTTOM_ROW</td>
+<td class="address-2"><span id="48893"></span>BEFD</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="5">the joysticks: any of Z, X, C, V, SYMBOL SHIFT, M, N and B (both half-rows at once, bits 1-4) picks up or puts down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48895"></span>BEFF</td>
+<td class="instruction">CALL <a href="47442.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48898"></span>BF02</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48900"></span>BF04</td>
+<td class="instruction">JR Z,<a href="48632.html#48904">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48902"></span>BF06</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_24</td>
+<td class="address-2"><span id="48904"></span>BF08</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">this turn's controls into INPUT, and in A and C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48905"></span>BF09</td>
+<td class="instruction">LD (<a href="42761.html#42807">INPUT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48908"></span>BF0C</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48606.html">BDDE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48632">Map</a></td>
+<td class="next">
+Next: <a href="48909.html">BF0D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

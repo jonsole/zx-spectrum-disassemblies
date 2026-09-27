@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CBAB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52105.html">CB89</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52139">Map</a></td>
+<td class="next">
+Next: <a href="52233.html">CC09</a>
+</td>
+</tr>
+</table>
+<div class="description">CBAB: Perhaps drop something from the sky</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44935.html">START</a>.
+</div>
+<div class="paragraph">
+Once a turn, from the main loop. When DROP_TIMER runs out it stays at 1, so from then on there is a one-in-four chance each turn (two bits of RANDOM). A drop resets the timer (<a href="52273.html">RESET_DROP_TIMER</a>) whether or not it comes to anything, then takes a free one of the two records at FLYERS, copies <a href="52241.html">FLYER_TEMPLATE</a> into it, and gives it a U and a V at random and one of the eight graphics at <a href="52233.html">DROP_GRAPHICS</a>. If the new thing overlaps anything already in the room it is taken away again.
+</div>
+<div class="paragraph">
+The random U and V are 104 plus a number masked with $2F: 104 to 119 or 136 to 151, never within 8 of the room's middle line. It falls from Z 216.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SKY_DROP</td>
+<td class="address-2"><span id="52139"></span>CBAB</td>
+<td class="instruction">LD A,(<a href="42761.html#42818">DROP_BAN</a>)</td>
+<td class="comment-1" rowspan="3">Nothing falls in this room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52142"></span>CBAE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52143"></span>CBAF</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52144"></span>CBB0</td>
+<td class="instruction">LD HL,<a href="42761.html#42813">DROP_TIMER</a></td>
+<td class="comment-1" rowspan="3">Count the timer down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52147"></span>CBB3</td>
+<td class="instruction">DEC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52148"></span>CBB4</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52149"></span>CBB5</td>
+<td class="instruction">LD (HL),$01</td>
+<td class="comment-1" rowspan="1">Then try every turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52151"></span>CBB7</td>
+<td class="instruction">LD A,(<a href="42761.html#42765">RANDOM</a>)</td>
+<td class="comment-1" rowspan="3">One chance in four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52154"></span>CBBA</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52156"></span>CBBC</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52157"></span>CBBD</td>
+<td class="instruction">CALL <a href="52273.html">RESET_DROP_TIMER</a></td>
+<td class="comment-1" rowspan="1">The timer starts again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52160"></span>CBC0</td>
+<td class="instruction">LD HL,<a href="42863.html#42991">FLYERS</a></td>
+<td class="comment-1" rowspan="3">The first of the two records, and the template</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52163"></span>CBC3</td>
+<td class="instruction">LD BC,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52166"></span>CBC6</td>
+<td class="instruction">LD DE,<a href="52241.html">FLYER_TEMPLATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52169"></span>CBC9</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="7">Both in use: nothing falls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52170"></span>CBCA</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52171"></span>CBCB</td>
+<td class="instruction">JR Z,<a href="52139.html#52177">SKY_DROP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52173"></span>CBCD</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52174"></span>CBCE</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52175"></span>CBCF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52176"></span>CBD0</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">SKY_DROP_0</td>
+<td class="address-2"><span id="52177"></span>CBD1</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="4">IX = the free record, filled from the template</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52178"></span>CBD2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52179"></span>CBD3</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52181"></span>CBD5</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52183"></span>CBD7</td>
+<td class="instruction">LD A,(<a href="42761.html#42765">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">U at random</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52186"></span>CBDA</td>
+<td class="instruction">AND $2F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52188"></span>CBDC</td>
+<td class="instruction">ADD A,$68</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52190"></span>CBDE</td>
+<td class="instruction">LD (IX+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52193"></span>CBE1</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="4">V from the refresh register</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52195"></span>CBE3</td>
+<td class="instruction">AND $2F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52197"></span>CBE5</td>
+<td class="instruction">ADD A,$68</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52199"></span>CBE7</td>
+<td class="instruction">LD (IX+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52202"></span>CBEA</td>
+<td class="instruction">LD A,(<a href="42761.html#42765">RANDOM</a>)</td>
+<td class="comment-1" rowspan="11">One of the eight graphics, by bits 3-5 of the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52205"></span>CBED</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52206"></span>CBEE</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52207"></span>CBEF</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52208"></span>CBF0</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52210"></span>CBF2</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52211"></span>CBF3</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52213"></span>CBF5</td>
+<td class="instruction">LD DE,<a href="52233.html">DROP_GRAPHICS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52216"></span>CBF8</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52217"></span>CBF9</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52218"></span>CBFA</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52221"></span>CBFD</td>
+<td class="instruction">CALL <a href="45765.html">CALC_PIXEL_XY</a></td>
+<td class="comment-1" rowspan="1">Its place on the screen (<a href="45765.html">CALC_PIXEL_XY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52224"></span>CC00</td>
+<td class="instruction">CALL <a href="48923.html">DO_ANY_OBJS_INTERSECT</a></td>
+<td class="comment-1" rowspan="2">Nothing in the way: it falls (<a href="48923.html">DO_ANY_OBJS_INTERSECT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52227"></span>CC03</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52228"></span>CC04</td>
+<td class="instruction">LD (IX+$00),$00</td>
+<td class="comment-1" rowspan="2">Something there: no drop after all</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52232"></span>CC08</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52105.html">CB89</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52139">Map</a></td>
+<td class="next">
+Next: <a href="52233.html">CC09</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

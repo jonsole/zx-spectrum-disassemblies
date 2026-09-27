@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#tunes">Knight Lore's tune player</a></li>
+<li><a href="#points">Points are made from a graphic's bits</a></li>
+<li><a href="#arches">A doorway carries its destination</a></li>
+<li><a href="#doorway">A life starts again at the last doorway</a></li>
+<li><a href="#firstgame">Chance is drawn before the menu</a></li>
+<li><a href="#miremare">The win names the next game</a></li>
+<li><a href="#unused">Left in, never used</a></li>
+<li><a href="#loading">The loading screen ignores its own header</a></li>
+<li><a href="#extralife">Each quest item gives a life</a></li>
+</ul>
+<div><span id="tunes"></span></div>
+<div class="box box-1">
+<div class="box-title">Knight Lore's tune player</div>
+<div class="paragraph">
+The tunes are played by Knight Lore's code. <a href="../asm/54976.html">PLAY_NOTE</a> is Knight Lore's
+note player instruction for instruction, the two addresses in it apart (the
+note table's and a helper's), and <a href="../asm/55064.html">NOTES</a>, 61 rows of three bytes, is
+Knight Lore's table to the byte, with the same odd row 18 that repeats row 17's
+pitch. Compared byte for byte with Knight Lore's loaded game. The sound effects
+in play are Pentagram's own: short beeps, one note a turn, from <a href="../asm/54770.html">EFFECT_NOTE</a>. See
+<a href="../knightlore/Sounds.html">Knight Lore's sounds</a>.
+</div>
+</div>
+<div><span id="points"></span></div>
+<div class="box box-2">
+<div class="box-title">Points are made from a graphic's bits</div>
+<div class="paragraph">
+Shooting down a thing from the sky is the only way to score, and the points
+are not looked up: <a href="../asm/49764.html">SHOOT_DOWN</a>, the only caller of <a href="../asm/47913.html">ADD_SCORE</a>, makes them from the thing's graphic
+number -- the hundreds from bits 5-7, the tens from bits 2-4 and the units
+from bits 6, 7 and 0 -- so no digit can pass 7 and the sum stays good BCD. A
+thing's graphic changes as it flies, so what it is worth depends on the frame
+it is hit in. The eight things <a href="../asm/52139.html">SKY_DROP</a> can drop (<a href="../asm/52233.html">DROP_GRAPHICS</a>), worked out from
+the snapshot:
+</div>
+<div class="paragraph">
+<table class="kl-table"><tr><th>Graphics</th><th>Update routine</th><th>Chance of falling</th><th>Points, by frame</th></tr><tr><td>164-167</td><td>HOMER</td><td>1 in 8</td><td>512, 516, 512, 516</td></tr><tr><td>160-163</td><td>HOMER</td><td>2 in 8</td><td>502, 506, 502, 506</td></tr><tr><td>48-51</td><td>HOMER</td><td>2 in 8</td><td>140, 144, 140, 144</td></tr><tr><td>80-81</td><td>SKY_ROAMER</td><td>2 in 8</td><td>241, 245</td></tr><tr><td>168-171</td><td>SKY_WALKER</td><td>1 in 8</td><td>522, 526, 522, 526</td></tr></table>
+Watched in the emulator: in room 30, firing at what fell, six hits scored
+241 (graphic 80), 512 (166), 516 (167), 502 (160), 241 (80) and 526 (171),
+each as the formula says.
+</div>
+</div>
+<div><span id="arches"></span></div>
+<div class="box box-1">
+<div class="box-title">A doorway carries its destination</div>
+<div class="paragraph">
+Knight Lore works out the next room from the grid: plus or minus one, or
+sixteen. Pentagram's rooms are not on a grid. Each arch in a room's scenery
+list is two bytes, the template and the room it leads to, and <a href="../asm/51500.html">BUILD_ROOM</a> copies
+that second byte into +$08 of every piece of the arch; the arch's first pillar
+(<a href="../asm/51117.html">FIRST_PILLAR</a>) moves the player there. Read from the room data: 139
+rooms with 290 doorways, which pair up into 145
+links, none of them one-way; only 70 of the links join rooms whose
+numbers differ by one, and the farthest apart join rooms 2 and 149, 0 and 147, 41 and 140. Room 0 is
+reached by doorways whose destination byte is 0 -- the value every piece of
+scenery that is not a doorway has too. 25 rooms have one
+doorway only, 3 have four, and the numbers
+68, 79, 89-90, 104-105, 113-116, 121 are not rooms at all.
+</div>
+</div>
+<div><span id="doorway"></span></div>
+<div class="box box-2">
+<div class="box-title">A life starts again at the last doorway</div>
+<div class="paragraph">
+When he walks out through an arch, <a href="../asm/51267.html">EXIT_LOW_U</a> copies both his records into the
+player template at <a href="../asm/50175.html">PLAYER_TEMPLATE</a>, still marked with the wall he left by, and when a
+life is lost <a href="../asm/49900.html">RESTART_PLAYER</a> copies the template back and the room is built again: he
+comes back in through the doorway he entered by, facing the way he was
+walking, and walks in again. Only a new game resets the template
+(<a href="../asm/49870.html">CHOOSE_START</a>). Watched in the emulator: walking out of room 92 into room 91 he
+arrived at U 195; killed there a few steps in, he started again at U 195,
+V 128.
+</div>
+</div>
+<div><span id="firstgame"></span></div>
+<div class="box box-1">
+<div class="box-title">Chance is drawn before the menu</div>
+<div class="paragraph">
+<a href="../asm/44935.html">START</a> stirs the refresh register R into RANDOM once, just before the menu,
+and nothing touches RANDOM again until the game has chosen where the five
+collectables start (<a href="../asm/53615.html">NEW_QUEST</a>) and which of rooms 51, 92, 100, 12 it starts in
+(<a href="../asm/49870.html">CHOOSE_START</a>). The time spent on the menu makes no difference, so the first game
+after loading is decided by R at the moment the game began to run -- in an
+emulator loading the same file the same way, always the same game. Watched
+in the emulator: games started after 1, 2, 3, 5 and 8 passes of the menu all
+began in room 92, with the collectables in rooms 16, 129, 18, 146 and 27;
+the same game put into a 128K snapshot, which has R at 0, began in room 100.
+Later games are stirred by the play before them (every object's turn adds R
+and a byte of the ROM, <a href="../asm/45068.html">OBJECT_DONE</a>): forty games started in the simulator after
+games over of varying length began in all four rooms.
+</div>
+</div>
+<div><span id="miremare"></span></div>
+<div class="box box-2">
+<div class="box-title">The win names the next game</div>
+<div class="paragraph">
+The fifth collectable put in its place on the pentagram ends the game
+(<a href="../asm/52502.html">COLLECTABLE</a>), and <a href="../asm/49922.html">WON</a> congratulates the player and tells him his
+adventure continues in Mire Mare -- the next Sabreman game, announced and
+never released. Then the game-over screen follows as after any game, with the
+percentage (<a href="../asm/50922.html">PERCENTAGE</a>).
+</div>
+</div>
+<div><span id="unused"></span></div>
+<div class="box box-1">
+<div class="box-title">Left in, never used</div>
+<div class="paragraph">
+Code and data that nothing reaches, each checked by searching the loaded game
+for its address and by the build's play sessions: a blip pitched by the turn
+counter with 80 bytes of pitches (<a href="../asm/54636.html">BLIP_BY_TURN</a>), two beeps pitched by a graphic
+number (<a href="../asm/54885.html">BEEP_BY_GRAPHIC</a>), a whole tune (<a href="../asm/55332.html">TUNE_UNUSED</a>), effects 2 and 3 of the four the
+sound sequencer has (<a href="../asm/54797.html">EFFECTS</a>), a routine that would reverse a homer's height
+speed (<a href="../asm/52475.html">BOUNCE_Z</a>), code that would set the room builder's position nudge
+(<a href="../asm/51836.html">SET_PLACE_NUDGE</a>, so the nudge is always 0), three drawing offsets (<a href="../asm/51024.html">UNUSED_OFFSETS</a>), an
+update routine that makes a thing deadly (<a href="../asm/49803.html">DEADLY_AND_DRAW</a>), Knight Lore's printer for
+strings with a colour byte (<a href="../asm/48250.html">PRINT_TEXT_STD_FONT</a>), two lone RETs (<a href="../asm/50338.html">STRAY_RET_LEGS</a>, <a href="../asm/51018.html">STRAY_RET_OFFSETS</a>), and
+two sprites no graphic number reaches (<a href="../asm/34119.html">SPARE_SPRITEB</a>, <a href="../asm/35351.html">SPARE_SPRITEC</a>). The main loop saves
+the stack pointer every turn in MAIN_SP and never reads it; the menu loads a
+variable into HL and at once overwrites it. The update-routine table gives
+graphic 60, a piece of the panel, the bolts' routine (<a href="../asm/49605.html">BOLT</a>).
+</div>
+</div>
+<div><span id="loading"></span></div>
+<div class="box box-2">
+<div class="box-title">The loading screen ignores its own header</div>
+<div class="paragraph">
+The tape's second block is the loading screen, and its header says CODE
+24576,6912 -- $6000, in the middle of where the game will load. The BASIC
+loader reads it with LOAD ""SCREEN$, which puts 6912 bytes at the screen
+whatever the header says, and then loads the game over $5E00-$D89D. Read
+from the tape and confirmed by the simulated load that builds this
+disassembly.
+</div>
+</div>
+<div><span id="extralife"></span></div>
+<div class="box box-1">
+<div class="box-title">Each quest item gives a life</div>
+<div class="paragraph">
+When the bucket reaches a quest item, <a href="../asm/53096.html">QUEST_ITEM</a> adds a life as well
+as counting the item done, and redraws the lives at once (<a href="../asm/49818.html">DRAW_LIVES</a>). With five
+lives at the start there are nine in a game. Watched in the emulator: the
+fourth item done took the lives from 4 to 5.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

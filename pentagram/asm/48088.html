@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BBD8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47988.html">BB74</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48088">Map</a></td>
+<td class="next">
+Next: <a href="48113.html">BBF1</a>
+</td>
+</tr>
+</table>
+<div class="description">BBD8: Flash the chosen control method's line on the menu</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="47988.html">MENU</a>.
+</div>
+<div class="paragraph">
+Sets the FLASH bit on the colour of the line for the method in bits 1-2 of CONTROL and clears it on the other three (<a href="47972.html">TOGGLE_SELECTED</a>), then clears it on the next colour and sets it again if bit 3 of CONTROL is set. That next colour is the "0 START GAME" line's: Knight Lore's menu (flash_menu) has a line for directional control there, which bit 3 selects, and Pentagram kept the code but not the line. No menu choice sets bit 3, so the start line never flashes from here.
+</div>
+<div class="paragraph">
+The colours are the first bytes of <a href="48113.html">MENU_COLOURS</a>; the title's, the first, is left alone. <a href="47988.html">MENU</a> calls this once before its loop and again after every pass, and the flash reaches the screen when <a href="48308.html">DISPLAY_MENU</a> rewrites the attributes.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FLASH_MENU</td>
+<td class="address-2"><span id="48088"></span>BBD8</td>
+<td class="instruction">LD HL,$BBF2</td>
+<td class="comment-1" rowspan="1">the colour of the "1 KEYBOARD" line, the second in <a href="48113.html">MENU_COLOURS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48091"></span>BBDB</td>
+<td class="instruction">LD A,(<a href="42761.html">CONTROL</a>)</td>
+<td class="comment-1" rowspan="5">flash the Ath of the four method lines, A the method from bits 1-2 of CONTROL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48094"></span>BBDE</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48095"></span>BBDF</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48097"></span>BBE1</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48099"></span>BBE3</td>
+<td class="instruction">CALL <a href="47972.html">TOGGLE_SELECTED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48102"></span>BBE6</td>
+<td class="instruction">RES 7,(HL)</td>
+<td class="comment-1" rowspan="1">HL is now on the start line's colour: no flash...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48104"></span>BBE8</td>
+<td class="instruction">LD A,(<a href="42761.html">CONTROL</a>)</td>
+<td class="comment-1" rowspan="5">...unless bit 3 of CONTROL (directional control) is set; this never ran in the build's sessions</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48107"></span>BBEB</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48109"></span>BBED</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48110"></span>BBEE</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48112"></span>BBF0</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47988.html">BB74</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48088">Map</a></td>
+<td class="next">
+Next: <a href="48113.html">BBF1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

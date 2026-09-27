@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Game status buffer entry at A709</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-g">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Game status buffer</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42623.html">A67F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42761">Map</a></td>
+<td class="next">
+Next: <a href="42863.html">A76F</a>
+</td>
+</tr>
+</table>
+<div class="description">A709: Game variables</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+All zero on the tape. When the game is first run, <a href="44935.html">START</a> clears everything from here to the end of the object records; after every game it clears again from BUCKET_OUT on. So the first five bytes -- the control method, the menu's two, an unused one and the random number -- carry over from one game to the next: the next game carries on the random sequence rather than replaying the last one, and the menu shows the method chosen before.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROL</td>
+<td class="address-1"><span id="42761"></span>A709</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Control method: bits 1-2 are 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II (<a href="47988.html">MENU</a>); bit 3 steers a joystick by direction (<a href="50376.html">HANDLE_LEFT_RIGHT</a>), and no menu choice sets it. Kept from game to game</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_PASSES</td>
+<td class="address-1"><span id="42762"></span>A70A</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Counted up each time round the menu's loop (<a href="47988.html">MENU</a>); nothing reads it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42763"></span>A70B</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROL_BEFORE</td>
+<td class="address-1"><span id="42764"></span>A70C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The control method as it was before the menu read the keys this time round; the menu compares the two and throws the result away</td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM</td>
+<td class="address-1"><span id="42765"></span>A70D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The random number: R is added in at every new game and after every object's update (<a href="45068.html">OBJECT_DONE</a>). Read for the start room (<a href="49870.html">CHOOSE_START</a>), the drops from the sky (<a href="52139.html">SKY_DROP</a>), the collectables' starting spots (<a href="53615.html">NEW_QUEST</a>) and by <a href="53026.html">SPIDER</a>; <a href="54862.html">PUFF_SOUND</a> reads it as a word with the byte after, masked to an address in the ROM, and plays the bytes there as pitches</td>
+</tr>
+<tr>
+<td class="asm-label">BUCKET_OUT</td>
+<td class="address-1"><span id="42766"></span>A70E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while the well's bucket is out: the well gives no other (<a href="53202.html">WELL</a>); the bucket clears it when it reaches a quest item (<a href="53420.html">BUCKET</a>). The first byte a new game clears</td>
+</tr>
+<tr>
+<td class="asm-label">PENTAGRAM_ON</td>
+<td class="address-1"><span id="42767"></span>A70F</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 once all four quest items are done (<a href="53562.html">ALL_FOUR_DONE</a>): from then on the pentagram's pieces are put into their room (<a href="45207.html">QUEST_INTO_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">WIPE_COUNT</td>
+<td class="address-1"><span id="42768"></span>A710</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many areas <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> has wiped this turn and left on the stack to be copied to the screen</td>
+</tr>
+<tr>
+<td class="asm-label">NEW_ROOM</td>
+<td class="address-1"><span id="42769"></span>A711</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set by <a href="50870.html">ENTER_ROOM</a> when it has built a room. While it is set <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> wipes nothing; the main loop (<a href="45068.html">OBJECT_DONE</a>) then redraws the whole screen and the panel and clears it</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_POINTER</td>
+<td class="address-1"><span id="42770"></span>A712</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Where <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> is in the list at <a href="46426.html">DRAW_LIST</a></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WORK</td>
+<td class="address-1"><span id="42772"></span>A714</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The turn's drawing work: <a href="46474.html">SORT_AND_DRAW</a> zeroes it and counts every object it draws, <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> adds every area it wiped, and the main loop (<a href="45068.html">OBJECT_DONE</a>) waits six units less this</td>
+</tr>
+<tr>
+<td class="asm-label">TURNS</td>
+<td class="address-1"><span id="42773"></span>A715</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The turn counter, counted up at the end of every turn (<a href="45068.html">OBJECT_DONE</a>); also read by <a href="47206.html">CONVEYOR_PUSH</a> and <a href="53026.html">SPIDER</a></td>
+</tr>
+<tr>
+<td class="asm-label">SAVED_SP</td>
+<td class="address-1"><span id="42775"></span>A717</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The stack pointer, while <a href="46035.html">DRAW_OBJECT</a> has it reading a sprite</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_FIRST</td>
+<td class="address-1"><span id="42777"></span>A719</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Where <a href="46474.html">SORT_AND_DRAW</a> is in the list at <a href="46426.html">DRAW_LIST</a>: the place after the object it has in hand</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_SECOND</td>
+<td class="address-1"><span id="42779"></span>A71B</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The place after the object <a href="46474.html">SORT_AND_DRAW</a> is comparing it with</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_EXTENT</td>
+<td class="address-1"><span id="42781"></span>A71D</td>
+<td class="instruction">DEFB $00,$00,$00</td>
+<td class="comment-1" rowspan="1">The room's size, from <a href="24071.html">ROOM_SIZES</a> (<a href="51500.html">BUILD_ROOM</a>): how far from the middle of the room, 128, an object may reach in U, then in V -- the walls' tests (<a href="47330.html">ADJ_DU_FOR_OUT_OF_BOUNDS</a>, <a href="47373.html">ADJ_DV_FOR_OUT_OF_BOUNDS</a>, <a href="50339.html">CHK_PLYR_OOB</a>) compare the distance plus its half-size with them -- and the floor's height in Z, 128 in all three sizes, below which nothing falls (<a href="47459.html">ADJ_DZ_FOR_OUT_OF_BOUNDS</a>) and on which the builder stands the objects</td>
+</tr>
+<tr>
+<td class="asm-label">PANEL_DUE</td>
+<td class="address-1"><span id="42784"></span>A720</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set when what he carries changes (<a href="49017.html">TAKE_OR_LEAVE</a>); <a href="47668.html">SHOW_CARRIED</a> redraws the panel's items and clears it</td>
+</tr>
+<tr>
+<td class="asm-label">LIVES</td>
+<td class="address-1"><span id="42785"></span>A721</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Lives, in BCD. <a href="44935.html">START</a> gives five and every start of a life takes one (<a href="49900.html">RESTART_PLAYER</a>), so five is the one in play and four more; the game ends when there is none to take</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED</td>
+<td class="address-1"><span id="42786"></span>A722</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="1">What he carries: entries of four bytes, the graphic, the flags and the address of the thing's quest record. This one is a slot for the thing being picked up, empty between presses: <a href="49017.html">TAKE_OR_LEAVE</a> writes it here, then moves every entry along one</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_SHOWN</td>
+<td class="address-1"><span id="42790"></span>A726</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="2">The things he carries, newest first; these two and the next are the three <a href="47668.html">SHOW_CARRIED</a> shows on the panel</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42794"></span>A72A</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_LAST</td>
+<td class="address-1"><span id="42798"></span>A72E</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="1">The oldest, which the next press puts down</td>
+</tr>
+<tr>
+<td class="asm-label">FONT_BASE</td>
+<td class="address-1"><span id="42802"></span>A732</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The base the print routine (<a href="47850.html">PRINT_CHAR</a>) adds eight times a character's code to: 384 bytes below the font for text, the font itself for digits</td>
+</tr>
+<tr>
+<td class="asm-label">FRAME_DRAWN</td>
+<td class="address-1"><span id="42804"></span>A734</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">0 until <a href="48308.html">DISPLAY_MENU</a> has drawn the text screen's frame and copied the whole buffer to the screen, which it then does not do again; the menu and the win clear it to have that done afresh (<a href="47988.html">MENU</a>, <a href="49922.html">WON</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_SPARE</td>
+<td class="address-1"><span id="42805"></span>A735</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing reads or writes it: its only mention is an LD HL the menu's next instruction overwrites (<a href="47988.html">MENU</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_ATTR</td>
+<td class="address-1"><span id="42806"></span>A736</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The attribute <a href="48230.html">PRINT_TEXT_SINGLE_COLOUR</a> gives each cell of text it prints; set by <a href="47892.html">PRINT_SCORE</a> and <a href="48308.html">DISPLAY_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label">INPUT</td>
+<td class="address-1"><span id="42807"></span>A737</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">This turn's controls (<a href="48632.html">READ_CONTROLS</a>): bits 0 and 1 turn, 2 walk, 3 jump, 4 pick up or put down, 6 fire</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_ATTR</td>
+<td class="address-1"><span id="42808"></span>A738</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The room's attribute, its ink with BRIGHT on black (<a href="51500.html">BUILD_ROOM</a>); the main loop fills the screen's attributes with it on the first turn in a room (<a href="45068.html">OBJECT_DONE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">Z_STEP</td>
+<td class="address-1"><span id="42809"></span>A739</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The player's step in Z this turn, kept past the move (<a href="50717.html">MOVE_PLAYER</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TEMPLATES_AT</td>
+<td class="address-1"><span id="42810"></span>A73A</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The object template table the builder reads (<a href="27877.html">OBJECT_TABLE</a>, <a href="51500.html">BUILD_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_NUDGE</td>
+<td class="address-1"><span id="42812"></span>A73C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Added to the objects' positions by the builder (<a href="51500.html">BUILD_ROOM</a>); zero for every room</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_TIMER</td>
+<td class="address-1"><span id="42813"></span>A73D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Turns until something may fall from the sky (<a href="52139.html">SKY_DROP</a>); set on entering a room (<a href="52273.html">RESET_DROP_TIMER</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_SP</td>
+<td class="address-1"><span id="42814"></span>A73E</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The stack pointer, saved every turn by the main loop (<a href="45068.html">OBJECT_DONE</a>); nothing reads it back</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_HELD</td>
+<td class="address-1"><span id="42816"></span>A740</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while the pick-up key is held, so one press does one thing (<a href="49017.html">TAKE_OR_LEAVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">NO_HEADROOM</td>
+<td class="address-1"><span id="42817"></span>A741</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 when there is no room above him to stand on what he puts down (<a href="49017.html">TAKE_OR_LEAVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_BAN</td>
+<td class="address-1"><span id="42818"></span>A742</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 in a room with the well, a quest item or a piece of the pentagram: nothing falls there (<a href="52105.html">BAN_DROPS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_HELD</td>
+<td class="address-1"><span id="42819"></span>A743</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while fire is held, so one press is one shot (<a href="49446.html">FIRE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SCORE</td>
+<td class="address-1"><span id="42820"></span>A744</td>
+<td class="instruction">DEFB $00,$00,$00</td>
+<td class="comment-1" rowspan="1">The score, six BCD digits, the highest first (<a href="47913.html">ADD_SCORE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_HEARD</td>
+<td class="address-1"><span id="42823"></span>A747</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set once the menu's tune has played (<a href="54940.html">PLAY_TUNE_ONCE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">STEP_SOUND</td>
+<td class="address-1"><span id="42824"></span>A748</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Counted up by <a href="54837.html">FOOTSTEP</a>, which clicks on every fourth count</td>
+</tr>
+<tr>
+<td class="asm-label">SOUND_COUNT</td>
+<td class="address-1"><span id="42825"></span>A749</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">A sound effect under way: turns left, then which sound (<a href="54770.html">EFFECT_NOTE</a>). The pause's click (<a href="54743.html">PAUSE_BEEP</a>) counts the first byte up as well</td>
+</tr>
+<tr>
+<td class="asm-label">PLACED</td>
+<td class="address-1"><span id="42827"></span>A74B</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many collectables have reached their places in room 82 (<a href="52502.html">COLLECTABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_DONE</td>
+<td class="address-1"><span id="42828"></span>A74C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many quest items the bucket has reached (<a href="53096.html">QUEST_ITEM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENT</td>
+<td class="address-1"><span id="42829"></span>A74D</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The percentage of the quest done, BCD, the hundreds first, worked out by <a href="50922.html">PERCENTAGE</a></td>
+</tr>
+<tr>
+<td class="asm-label">ROOMS_SEEN</td>
+<td class="address-1"><span id="42831"></span>A74F</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">A bit for each room number, bit 7 of the first byte for room 0, set on entering it (<a href="50892.html">MARK_ROOM_SEEN</a>). <a href="50922.html">PERCENTAGE</a> counts all 31 bytes for the percentage, though rooms go no higher than 149, so only the first 19 can hold a bit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42839"></span>A757</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42847"></span>A75F</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42855"></span>A767</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42862"></span>A76E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42623.html">A67F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42761">Map</a></td>
+<td class="next">
+Next: <a href="42863.html">A76F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D13A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53420.html">D0AC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53562">Map</a></td>
+<td class="next">
+Next: <a href="53615.html">D16F</a>
+</td>
+</tr>
+</table>
+<div class="description">D13A: If all four quest items are done, show the pentagram</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53096.html">QUEST_ITEM</a>.
+</div>
+<div class="paragraph">
+Counts the quest records whose graphic is 116 to 119, the quest items done. With all four, each piece of the pentagram (graphics 128 to 135) gets bit 4 of its flags, and PENTAGRAM_ON is set, which is what lets <a href="45207.html">QUEST_INTO_ROOM</a> bring the pieces into room 82 the next time he enters it and makes the collectables there glide to their places (<a href="52502.html">COLLECTABLE</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the quest item that has just been done</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ALL_FOUR_DONE</td>
+<td class="address-2"><span id="53562"></span>D13A</td>
+<td class="instruction">CALL <a href="53371.html">QUEST_RECORD_LOOP</a></td>
+<td class="comment-1" rowspan="9">count the quest items done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53565"></span>D13D</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label">ALL_FOUR_DONE_0</td>
+<td class="address-2"><span id="53567"></span>D13F</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53570"></span>D142</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53572"></span>D144</td>
+<td class="instruction">CP $74</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53574"></span>D146</td>
+<td class="instruction">JR NZ,<a href="53562.html#53577">ALL_FOUR_DONE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53576"></span>D148</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">ALL_FOUR_DONE_1</td>
+<td class="address-2"><span id="53577"></span>D149</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53579"></span>D14B</td>
+<td class="instruction">DJNZ <a href="53562.html#53567">ALL_FOUR_DONE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53581"></span>D14D</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">not all four: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53582"></span>D14E</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53584"></span>D150</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53585"></span>D151</td>
+<td class="instruction">CALL <a href="53371.html">QUEST_RECORD_LOOP</a></td>
+<td class="comment-1" rowspan="5">each piece of the pentagram...</td>
+</tr>
+<tr>
+<td class="asm-label">ALL_FOUR_DONE_2</td>
+<td class="address-2"><span id="53588"></span>D154</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53591"></span>D157</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53593"></span>D159</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53595"></span>D15B</td>
+<td class="instruction">JR NZ,<a href="53562.html#53610">ALL_FOUR_DONE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53597"></span>D15D</td>
+<td class="instruction">SET 0,(IX+$11)</td>
+<td class="comment-1" rowspan="1">(a write to the quest item's link that nothing reads)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53601"></span>D161</td>
+<td class="instruction">SET 4,(IY+$07)</td>
+<td class="comment-1" rowspan="6">...is to be drawn, and the pentagram is showing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53605"></span>D165</td>
+<td class="instruction">LD A,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53607"></span>D167</td>
+<td class="instruction">LD (<a href="42761.html#42767">PENTAGRAM_ON</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">ALL_FOUR_DONE_3</td>
+<td class="address-2"><span id="53610"></span>D16A</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53612"></span>D16C</td>
+<td class="instruction">DJNZ <a href="53562.html#53588">ALL_FOUR_DONE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53614"></span>D16E</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Two of its writes have no effect found: bit 4 of the pieces' flags, which <a href="45207.html">QUEST_INTO_ROOM</a> sets anyway as it brings them in; and bit 0 of +11 of the quest item that called, the high byte of its quest record's address, which makes it point 256 bytes further on. Only a carried thing's link is ever followed (<a href="49017.html">TAKE_OR_LEAVE</a>), and a quest item cannot be picked up (<a href="49364.html">CAN_PICK_UP</a>), so nothing reads it.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53420.html">D0AC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53562">Map</a></td>
+<td class="next">
+Next: <a href="53615.html">D16F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

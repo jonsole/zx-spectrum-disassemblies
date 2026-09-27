@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B178</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45381.html">B145</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45432">Map</a></td>
+<td class="next">
+Next: <a href="45470.html">B19E</a>
+</td>
+</tr>
+</table>
+<div class="description">B178: Copy the screen buffer to the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="45068.html">OBJECT_DONE</a>, <a href="48308.html">DISPLAY_MENU</a> and <a href="49922.html">WON</a>.
+</div>
+<div class="paragraph">
+All 192 rows of 32 bytes from <a href="55439.html">BUFFER</a>. The buffer runs the other way up from the display -- its first row is the bottom line of the screen -- because the game's pixel y counts up from the bottom; so the copy starts at the display's bottom-left byte and works up a line at a time. Used on the first turn in a room (<a href="45068.html">OBJECT_DONE</a>) and for the text screens (<a href="48308.html">DISPLAY_MENU</a>, <a href="49922.html">WON</a>). Knight Lore's copy clears the buffer as it goes; this one leaves it as it is.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER</td>
+<td class="address-2"><span id="45432"></span>B178</td>
+<td class="instruction">LD HL,<a href="55439.html">BUFFER</a></td>
+<td class="comment-1" rowspan="3">From the buffer's first row to the display's bottom line; 192 rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45435"></span>B17B</td>
+<td class="instruction">LD DE,$57E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45438"></span>B17E</td>
+<td class="instruction">LD C,$C0</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER_0</td>
+<td class="address-2"><span id="45440"></span>B180</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="4">A row of 32 bytes; HL runs on to the next row by itself</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45441"></span>B181</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45442"></span>B182</td>
+<td class="instruction">LD BC,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45445"></span>B185</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45447"></span>B187</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="6">Up a display line, unless that crossed a character row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45448"></span>B188</td>
+<td class="instruction">DEC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45449"></span>B189</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45450"></span>B18A</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45451"></span>B18B</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45453"></span>B18D</td>
+<td class="instruction">JR NZ,<a href="45432.html#45465">SHOW_BUFFER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45455"></span>B18F</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="7">Crossing a character row: back 32 in E, and back into this third unless that borrowed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45456"></span>B190</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45458"></span>B192</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45459"></span>B193</td>
+<td class="instruction">JR C,<a href="45432.html#45465">SHOW_BUFFER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45461"></span>B195</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45462"></span>B196</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45464"></span>B198</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER_1</td>
+<td class="address-2"><span id="45465"></span>B199</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="4">The next row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45466"></span>B19A</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45467"></span>B19B</td>
+<td class="instruction">JR NZ,<a href="45432.html#45440">SHOW_BUFFER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45469"></span>B19D</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45381.html">B145</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45432">Map</a></td>
+<td class="next">
+Next: <a href="45470.html">B19E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CF68</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53026.html">CF22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53096">Map</a></td>
+<td class="next">
+Next: <a href="53150.html">CF9E</a>
+</td>
+</tr>
+</table>
+<div class="description">CF68: The update routine for a quest item</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphics 112 to 115, the four rough stones the quest is about, and 116 to 119, the same four once done. Nothing happens until the bucket reaches one: <a href="53420.html">BUCKET</a> sets bit 0 of +16. Then the item is done: one more on QUEST_DONE, a life added and the lives redrawn (<a href="49818.html">DRAW_LIVES</a>), and its graphic goes up by 4, in the object record and the quest record (<a href="53150.html">CHANGE_GRAPHIC</a>), which turns the rough stone into a finished pillar and takes it out of the bucket's reach (<a href="53420.html">BUCKET</a> looks for 112 to 115 only). <a href="53562.html">ALL_FOUR_DONE</a> shows the pentagram if it was the fourth.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_ITEM</td>
+<td class="address-2"><span id="53096"></span>CF68</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="2">the drawing nudge; move without falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53099"></span>CF6B</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53102"></span>CF6E</td>
+<td class="instruction">BIT 0,(IX+$16)</td>
+<td class="comment-1" rowspan="2">has the bucket reached it?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53106"></span>CF72</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53107"></span>CF73</td>
+<td class="instruction">LD A,(<a href="42761.html#42828">QUEST_DONE</a>)</td>
+<td class="comment-1" rowspan="3">one more quest item done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53110"></span>CF76</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53111"></span>CF77</td>
+<td class="instruction">LD (<a href="42761.html#42828">QUEST_DONE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53114"></span>CF7A</td>
+<td class="instruction">LD A,(<a href="42761.html#42785">LIVES</a>)</td>
+<td class="comment-1" rowspan="6">and a life more, shown on the panel</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53117"></span>CF7D</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53118"></span>CF7E</td>
+<td class="instruction">LD (<a href="42761.html#42785">LIVES</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53121"></span>CF81</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53123"></span>CF83</td>
+<td class="instruction">CALL <a href="49818.html">DRAW_LIVES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53126"></span>CF86</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53128"></span>CF88</td>
+<td class="instruction">RES 0,(IX+$16)</td>
+<td class="comment-1" rowspan="6">done with the bucket; graphic + 4, here and in its quest record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53132"></span>CF8C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53135"></span>CF8F</td>
+<td class="instruction">ADD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53137"></span>CF91</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53138"></span>CF92</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53141"></span>CF95</td>
+<td class="instruction">CALL <a href="53150.html">CHANGE_GRAPHIC</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53144"></span>CF98</td>
+<td class="instruction">CALL <a href="53562.html">ALL_FOUR_DONE</a></td>
+<td class="comment-1" rowspan="2">all four? Then redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53147"></span>CF9B</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The life is added with INC, not in BCD, but lives start at 5 and only the four quest items add any, so they never pass 9.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53026.html">CF22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53096">Map</a></td>
+<td class="next">
+Next: <a href="53150.html">CF9E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

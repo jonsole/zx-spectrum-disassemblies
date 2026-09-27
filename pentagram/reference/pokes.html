@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#immunity">Nothing can kill him</a></li>
+<li><a href="#well">The well gives the bucket at once</a></li>
+<li><a href="#sky">Nothing falls from the sky</a></li>
+<li><a href="#start">Always start in room 51</a></li>
+<li><a href="#fast">No waiting between turns</a></li>
+<li><a href="#128k">Play on a 128K in 128 mode</a></li>
+</ul>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/49900.html">RESTART_PLAYER</a> starts every life, the first included: it copies the
+player template over his two records and takes a life with DEC (HL) at
+$C2FD, going to the game over when that leaves less than none.
+Make the DEC a NOP and LIVES never moves. The JP M after it still tests the
+sign flag, which the code before it leaves clear on both ways in (read). Put
+in before a game starts, the panel should show 05 instead of 04 (read, not
+tried).
+Tested: standing still at the middle of room 6, where two deadly pacers go
+back and forth through the spot (the room entered by the game's own restart),
+he was killed every 16 turns; with 3 lives the fourth death was the game over,
+at turn 63. With the poke he died 75 times in 1200 turns and the panel said 03
+throughout.
+</div>
+<div class="paragraph">
+POKE 49917,0
+</div>
+</div>
+<div><span id="immunity"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing can kill him</div>
+<div class="paragraph">
+Whatever kills the player does it the same way: the collision code sets bit 6
+of the +$0D of his legs' record (the mover's bit 7, or the obstacle's bit 5,
+<a href="../asm/46914.html">ADJ_DU_FOR_OBJ_INTERSECT</a>), and the next time his update routine <a href="../asm/50240.html">PLAYER_LEGS</a> runs it tests that bit
+and turns him into the puff. Make the BIT 6 a RES 6 -- one byte, the fourth of
+the instruction -- and the JR Z after it a JR, and the mark is wiped and
+ignored every turn. His body is out of every collision test already (<a href="../asm/50643.html">PLAYER_TOP</a>),
+so nothing else needs doing. Deadly things still bump him, and homers still
+chase him.
+Tested: the same trial as the lives poke -- room 6, standing between the two
+deadly pacers -- four deaths in 63 turns and the game over without it; with
+it, 1200 turns, no death, three lives.
+</div>
+<div class="paragraph">
+POKE 50246,182: POKE 50247,24
+</div>
+</div>
+<div><span id="well"></span></div>
+<div class="box box-1">
+<div class="box-title">The well gives the bucket at once</div>
+<div class="paragraph">
+<a href="../asm/53202.html">WELL</a> counts, in its own record, the turns on which one of his bolts
+touches it, and makes the bucket on the 32nd -- the CP $20 at $CFE7.
+Make that CP 1 and the first touch does it. (The count is otherwise lost each
+time he leaves the room: the well's record is built afresh.)
+Tested: in room 71, the well's room with no monsters, the player put inside
+the ring of hazards facing the well and firing a bolt every five turns: the
+bucket came after 7 shots and 35 turns without the poke (see the bugs for
+why only 7), after the first shot and 5 turns with it.
+</div>
+<div class="paragraph">
+POKE 53224,1
+</div>
+</div>
+<div><span id="sky"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing falls from the sky</div>
+<div class="paragraph">
+<a href="../asm/52139.html">SKY_DROP</a> runs at the top of every turn and is the only thing that
+puts a homer, a sky roamer or a sky walker into the two records kept for
+them. A RET as its first instruction, and nothing ever falls; the things a
+room starts with are not affected.
+Tested: standing in room 30, which is empty and allows drops, with the
+immunity poke in both trials so that nothing restarted the room: without this
+poke three things fell in 1000 turns, 80 turns apart, the first about 80
+turns after he arrived; after the third both records held homers, which do
+not leave, and nothing more could fall. With it, nothing fell.
+</div>
+<div class="paragraph">
+POKE 52139,201
+</div>
+</div>
+<div><span id="start"></span></div>
+<div class="box box-1">
+<div class="box-title">Always start in room 51</div>
+<div class="paragraph">
+<a href="../asm/49870.html">CHOOSE_START</a> takes RANDOM AND 3 as an index into the four start rooms
+at <a href="../asm/49896.html">START_ROOMS</a>. Make the AND $03 at $C2DC an AND 0 and every game starts
+in the first of them, room 51.
+Tested: eight games started, each after a game over reached after a different
+number of turns (5 to 40): without the poke they began in rooms 92 and 12,
+with it all eight began in 51. The collectables were put out exactly as
+without it, since <a href="../asm/53615.html">NEW_QUEST</a> reads the same random number.
+</div>
+<div class="paragraph">
+POKE 49885,0
+</div>
+</div>
+<div><span id="fast"></span></div>
+<div class="box box-2">
+<div class="box-title">No waiting between turns</div>
+<div class="paragraph">
+At the end of every turn <a href="../asm/45068.html">OBJECT_DONE</a> waits six units of about 33,000
+T-states less the drawing the turn has already done (DRAW_WORK), so a quiet
+room runs no faster than a busy one. Make the ADD A,$06 at $B04A an ADD
+A,0 and it never waits. Busy rooms, where the work is six units or more
+already, are unchanged.
+Tested: standing still in room 30, 50 turns took 123 frames without the poke
+and 76 with it (four units of work a turn, so two of waiting saved); in the
+start room, room 92, with nine units of work a turn, 50 turns took 122
+frames either way.
+</div>
+<div class="paragraph">
+POKE 45131,0
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-1">
+<div class="box-title">Play on a 128K in 128 mode</div>
+<div class="paragraph">
+<a href="../asm/47442.html">READ_KEYS</a> sends the half-row it is about to read to port $FD before
+reading port $FE, an OUT that does nothing on a 48K Spectrum and pages
+memory on a 128K (see the bugs). The IN after it selects the half-rows by
+itself, so the OUT can simply go: two NOPs.
+Tested on the emulator's 128K machine, from the loaded game put into a 128K
+snapshot with the 48 BASIC ROM and bank 0 paged in and paging unlocked, as
+the 128's Tape Loader leaves it: without the poke the game crashed to the ROM
+on its first turn of play; with it, 300 turns of play, walking out of the
+start room into the next, and the paging was as it started. On the 48K the
+same 300 turns went exactly as without the poke.
+</div>
+<div class="paragraph">
+POKE 47442,0: POKE 47443,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

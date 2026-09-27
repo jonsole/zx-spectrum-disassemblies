@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CFD2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53170.html">CFB2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53202">Map</a></td>
+<td class="next">
+Next: <a href="53361.html">D071</a>
+</td>
+</tr>
+</table>
+<div class="description">CFD2: The update routine for the well</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphic 120. Shot at enough, it puts out the bucket. It counts in +14 the turns on which one of his bolts touches it (<a href="53170.html">BOLT_TOUCHING</a>), and on the 32nd, with no bucket already out (BUCKET_OUT) and none in the room, and a free record for one, it makes the bucket: a copy of its own record with graphic 90, at the well's U, 8 further in V, at a height of 141, rising one unit (so it hangs there for a turn and then falls), pushable, and linked to the quest's bucket record (QUEST_BUCKET, in <a href="54322.html">QUEST_RECORDS</a>), which gets the graphic and the room.
+</div>
+<div class="paragraph">
+The count is kept in the well's own record, which is rebuilt from the room's data every time the room is entered, so the 32 must come in one visit.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the well's object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">WELL</td>
+<td class="address-2"><span id="53202"></span>CFD2</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="2">the drawing nudge; move without falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53205"></span>CFD5</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53208"></span>CFD8</td>
+<td class="instruction">LD A,(<a href="42761.html#42766">BUCKET_OUT</a>)</td>
+<td class="comment-1" rowspan="3">a bucket out already: nothing more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53211"></span>CFDB</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53212"></span>CFDC</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53213"></span>CFDD</td>
+<td class="instruction">CALL <a href="53170.html">BOLT_TOUCHING</a></td>
+<td class="comment-1" rowspan="2">no bolt touching: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53216"></span>CFE0</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53217"></span>CFE1</td>
+<td class="instruction">INC (IX+$14)</td>
+<td class="comment-1" rowspan="4">the 32nd turn a bolt has touched it?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53220"></span>CFE4</td>
+<td class="instruction">LD A,(IX+$14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53223"></span>CFE7</td>
+<td class="instruction">CP $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53225"></span>CFE9</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53226"></span>CFEA</td>
+<td class="instruction">LD (IX+$14),$00</td>
+<td class="comment-1" rowspan="7">start the count again; a bucket in the room already: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53230"></span>CFEE</td>
+<td class="instruction">CALL <a href="53361.html">ROOM_OBJECT_LOOP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53233"></span>CFF1</td>
+<td class="instruction">LD A,$5A</td>
+</tr>
+<tr>
+<td class="asm-label">WELL_0</td>
+<td class="address-2"><span id="53235"></span>CFF3</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53238"></span>CFF6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53239"></span>CFF7</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53241"></span>CFF9</td>
+<td class="instruction">DJNZ <a href="53202.html#53235">WELL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53243"></span>CFFB</td>
+<td class="instruction">CALL <a href="53361.html">ROOM_OBJECT_LOOP</a></td>
+<td class="comment-1" rowspan="7">find a free record; none: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53246"></span>CFFE</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">WELL_1</td>
+<td class="address-2"><span id="53247"></span>CFFF</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53250"></span>D002</td>
+<td class="instruction">JR Z,<a href="53202.html#53257">WELL_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53252"></span>D004</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53254"></span>D006</td>
+<td class="instruction">DJNZ <a href="53202.html#53247">WELL_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53256"></span>D008</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">WELL_2</td>
+<td class="address-2"><span id="53257"></span>D009</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">copy the well's record into it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53259"></span>D00B</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53260"></span>D00C</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53262"></span>D00E</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53263"></span>D00F</td>
+<td class="instruction">LD BC,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53266"></span>D012</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53268"></span>D014</td>
+<td class="instruction">LD (IY+$00),$5A</td>
+<td class="comment-1" rowspan="8">graphic 90, height 141, half-sizes 8, 8, 12, flags $14, rising one unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53272"></span>D018</td>
+<td class="instruction">LD (IY+$03),$8D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53276"></span>D01C</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53278"></span>D01E</td>
+<td class="instruction">LD (IY+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53281"></span>D021</td>
+<td class="instruction">LD (IY+$05),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53284"></span>D024</td>
+<td class="instruction">LD (IY+$06),$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53288"></span>D028</td>
+<td class="instruction">LD (IY+$07),$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53292"></span>D02C</td>
+<td class="instruction">LD (IY+$0B),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53296"></span>D030</td>
+<td class="instruction">LD DE,<a href="54322.html#54594">QUEST_BUCKET</a></td>
+<td class="comment-1" rowspan="3">linked to the quest's bucket record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53299"></span>D033</td>
+<td class="instruction">LD (IY+$10),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53302"></span>D036</td>
+<td class="instruction">LD (IY+$11),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53305"></span>D039</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="5">at the well's U, 8 further in V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53308"></span>D03C</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53311"></span>D03F</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53314"></span>D042</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53316"></span>D044</td>
+<td class="instruction">LD (IY+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53319"></span>D047</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">the bucket is out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53321"></span>D049</td>
+<td class="instruction">LD (<a href="42761.html#42766">BUCKET_OUT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53324"></span>D04C</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="8">the new record: its nudge, its place on screen, a move, and drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53326"></span>D04E</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53328"></span>D050</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53330"></span>D052</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53333"></span>D055</td>
+<td class="instruction">CALL <a href="45765.html">CALC_PIXEL_XY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53336"></span>D058</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53339"></span>D05B</td>
+<td class="instruction">CALL <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53342"></span>D05E</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53344"></span>D060</td>
+<td class="instruction">LD IY,<a href="54322.html#54594">QUEST_BUCKET</a></td>
+<td class="comment-1" rowspan="5">the quest's bucket record gets the graphic and the room; redraw the well</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53348"></span>D064</td>
+<td class="instruction">LD (IY+$00),$5A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53352"></span>D068</td>
+<td class="instruction">LD A,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53355"></span>D06B</td>
+<td class="instruction">LD (IY+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53358"></span>D06E</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53170.html">CFB2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53202">Map</a></td>
+<td class="next">
+Next: <a href="53361.html">D071</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

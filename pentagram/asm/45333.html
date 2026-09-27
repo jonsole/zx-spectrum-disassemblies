@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B115</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45207.html">B097</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45333">Map</a></td>
+<td class="next">
+Next: <a href="45381.html">B145</a>
+</td>
+</tr>
+</table>
+<div class="description">B115: Copy the quest things in the room back to their records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44935.html">START</a>.
+</div>
+<div class="paragraph">
+Runs as a room is entered, before the room is built over the records (<a href="44935.html">START</a>), so it sees the room being left. Every one of the room's 48 records is looked up by its graphic among the 18 quest records at <a href="54322.html">QUEST_RECORDS</a>, and where one matches, the object's first 16 bytes -- where it is now, its sizes, its flags and its room -- are copied back over the quest record. A quest thing that moved or was pushed in a room is found there again.
+</div>
+<div class="paragraph">
+The match is by graphic, not by the address kept at +10: a quest thing's graphic is unique among them, and <a href="53150.html">CHANGE_GRAPHIC</a> changes the quest record's graphic along with the object's when a quest item is done. An empty record's graphic 0 matches the record of a thing being carried, whose graphic is zeroed while he has it (<a href="49017.html">TAKE_OR_LEAVE</a>), and copies the empty record's leftovers over it; that does no harm, since the graphic stays 0 and putting the thing down writes it back.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_OUT_OF_ROOM</td>
+<td class="address-2"><span id="45333"></span>B115</td>
+<td class="instruction">LD IY,<a href="42863.html#43023">FLYER_SECOND</a></td>
+<td class="comment-1" rowspan="2">IY a record before the room's first; 48 records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45337"></span>B119</td>
+<td class="instruction">LD C,$30</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_OUT_OF_ROOM_0</td>
+<td class="address-2"><span id="45339"></span>B11B</td>
+<td class="instruction">LD DE,$0020</td>
+<td class="comment-1" rowspan="2">The next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45342"></span>B11E</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45344"></span>B120</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="1">Its graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45347"></span>B123</td>
+<td class="instruction">LD HL,<a href="54322.html">QUEST_RECORDS</a></td>
+<td class="comment-1" rowspan="3">Against each of the 18 quest records' graphics</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45350"></span>B126</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45353"></span>B129</td>
+<td class="instruction">LD B,$12</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_OUT_OF_ROOM_1</td>
+<td class="address-2"><span id="45355"></span>B12B</td>
+<td class="instruction">CP (HL)</td>
+<td class="comment-1" rowspan="4">This one?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45356"></span>B12C</td>
+<td class="instruction">JR Z,<a href="45333.html#45365">QUEST_OUT_OF_ROOM_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45358"></span>B12E</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45359"></span>B12F</td>
+<td class="instruction">DJNZ <a href="45333.html#45355">QUEST_OUT_OF_ROOM_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_OUT_OF_ROOM_2</td>
+<td class="address-2"><span id="45361"></span>B131</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="3">The next object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45362"></span>B132</td>
+<td class="instruction">JR NZ,<a href="45333.html#45339">QUEST_OUT_OF_ROOM_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45364"></span>B134</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">QUEST_OUT_OF_ROOM_3</td>
+<td class="address-2"><span id="45365"></span>B135</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="6">Found: the object's first 16 bytes back over the quest record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45366"></span>B136</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45368"></span>B138</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45369"></span>B139</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45370"></span>B13A</td>
+<td class="instruction">LD BC,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45373"></span>B13D</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45375"></span>B13F</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">On to the next object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45376"></span>B140</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45379"></span>B143</td>
+<td class="instruction">JR <a href="45333.html#45361">QUEST_OUT_OF_ROOM_2</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45207.html">B097</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45333">Map</a></td>
+<td class="next">
+Next: <a href="45381.html">B145</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

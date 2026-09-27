@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BF79</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48998.html">BF66</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49017">Map</a></td>
+<td class="next">
+Next: <a href="49364.html">C0D4</a>
+</td>
+</tr>
+</table>
+<div class="description">BF79: Pick up, or put down</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50240.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Called from the legs' update routine (<a href="50240.html">PLAYER_LEGS</a>) every turn. One press does one thing: pick up the bucket or a collectable that he is on or beside; failing that, put down the last of the things he carries (CARRIED_LAST), under himself, so that he stands on it; and if he carries nothing there, move what he carries one place along towards it. TAKE_HELD latches the press, so holding the key does nothing more, and every press that gets that far plays the pick-up sound. Knight Lore's handle_pickup_drop and the routines after it, joined into one.
+</div>
+<div class="paragraph">
+Nothing happens unless he is inside the room's walls (<a href="50339.html">CHK_PLYR_OOB</a>, not in a doorway), not jumping (bit 3 of +$0C) and standing on something (bit 2). Before anything else it looks for an object up to 12 units above his head: if there is one, NO_HEADROOM is set and nothing is put down, because putting something down lifts him 12 units onto it.
+</div>
+<div class="paragraph">
+He carries up to three things, in the four-byte slots CARRIED_SHOWN (the newest), the one after, and CARRIED_LAST (the oldest, put down next): the graphic, the flags from +7, and the address of the thing's quest record (<a href="54322.html">QUEST_RECORDS</a>). CARRIED is a fourth slot in front of them, where a thing just picked up waits for the slots to be moved along. They behave as a queue: the first picked up is the first put down.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the player's legs (<a href="42863.html">OBJECTS</a>)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_OR_LEAVE</td>
+<td class="address-2"><span id="49017"></span>BF79</td>
+<td class="instruction">LD A,(<a href="42761.html#42816">TAKE_HELD</a>)</td>
+<td class="comment-1" rowspan="3">the key is still held from the last press: wait for it to go up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49020"></span>BF7C</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49021"></span>BF7D</td>
+<td class="instruction">JP NZ,<a href="49017.html#49166">WAIT_TAKE_RELEASE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49024"></span>BF80</td>
+<td class="instruction">CALL <a href="48998.html">CHK_PICKUP_DROP</a></td>
+<td class="comment-1" rowspan="2">not pressed: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49027"></span>BF83</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49028"></span>BF84</td>
+<td class="instruction">CALL <a href="50339.html">CHK_PLYR_OOB</a></td>
+<td class="comment-1" rowspan="2">only inside the room's walls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49031"></span>BF87</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49032"></span>BF88</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">not while jumping (bit 3 of +$0C); only when standing on something (bit 2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49036"></span>BF8C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49037"></span>BF8D</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49041"></span>BF91</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49042"></span>BF92</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="9">anything within 12 units above his head? His Z is raised to look, then put back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49043"></span>BF93</td>
+<td class="instruction">LD (<a href="42761.html#42817">NO_HEADROOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49046"></span>BF96</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49049"></span>BF99</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49050"></span>BF9A</td>
+<td class="instruction">ADD A,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49052"></span>BF9C</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49055"></span>BF9F</td>
+<td class="instruction">CALL <a href="48923.html">DO_ANY_OBJS_INTERSECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49058"></span>BFA2</td>
+<td class="instruction">LD (IX+$03),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49061"></span>BFA5</td>
+<td class="instruction">JR NC,<a href="49017.html#49068">TAKE_OR_LEAVE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49063"></span>BFA7</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">yes: there is no room for him to stand on what he puts down (this never ran in the build's sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49065"></span>BFA9</td>
+<td class="instruction">LD (<a href="42761.html#42817">NO_HEADROOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_OR_LEAVE_0</td>
+<td class="address-2"><span id="49068"></span>BFAC</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="3">latch the key, and have the panel's carried things redrawn (<a href="47668.html">SHOW_CARRIED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49070"></span>BFAE</td>
+<td class="instruction">LD (<a href="42761.html#42816">TAKE_HELD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49073"></span>BFB1</td>
+<td class="instruction">LD (<a href="42761.html#42784">PANEL_DUE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49076"></span>BFB4</td>
+<td class="instruction">LD B,$30</td>
+<td class="comment-1" rowspan="15">each half-size +4, so that a thing just out of reach counts; the old ones go on the stack</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49078"></span>BFB6</td>
+<td class="instruction">LD L,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49081"></span>BFB9</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49082"></span>BFBA</td>
+<td class="instruction">ADD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49084"></span>BFBC</td>
+<td class="instruction">LD (IX+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49087"></span>BFBF</td>
+<td class="instruction">LD H,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49090"></span>BFC2</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49091"></span>BFC3</td>
+<td class="instruction">ADD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49093"></span>BFC5</td>
+<td class="instruction">LD (IX+$05),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49096"></span>BFC8</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49097"></span>BFC9</td>
+<td class="instruction">LD L,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49100"></span>BFCC</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49101"></span>BFCD</td>
+<td class="instruction">ADD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49103"></span>BFCF</td>
+<td class="instruction">LD (IX+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49106"></span>BFD2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49107"></span>BFD3</td>
+<td class="instruction">LD IY,<a href="42863.html#43055">ROOM_OBJECTS</a></td>
+<td class="comment-1" rowspan="6">the 48 records of the room's things: the first that can be picked up (<a href="49364.html">CAN_PICK_UP</a>) is taken</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_OR_LEAVE_1</td>
+<td class="address-2"><span id="49111"></span>BFD7</td>
+<td class="instruction">CALL <a href="49364.html">CAN_PICK_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49114"></span>BFDA</td>
+<td class="instruction">JP C,<a href="49017.html#49319">PICK_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49117"></span>BFDD</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49120"></span>BFE0</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49122"></span>BFE2</td>
+<td class="instruction">DJNZ <a href="49017.html#49111">TAKE_OR_LEAVE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49124"></span>BFE4</td>
+<td class="instruction">CALL <a href="48998.html">CHK_PICKUP_DROP</a></td>
+<td class="comment-1" rowspan="2">nothing to pick up. This test cannot fail: INPUT has not changed since the same test at the start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49127"></span>BFE7</td>
+<td class="instruction">JR Z,<a href="49017.html#49148">TAKE_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49129"></span>BFE9</td>
+<td class="instruction">LD DE,$0020</td>
+<td class="comment-1" rowspan="8">the first free record among the room's 48, to put a thing down in; none: nothing is put down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49132"></span>BFEC</td>
+<td class="instruction">LD B,$30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49134"></span>BFEE</td>
+<td class="instruction">LD IY,<a href="42863.html#43055">ROOM_OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_OR_LEAVE_2</td>
+<td class="address-2"><span id="49138"></span>BFF2</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49141"></span>BFF5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49142"></span>BFF6</td>
+<td class="instruction">JR Z,<a href="49017.html#49175">PUT_DOWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49144"></span>BFF8</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49146"></span>BFFA</td>
+<td class="instruction">DJNZ <a href="49017.html#49138">TAKE_OR_LEAVE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_DONE</td>
+<td class="address-2"><span id="49148"></span>BFFC</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="5">his half-sizes back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49149"></span>BFFD</td>
+<td class="instruction">LD (IX+$06),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49152"></span>C000</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49153"></span>C001</td>
+<td class="instruction">LD (IX+$04),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49156"></span>C004</td>
+<td class="instruction">LD (IX+$05),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49159"></span>C007</td>
+<td class="instruction">LD HL,$0105</td>
+<td class="comment-1" rowspan="3">the pick-up sound: sound 1, for five turns (<a href="54770.html">EFFECT_NOTE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49162"></span>C00A</td>
+<td class="instruction">LD (<a href="42761.html#42825">SOUND_COUNT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49165"></span>C00D</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">WAIT_TAKE_RELEASE</td>
+<td class="address-2"><span id="49166"></span>C00E</td>
+<td class="instruction">CALL <a href="48998.html">CHK_PICKUP_DROP</a></td>
+<td class="comment-1" rowspan="5">clear the latch once the key is up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49169"></span>C011</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49170"></span>C012</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49171"></span>C013</td>
+<td class="instruction">LD (<a href="42761.html#42816">TAKE_HELD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49174"></span>C016</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49175"></span>
+<div class="comments">
+<div class="paragraph">
+Put down the last thing he carries, into the free record at IY.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_DOWN</td>
+<td class="address-2"><span id="49175"></span>C017</td>
+<td class="instruction">LD HL,<a href="42761.html#42798">CARRIED_LAST</a></td>
+<td class="comment-1" rowspan="5">nothing in the last slot: just move the slots along</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49178"></span>C01A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49179"></span>C01B</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49180"></span>C01C</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49181"></span>C01D</td>
+<td class="instruction">JR Z,<a href="49017.html#49297">SHIFT_CARRIED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49183"></span>C01F</td>
+<td class="instruction">LD A,(<a href="42761.html#42817">NO_HEADROOM</a>)</td>
+<td class="comment-1" rowspan="3">no headroom: put nothing down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49186"></span>C022</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49187"></span>C023</td>
+<td class="instruction">JR NZ,<a href="49017.html#49148">TAKE_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49189"></span>C025</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">the thing's graphic into the free record; HL on to the slot's flags</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49190"></span>C026</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49191"></span>C027</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49192"></span>C028</td>
+<td class="instruction">LD (IY+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49195"></span>C02B</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49196"></span>C02C</td>
+<td class="instruction">LD BC,$001F</td>
+<td class="comment-1" rowspan="8">the rest of the record from the player's legs: his position, so that it goes down where he stands</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49199"></span>C02F</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49201"></span>C031</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49202"></span>C032</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49204"></span>C034</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49205"></span>C035</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49206"></span>C036</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49207"></span>C037</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49209"></span>C039</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="6">lift both of his records by 12, the thing's height, so that he stands on it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49212"></span>C03C</td>
+<td class="instruction">ADD A,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49214"></span>C03E</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49217"></span>C041</td>
+<td class="instruction">LD A,(IX+$23)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49220"></span>C044</td>
+<td class="instruction">ADD A,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49222"></span>C046</td>
+<td class="instruction">LD (IX+$23),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49225"></span>C049</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="10">with IX on the thing: its drawing nudge (<a href="51039.html">DRAW_AT_L16_D8</a>), its place on the screen (<a href="45765.html">CALC_PIXEL_XY</a>), a turn's fall (<a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a>), and mark it to be drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49227"></span>C04B</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49229"></span>C04D</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49231"></span>C04F</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49233"></span>C051</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49236"></span>C054</td>
+<td class="instruction">CALL <a href="45765.html">CALC_PIXEL_XY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49239"></span>C057</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49242"></span>C05A</td>
+<td class="instruction">CALL <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49245"></span>C05D</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49247"></span>C05F</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49249"></span>
+<div class="comments">
+<div class="paragraph">
+Fill in the record of a thing put down: IY the record, its graphic and position already set; the slot's flags byte on the stack.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_PUT_DOWN</td>
+<td class="address-2"><span id="49249"></span>C061</td>
+<td class="instruction">LD (IY+$04),$05</td>
+<td class="comment-1" rowspan="3">half-sizes 5, 5 and 12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49253"></span>C065</td>
+<td class="instruction">LD (IY+$05),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49257"></span>C069</td>
+<td class="instruction">LD (IY+$06),$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49261"></span>C06D</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">+7 the flags from the slot; +8 the room, the player's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49262"></span>C06E</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49263"></span>C06F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49264"></span>C070</td>
+<td class="instruction">LD (IY+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49267"></span>C073</td>
+<td class="instruction">LD A,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49270"></span>C076</td>
+<td class="instruction">LD (IY+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49273"></span>C079</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="5">+$10 and +$11: the address of its quest record, from the slot</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49274"></span>C07A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49275"></span>C07B</td>
+<td class="instruction">LD (IY+$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49278"></span>C07E</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49279"></span>C07F</td>
+<td class="instruction">LD (IY+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49282"></span>C082</td>
+<td class="instruction">LD H,A</td>
+<td class="comment-1" rowspan="4">the graphic back into the quest record, which picking it up had emptied: it is in this room again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49283"></span>C083</td>
+<td class="instruction">LD L,(IY+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49286"></span>C086</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49289"></span>C089</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49290"></span>C08A</td>
+<td class="instruction">SET 0,(IY+$0D)</td>
+<td class="comment-1" rowspan="1">bit 0 of +$0D: just put down. Nothing has been found that reads it (Knight Lore's charms have a use for it)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49294"></span>C08E</td>
+<td class="instruction">CALL <a href="48982.html">SET_WIPE_AND_DRAW_IY</a></td>
+<td class="comment-1" rowspan="1">mark it to be drawn</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49297"></span>
+<div class="comments">
+<div class="paragraph">
+Move the carried things one slot along.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHIFT_CARRIED</td>
+<td class="address-2"><span id="49297"></span>C091</td>
+<td class="instruction">LD HL,$A72D</td>
+<td class="comment-1" rowspan="4">twelve bytes up by four, copied from the top down so that they do not overwrite themselves: the slot in front moves into CARRIED_SHOWN, and so on to CARRIED_LAST</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49300"></span>C094</td>
+<td class="instruction">LD DE,$A731</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49303"></span>C097</td>
+<td class="instruction">LD BC,$000C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49306"></span>C09A</td>
+<td class="instruction">LDDR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49308"></span>C09C</td>
+<td class="instruction">LD DE,<a href="42761.html#42786">CARRIED</a></td>
+<td class="comment-1" rowspan="4">the slot in front is empty</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49311"></span>C09F</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49313"></span>C0A1</td>
+<td class="instruction">CALL <a href="46355.html">CLEAR_BYTES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49316"></span>C0A4</td>
+<td class="instruction">JP <a href="49017.html#49148">TAKE_DONE</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49319"></span>
+<div class="comments">
+<div class="paragraph">
+Pick up the thing at IY.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP</td>
+<td class="address-2"><span id="49319"></span>C0A7</td>
+<td class="instruction">LD HL,<a href="42761.html#42786">CARRIED</a></td>
+<td class="comment-1" rowspan="14">graphic, flags and quest record's address into the slot in front; the quest record's graphic zeroed, so that the thing is not put back in its room when he leaves</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49322"></span>C0AA</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49325"></span>C0AD</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49326"></span>C0AE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49327"></span>C0AF</td>
+<td class="instruction">LD A,(IY+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49330"></span>C0B2</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49331"></span>C0B3</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49332"></span>C0B4</td>
+<td class="instruction">LD E,(IY+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49335"></span>C0B7</td>
+<td class="instruction">LD D,(IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49338"></span>C0BA</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49339"></span>C0BB</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49340"></span>C0BC</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49341"></span>C0BD</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49342"></span>C0BE</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49343"></span>C0BF</td>
+<td class="instruction">CALL <a href="48982.html">SET_WIPE_AND_DRAW_IY</a></td>
+<td class="comment-1" rowspan="2">mark it to be rubbed out, and make it graphic 1, which the drawing code rubs out and then empties (<a href="46035.html">DRAW_OBJECT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49346"></span>C0C2</td>
+<td class="instruction">LD (IY+$00),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49350"></span>C0C6</td>
+<td class="instruction">LD HL,<a href="42761.html#42798">CARRIED_LAST</a></td>
+<td class="comment-1" rowspan="5">carrying fewer than three: move the slots along</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49353"></span>C0C9</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49354"></span>C0CA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49355"></span>C0CB</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49356"></span>C0CC</td>
+<td class="instruction">JR Z,<a href="49017.html#49297">SHIFT_CARRIED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49358"></span>C0CE</td>
+<td class="instruction">LD (IY+$00),A</td>
+<td class="comment-1" rowspan="3">three: the oldest goes down where this one was, in the same record -- picking up swaps (this never ran in the build's sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49361"></span>C0D1</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49362"></span>C0D2</td>
+<td class="instruction">JR <a href="49017.html#49249">FILL_PUT_DOWN</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48998.html">BF66</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49017">Map</a></td>
+<td class="next">
+Next: <a href="49364.html">C0D4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

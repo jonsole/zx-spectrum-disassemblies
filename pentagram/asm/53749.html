@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D1F5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53669.html">D1A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53749">Map</a></td>
+<td class="next">
+Next: <a href="53841.html">D251</a>
+</td>
+</tr>
+</table>
+<div class="description">D1F5: The update routine for a spider that runs straight, and a creature from the sky</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphics 16 and 17, a spider (both show the same sprite), enter here and flip their picture every turn as they go; graphics 80 and 81, a creature that falls from the sky (<a href="52139.html">SKY_DROP</a>), enter at SKY_ROAMER, which skips the flip. Either is deadly both ways (<a href="49809.html">MAKE_DEADLY</a>), and falls, faster each turn since its steps are never cleared, but never lower than 129: below that it is put back at 129 with no fall.
+</div>
+<div class="paragraph">
+It runs straight at four units a turn until it bumps into something, which the collision code shows by clearing the step. Then it picks a new way, the sign from bit 3 of R: along U if the bump was in V, otherwise along V. The way it faces goes with the way it runs: bit 0 of the graphic and the mirror bit (6) of the flags make four facings from two pictures.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ROAMER</td>
+<td class="address-2"><span id="53749"></span>D1F5</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="3">flip the picture</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53752"></span>D1F8</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53754"></span>D1FA</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label">SKY_ROAMER</td>
+<td class="address-1"><span id="53757"></span>D1FD</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="1">SKY_ROAMER: the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53760"></span>D200</td>
+<td class="instruction">CALL <a href="49809.html">MAKE_DEADLY</a></td>
+<td class="comment-1" rowspan="2">deadly; fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53763"></span>D203</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53766"></span>D206</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="5">no lower than 129</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53769"></span>D209</td>
+<td class="instruction">CP $81</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53771"></span>D20B</td>
+<td class="instruction">JR NC,<a href="53749.html#53781">ROAMER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53773"></span>D20D</td>
+<td class="instruction">LD (IX+$03),$81</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53777"></span>D211</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+</tr>
+<tr>
+<td class="asm-label">ROAMER_0</td>
+<td class="address-2"><span id="53781"></span>D215</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">still moving: redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53784"></span>D218</td>
+<td class="instruction">OR (IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53787"></span>D21B</td>
+<td class="instruction">JP NZ,<a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53790"></span>D21E</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="3">stopped: four units, either way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53792"></span>D220</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53794"></span>D222</td>
+<td class="instruction">SUB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53796"></span>D224</td>
+<td class="instruction">BIT 1,(IX+$0C)</td>
+<td class="comment-1" rowspan="6">not bumped in V: along V, graphic odd, not mirrored...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53800"></span>D228</td>
+<td class="instruction">JR NZ,<a href="53749.html#53815">ROAMER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53802"></span>D22A</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53805"></span>D22D</td>
+<td class="instruction">SET 0,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53809"></span>D231</td>
+<td class="instruction">RES 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53813"></span>D235</td>
+<td class="instruction">JR <a href="53749.html#53826">ROAMER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">ROAMER_1</td>
+<td class="address-2"><span id="53815"></span>D237</td>
+<td class="instruction">LD (IX+$09),A</td>
+<td class="comment-1" rowspan="3">...bumped in V: along U, graphic even, mirrored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53818"></span>D23A</td>
+<td class="instruction">RES 0,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53822"></span>D23E</td>
+<td class="instruction">SET 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label">ROAMER_2</td>
+<td class="address-2"><span id="53826"></span>D242</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="6">going backwards: the other graphic of the two; redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53827"></span>D243</td>
+<td class="instruction">JP P,<a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53830"></span>D246</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53833"></span>D249</td>
+<td class="instruction">XOR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53835"></span>D24B</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53838"></span>D24E</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53669.html">D1A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53749">Map</a></td>
+<td class="next">
+Next: <a href="53841.html">D251</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

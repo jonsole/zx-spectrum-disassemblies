@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Objects: every graphic</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="pentagram.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Objects">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Pentagram</a></td>
+<td class="page-header">Objects: every graphic</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Every one of the 172 graphic numbers. An object's graphic, the first byte of its record, is all it is: it picks the sprite it is drawn with, through <a href="asm/28119.html">GRAPHICS</a>, and the update routine the main loop runs for it every turn, through <a href="asm/44591.html">UPDATES</a>. There is no separate frame number: a thing animates, or turns into something else, by changing its own graphic -- a walking frame, a puff's next frame, a stone finished by the bucket.</p>
+<p>They are grouped here by what their routines do. Each line gives the sprite (click it for the sprite, or the address for its entry in the listing), the routine and a line on what it does, and where the graphic comes from: the scenery and object templates that name it, the quest's records, the tables the panel, the border and the sky are drawn from, and the routines that give it to an object. Knight Lore has the same two tables, by object type (see <a href="../knightlore/Objects.html">Knight Lore's objects</a>).</p>
+<p>Graphic 0 is an empty record and 1 one about to be emptied; neither is drawn. Graphic numbers run to 171, and 40 of them are never placed.</p>
+<p><a href="#special">Graphics 0 and 1</a> -- <a href="#player">The player</a> -- <a href="#shots">Bolts and puffs</a> -- <a href="#doorways">Doorways</a> -- <a href="#walls">Walls and still things</a> -- <a href="#deadly">Things that kill where they stand</a> -- <a href="#blocks">Blocks that fall and can be pushed</a> -- <a href="#platforms">Blocks that move</a> -- <a href="#creatures">Creatures</a> -- <a href="#sky">Things from the sky</a> -- <a href="#quest">The quest</a> -- <a href="#screen">The panel and the border</a> -- <a href="#unused">Graphics nothing places</a></p>
+<h3 id="special">Graphics 0 and 1</h3>
+<p>Not things: 0 is an empty record, which the main loop still runs (a RET) and nothing draws, and 1 an object on its way out -- what is picked up, a puff at its end, a crumbled block -- which the drawing code empties instead of drawing (<a href="asm/46035.html">DRAW_OBJECT</a>).</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic0"><td>0</td><td rowspan="2"><a href="asm/37781.html">$9395</a></td><td rowspan="2">nothing: width and height zero</td><td rowspan="2"><a href="asm/50239.html">NOTHING</a>: nothing</td><td>nothing places it</td></tr>
+<tr id="graphic1"><td>1</td><td>an object on its way out: rubbed out and emptied when next drawn (<a href="asm/46035.html">DRAW_OBJECT</a>)</td></tr>
+</table>
+<h3 id="player">The player</h3>
+<p>He is two records, legs and body (<a href="asm/42863.html">OBJECTS</a>). The legs' routine does his whole turn -- controls, turning, walking, jumping, picking up, the move and firing -- and its graphic says which way he faces and his walking frame; the body follows the legs, its graphic theirs plus 8, and keeps out of the collisions.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic32"><td>32</td><td><a href="Sprites.html#sprite98a5"><img class="kl-thumb" src="images/graphics/sprite98a5.png" alt=""></a><br><a href="asm/39077.html">$98A5</a></td><td rowspan="4">his legs</td><td rowspan="8"><a href="asm/50240.html">PLAYER_LEGS</a>: his whole turn: controls, turning, walking, jumping, taking, moving, firing</td><td rowspan="8">his legs: the facing and the walking frame (<a href="asm/50240.html">PLAYER_LEGS</a>)</td></tr>
+<tr id="graphic33"><td>33</td><td><a href="Sprites.html#sprite9849"><img class="kl-thumb" src="images/graphics/sprite9849.png" alt=""></a><br><a href="asm/38985.html">$9849</a></td></tr>
+<tr id="graphic34"><td>34</td><td><a href="Sprites.html#sprite97ed"><img class="kl-thumb" src="images/graphics/sprite97ed.png" alt=""></a><br><a href="asm/38893.html">$97ED</a></td></tr>
+<tr id="graphic35"><td>35</td><td><a href="Sprites.html#sprite9849"><img class="kl-thumb" src="images/graphics/sprite9849.png" alt=""></a><br><a href="asm/38985.html">$9849</a></td></tr>
+<tr id="graphic36"><td>36</td><td><a href="Sprites.html#sprite996f"><img class="kl-thumb" src="images/graphics/sprite996f.png" alt=""></a><br><a href="asm/39279.html">$996F</a></td><td rowspan="4">his legs, the other view</td></tr>
+<tr id="graphic37"><td>37</td><td><a href="Sprites.html#sprite9901"><img class="kl-thumb" src="images/graphics/sprite9901.png" alt=""></a><br><a href="asm/39169.html">$9901</a></td></tr>
+<tr id="graphic38"><td>38</td><td><a href="Sprites.html#sprite99dd"><img class="kl-thumb" src="images/graphics/sprite99dd.png" alt=""></a><br><a href="asm/39389.html">$99DD</a></td></tr>
+<tr id="graphic39"><td>39</td><td><a href="Sprites.html#sprite9901"><img class="kl-thumb" src="images/graphics/sprite9901.png" alt=""></a><br><a href="asm/39169.html">$9901</a></td></tr>
+<tr id="graphic40"><td>40</td><td><a href="Sprites.html#sprite94df"><img class="kl-thumb" src="images/graphics/sprite94df.png" alt=""></a><br><a href="asm/38111.html">$94DF</a></td><td rowspan="4">his body</td><td rowspan="8"><a href="asm/50643.html">PLAYER_TOP</a>: follows the legs, 12 or 8 above them</td><td rowspan="8">his body: the legs' graphic plus 8 (<a href="asm/50643.html">PLAYER_TOP</a>)</td></tr>
+<tr id="graphic41"><td>41</td><td><a href="Sprites.html#sprite943b"><img class="kl-thumb" src="images/graphics/sprite943b.png" alt=""></a><br><a href="asm/37947.html">$943B</a></td></tr>
+<tr id="graphic42"><td>42</td><td><a href="Sprites.html#sprite9397"><img class="kl-thumb" src="images/graphics/sprite9397.png" alt=""></a><br><a href="asm/37783.html">$9397</a></td></tr>
+<tr id="graphic43"><td>43</td><td><a href="Sprites.html#sprite943b"><img class="kl-thumb" src="images/graphics/sprite943b.png" alt=""></a><br><a href="asm/37947.html">$943B</a></td></tr>
+<tr id="graphic44"><td>44</td><td><a href="Sprites.html#sprite9651"><img class="kl-thumb" src="images/graphics/sprite9651.png" alt=""></a><br><a href="asm/38481.html">$9651</a></td><td rowspan="4">his body, the other view</td></tr>
+<tr id="graphic45"><td>45</td><td><a href="Sprites.html#sprite9583"><img class="kl-thumb" src="images/graphics/sprite9583.png" alt=""></a><br><a href="asm/38275.html">$9583</a></td></tr>
+<tr id="graphic46"><td>46</td><td><a href="Sprites.html#sprite971f"><img class="kl-thumb" src="images/graphics/sprite971f.png" alt=""></a><br><a href="asm/38687.html">$971F</a></td></tr>
+<tr id="graphic47"><td>47</td><td><a href="Sprites.html#sprite9583"><img class="kl-thumb" src="images/graphics/sprite9583.png" alt=""></a><br><a href="asm/38275.html">$9583</a></td></tr>
+</table>
+<h3 id="shots">Bolts and puffs</h3>
+<p>A bolt flies level at 8 units a turn and shoots down what fell from the sky; stopped by anything else it goes up in a puff. A puff is also what he, the bucket and a shot-down flyer become: a frame a turn, then gone.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic64"><td>64</td><td><a href="Sprites.html#sprite813b"><img class="kl-thumb" src="images/graphics/sprite813b.png" alt=""></a><br><a href="asm/33083.html">$813B</a></td><td rowspan="6">a puff of smoke</td><td rowspan="7"><a href="asm/49425.html">PUFF</a>: the next frame, with a burst of noise</td><td>the first frame of a puff (<a href="asm/49415.html">START_PUFF</a>)</td></tr>
+<tr id="graphic65"><td>65</td><td><a href="Sprites.html#sprite8175"><img class="kl-thumb" src="images/graphics/sprite8175.png" alt=""></a><br><a href="asm/33141.html">$8175</a></td><td rowspan="7">a puff's later frames (<a href="asm/49425.html">PUFF</a>)</td></tr>
+<tr id="graphic66"><td>66</td><td><a href="Sprites.html#sprite81c5"><img class="kl-thumb" src="images/graphics/sprite81c5.png" alt=""></a><br><a href="asm/33221.html">$81C5</a></td></tr>
+<tr id="graphic67"><td>67</td><td><a href="Sprites.html#sprite8175"><img class="kl-thumb" src="images/graphics/sprite8175.png" alt=""></a><br><a href="asm/33141.html">$8175</a></td></tr>
+<tr id="graphic68"><td>68</td><td rowspan="2"><a href="Sprites.html#sprite81c5"><img class="kl-thumb" src="images/graphics/sprite81c5.png" alt=""></a><br><a href="asm/33221.html">$81C5</a></td></tr>
+<tr id="graphic69"><td>69</td></tr>
+<tr id="graphic70"><td>70</td><td rowspan="2"><a href="Sprites.html#sprite822d"><img class="kl-thumb" src="images/graphics/sprite822d.png" alt=""></a><br><a href="asm/33325.html">$822D</a></td><td rowspan="2">a puff breaking up</td></tr>
+<tr id="graphic71"><td>71</td><td><a href="asm/49437.html">END_PUFF</a>: vanishes</td></tr>
+<tr id="graphic149"><td>149</td><td><a href="Sprites.html#sprite828f"><img class="kl-thumb" src="images/graphics/sprite828f.png" alt=""></a><br><a href="asm/33423.html">$828F</a></td><td rowspan="3">a bolt</td><td rowspan="3"><a href="asm/49605.html">BOLT</a>: flies, shoots down flyers, puffs when stopped</td><td>a bolt in flight: the frames go 151, 150, 149 (<a href="asm/49605.html">BOLT</a>)</td></tr>
+<tr id="graphic150"><td>150</td><td><a href="Sprites.html#sprite82d1"><img class="kl-thumb" src="images/graphics/sprite82d1.png" alt=""></a><br><a href="asm/33489.html">$82D1</a></td><td>a bolt, as it is fired (<a href="asm/49446.html">FIRE</a>)</td></tr>
+<tr id="graphic151"><td>151</td><td><a href="Sprites.html#sprite8313"><img class="kl-thumb" src="images/graphics/sprite8313.png" alt=""></a><br><a href="asm/33555.html">$8313</a></td><td>a bolt in flight: the frames go 151, 150, 149 (<a href="asm/49605.html">BOLT</a>)</td></tr>
+</table>
+<h3 id="doorways">Doorways</h3>
+<p>Each doorway is two pillars: the first works out where the doorway is and sends him through it, the second only draws.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic6"><td>6</td><td><a href="Sprites.html#sprite9c63"><img class="kl-thumb" src="images/graphics/sprite9c63.png" alt=""></a><br><a href="asm/40035.html">$9C63</a></td><td>a tree: the first pillar of a doorway in the trees</td><td><a href="asm/51117.html">FIRST_PILLAR</a>: the doorway: steers him to its middle and sends him through</td><td rowspan="2">scenery <a href="Scenery.html#scenery0">0</a>, <a href="Scenery.html#scenery1">1</a>, <a href="Scenery.html#scenery2">2</a>, <a href="Scenery.html#scenery3">3</a></td></tr>
+<tr id="graphic7"><td>7</td><td><a href="Sprites.html#sprite9daf"><img class="kl-thumb" src="images/graphics/sprite9daf.png" alt=""></a><br><a href="asm/40367.html">$9DAF</a></td><td>a tree: the second pillar of a doorway in the trees</td><td><a href="asm/51081.html">SECOND_PILLAR</a>: sets its drawing nudge</td></tr>
+<tr id="graphic8"><td>8</td><td><a href="Sprites.html#spritea557"><img class="kl-thumb" src="images/graphics/spritea557.png" alt=""></a><br><a href="asm/42327.html">$A557</a></td><td>the first half of a stone arch</td><td><a href="asm/51117.html">FIRST_PILLAR</a>: the doorway: steers him to its middle and sends him through</td><td rowspan="2">scenery <a href="Scenery.html#scenery4">4</a>, <a href="Scenery.html#scenery5">5</a>, <a href="Scenery.html#scenery6">6</a>, <a href="Scenery.html#scenery7">7</a>, <a href="Scenery.html#scenery24">24</a>, <a href="Scenery.html#scenery25">25</a>, <a href="Scenery.html#scenery26">26</a>, <a href="Scenery.html#scenery27">27</a></td></tr>
+<tr id="graphic9"><td>9</td><td><a href="Sprites.html#spritea47d"><img class="kl-thumb" src="images/graphics/spritea47d.png" alt=""></a><br><a href="asm/42109.html">$A47D</a></td><td>the second half of a stone arch</td><td><a href="asm/51081.html">SECOND_PILLAR</a>: sets its drawing nudge</td></tr>
+</table>
+<h3 id="walls">Walls and still things</h3>
+<p>A still thing's whole update routine is to set the nudge that lines its sprite up with its position (+$12 and +$13); nothing else about it changes, so it is never redrawn unless something passes in front of it.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic10"><td>10</td><td><a href="Sprites.html#sprite9e51"><img class="kl-thumb" src="images/graphics/sprite9e51.png" alt=""></a><br><a href="asm/40529.html">$9E51</a></td><td>a tree stump</td><td rowspan="2"><a href="asm/52046.html">JUMP_L16_D8</a>: sets its drawing nudge</td><td>object template <a href="Templates.html#object1">1</a> (15 rooms)</td></tr>
+<tr id="graphic11"><td>11</td><td><a href="Sprites.html#sprite88bd"><img class="kl-thumb" src="images/graphics/sprite88bd.png" alt=""></a><br><a href="asm/35005.html">$88BD</a></td><td>a stone block</td><td>scenery <a href="Scenery.html#scenery28">28</a>, <a href="Scenery.html#scenery29">29</a>, <a href="Scenery.html#scenery30">30</a>, <a href="Scenery.html#scenery31">31</a>; object template <a href="Templates.html#object0">0</a> (30 rooms)</td></tr>
+<tr id="graphic12"><td>12</td><td><a href="Sprites.html#sprite9f1b"><img class="kl-thumb" src="images/graphics/sprite9f1b.png" alt=""></a><br><a href="asm/40731.html">$9F1B</a></td><td rowspan="4">a tree in a line of trees</td><td rowspan="5"><a href="asm/51076.html">DRAW_AT_L8_D2</a>: sets its drawing nudge</td><td rowspan="4">scenery <a href="Scenery.html#scenery8">8</a>, <a href="Scenery.html#scenery9">9</a>, <a href="Scenery.html#scenery10">10</a>, <a href="Scenery.html#scenery11">11</a>, <a href="Scenery.html#scenery16">16</a>, <a href="Scenery.html#scenery17">17</a></td></tr>
+<tr id="graphic13"><td>13</td><td><a href="Sprites.html#sprite9fc9"><img class="kl-thumb" src="images/graphics/sprite9fc9.png" alt=""></a><br><a href="asm/40905.html">$9FC9</a></td></tr>
+<tr id="graphic14"><td>14</td><td><a href="Sprites.html#spritea09f"><img class="kl-thumb" src="images/graphics/spritea09f.png" alt=""></a><br><a href="asm/41119.html">$A09F</a></td></tr>
+<tr id="graphic15"><td>15</td><td><a href="Sprites.html#spritea175"><img class="kl-thumb" src="images/graphics/spritea175.png" alt=""></a><br><a href="asm/41333.html">$A175</a></td></tr>
+<tr id="graphic52"><td>52</td><td><a href="Sprites.html#spritea327"><img class="kl-thumb" src="images/graphics/spritea327.png" alt=""></a><br><a href="asm/41767.html">$A327</a></td><td>a column in a stone wall</td><td>scenery <a href="Scenery.html#scenery12">12</a>, <a href="Scenery.html#scenery13">13</a>, <a href="Scenery.html#scenery15">15</a>, <a href="Scenery.html#scenery20">20</a>, <a href="Scenery.html#scenery21">21</a> (no room)</td></tr>
+<tr id="graphic53"><td>53</td><td><a href="Sprites.html#spritea2a9"><img class="kl-thumb" src="images/graphics/spritea2a9.png" alt=""></a><br><a href="asm/41641.html">$A2A9</a></td><td rowspan="4">a piece of ruined stone wall</td><td rowspan="4"><a href="asm/51071.html">DRAW_AT_L8_D4</a>: sets its drawing nudge</td><td rowspan="3">scenery <a href="Scenery.html#scenery12">12</a>, <a href="Scenery.html#scenery13">13</a>, <a href="Scenery.html#scenery14">14</a>, <a href="Scenery.html#scenery15">15</a>, <a href="Scenery.html#scenery20">20</a>, <a href="Scenery.html#scenery21">21</a> (no room)</td></tr>
+<tr id="graphic54"><td>54</td><td><a href="Sprites.html#spritea23f"><img class="kl-thumb" src="images/graphics/spritea23f.png" alt=""></a><br><a href="asm/41535.html">$A23F</a></td></tr>
+<tr id="graphic55"><td>55</td><td><a href="Sprites.html#spritea3ad"><img class="kl-thumb" src="images/graphics/spritea3ad.png" alt=""></a><br><a href="asm/41901.html">$A3AD</a></td></tr>
+<tr id="graphic56"><td>56</td><td><a href="Sprites.html#spritea40f"><img class="kl-thumb" src="images/graphics/spritea40f.png" alt=""></a><br><a href="asm/41999.html">$A40F</a></td><td>scenery <a href="Scenery.html#scenery12">12</a>, <a href="Scenery.html#scenery13">13</a>, <a href="Scenery.html#scenery14">14</a></td></tr>
+<tr id="graphic57"><td>57</td><td><a href="Sprites.html#spritea67f"><img class="kl-thumb" src="images/graphics/spritea67f.png" alt=""></a><br><a href="asm/42623.html">$A67F</a></td><td>the end of a stone wall</td><td><a href="asm/51019.html">DRAW_AT_L8</a>: sets its drawing nudge</td><td>scenery <a href="Scenery.html#scenery12">12</a>, <a href="Scenery.html#scenery13">13</a>, <a href="Scenery.html#scenery14">14</a>, <a href="Scenery.html#scenery15">15</a>, <a href="Scenery.html#scenery20">20</a>, <a href="Scenery.html#scenery21">21</a> (no room)</td></tr>
+<tr id="graphic76"><td>76</td><td><a href="Sprites.html#sprite9e51"><img class="kl-thumb" src="images/graphics/sprite9e51.png" alt=""></a><br><a href="asm/40529.html">$9E51</a></td><td>a tree stump</td><td rowspan="2"><a href="asm/52046.html">JUMP_L16_D8</a>: sets its drawing nudge</td><td>object template <a href="Templates.html#object8">8</a> (2 rooms)</td></tr>
+<tr id="graphic82"><td>82</td><td><a href="Sprites.html#sprite8609"><img class="kl-thumb" src="images/graphics/sprite8609.png" alt=""></a><br><a href="asm/34313.html">$8609</a></td><td>a smooth block</td><td>object template <a href="Templates.html#object23">23</a> (2 rooms)</td></tr>
+</table>
+<h3 id="deadly">Things that kill where they stand</h3>
+<p>Deadly both ways (<a href="asm/49809.html">MAKE_DEADLY</a>): whatever touches them dies. The spikes can also be pushed and fall.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic23"><td>23</td><td rowspan="2"><a href="Sprites.html#sprite8795"><img class="kl-thumb" src="images/graphics/sprite8795.png" alt=""></a><br><a href="asm/34709.html">$8795</a></td><td rowspan="2">a bed of spikes</td><td><a href="asm/49797.html">STILL_DEADLY</a>: deadly both ways; never moves</td><td>object template <a href="Templates.html#object3">3</a> (35 rooms)</td></tr>
+<tr id="graphic28"><td>28</td><td><a href="asm/52592.html">SPIKES</a>: deadly both ways; falls and can be pushed</td><td>object template <a href="Templates.html#object14">14</a> (7 rooms)</td></tr>
+<tr id="graphic30"><td>30</td><td><a href="Sprites.html#sprite86eb"><img class="kl-thumb" src="images/graphics/sprite86eb.png" alt=""></a><br><a href="asm/34539.html">$86EB</a></td><td>a toothed trap</td><td rowspan="3"><a href="asm/49797.html">STILL_DEADLY</a>: deadly both ways; never moves</td><td>object template <a href="Templates.html#object5">5</a> (28 rooms)</td></tr>
+<tr id="graphic74"><td>74</td><td><a href="Sprites.html#sprite73bf"><img class="kl-thumb" src="images/graphics/sprite73bf.png" alt=""></a><br><a href="asm/29631.html">$73BF</a></td><td>a dark patch on the ground</td><td>object template <a href="Templates.html#object13">13</a> (4 rooms)</td></tr>
+<tr id="graphic75"><td>75</td><td><a href="Sprites.html#sprite7441"><img class="kl-thumb" src="images/graphics/sprite7441.png" alt=""></a><br><a href="asm/29761.html">$7441</a></td><td>a hand reaching out of a dark patch</td><td>object template <a href="Templates.html#object21">21</a> (11 rooms)</td></tr>
+</table>
+<h3 id="blocks">Blocks that fall and can be pushed</h3>
+<p>They fall a unit a turn, and walking into one pushes it (the collision code gives it the pusher's step) -- except the heavy block, which throws its pushes away.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic63"><td>63</td><td><a href="Sprites.html#sprite8609"><img class="kl-thumb" src="images/graphics/sprite8609.png" alt=""></a><br><a href="asm/34313.html">$8609</a></td><td>a smooth block</td><td rowspan="2"><a href="asm/52609.html">PUSHABLE</a>: falls, and moves when pushed</td><td>object template <a href="Templates.html#object6">6</a> (2 rooms)</td></tr>
+<tr id="graphic72"><td>72</td><td><a href="Sprites.html#sprite9e51"><img class="kl-thumb" src="images/graphics/sprite9e51.png" alt=""></a><br><a href="asm/40529.html">$9E51</a></td><td>a tree stump</td><td>object template <a href="Templates.html#object4">4</a> (17 rooms)</td></tr>
+<tr id="graphic73"><td>73</td><td><a href="Sprites.html#sprite8abd"><img class="kl-thumb" src="images/graphics/sprite8abd.png" alt=""></a><br><a href="asm/35517.html">$8ABD</a></td><td>a table</td><td>SLIDING_TABLE, in <a href="asm/52597.html">HEAVY_BLOCK</a>: falls, and moves when pushed</td><td>object template <a href="Templates.html#object7">7</a> (4 rooms)</td></tr>
+<tr id="graphic79"><td>79</td><td rowspan="2"><a href="Sprites.html#sprite88bd"><img class="kl-thumb" src="images/graphics/sprite88bd.png" alt=""></a><br><a href="asm/35005.html">$88BD</a></td><td rowspan="2">a stone block</td><td><a href="asm/52609.html">PUSHABLE</a>: falls, and moves when pushed</td><td>object template <a href="Templates.html#object11">11</a> (4 rooms)</td></tr>
+<tr id="graphic91"><td>91</td><td><a href="asm/52597.html">HEAVY_BLOCK</a>: falls; pushes have no effect</td><td>object template <a href="Templates.html#object9">9</a> (3 rooms), <a href="Templates.html#object22">22</a> (no room)</td></tr>
+</table>
+<h3 id="platforms">Blocks that move</h3>
+<p>Stone blocks that do something when he stands on them, or that move by themselves and carry him: the collision code gives him, standing on a thing, its step when he has none of his own (<a href="asm/47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>).</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic78"><td>78</td><td rowspan="6"><a href="Sprites.html#sprite88bd"><img class="kl-thumb" src="images/graphics/sprite88bd.png" alt=""></a><br><a href="asm/35005.html">$88BD</a></td><td rowspan="6">a stone block</td><td><a href="asm/52640.html">SINKING_BLOCK</a>: sinks a unit a turn while stood on</td><td>object template <a href="Templates.html#object10">10</a> (6 rooms)</td></tr>
+<tr id="graphic84"><td>84</td><td><a href="asm/52667.html">LIFT</a>: rises to 176 carrying him, then sinks back</td><td>object template <a href="Templates.html#object12">12</a> (7 rooms)</td></tr>
+<tr id="graphic85"><td>85</td><td><a href="asm/52785.html">BOBBER</a>: falls, then rises to 176, over and over</td><td>nothing places it</td></tr>
+<tr id="graphic87"><td>87</td><td>PACER_U, in <a href="asm/52896.html">DEADLY_PACER_U</a>: paces along U, 2 a turn, turning at a bump</td><td>object template <a href="Templates.html#object16">16</a> (12 rooms)</td></tr>
+<tr id="graphic88"><td>88</td><td>PACER_V, in <a href="asm/52954.html">DEADLY_PACER_V</a>: paces along V, 2 a turn, turning at a bump</td><td>object template <a href="Templates.html#object17">17</a> (5 rooms)</td></tr>
+<tr id="graphic136"><td>136</td><td rowspan="4"><a href="asm/53933.html">CRUMBLING_BLOCK</a>: crumbles a stage a turn while stood on</td><td>object template <a href="Templates.html#object24">24</a> (18 rooms)</td></tr>
+<tr id="graphic137"><td>137</td><td><a href="Sprites.html#sprite74c3"><img class="kl-thumb" src="images/graphics/sprite74c3.png" alt=""></a><br><a href="asm/29891.html">$74C3</a></td><td>the stone block crumbling, first stage</td><td rowspan="3">the crumbling block's stages (<a href="asm/53933.html">CRUMBLING_BLOCK</a>)</td></tr>
+<tr id="graphic138"><td>138</td><td><a href="Sprites.html#sprite759d"><img class="kl-thumb" src="images/graphics/sprite759d.png" alt=""></a><br><a href="asm/30109.html">$759D</a></td><td>the stone block crumbling, second stage</td></tr>
+<tr id="graphic139"><td>139</td><td><a href="Sprites.html#sprite7677"><img class="kl-thumb" src="images/graphics/sprite7677.png" alt=""></a><br><a href="asm/30327.html">$7677</a></td><td>the stone block crumbling, last stage</td></tr>
+<tr id="graphic140"><td>140</td><td rowspan="4"><a href="Sprites.html#sprite88bd"><img class="kl-thumb" src="images/graphics/sprite88bd.png" alt=""></a><br><a href="asm/35005.html">$88BD</a></td><td rowspan="4">a stone block</td><td><a href="asm/53982.html">CONVEYOR_PLUS_U</a>: carries what stands on it forwards in U</td><td>object template <a href="Templates.html#object25">25</a> (2 rooms)</td></tr>
+<tr id="graphic141"><td>141</td><td><a href="asm/53993.html">CONVEYOR_MINUS_U</a>: carries what stands on it backwards in U</td><td>object template <a href="Templates.html#object26">26</a> (no room)</td></tr>
+<tr id="graphic142"><td>142</td><td><a href="asm/54004.html">CONVEYOR_PLUS_V</a>: carries what stands on it forwards in V</td><td>object template <a href="Templates.html#object27">27</a> (3 rooms)</td></tr>
+<tr id="graphic143"><td>143</td><td><a href="asm/54015.html">CONVEYOR_MINUS_V</a>: carries what stands on it backwards in V</td><td>object template <a href="Templates.html#object28">28</a> (1 room)</td></tr>
+</table>
+<h3 id="creatures">Creatures</h3>
+<p>Deadly both ways (<a href="asm/49809.html">MAKE_DEADLY</a>). The heads move as the blocks do, pacing or bobbing; the spiders run about.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic16"><td>16</td><td rowspan="2"><a href="Sprites.html#sprite84ad"><img class="kl-thumb" src="images/graphics/sprite84ad.png" alt=""></a><br><a href="asm/33965.html">$84AD</a></td><td rowspan="2">a spider</td><td rowspan="2"><a href="asm/53749.html">ROAMER</a>: deadly; runs straight, turns at a bump</td><td>object template <a href="Templates.html#object20">20</a> (8 rooms)</td></tr>
+<tr id="graphic17"><td>17</td><td>the spider's other frame, every other turn (<a href="asm/53749.html">ROAMER</a>)</td></tr>
+<tr id="graphic86"><td>86</td><td><a href="Sprites.html#sprite7751"><img class="kl-thumb" src="images/graphics/sprite7751.png" alt=""></a><br><a href="asm/30545.html">$7751</a></td><td>a horned head</td><td><a href="asm/52890.html">DEADLY_BOBBER</a>: deadly; falls, then rises to 176, over and over</td><td>object template <a href="Templates.html#object15">15</a> (8 rooms)</td></tr>
+<tr id="graphic89"><td>89</td><td><a href="Sprites.html#sprite84ad"><img class="kl-thumb" src="images/graphics/sprite84ad.png" alt=""></a><br><a href="asm/33965.html">$84AD</a></td><td>a spider</td><td><a href="asm/53026.html">SPIDER</a>: deadly; scuttles diagonally at random</td><td>object template <a href="Templates.html#object18">18</a> (16 rooms)</td></tr>
+<tr id="graphic92"><td>92</td><td rowspan="2"><a href="Sprites.html#sprite7751"><img class="kl-thumb" src="images/graphics/sprite7751.png" alt=""></a><br><a href="asm/30545.html">$7751</a></td><td rowspan="2">a horned head</td><td><a href="asm/52896.html">DEADLY_PACER_U</a>: deadly; paces along U, turning at a bump</td><td>object template <a href="Templates.html#object29">29</a> (7 rooms)</td></tr>
+<tr id="graphic93"><td>93</td><td><a href="asm/52954.html">DEADLY_PACER_V</a>: deadly; paces along V, turning at a bump</td><td>object template <a href="Templates.html#object30">30</a> (5 rooms)</td></tr>
+</table>
+<h3 id="sky">Things from the sky</h3>
+<p>What <a href="asm/52139.html">SKY_DROP</a> drops into a room from a height of 216, one of the eight graphics at <a href="asm/52233.html">DROP_GRAPHICS</a> at random. Homers fly at him and bounce off what they hit, and their routine sets no kill bits; the witch and the walker run straight, turn when they bump into something, and are deadly both ways (<a href="asm/49809.html">MAKE_DEADLY</a>). A bolt that touches any of them shoots it down, for points from its graphic number (<a href="asm/49764.html">SHOOT_DOWN</a>).</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic48"><td>48</td><td><a href="Sprites.html#sprite7fff"><img class="kl-thumb" src="images/graphics/sprite7fff.png" alt=""></a><br><a href="asm/32767.html">$7FFF</a></td><td rowspan="4">a ghost</td><td rowspan="4"><a href="asm/52299.html">HOMER</a>: flies at him, bouncing off what it hits</td><td>object template <a href="Templates.html#object2">2</a> (no room); falls from the sky (<a href="asm/52233.html">DROP_GRAPHICS</a>, 2 of its 8)</td></tr>
+<tr id="graphic49"><td>49</td><td><a href="Sprites.html#sprite809d"><img class="kl-thumb" src="images/graphics/sprite809d.png" alt=""></a><br><a href="asm/32925.html">$809D</a></td><td rowspan="3">a homer's other frames: the low two bits of the graphic (<a href="asm/52299.html">HOMER</a>)</td></tr>
+<tr id="graphic50"><td>50</td><td><a href="Sprites.html#sprite7fff"><img class="kl-thumb" src="images/graphics/sprite7fff.png" alt=""></a><br><a href="asm/32767.html">$7FFF</a></td></tr>
+<tr id="graphic51"><td>51</td><td><a href="Sprites.html#sprite809d"><img class="kl-thumb" src="images/graphics/sprite809d.png" alt=""></a><br><a href="asm/32925.html">$809D</a></td></tr>
+<tr id="graphic80"><td>80</td><td><a href="Sprites.html#sprite7a9d"><img class="kl-thumb" src="images/graphics/sprite7a9d.png" alt=""></a><br><a href="asm/31389.html">$7A9D</a></td><td>a witch on a broomstick</td><td rowspan="2">SKY_ROAMER, in <a href="asm/53749.html">ROAMER</a>: deadly; runs straight, turns at a bump</td><td>falls from the sky (<a href="asm/52233.html">DROP_GRAPHICS</a>, 2 of its 8)</td></tr>
+<tr id="graphic81"><td>81</td><td><a href="Sprites.html#sprite7b5f"><img class="kl-thumb" src="images/graphics/sprite7b5f.png" alt=""></a><br><a href="asm/31583.html">$7B5F</a></td><td>a witch on a broomstick, from behind</td><td>the witch's other view (<a href="asm/53749.html">ROAMER</a>)</td></tr>
+<tr id="graphic160"><td>160</td><td><a href="Sprites.html#sprite7dd1"><img class="kl-thumb" src="images/graphics/sprite7dd1.png" alt=""></a><br><a href="asm/32209.html">$7DD1</a></td><td rowspan="4">a clawed, winged beast</td><td rowspan="8"><a href="asm/52299.html">HOMER</a>: flies at him, bouncing off what it hits</td><td>falls from the sky (<a href="asm/52233.html">DROP_GRAPHICS</a>, 2 of its 8)</td></tr>
+<tr id="graphic161"><td>161</td><td><a href="Sprites.html#sprite7e8b"><img class="kl-thumb" src="images/graphics/sprite7e8b.png" alt=""></a><br><a href="asm/32395.html">$7E8B</a></td><td rowspan="3">a homer's other frames: the low two bits of the graphic (<a href="asm/52299.html">HOMER</a>)</td></tr>
+<tr id="graphic162"><td>162</td><td><a href="Sprites.html#sprite7dd1"><img class="kl-thumb" src="images/graphics/sprite7dd1.png" alt=""></a><br><a href="asm/32209.html">$7DD1</a></td></tr>
+<tr id="graphic163"><td>163</td><td><a href="Sprites.html#sprite7f45"><img class="kl-thumb" src="images/graphics/sprite7f45.png" alt=""></a><br><a href="asm/32581.html">$7F45</a></td></tr>
+<tr id="graphic164"><td>164</td><td><a href="Sprites.html#sprite7ca1"><img class="kl-thumb" src="images/graphics/sprite7ca1.png" alt=""></a><br><a href="asm/31905.html">$7CA1</a></td><td rowspan="4">a pointed blob</td><td>falls from the sky (<a href="asm/52233.html">DROP_GRAPHICS</a>, 1 of its 8)</td></tr>
+<tr id="graphic165"><td>165</td><td><a href="Sprites.html#sprite7d33"><img class="kl-thumb" src="images/graphics/sprite7d33.png" alt=""></a><br><a href="asm/32051.html">$7D33</a></td><td rowspan="3">a homer's other frames: the low two bits of the graphic (<a href="asm/52299.html">HOMER</a>)</td></tr>
+<tr id="graphic166"><td>166</td><td><a href="Sprites.html#sprite7ca1"><img class="kl-thumb" src="images/graphics/sprite7ca1.png" alt=""></a><br><a href="asm/31905.html">$7CA1</a></td></tr>
+<tr id="graphic167"><td>167</td><td><a href="Sprites.html#sprite7c21"><img class="kl-thumb" src="images/graphics/sprite7c21.png" alt=""></a><br><a href="asm/31777.html">$7C21</a></td></tr>
+<tr id="graphic168"><td>168</td><td><a href="Sprites.html#sprite7813"><img class="kl-thumb" src="images/graphics/sprite7813.png" alt=""></a><br><a href="asm/30739.html">$7813</a></td><td rowspan="2">a lumbering figure, walking</td><td rowspan="4"><a href="asm/53841.html">SKY_WALKER</a>: deadly; walks straight, turns at a bump</td><td>falls from the sky (<a href="asm/52233.html">DROP_GRAPHICS</a>, 1 of its 8)</td></tr>
+<tr id="graphic169"><td>169</td><td><a href="Sprites.html#sprite78ab"><img class="kl-thumb" src="images/graphics/sprite78ab.png" alt=""></a><br><a href="asm/30891.html">$78AB</a></td><td rowspan="3">the walker's other frames (<a href="asm/53841.html">SKY_WALKER</a>)</td></tr>
+<tr id="graphic170"><td>170</td><td><a href="Sprites.html#sprite7943"><img class="kl-thumb" src="images/graphics/sprite7943.png" alt=""></a><br><a href="asm/31043.html">$7943</a></td><td rowspan="2">a lumbering figure from behind, walking</td></tr>
+<tr id="graphic171"><td>171</td><td><a href="Sprites.html#sprite79f3"><img class="kl-thumb" src="images/graphics/sprite79f3.png" alt=""></a><br><a href="asm/31219.html">$79F3</a></td></tr>
+</table>
+<h3 id="quest">The quest</h3>
+<p>The well, the bucket it gives, the four stones, the five rune stones and the pentagram's eight pieces (see <a href="Quest.html">the quest</a>). Their records live in <a href="asm/54322.html">QUEST_RECORDS</a> between rooms, and they come into a room after it is built (<a href="asm/45207.html">QUEST_INTO_ROOM</a>).</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic90"><td>90</td><td><a href="Sprites.html#sprite9029"><img class="kl-thumb" src="images/graphics/sprite9029.png" alt=""></a><br><a href="asm/36905.html">$9029</a></td><td>the bucket</td><td><a href="asm/53420.html">BUCKET</a>: put down in a quest item's room, flies to it</td><td>the bucket, which the well makes (<a href="asm/53202.html">WELL</a>)</td></tr>
+<tr id="graphic112"><td>112</td><td rowspan="4"><a href="Sprites.html#sprite8d55"><img class="kl-thumb" src="images/graphics/sprite8d55.png" alt=""></a><br><a href="asm/36181.html">$8D55</a></td><td rowspan="4">a rough stone</td><td rowspan="8"><a href="asm/53096.html">QUEST_ITEM</a>: is finished when the bucket reaches it</td><td>quest record 0 in <a href="asm/54034.html">QUEST_START</a>, quest item</td></tr>
+<tr id="graphic113"><td>113</td><td>quest record 1 in <a href="asm/54034.html">QUEST_START</a>, quest item</td></tr>
+<tr id="graphic114"><td>114</td><td>quest record 2 in <a href="asm/54034.html">QUEST_START</a>, quest item</td></tr>
+<tr id="graphic115"><td>115</td><td>quest record 3 in <a href="asm/54034.html">QUEST_START</a>, quest item</td></tr>
+<tr id="graphic116"><td>116</td><td rowspan="4"><a href="Sprites.html#sprite8e8f"><img class="kl-thumb" src="images/graphics/sprite8e8f.png" alt=""></a><br><a href="asm/36495.html">$8E8F</a></td><td rowspan="4">a finished pillar</td><td rowspan="4">a quest item once the bucket reaches it: its graphic plus 4 (<a href="asm/53096.html">QUEST_ITEM</a>)</td></tr>
+<tr id="graphic117"><td>117</td></tr>
+<tr id="graphic118"><td>118</td></tr>
+<tr id="graphic119"><td>119</td></tr>
+<tr id="graphic120"><td>120</td><td><a href="Sprites.html#sprite8c13"><img class="kl-thumb" src="images/graphics/sprite8c13.png" alt=""></a><br><a href="asm/35859.html">$8C13</a></td><td>the well</td><td><a href="asm/53202.html">WELL</a>: gives the bucket after 32 turns of being shot</td><td>object template <a href="Templates.html#object19">19</a> (3 rooms)</td></tr>
+<tr id="graphic128"><td>128</td><td><a href="Sprites.html#sprite6f2f"><img class="kl-thumb" src="images/graphics/sprite6f2f.png" alt=""></a><br><a href="asm/28463.html">$6F2F</a></td><td rowspan="8">a piece of the pentagram</td><td rowspan="8"><a href="asm/53012.html">PENTAGRAM_PIECE</a>: lies still</td><td>quest record 9 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic129"><td>129</td><td><a href="Sprites.html#sprite6fc1"><img class="kl-thumb" src="images/graphics/sprite6fc1.png" alt=""></a><br><a href="asm/28609.html">$6FC1</a></td><td>quest record 10 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic130"><td>130</td><td><a href="Sprites.html#sprite7053"><img class="kl-thumb" src="images/graphics/sprite7053.png" alt=""></a><br><a href="asm/28755.html">$7053</a></td><td>quest record 11 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic131"><td>131</td><td><a href="Sprites.html#sprite70e5"><img class="kl-thumb" src="images/graphics/sprite70e5.png" alt=""></a><br><a href="asm/28901.html">$70E5</a></td><td>quest record 12 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic132"><td>132</td><td><a href="Sprites.html#sprite7177"><img class="kl-thumb" src="images/graphics/sprite7177.png" alt=""></a><br><a href="asm/29047.html">$7177</a></td><td>quest record 13 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic133"><td>133</td><td><a href="Sprites.html#sprite7209"><img class="kl-thumb" src="images/graphics/sprite7209.png" alt=""></a><br><a href="asm/29193.html">$7209</a></td><td>quest record 14 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic134"><td>134</td><td><a href="Sprites.html#sprite729b"><img class="kl-thumb" src="images/graphics/sprite729b.png" alt=""></a><br><a href="asm/29339.html">$729B</a></td><td>quest record 15 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic135"><td>135</td><td><a href="Sprites.html#sprite732d"><img class="kl-thumb" src="images/graphics/sprite732d.png" alt=""></a><br><a href="asm/29485.html">$732D</a></td><td>quest record 16 in <a href="asm/54034.html">QUEST_START</a>, piece of the pentagram</td></tr>
+<tr id="graphic144"><td>144</td><td><a href="Sprites.html#sprite90bb"><img class="kl-thumb" src="images/graphics/sprite90bb.png" alt=""></a><br><a href="asm/37051.html">$90BB</a></td><td rowspan="10">a rune stone</td><td rowspan="5"><a href="asm/52502.html">COLLECTABLE</a>: can be carried; in room 82 glides to its place</td><td>quest record 8 in <a href="asm/54034.html">QUEST_START</a>, collectable</td></tr>
+<tr id="graphic145"><td>145</td><td><a href="Sprites.html#sprite914d"><img class="kl-thumb" src="images/graphics/sprite914d.png" alt=""></a><br><a href="asm/37197.html">$914D</a></td><td>quest record 7 in <a href="asm/54034.html">QUEST_START</a>, collectable</td></tr>
+<tr id="graphic146"><td>146</td><td><a href="Sprites.html#sprite91df"><img class="kl-thumb" src="images/graphics/sprite91df.png" alt=""></a><br><a href="asm/37343.html">$91DF</a></td><td>quest record 6 in <a href="asm/54034.html">QUEST_START</a>, collectable</td></tr>
+<tr id="graphic147"><td>147</td><td><a href="Sprites.html#sprite9271"><img class="kl-thumb" src="images/graphics/sprite9271.png" alt=""></a><br><a href="asm/37489.html">$9271</a></td><td>quest record 5 in <a href="asm/54034.html">QUEST_START</a>, collectable</td></tr>
+<tr id="graphic148"><td>148</td><td><a href="Sprites.html#sprite9303"><img class="kl-thumb" src="images/graphics/sprite9303.png" alt=""></a><br><a href="asm/37635.html">$9303</a></td><td>quest record 4 in <a href="asm/54034.html">QUEST_START</a>, collectable</td></tr>
+<tr id="graphic152"><td>152</td><td><a href="Sprites.html#sprite90bb"><img class="kl-thumb" src="images/graphics/sprite90bb.png" alt=""></a><br><a href="asm/37051.html">$90BB</a></td><td rowspan="5"><a href="asm/52046.html">JUMP_L16_D8</a>: sets its drawing nudge</td><td rowspan="5">a collectable once it is in its place: its graphic plus 8 (<a href="asm/52502.html">COLLECTABLE</a>)</td></tr>
+<tr id="graphic153"><td>153</td><td><a href="Sprites.html#sprite914d"><img class="kl-thumb" src="images/graphics/sprite914d.png" alt=""></a><br><a href="asm/37197.html">$914D</a></td></tr>
+<tr id="graphic154"><td>154</td><td><a href="Sprites.html#sprite91df"><img class="kl-thumb" src="images/graphics/sprite91df.png" alt=""></a><br><a href="asm/37343.html">$91DF</a></td></tr>
+<tr id="graphic155"><td>155</td><td><a href="Sprites.html#sprite9271"><img class="kl-thumb" src="images/graphics/sprite9271.png" alt=""></a><br><a href="asm/37489.html">$9271</a></td></tr>
+<tr id="graphic156"><td>156</td><td><a href="Sprites.html#sprite9303"><img class="kl-thumb" src="images/graphics/sprite9303.png" alt=""></a><br><a href="asm/37635.html">$9303</a></td></tr>
+</table>
+<h3 id="screen">The panel and the border</h3>
+<p>Drawn by the panel and the text screens, never in a room: the scroll-work at the foot of the screen (<a href="asm/48357.html">DISPLAY_PANEL</a>), the lives icon (<a href="asm/49818.html">DRAW_LIVES</a>), and the border round the menu and the end screens (<a href="asm/48473.html">PRINT_BORDER</a>).</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic2"><td>2</td><td><a href="Sprites.html#sprite9a4b"><img class="kl-thumb" src="images/graphics/sprite9a4b.png" alt=""></a><br><a href="asm/39499.html">$9A4B</a></td><td>a side of the text screens' border</td><td rowspan="7"><a href="asm/50239.html">NOTHING</a>: nothing</td><td rowspan="4">the text screens' border (<a href="asm/48536.html">BORDER_DATA</a>)</td></tr>
+<tr id="graphic3"><td>3</td><td><a href="Sprites.html#sprite9add"><img class="kl-thumb" src="images/graphics/sprite9add.png" alt=""></a><br><a href="asm/39645.html">$9ADD</a></td><td>the short piece closing the border's top and bottom</td></tr>
+<tr id="graphic4"><td>4</td><td><a href="Sprites.html#sprite9b3f"><img class="kl-thumb" src="images/graphics/sprite9b3f.png" alt=""></a><br><a href="asm/39743.html">$9B3F</a></td><td>a length of the border's top and bottom</td></tr>
+<tr id="graphic5"><td>5</td><td><a href="Sprites.html#sprite9bd1"><img class="kl-thumb" src="images/graphics/sprite9bd1.png" alt=""></a><br><a href="asm/39889.html">$9BD1</a></td><td>a corner of the border</td></tr>
+<tr id="graphic22"><td>22</td><td><a href="Sprites.html#sprite8877"><img class="kl-thumb" src="images/graphics/sprite8877.png" alt=""></a><br><a href="asm/34935.html">$8877</a></td><td>a little Sabreman</td><td>the lives icon on the panel (<a href="asm/49818.html">DRAW_LIVES</a>)</td></tr>
+<tr id="graphic58"><td>58</td><td><a href="Sprites.html#sprite89a7"><img class="kl-thumb" src="images/graphics/sprite89a7.png" alt=""></a><br><a href="asm/35239.html">$89A7</a></td><td rowspan="5">a piece of the panel's scroll-work</td><td rowspan="5">the panel's scroll-work (<a href="asm/48433.html">PANEL_DATA</a>)</td></tr>
+<tr id="graphic59"><td>59</td><td><a href="Sprites.html#sprite89e9"><img class="kl-thumb" src="images/graphics/sprite89e9.png" alt=""></a><br><a href="asm/35305.html">$89E9</a></td></tr>
+<tr id="graphic60"><td>60</td><td rowspan="2"><a href="Sprites.html#sprite8a59"><img class="kl-thumb" src="images/graphics/sprite8a59.png" alt=""></a><br><a href="asm/35417.html">$8A59</a></td><td><a href="asm/49605.html">BOLT</a>: flies, shoots down flyers, puffs when stopped</td></tr>
+<tr id="graphic61"><td>61</td><td rowspan="2"><a href="asm/50239.html">NOTHING</a>: nothing</td></tr>
+<tr id="graphic62"><td>62</td><td><a href="Sprites.html#sprite8a9b"><img class="kl-thumb" src="images/graphics/sprite8a9b.png" alt=""></a><br><a href="asm/35483.html">$8A9B</a></td></tr>
+</table>
+<h3 id="unused">Graphics nothing places</h3>
+<p>No room, template, table or routine gives an object one of these, so the game never shows them. Most name the empty sprite; a few name a real one and have a routine that would run it.</p>
+<table class="kl-table"><tr><th>Graphic</th><th>Sprite</th><th>What it shows</th><th>Update routine</th><th>Where it comes from</th></tr>
+<tr id="graphic18"><td>18</td><td><a href="Sprites.html#sprite98a5"><img class="kl-thumb" src="images/graphics/sprite98a5.png" alt=""></a><br><a href="asm/39077.html">$98A5</a></td><td>his legs</td><td rowspan="10"><a href="asm/50239.html">NOTHING</a>: nothing</td><td rowspan="40">nothing places it</td></tr>
+<tr id="graphic19"><td>19</td><td><a href="Sprites.html#sprite9901"><img class="kl-thumb" src="images/graphics/sprite9901.png" alt=""></a><br><a href="asm/39169.html">$9901</a></td><td>his legs, the other view</td></tr>
+<tr id="graphic20"><td>20</td><td><a href="Sprites.html#sprite98a5"><img class="kl-thumb" src="images/graphics/sprite98a5.png" alt=""></a><br><a href="asm/39077.html">$98A5</a></td><td rowspan="2">his legs</td></tr>
+<tr id="graphic21"><td>21</td><td><a href="Sprites.html#sprite9849"><img class="kl-thumb" src="images/graphics/sprite9849.png" alt=""></a><br><a href="asm/38985.html">$9849</a></td></tr>
+<tr id="graphic24"><td>24</td><td rowspan="4"><a href="asm/37781.html">$9395</a></td><td rowspan="4">nothing: width and height zero</td></tr>
+<tr id="graphic25"><td>25</td></tr>
+<tr id="graphic26"><td>26</td></tr>
+<tr id="graphic27"><td>27</td></tr>
+<tr id="graphic29"><td>29</td><td><a href="Sprites.html#sprite9849"><img class="kl-thumb" src="images/graphics/sprite9849.png" alt=""></a><br><a href="asm/38985.html">$9849</a></td><td>his legs</td></tr>
+<tr id="graphic31"><td>31</td><td><a href="Sprites.html#sprite86eb"><img class="kl-thumb" src="images/graphics/sprite86eb.png" alt=""></a><br><a href="asm/34539.html">$86EB</a></td><td>a toothed trap</td></tr>
+<tr id="graphic77"><td>77</td><td><a href="Sprites.html#sprite9e51"><img class="kl-thumb" src="images/graphics/sprite9e51.png" alt=""></a><br><a href="asm/40529.html">$9E51</a></td><td>a tree stump</td><td><a href="asm/52049.html">JUMP_L16_D12</a>: sets its drawing nudge</td></tr>
+<tr id="graphic83"><td>83</td><td rowspan="19"><a href="asm/37781.html">$9395</a></td><td rowspan="19">nothing: width and height zero</td><td rowspan="19"><a href="asm/50239.html">NOTHING</a>: nothing</td></tr>
+<tr id="graphic94"><td>94</td></tr>
+<tr id="graphic95"><td>95</td></tr>
+<tr id="graphic96"><td>96</td></tr>
+<tr id="graphic97"><td>97</td></tr>
+<tr id="graphic98"><td>98</td></tr>
+<tr id="graphic99"><td>99</td></tr>
+<tr id="graphic100"><td>100</td></tr>
+<tr id="graphic101"><td>101</td></tr>
+<tr id="graphic102"><td>102</td></tr>
+<tr id="graphic103"><td>103</td></tr>
+<tr id="graphic104"><td>104</td></tr>
+<tr id="graphic105"><td>105</td></tr>
+<tr id="graphic106"><td>106</td></tr>
+<tr id="graphic107"><td>107</td></tr>
+<tr id="graphic108"><td>108</td></tr>
+<tr id="graphic109"><td>109</td></tr>
+<tr id="graphic110"><td>110</td></tr>
+<tr id="graphic111"><td>111</td></tr>
+<tr id="graphic121"><td>121</td><td rowspan="7"><a href="Sprites.html#sprite88bd"><img class="kl-thumb" src="images/graphics/sprite88bd.png" alt=""></a><br><a href="asm/35005.html">$88BD</a></td><td rowspan="7">a stone block</td><td rowspan="7"><a href="asm/53012.html">PENTAGRAM_PIECE</a>: lies still</td></tr>
+<tr id="graphic122"><td>122</td></tr>
+<tr id="graphic123"><td>123</td></tr>
+<tr id="graphic124"><td>124</td></tr>
+<tr id="graphic125"><td>125</td></tr>
+<tr id="graphic126"><td>126</td></tr>
+<tr id="graphic127"><td>127</td></tr>
+<tr id="graphic157"><td>157</td><td rowspan="3"><a href="asm/37781.html">$9395</a></td><td rowspan="3">nothing: width and height zero</td><td rowspan="3"><a href="asm/52046.html">JUMP_L16_D8</a>: sets its drawing nudge</td></tr>
+<tr id="graphic158"><td>158</td></tr>
+<tr id="graphic159"><td>159</td></tr>
+</table>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

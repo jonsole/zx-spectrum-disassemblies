@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CEA0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52890.html">CE9A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52896">Map</a></td>
+<td class="next">
+Next: <a href="52954.html">CEDA</a>
+</td>
+</tr>
+</table>
+<div class="description">CEA0: The update routine for things that pace to and fro in U</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphic 92, a head, is deadly (<a href="49809.html">MAKE_DEADLY</a>) and enters here; graphic 87, a block, enters at PACER_U. Either moves two units a turn along U, the way bit 0 of +10 says (set: forwards), and turns round when it bumps into anything. It never falls. The player standing on the block is carried along, since the collision code gives him the step of what he stands on when he has none of his own (<a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DEADLY_PACER_U</td>
+<td class="address-2"><span id="52896"></span>CEA0</td>
+<td class="instruction">CALL <a href="49809.html">MAKE_DEADLY</a></td>
+<td class="comment-1" rowspan="1">deadly</td>
+</tr>
+<tr>
+<td class="asm-label">PACER_U</td>
+<td class="address-1"><span id="52899"></span>CEA3</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="1">PACER_U: the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52902"></span>CEA6</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="5">no step in V or Z; which way?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52903"></span>CEA7</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52906"></span>CEAA</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52909"></span>CEAD</td>
+<td class="instruction">BIT 0,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52913"></span>CEB1</td>
+<td class="instruction">JR Z,<a href="52896.html#52935">DEADLY_PACER_U_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52915"></span>CEB3</td>
+<td class="instruction">LD (IX+$09),$02</td>
+<td class="comment-1" rowspan="5">forwards: two units, and back the other way after a bump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52919"></span>CEB7</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52922"></span>CEBA</td>
+<td class="instruction">BIT 0,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52926"></span>CEBE</td>
+<td class="instruction">JR Z,<a href="52896.html#52932">DEADLY_PACER_U_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52928"></span>CEC0</td>
+<td class="instruction">RES 0,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label">DEADLY_PACER_U_0</td>
+<td class="address-2"><span id="52932"></span>CEC4</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">redraw</td>
+</tr>
+<tr>
+<td class="asm-label">DEADLY_PACER_U_1</td>
+<td class="address-2"><span id="52935"></span>CEC7</td>
+<td class="instruction">LD (IX+$09),$FE</td>
+<td class="comment-1" rowspan="6">backwards: two units, and forwards again after a bump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52939"></span>CECB</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52942"></span>CECE</td>
+<td class="instruction">BIT 0,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52946"></span>CED2</td>
+<td class="instruction">JR Z,<a href="52896.html#52932">DEADLY_PACER_U_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52948"></span>CED4</td>
+<td class="instruction">SET 0,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52952"></span>CED8</td>
+<td class="instruction">JR <a href="52896.html#52932">DEADLY_PACER_U_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52890.html">CE9A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52896">Map</a></td>
+<td class="next">
+Next: <a href="52954.html">CEDA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

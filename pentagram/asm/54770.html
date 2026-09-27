@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D5F2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54756.html">D5E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54770">Map</a></td>
+<td class="next">
+Next: <a href="54797.html">D60D</a>
+</td>
+</tr>
+</table>
+<div class="description">D5F2: Play this turn's note of the sound effect under way</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called by <a href="45068.html">OBJECT_DONE</a> every turn. SOUND_COUNT is two bytes: how many notes are left, and which effect. While the count is not zero, this takes one off and plays twelve waves at the pitch found at the effect's address in <a href="54797.html">EFFECTS</a> plus the count before it was taken: the notes run backwards from the end, and the byte at the effect's address itself is never played.
+</div>
+<div class="paragraph">
+Only two effects are started: 0, four notes, when a room has been entered (<a href="45068.html">OBJECT_DONE</a>), and 1, five notes, as he picks something up or puts it down (<a href="49017.html">TAKE_OR_LEAVE</a>). Effects 2 and 3 have their notes but nothing starts them.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EFFECT_NOTE</td>
+<td class="address-2"><span id="54770"></span>D5F2</td>
+<td class="instruction">LD HL,<a href="42761.html#42825">SOUND_COUNT</a></td>
+<td class="comment-1" rowspan="4">nothing under way: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54773"></span>D5F5</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54774"></span>D5F6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54775"></span>D5F7</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54776"></span>D5F8</td>
+<td class="instruction">DEC (HL)</td>
+<td class="comment-1" rowspan="2">one note fewer; keep the count before</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54777"></span>D5F9</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54778"></span>D5FA</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="4">HL = the effect's notes (<a href="54797.html">EFFECTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54779"></span>D5FB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54780"></span>D5FC</td>
+<td class="instruction">LD BC,<a href="54797.html">EFFECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54783"></span>D5FF</td>
+<td class="instruction">CALL <a href="54930.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54786"></span>D602</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="7">twelve waves at the note the count points to</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54787"></span>D603</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54788"></span>D604</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54790"></span>D606</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54791"></span>D607</td>
+<td class="instruction">LD B,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54792"></span>D608</td>
+<td class="instruction">LD C,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54794"></span>D60A</td>
+<td class="instruction">JP <a href="54907.html">BEEP</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54756.html">D5E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54770">Map</a></td>
+<td class="next">
+Next: <a href="54797.html">D60D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

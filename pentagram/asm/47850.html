@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BAEA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47818.html">BACA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47850">Map</a></td>
+<td class="next">
+Next: <a href="47892.html">BB14</a>
+</td>
+</tr>
+</table>
+<div class="description">BAEA: Print a character into the screen buffer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="47913.html">ADD_SCORE</a> and <a href="48267.html">TEXT_ATTR_ADDR</a>.
+</div>
+<div class="paragraph">
+A character is eight bytes from FONT_BASE plus eight times its code, the top row first; they overwrite eight rows of the buffer going down from HL (32 bytes a row, down being towards the start of the buffer). HL comes back one byte to the right, on the same top row, ready for the next character. A space is printed as code $3D.
+</div>
+<div class="paragraph">
+For text FONT_BASE is 384 bytes below the font (<a href="48230.html">PRINT_TEXT_SINGLE_COLOUR</a>), so the codes $30 to $5A land in it; for numbers it is the font itself (PRINT_BCD, in <a href="47913.html">ADD_SCORE</a>), so that digits are codes 0 to 9.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the code</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the buffer address of the character's top row</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">one byte to the right</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_CHAR</td>
+<td class="address-2"><span id="47850"></span>BAEA</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47851"></span>BAEB</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47852"></span>BAEC</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47853"></span>BAED</td>
+<td class="instruction">CP $20</td>
+<td class="comment-1" rowspan="3">a space is code $3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47855"></span>BAEF</td>
+<td class="instruction">JR NZ,<a href="47850.html#47859">PRINT_CHAR_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47857"></span>BAF1</td>
+<td class="instruction">LD A,$3D</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_CHAR_0</td>
+<td class="address-2"><span id="47859"></span>BAF3</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="8">DE = FONT_BASE + 8 * the code</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47860"></span>BAF4</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47862"></span>BAF6</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47863"></span>BAF7</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47864"></span>BAF8</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47865"></span>BAF9</td>
+<td class="instruction">LD DE,(<a href="42761.html#42802">FONT_BASE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47869"></span>BAFD</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47870"></span>BAFE</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47871"></span>BAFF</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47872"></span>BB00</td>
+<td class="instruction">LD B,$08</td>
+<td class="comment-1" rowspan="9">eight rows, each written 32 bytes below the one before</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_CHAR_1</td>
+<td class="address-2"><span id="47874"></span>BB02</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47875"></span>BB03</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47876"></span>BB04</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47877"></span>BB05</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47878"></span>BB06</td>
+<td class="instruction">LD BC,<a href="65024.html#65504">$FFE0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47881"></span>BB09</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47882"></span>BB0A</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47883"></span>BB0B</td>
+<td class="instruction">DJNZ <a href="47850.html#47874">PRINT_CHAR_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47885"></span>BB0D</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47886"></span>BB0E</td>
+<td class="instruction">LD BC,$0101</td>
+<td class="comment-1" rowspan="2">back up the eight rows and one byte right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47889"></span>BB11</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47890"></span>BB12</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47891"></span>BB13</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47818.html">BACA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47850">Map</a></td>
+<td class="next">
+Next: <a href="47892.html">BB14</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

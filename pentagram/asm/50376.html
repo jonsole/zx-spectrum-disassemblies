@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at C4C8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50339.html">C4A3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50376">Map</a></td>
+<td class="next">
+Next: <a href="50540.html">C56C</a>
+</td>
+</tr>
+</table>
+<div class="description">C4C8: Turn the player</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50240.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Two ways of steering. Rotational control -- the keyboard's, and every joystick's as the menu leaves them -- turns a quarter at a time on the two turn controls: bit 0 of C turns left, bit 1 right. Directional control treats the controls as four points of the compass instead: pushing one turns the player towards it and, once he faces it, walks him that way. It needs a joystick method and bit 3 of <a href="42761.html">CONTROL</a>, which no menu choice sets (<a href="47988.html">MENU</a>), so the game as sold never uses it.
+</div>
+<div class="paragraph">
+Facings, as <a href="50621.html">GET_SPRITE_DIR</a> gives them: 0 is towards lower U (up and left on the screen), 1 higher U (down and right), 2 higher V (up and right), 3 lower V (down and left). A facing is stored as two bits -- bit 2 of the graphic and bit 6 of the flags, the mirror bit -- and a quarter turn always toggles the mirror bit and, half the time, the graphic's bit 2 as well. A left turn goes 0, 3, 1, 2 and round; a right turn the other way. The body's graphic is set to the legs' plus 8 at once, so the two turn in the same turn.
+</div>
+<div class="paragraph">
+Directional control reads up (bit 2) unless left is also held, then right, down (bit 4), left, and goes the short way round, or two turns for an about-face. Up is the walk bit itself, so pushing up walks even while turning; and down is bit 4, which <a href="48632.html">READ_CONTROLS</a> sets only from the pick-up keys -- every joystick's down is jump, bit 3 -- so a joystick alone can never face 3. This is Knight Lore's code, where the stick's down was bit 4.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The player's legs (<a href="42863.html">OBJECTS</a>)</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The controls (INPUT): bits 0 and 1 turn, 2 walk, 3 jump, 4 pick up</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Bit 2 set if the player is to walk</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT</td>
+<td class="address-2"><span id="50376"></span>C4C8</td>
+<td class="instruction">LD HL,<a href="42761.html">CONTROL</a></td>
+<td class="comment-1" rowspan="4">Bits 1-2 of the control method: 0, the keyboard, always turns rotationally</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50379"></span>C4CB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50380"></span>C4CC</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50382"></span>C4CE</td>
+<td class="instruction">JR Z,<a href="50376.html#50459">HANDLE_LEFT_RIGHT_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50384"></span>C4D0</td>
+<td class="instruction">BIT 3,(HL)</td>
+<td class="comment-1" rowspan="2">Directional control not switched on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50386"></span>C4D2</td>
+<td class="instruction">JR Z,<a href="50376.html#50459">HANDLE_LEFT_RIGHT_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50388"></span>C4D4</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Directional: nothing during the walk into a room (the count in bits 4-7 of +$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50391"></span>C4D7</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50393"></span>C4D9</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50394"></span>C4DA</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Nor in the air: bit 2 of +$0C, set when a move down was stopped, means standing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50398"></span>C4DE</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50399"></span>C4DF</td>
+<td class="instruction">BIT 0,C</td>
+<td class="comment-1" rowspan="4">Left held: skip up; up held: face 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50401"></span>C4E1</td>
+<td class="instruction">JR NZ,<a href="50376.html#50407">HANDLE_LEFT_RIGHT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50403"></span>C4E3</td>
+<td class="instruction">BIT 2,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50405"></span>C4E5</td>
+<td class="instruction">JR NZ,<a href="50376.html#50422">HANDLE_LEFT_RIGHT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_0</td>
+<td class="address-2"><span id="50407"></span>C4E7</td>
+<td class="instruction">BIT 1,C</td>
+<td class="comment-1" rowspan="6">Right: face 1; down: face 3; left: face 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50409"></span>C4E9</td>
+<td class="instruction">JR NZ,<a href="50376.html#50434">HANDLE_LEFT_RIGHT_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50411"></span>C4EB</td>
+<td class="instruction">BIT 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50413"></span>C4ED</td>
+<td class="instruction">JR NZ,<a href="50376.html#50441">HANDLE_LEFT_RIGHT_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50415"></span>C4EF</td>
+<td class="instruction">BIT 0,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50417"></span>C4F1</td>
+<td class="instruction">JR NZ,<a href="50376.html#50450">HANDLE_LEFT_RIGHT_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50419"></span>C4F3</td>
+<td class="instruction">RES 2,C</td>
+<td class="comment-1" rowspan="2">Nothing pushed: no walking (bit 2 is already clear by now)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50421"></span>C4F5</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_1</td>
+<td class="address-2"><span id="50422"></span>C4F6</td>
+<td class="instruction">CALL <a href="50621.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">Up: facing 2 already, so walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50425"></span>C4F9</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_2</td>
+<td class="address-2"><span id="50427"></span>C4FB</td>
+<td class="instruction">JR Z,<a href="50376.html#50456">HANDLE_LEFT_RIGHT_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50429"></span>C4FD</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="3">Otherwise invert the facing, so that bit 0 set means a right turn is the short way</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_3</td>
+<td class="address-2"><span id="50430"></span>C4FE</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50432"></span>C500</td>
+<td class="instruction">JR <a href="50376.html#50499">HANDLE_LEFT_RIGHT_12</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_4</td>
+<td class="address-2"><span id="50434"></span>C502</td>
+<td class="instruction">CALL <a href="50621.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">Right: facing 1 already? The same test as up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50437"></span>C505</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50439"></span>C507</td>
+<td class="instruction">JR <a href="50376.html#50427">HANDLE_LEFT_RIGHT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_5</td>
+<td class="address-2"><span id="50441"></span>C509</td>
+<td class="instruction">CALL <a href="50621.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">Down: facing 3 already? Walk if so</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50444"></span>C50C</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_6</td>
+<td class="address-2"><span id="50446"></span>C50E</td>
+<td class="instruction">JR Z,<a href="50376.html#50456">HANDLE_LEFT_RIGHT_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50448"></span>C510</td>
+<td class="instruction">JR <a href="50376.html#50430">HANDLE_LEFT_RIGHT_3</a></td>
+<td class="comment-1" rowspan="1">Otherwise the facing's own bit 0 picks the turn</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_7</td>
+<td class="address-2"><span id="50450"></span>C512</td>
+<td class="instruction">CALL <a href="50621.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">Left: facing 0 already? The same test as down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50453"></span>C515</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50454"></span>C516</td>
+<td class="instruction">JR <a href="50376.html#50446">HANDLE_LEFT_RIGHT_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_8</td>
+<td class="address-2"><span id="50456"></span>C518</td>
+<td class="instruction">SET 2,C</td>
+<td class="comment-1" rowspan="2">Facing the way pushed: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50458"></span>C51A</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_9</td>
+<td class="address-2"><span id="50459"></span>C51B</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="5">Rotational: while the pause between turns (bits 0-2 of +$0D) runs, count it down and do nothing else</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50462"></span>C51E</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50464"></span>C520</td>
+<td class="instruction">JR Z,<a href="50376.html#50470">HANDLE_LEFT_RIGHT_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50466"></span>C522</td>
+<td class="instruction">DEC (IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50469"></span>C525</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_10</td>
+<td class="address-2"><span id="50470"></span>C526</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">Neither turn control held</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50471"></span>C527</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50473"></span>C529</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50474"></span>C52A</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Not during the walk into a room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50477"></span>C52D</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50479"></span>C52F</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50480"></span>C530</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Not in the middle of a jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50484"></span>C534</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50485"></span>C535</td>
+<td class="instruction">BIT 2,C</td>
+<td class="comment-1" rowspan="2">A jump to the next instruction: Knight Lore plays a turning sound here when the player is not walking, and this is what is left of it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50487"></span>C537</td>
+<td class="instruction">JR NZ,<a href="50376.html#50489">HANDLE_LEFT_RIGHT_11</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_11</td>
+<td class="address-2"><span id="50489"></span>C539</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">A pause of two turns before the next quarter turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50492"></span>C53C</td>
+<td class="instruction">OR $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50494"></span>C53E</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50497"></span>C541</td>
+<td class="instruction">BIT 1,C</td>
+<td class="comment-1" rowspan="1">Bit 1: right</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_12</td>
+<td class="address-2"><span id="50499"></span>C543</td>
+<td class="instruction">JR NZ,<a href="50376.html#50532">HANDLE_LEFT_RIGHT_15</a></td>
+<td class="comment-1" rowspan="1">NZ for a right turn, Z for a left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50501"></span>C545</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Left turn: an unmirrored sprite only mirrors (2 to 0, 3 to 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50505"></span>C549</td>
+<td class="instruction">JR Z,<a href="50376.html#50515">HANDLE_LEFT_RIGHT_14</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_13</td>
+<td class="address-2"><span id="50507"></span>C54B</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">Toggle the graphic's bit 2: the other view</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50510"></span>C54E</td>
+<td class="instruction">XOR $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50512"></span>C550</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_14</td>
+<td class="address-2"><span id="50515"></span>C553</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="3">Toggle the mirror bit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50518"></span>C556</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50520"></span>C558</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50523"></span>C55B</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">The body's graphic is the legs' plus 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50526"></span>C55E</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50528"></span>C560</td>
+<td class="instruction">LD (IX+$20),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50531"></span>C563</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_15</td>
+<td class="address-2"><span id="50532"></span>C564</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+<td class="comment-1" rowspan="3">Right turn: a mirrored sprite only mirrors (0 to 2, 1 to 3); otherwise both</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50536"></span>C568</td>
+<td class="instruction">JR Z,<a href="50376.html#50507">HANDLE_LEFT_RIGHT_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50538"></span>C56A</td>
+<td class="instruction">JR <a href="50376.html#50515">HANDLE_LEFT_RIGHT_14</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50339.html">C4A3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50376">Map</a></td>
+<td class="next">
+Next: <a href="50540.html">C56C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

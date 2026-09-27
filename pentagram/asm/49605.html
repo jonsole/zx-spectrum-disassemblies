@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at C1C5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49597.html">C1BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49605">Map</a></td>
+<td class="next">
+Next: <a href="49670.html">C206</a>
+</td>
+</tr>
+</table>
+<div class="description">C1C5: The update routine for a bolt (graphics 149 to 151, and 60)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Moves the bolt and cycles its graphic through 151, 150 and 149. Gravity is applied as to everything (<a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a>), but a bolt is held at Z 132, so one fired from the floor flies level, and one fired from higher up drops to that height. If it touches either thing from the sky (<a href="49670.html">BOLT_HIT</a>) the thing is shot down (<a href="49764.html">SHOOT_DOWN</a>); if its move was cut short in U or V by a wall or an object it goes up in a puff (<a href="49415.html">START_PUFF</a>). Otherwise its step is set again from +$14 and +$15 for the next turn, and it is marked to be redrawn.
+</div>
+<div class="paragraph">
+The update-routine table (<a href="44591.html">UPDATES</a>) also gives this routine to graphic 60, which is one of the panel's pieces (<a href="48433.html">PANEL_DATA</a>); no room object has been seen with it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BOLT</td>
+<td class="address-2"><span id="49605"></span>C1C5</td>
+<td class="instruction">CALL <a href="51061.html">DRAW_AT_L12_D6</a></td>
+<td class="comment-1" rowspan="2">its drawing nudge; fall and move, cut short against the room and the other objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49608"></span>C1C8</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49611"></span>C1CB</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">the next frame: 151, 150, 149, then 151 again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49614"></span>C1CE</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49615"></span>C1CF</td>
+<td class="instruction">CP $94</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49617"></span>C1D1</td>
+<td class="instruction">JR NZ,<a href="49605.html#49621">BOLT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49619"></span>C1D3</td>
+<td class="instruction">LD A,$97</td>
+</tr>
+<tr>
+<td class="asm-label">BOLT_0</td>
+<td class="address-2"><span id="49621"></span>C1D5</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49624"></span>C1D8</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="5">never lower than Z 132, where it stops falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49627"></span>C1DB</td>
+<td class="instruction">CP $84</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49629"></span>C1DD</td>
+<td class="instruction">JR NC,<a href="49605.html#49639">BOLT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49631"></span>C1DF</td>
+<td class="instruction">LD (IX+$03),$84</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49635"></span>C1E3</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+</tr>
+<tr>
+<td class="asm-label">BOLT_1</td>
+<td class="address-2"><span id="49639"></span>C1E7</td>
+<td class="instruction">CALL <a href="49670.html">BOLT_HIT</a></td>
+<td class="comment-1" rowspan="4">hit a thing from the sky: shoot it down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49642"></span>C1EA</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49643"></span>C1EB</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49644"></span>C1EC</td>
+<td class="instruction">JP Z,<a href="49764.html">SHOOT_DOWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49647"></span>C1EF</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">bumped in U or V: a puff</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49650"></span>C1F2</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49652"></span>C1F4</td>
+<td class="instruction">JP NZ,<a href="49415.html">START_PUFF</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49655"></span>C1F7</td>
+<td class="instruction">LD A,(IX+$14)</td>
+<td class="comment-1" rowspan="4">its step again, for the next turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49658"></span>C1FA</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49661"></span>C1FD</td>
+<td class="instruction">LD A,(IX+$15)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49664"></span>C200</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49667"></span>C203</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">mark it to be redrawn</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49597.html">C1BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49605">Map</a></td>
+<td class="next">
+Next: <a href="49670.html">C206</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

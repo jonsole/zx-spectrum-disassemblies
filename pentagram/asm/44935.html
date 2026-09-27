@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at AF87</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44591.html">AE2F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44935">Map</a></td>
+<td class="next">
+Next: <a href="45068.html">B00C</a>
+</td>
+</tr>
+</table>
+<div class="description">AF87: Start the game</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="24064.html">ENTRY</a>.
+</div>
+<div class="paragraph">
+Reached from <a href="24064.html">ENTRY</a> when the game has loaded. Clears the variables and the object records, and then does what every game does: clears the screen, builds the drawing tables (<a href="45722.html">MAKE_TABLES</a>), gives five lives, stirs the random number, and runs the menu (<a href="47988.html">MENU</a>) until 0 is pressed. Then the tune a game starts with, the quest's records afresh with the collectables placed (<a href="53615.html">NEW_QUEST</a>), and a start room chosen (<a href="49870.html">CHOOSE_START</a>).
+</div>
+<div class="paragraph">
+From there it is three loops, one inside another. RESTART starts a life: <a href="49900.html">RESTART_PLAYER</a> copies the player template over his two records and takes a life, and ends the game when there are none. GAME_LOOP enters a room: it files the quest things of the room being left back in their records, builds the room he is in (<a href="50870.html">ENTER_ROOM</a>), puts the quest things that are there into it, decides whether anything may fall from the sky there, prints the score and sets the drop timer. <a href="51267.html">EXIT_LOW_U</a> jumps back to it when he walks through a doorway. MAIN_LOOP is a turn: a chance of something falling, then every one of the 54 object records' update routines in turn, and <a href="45068.html">OBJECT_DONE</a>, which ends the turn, draws what changed and goes round again.
+</div>
+<div class="paragraph">
+Each object's update routine is found in <a href="44591.html">UPDATES</a> by its graphic and entered by a jump, with the address of <a href="45068.html">OBJECT_DONE</a> pushed first so that it ends with a RET. Unlike Knight Lore's loop, this one does not reset the stack pointer for each object: the routines keep the stack straight themselves.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">START</td>
+<td class="address-2"><span id="44935"></span>AF87</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">A black border, and the speaker off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44936"></span>AF88</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44938"></span>AF8A</td>
+<td class="instruction">LD HL,<a href="42761.html">CONTROL</a></td>
+<td class="comment-1" rowspan="3">Clear the variables and all 54 object records, up to the update table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44941"></span>AF8D</td>
+<td class="instruction">LD BC,$0726</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44944"></span>AF90</td>
+<td class="instruction">CALL <a href="52087.html">CLEAR_MEMORY</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="44947"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49922.html">WON</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">AFTER_GAME</td>
+<td class="address-2"><span id="44947"></span>AF93</td>
+<td class="instruction">LD HL,<a href="42761.html#42766">BUCKET_OUT</a></td>
+<td class="comment-1" rowspan="3">After a game (<a href="49922.html">WON</a>): the same from BUCKET_OUT on, which keeps the control method, the menu's bytes and the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44950"></span>AF96</td>
+<td class="instruction">LD BC,$0721</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44953"></span>AF99</td>
+<td class="instruction">CALL <a href="52087.html">CLEAR_MEMORY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44956"></span>AF9C</td>
+<td class="instruction">CALL <a href="52060.html">CLEAR_SCREEN</a></td>
+<td class="comment-1" rowspan="1">Clear the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44959"></span>AF9F</td>
+<td class="instruction">LD A,$43</td>
+<td class="comment-1" rowspan="2">Bright magenta ink on black, the whole screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44961"></span>AFA1</td>
+<td class="instruction">CALL <a href="52074.html">FILL_ATTRS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44964"></span>AFA4</td>
+<td class="instruction">CALL <a href="45722.html">MAKE_TABLES</a></td>
+<td class="comment-1" rowspan="1">The shift tables and the bit reversal table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44967"></span>AFA7</td>
+<td class="instruction">LD A,$05</td>
+<td class="comment-1" rowspan="2">Five lives: the first start of a life takes one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44969"></span>AFA9</td>
+<td class="instruction">LD (<a href="42761.html#42785">LIVES</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44972"></span>AFAC</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="5">Stir R into the random number, which then decides the rest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44974"></span>AFAE</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44975"></span>AFAF</td>
+<td class="instruction">LD A,(<a href="42761.html#42765">RANDOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44978"></span>AFB2</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44979"></span>AFB3</td>
+<td class="instruction">LD (<a href="42761.html#42765">RANDOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44982"></span>AFB6</td>
+<td class="instruction">CALL <a href="47988.html">MENU</a></td>
+<td class="comment-1" rowspan="1">The menu, until 0 is pressed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44985"></span>AFB9</td>
+<td class="instruction">LD DE,<a href="55347.html">TUNE_START</a></td>
+<td class="comment-1" rowspan="2">The tune a game starts with</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44988"></span>AFBC</td>
+<td class="instruction">CALL <a href="54965.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44991"></span>AFBF</td>
+<td class="instruction">CALL <a href="53615.html">NEW_QUEST</a></td>
+<td class="comment-1" rowspan="1">The quest records afresh, and the collectables' starting spots</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44994"></span>AFC2</td>
+<td class="instruction">CALL <a href="49870.html">CHOOSE_START</a></td>
+<td class="comment-1" rowspan="1">One of four start rooms, into the player template</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="44997"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RESTART</td>
+<td class="address-2"><span id="44997"></span>AFC5</td>
+<td class="instruction">CALL <a href="49900.html">RESTART_PLAYER</a></td>
+<td class="comment-1" rowspan="1">Start a life: the player template over both his records, and a life fewer; with none left the game is over</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45000"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="51267.html">EXIT_LOW_U</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_LOOP</td>
+<td class="address-2"><span id="45000"></span>AFC8</td>
+<td class="instruction">CALL <a href="45333.html">QUEST_OUT_OF_ROOM</a></td>
+<td class="comment-1" rowspan="1">Enter a room: first the quest things of the room he was in go back to their records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45003"></span>AFCB</td>
+<td class="instruction">CALL <a href="50870.html">ENTER_ROOM</a></td>
+<td class="comment-1" rowspan="1">Build the room he is now in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45006"></span>AFCE</td>
+<td class="instruction">CALL <a href="45207.html">QUEST_INTO_ROOM</a></td>
+<td class="comment-1" rowspan="1">Put the quest things that are in it into the room's records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45009"></span>AFD1</td>
+<td class="instruction">CALL <a href="52105.html">BAN_DROPS</a></td>
+<td class="comment-1" rowspan="1">Nothing falls from the sky in a room with the well, a quest item or a piece of the pentagram</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45012"></span>AFD4</td>
+<td class="instruction">CALL <a href="47892.html">PRINT_SCORE</a></td>
+<td class="comment-1" rowspan="1">The score, and its heading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45015"></span>AFD7</td>
+<td class="instruction">CALL <a href="52273.html">RESET_DROP_TIMER</a></td>
+<td class="comment-1" rowspan="1">Turns until something may fall</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45018"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP</td>
+<td class="address-2"><span id="45018"></span>AFDA</td>
+<td class="instruction">CALL <a href="52139.html">SKY_DROP</a></td>
+<td class="comment-1" rowspan="1">A turn: first, perhaps, something falls from the sky</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45021"></span>AFDD</td>
+<td class="instruction">LD IX,<a href="42863.html">OBJECTS</a></td>
+<td class="comment-1" rowspan="1">IX on the first record, the player's legs</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45025"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45068.html">OBJECT_DONE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">NEXT_OBJECT</td>
+<td class="address-2"><span id="45025"></span>AFE1</td>
+<td class="instruction">LD HL,<a href="45068.html">OBJECT_DONE</a></td>
+<td class="comment-1" rowspan="2">The update routine returns to <a href="45068.html">OBJECT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45028"></span>AFE4</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45029"></span>AFE5</td>
+<td class="instruction">LD BC,<a href="44591.html">UPDATES</a></td>
+<td class="comment-1" rowspan="1">The update routines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45032"></span>AFE8</td>
+<td class="instruction">LD A,(IX+$18)</td>
+<td class="comment-1" rowspan="8">Keep last turn's drawn width, height and position in +1C to +1F, so the old picture can be wiped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45035"></span>AFEB</td>
+<td class="instruction">LD (IX+$1C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45038"></span>AFEE</td>
+<td class="instruction">LD A,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45041"></span>AFF1</td>
+<td class="instruction">LD (IX+$1D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45044"></span>AFF4</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45047"></span>AFF7</td>
+<td class="instruction">LD (IX+$1E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45050"></span>AFFA</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45053"></span>AFFD</td>
+<td class="instruction">LD (IX+$1F),A</td>
+</tr>
+<tr>
+<td class="asm-label">UPDATE_OBJECT</td>
+<td class="address-1"><span id="45056"></span>B000</td>
+<td class="instruction">LD L,(IX+$00)</td>
+<td class="comment-1" rowspan="1">The graphic is the index</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45059"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="46474.html">SORT_AND_DRAW</a>, <a href="50794.html">CALC_PLYR_DUV</a> and <a href="51202.html">HANDLE_EXIT_SCREEN</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">JUMP_TO_TBL_ENTRY</td>
+<td class="address-2"><span id="45059"></span>B003</td>
+<td class="instruction">LD H,$00</td>
+<td class="comment-1" rowspan="3">HL = BC + 2 * L: a word in a table of routines. <a href="46474.html">SORT_AND_DRAW</a>, <a href="50794.html">CALC_PLYR_DUV</a> and <a href="51202.html">HANDLE_EXIT_SCREEN</a> jump in here with tables of their own</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45061"></span>B005</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45062"></span>B006</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45063"></span>B007</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="5">Load the address, and go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45064"></span>B008</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45065"></span>B009</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45066"></span>B00A</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45067"></span>B00B</td>
+<td class="instruction">JP (HL)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44591.html">AE2F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44935">Map</a></td>
+<td class="next">
+Next: <a href="45068.html">B00C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

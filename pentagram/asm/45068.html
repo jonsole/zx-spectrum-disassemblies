@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B00C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44935.html">AF87</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45068">Map</a></td>
+<td class="next">
+Next: <a href="45207.html">B097</a>
+</td>
+</tr>
+</table>
+<div class="description">B00C: One object done; at the end of a turn, draw and wait</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Every update routine returns here. It stirs R into the random number -- R counts instructions, so the numbers depend on how long each update took -- and moves IX to the next record, going back to <a href="44935.html">START</a> until all 54 have had their turn.
+</div>
+<div class="paragraph">
+Then the turn is finished. The turn counter goes up, the objects to be drawn are listed (<a href="46385.html">LIST_DRAWN</a>), and <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> wipes what moved, draws the objects in depth order and copies the changes to the screen. SPACE or CAPS SHIFT on its own pauses (<a href="46304.html">PAUSE</a>). Then it burns whatever time is left, so that the game runs at an even speed: it waits six units less the turn's drawing work (DRAW_WORK, <a href="42761.html">CONTROL</a>), which <a href="46474.html">SORT_AND_DRAW</a> and <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a> count in objects drawn and areas wiped. A unit is 1280 turns of a 26 T-state loop, about 33,300 T-states, just under half a frame. So a room where fewer than six things change runs as fast as one where six do, and a busier one runs slower: the wait can only pad, never take time back.
+</div>
+<div class="paragraph">
+On the first turn in a room the whole screen is redrawn: the room's colour over every attribute, the carried things, the panel, the lives and the score, and the whole buffer copied to the screen, with a short sound. Last, if both of the player's records are empty -- they become so when his dying is over -- a life is lost; otherwise the next turn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_DONE</td>
+<td class="address-2"><span id="45068"></span>B00C</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="12">Stir R, the turn counter's low byte plus one, and the ROM byte at that address into the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45070"></span>B00E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45071"></span>B00F</td>
+<td class="instruction">LD A,(<a href="42761.html#42773">TURNS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45074"></span>B012</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45075"></span>B013</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45077"></span>B015</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45078"></span>B016</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45079"></span>B017</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45080"></span>B018</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45081"></span>B019</td>
+<td class="instruction">LD A,(<a href="42761.html#42765">RANDOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45084"></span>B01C</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45085"></span>B01D</td>
+<td class="instruction">LD (<a href="42761.html#42765">RANDOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45088"></span>B020</td>
+<td class="instruction">LD DE,$0020</td>
+<td class="comment-1" rowspan="2">32 bytes a record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45091"></span>B023</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45093"></span>B025</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">Round again until IX reaches the update table, just past the last record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45095"></span>B027</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45096"></span>B028</td>
+<td class="instruction">LD DE,<a href="44591.html">UPDATES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45099"></span>B02B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45100"></span>B02C</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45102"></span>B02E</td>
+<td class="instruction">JP C,<a href="44935.html#45025">NEXT_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45105"></span>B031</td>
+<td class="instruction">LD HL,(<a href="42761.html#42773">TURNS</a>)</td>
+<td class="comment-1" rowspan="3">The turn is over: count it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45108"></span>B034</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45109"></span>B035</td>
+<td class="instruction">LD (<a href="42761.html#42773">TURNS</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45112"></span>B038</td>
+<td class="instruction">CALL <a href="46385.html">LIST_DRAWN</a></td>
+<td class="comment-1" rowspan="1">List the records flagged to be drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45115"></span>B03B</td>
+<td class="instruction">CALL <a href="45470.html">RENDER_DYNAMIC_OBJECTS</a></td>
+<td class="comment-1" rowspan="1">Wipe what moved, draw in depth order into the buffer, and copy the changes to the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45118"></span>B03E</td>
+<td class="instruction">LD (<a href="42761.html#42814">MAIN_SP</a>),SP</td>
+<td class="comment-1" rowspan="1">Kept, and never read back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45122"></span>B042</td>
+<td class="instruction">CALL <a href="46304.html">PAUSE</a></td>
+<td class="comment-1" rowspan="1">SPACE or CAPS SHIFT on its own pauses</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45125"></span>B045</td>
+<td class="instruction">LD A,(<a href="42761.html#42772">DRAW_WORK</a>)</td>
+<td class="comment-1" rowspan="4">Six units, less what the turn's drawing already used</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45128"></span>B048</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45130"></span>B04A</td>
+<td class="instruction">ADD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45132"></span>B04C</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45133"></span>B04D</td>
+<td class="instruction">JP M,<a href="45068.html#45148">OBJECT_DONE_2</a></td>
+<td class="comment-1" rowspan="2">None left to wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45136"></span>B050</td>
+<td class="instruction">JR Z,<a href="45068.html#45148">OBJECT_DONE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_DONE_0</td>
+<td class="address-2"><span id="45138"></span>B052</td>
+<td class="instruction">LD HL,$0500</td>
+<td class="comment-1" rowspan="5">One unit: 1280 turns of 26 T-states</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_DONE_1</td>
+<td class="address-2"><span id="45141"></span>B055</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45142"></span>B056</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45143"></span>B057</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45144"></span>B058</td>
+<td class="instruction">JR NZ,<a href="45068.html#45141">OBJECT_DONE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45146"></span>B05A</td>
+<td class="instruction">DJNZ <a href="45068.html#45138">OBJECT_DONE_0</a></td>
+<td class="comment-1" rowspan="1">The next unit</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_DONE_2</td>
+<td class="address-2"><span id="45148"></span>B05C</td>
+<td class="instruction">LD A,(<a href="42761.html#42769">NEW_ROOM</a>)</td>
+<td class="comment-1" rowspan="3">Not the first turn in the room: on to the sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45151"></span>B05F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45152"></span>B060</td>
+<td class="instruction">JR Z,<a href="45068.html#45188">OBJECT_DONE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45154"></span>B062</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Once only</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45155"></span>B063</td>
+<td class="instruction">LD (<a href="42761.html#42769">NEW_ROOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45158"></span>B066</td>
+<td class="instruction">LD A,(<a href="42761.html#42808">ROOM_ATTR</a>)</td>
+<td class="comment-1" rowspan="2">The room's colour over the whole screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45161"></span>B069</td>
+<td class="instruction">CALL <a href="52074.html">FILL_ATTRS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45164"></span>B06C</td>
+<td class="instruction">CALL <a href="47668.html#47677">SHOW_CARRIED_NOW</a></td>
+<td class="comment-1" rowspan="1">The three things he carries</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45167"></span>B06F</td>
+<td class="instruction">CALL <a href="48357.html">DISPLAY_PANEL</a></td>
+<td class="comment-1" rowspan="1">The panel's artwork</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45170"></span>B072</td>
+<td class="instruction">CALL <a href="49818.html">DRAW_LIVES</a></td>
+<td class="comment-1" rowspan="1">The lives icon, and the lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45173"></span>B075</td>
+<td class="instruction">CALL <a href="45432.html">SHOW_BUFFER</a></td>
+<td class="comment-1" rowspan="1">The whole buffer to the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45176"></span>B078</td>
+<td class="instruction">CALL <a href="47892.html">PRINT_SCORE</a></td>
+<td class="comment-1" rowspan="1">The score, and its heading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45179"></span>B07B</td>
+<td class="instruction">CALL <a href="48909.html">CLEAR_COPY_BITS</a></td>
+<td class="comment-1" rowspan="1">Nothing drawn so far needs wiping: bit 5 of every record's flags cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45182"></span>B07E</td>
+<td class="instruction">LD HL,$0004</td>
+<td class="comment-1" rowspan="2">The sound of arriving: sound 0, for four turns</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45185"></span>B081</td>
+<td class="instruction">LD (<a href="42761.html#42825">SOUND_COUNT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_DONE_3</td>
+<td class="address-2"><span id="45188"></span>B084</td>
+<td class="instruction">CALL <a href="54770.html">EFFECT_NOTE</a></td>
+<td class="comment-1" rowspan="1">A turn of the sound effect under way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45191"></span>B087</td>
+<td class="instruction">LD IX,<a href="42863.html">OBJECTS</a></td>
+<td class="comment-1" rowspan="4">Both his records empty: a life is lost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45195"></span>B08B</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45198"></span>B08E</td>
+<td class="instruction">OR (IX+$20)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45201"></span>B091</td>
+<td class="instruction">JP Z,<a href="44935.html#44997">RESTART</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45204"></span>B094</td>
+<td class="instruction">JP <a href="44935.html#45018">MAIN_LOOP</a></td>
+<td class="comment-1" rowspan="1">The next turn</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44935.html">AF87</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45068">Map</a></td>
+<td class="next">
+Next: <a href="45207.html">B097</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B9A7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47515.html">B99B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47527">Map</a></td>
+<td class="next">
+Next: <a href="47668.html">BA34</a>
+</td>
+</tr>
+</table>
+<div class="description">B9A7: Mark every object the moving object's old or new rectangle touches</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50643.html">PLAYER_TOP</a> and <a href="52299.html">HOMER</a>.
+</div>
+<div class="paragraph">
+Called once an object has moved or changed its sprite: by the player's body (<a href="50643.html">PLAYER_TOP</a>), and by every update routine that ends in the tail of <a href="52299.html">HOMER</a>, which sets bits 4 and 5 of the object's +$07 first. It works out the object's new screen rectangle (<a href="47416.html">CALC_2D_INFO</a>), forms the smallest rectangle covering that and the one it had at the start of the turn (+$1C to +$1F, copied there by the main loop), and walks all 54 records setting the draw flag, bit 4 of +$07, on every live object whose rectangle meets it -- the moving object itself included.
+</div>
+<div class="paragraph">
+Across, the rectangles are measured in byte columns (pixel x over 8); up, in pixel rows from the bottom of the screen. E is the union's first column and D its width in columns; L its lowest row and H its height. Only the moving object's rectangle is used: an object redrawn because it meets it does not in turn mark the objects that meet it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object that has moved</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED</td>
+<td class="address-2"><span id="47527"></span>B9A7</td>
+<td class="instruction">LD IY,<a href="42863.html">OBJECTS</a></td>
+<td class="comment-1" rowspan="2">IY = the first record; the new rectangle into +$18 to +$1B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47531"></span>B9AB</td>
+<td class="instruction">CALL <a href="47416.html">CALC_2D_INFO</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47534"></span>B9AE</td>
+<td class="instruction">LD B,$36</td>
+<td class="comment-1" rowspan="1">54 records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47536"></span>B9B0</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="6">L = the new first column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47539"></span>B9B3</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47540"></span>B9B4</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47541"></span>B9B5</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47542"></span>B9B6</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47544"></span>B9B8</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47545"></span>B9B9</td>
+<td class="instruction">LD A,(IX+$1E)</td>
+<td class="comment-1" rowspan="6">H = the old first column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47548"></span>B9BC</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47549"></span>B9BD</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47550"></span>B9BE</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47551"></span>B9BF</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47553"></span>B9C1</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47554"></span>B9C2</td>
+<td class="instruction">CP L</td>
+<td class="comment-1" rowspan="4">E = whichever is further left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47555"></span>B9C3</td>
+<td class="instruction">JR C,<a href="47527.html#47558">SET_DRAW_OBJS_OVERLAPPED_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47557"></span>B9C5</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_0</td>
+<td class="address-2"><span id="47558"></span>B9C6</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47559"></span>B9C7</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="10">D = the further right-hand edge, less E: the width in columns</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47560"></span>B9C8</td>
+<td class="instruction">ADD A,(IX+$18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47563"></span>B9CB</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47564"></span>B9CC</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47565"></span>B9CD</td>
+<td class="instruction">ADD A,(IX+$1C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47568"></span>B9D0</td>
+<td class="instruction">CP L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47569"></span>B9D1</td>
+<td class="instruction">JR NC,<a href="47527.html#47572">SET_DRAW_OBJS_OVERLAPPED_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47571"></span>B9D3</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_1</td>
+<td class="address-2"><span id="47572"></span>B9D4</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47573"></span>B9D5</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47574"></span>B9D6</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="5">L = the lower of the two bottom rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47577"></span>B9D9</td>
+<td class="instruction">CP (IX+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47580"></span>B9DC</td>
+<td class="instruction">JR C,<a href="47527.html#47585">SET_DRAW_OBJS_OVERLAPPED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47582"></span>B9DE</td>
+<td class="instruction">LD A,(IX+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_2</td>
+<td class="address-2"><span id="47585"></span>B9E1</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47586"></span>B9E2</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="10">H = the higher of the two tops, less L: the height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47589"></span>B9E5</td>
+<td class="instruction">ADD A,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47592"></span>B9E8</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47593"></span>B9E9</td>
+<td class="instruction">LD A,(IX+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47596"></span>B9EC</td>
+<td class="instruction">ADD A,(IX+$1D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47599"></span>B9EF</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47600"></span>B9F0</td>
+<td class="instruction">JR NC,<a href="47527.html#47603">SET_DRAW_OBJS_OVERLAPPED_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47602"></span>B9F2</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_3</td>
+<td class="address-2"><span id="47603"></span>B9F3</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47604"></span>B9F4</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">OVERLAP_TEST_OBJ</td>
+<td class="address-2"><span id="47605"></span>B9F5</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">an empty record: next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47608"></span>B9F8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47609"></span>B9F9</td>
+<td class="instruction">JR Z,<a href="47527.html#47644">SET_DRAW_OBJS_OVERLAPPED_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47611"></span>B9FB</td>
+<td class="instruction">BIT 4,(IY+$07)</td>
+<td class="comment-1" rowspan="2">already to be drawn: next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47615"></span>B9FF</td>
+<td class="instruction">JR NZ,<a href="47527.html#47644">SET_DRAW_OBJS_OVERLAPPED_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47617"></span>BA01</td>
+<td class="instruction">LD A,(IY+$1A)</td>
+<td class="comment-1" rowspan="7">its first column, less E; left of the union, see below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47620"></span>BA04</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47621"></span>BA05</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47622"></span>BA06</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47623"></span>BA07</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47625"></span>BA09</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47626"></span>BA0A</td>
+<td class="instruction">JR C,<a href="47527.html#47654">SET_DRAW_OBJS_OVERLAPPED_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47628"></span>BA0C</td>
+<td class="instruction">CP D</td>
+<td class="comment-1" rowspan="2">not left of the union: it meets it across if it starts inside</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_4</td>
+<td class="address-2"><span id="47629"></span>BA0D</td>
+<td class="instruction">JR NC,<a href="47527.html#47644">SET_DRAW_OBJS_OVERLAPPED_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47631"></span>BA0F</td>
+<td class="instruction">LD A,(IY+$1B)</td>
+<td class="comment-1" rowspan="3">its bottom row, less L; below the union, see below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47634"></span>BA12</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47635"></span>BA13</td>
+<td class="instruction">JR C,<a href="47527.html#47661">SET_DRAW_OBJS_OVERLAPPED_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47637"></span>BA15</td>
+<td class="instruction">CP H</td>
+<td class="comment-1" rowspan="2">not below: it meets it up and down if it starts inside</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_5</td>
+<td class="address-2"><span id="47638"></span>BA16</td>
+<td class="instruction">JR NC,<a href="47527.html#47644">SET_DRAW_OBJS_OVERLAPPED_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47640"></span>BA18</td>
+<td class="instruction">SET 4,(IY+$07)</td>
+<td class="comment-1" rowspan="1">draw it this turn</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_6</td>
+<td class="address-2"><span id="47644"></span>BA1C</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="6">the next record, DE kept across the step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47645"></span>BA1D</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47648"></span>BA20</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47650"></span>BA22</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47651"></span>BA23</td>
+<td class="instruction">DJNZ <a href="47527.html#47605">OVERLAP_TEST_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47653"></span>BA25</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_7</td>
+<td class="address-2"><span id="47654"></span>BA26</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="3">to the left: it meets the union if the union starts inside its width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47656"></span>BA28</td>
+<td class="instruction">CP (IY+$18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47659"></span>BA2B</td>
+<td class="instruction">JR <a href="47527.html#47629">SET_DRAW_OBJS_OVERLAPPED_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">SET_DRAW_OBJS_OVERLAPPED_8</td>
+<td class="address-2"><span id="47661"></span>BA2D</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="3">below: it meets the union if the union starts inside its height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47663"></span>BA2F</td>
+<td class="instruction">CP (IY+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47666"></span>BA32</td>
+<td class="instruction">JR <a href="47527.html#47638">SET_DRAW_OBJS_OVERLAPPED_5</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47515.html">B99B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47527">Map</a></td>
+<td class="next">
+Next: <a href="47668.html">BA34</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

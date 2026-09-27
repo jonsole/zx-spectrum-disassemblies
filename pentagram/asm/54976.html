@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D6C0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54965.html">D6B5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54976">Map</a></td>
+<td class="next">
+Next: <a href="55064.html">D718</a>
+</td>
+</tr>
+</table>
+<div class="description">D6C0: Play one note</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="54940.html">PLAY_TUNE_ONCE</a> and <a href="54965.html">PLAY_TUNE</a>.
+</div>
+<div class="paragraph">
+A note byte's low six bits index <a href="55064.html">NOTES</a>, with 0 a rest; its top two bits are its length less one, one to four units. The note's three bytes are two loop counts that time each half of a wave and how many waves make one unit, and the wave count rises with the pitch, which keeps every unit close to 0.155 seconds whatever the note. The speaker is driven directly, off for one half-wave and on for the other, with the border black.
+</div>
+<div class="paragraph">
+The routine and <a href="55064.html">NOTES</a> are byte for byte Knight Lore's (play_note there), at other addresses.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the note byte</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the address of the note byte; on exit, the next one</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE</td>
+<td class="address-2"><span id="54976"></span>D6C0</td>
+<td class="instruction">AND $3F</td>
+<td class="comment-1" rowspan="2">index 0 is a rest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54978"></span>D6C2</td>
+<td class="instruction">JR Z,<a href="54976.html#55042">PLAY_NOTE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54980"></span>D6C4</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="6">HL = <a href="55064.html">NOTES</a> + 3 * index</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54981"></span>D6C5</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54983"></span>D6C7</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54984"></span>D6C8</td>
+<td class="instruction">CALL <a href="46361.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54987"></span>D6CB</td>
+<td class="instruction">LD BC,<a href="55064.html">NOTES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54990"></span>D6CE</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54991"></span>D6CF</td>
+<td class="instruction">LD B,(HL)</td>
+<td class="comment-1" rowspan="6">B and C time the half-wave; HL = the number of waves in one unit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54992"></span>D6D0</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54993"></span>D6D1</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54994"></span>D6D2</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54995"></span>D6D3</td>
+<td class="instruction">LD L,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54996"></span>D6D4</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54998"></span>D6D6</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="5">the top two bits: the length, one to four units</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54999"></span>D6D7</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55000"></span>D6D8</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55001"></span>D6D9</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55003"></span>D6DB</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55004"></span>D6DC</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="7">HL = the waves in one unit times the length</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55005"></span>D6DD</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55006"></span>D6DE</td>
+<td class="instruction">LD D,H</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_0</td>
+<td class="address-2"><span id="55007"></span>D6DF</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55008"></span>D6E0</td>
+<td class="instruction">JR Z,<a href="54976.html#55013">PLAY_NOTE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55010"></span>D6E2</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55011"></span>D6E3</td>
+<td class="instruction">JR <a href="54976.html#55007">PLAY_NOTE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_1</td>
+<td class="address-2"><span id="55013"></span>D6E5</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1">the tune pointer back in DE</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_2</td>
+<td class="address-2"><span id="55014"></span>D6E6</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="7">speaker off, border black; wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55015"></span>D6E7</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55016"></span>D6E8</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_3</td>
+<td class="address-2"><span id="55018"></span>D6EA</td>
+<td class="instruction">DJNZ <a href="54976.html#55018">PLAY_NOTE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55020"></span>D6EC</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55021"></span>D6ED</td>
+<td class="instruction">JR NZ,<a href="54976.html#55018">PLAY_NOTE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55023"></span>D6EF</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55024"></span>D6F0</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="7">speaker on; wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55025"></span>D6F1</td>
+<td class="instruction">LD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55027"></span>D6F3</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_4</td>
+<td class="address-2"><span id="55029"></span>D6F5</td>
+<td class="instruction">DJNZ <a href="54976.html#55029">PLAY_NOTE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55031"></span>D6F7</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55032"></span>D6F8</td>
+<td class="instruction">JR NZ,<a href="54976.html#55029">PLAY_NOTE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55034"></span>D6FA</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55035"></span>D6FB</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="4">until all the waves are done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55036"></span>D6FC</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55037"></span>D6FD</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55038"></span>D6FE</td>
+<td class="instruction">JR NZ,<a href="54976.html#55014">PLAY_NOTE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55040"></span>D700</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="2">on to the next note byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55041"></span>D701</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_5</td>
+<td class="address-2"><span id="55042"></span>D702</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="7">a rest: one to four units...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55043"></span>D703</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55044"></span>D704</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55045"></span>D705</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55046"></span>D706</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55048"></span>D708</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55049"></span>D709</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55050"></span>D70A</td>
+<td class="instruction">LD BC,$430B</td>
+<td class="comment-1" rowspan="10">...each 17163 turns of a 26 T-state loop, about 0.127 seconds (no tune has a rest)</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_6</td>
+<td class="address-2"><span id="55053"></span>D70D</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label">PLAY_NOTE_7</td>
+<td class="address-2"><span id="55054"></span>D70E</td>
+<td class="instruction">DEC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55055"></span>D70F</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55056"></span>D710</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55057"></span>D711</td>
+<td class="instruction">JR NZ,<a href="54976.html#55054">PLAY_NOTE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55059"></span>D713</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55060"></span>D714</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55061"></span>D715</td>
+<td class="instruction">JR NZ,<a href="54976.html#55053">PLAY_NOTE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55063"></span>D717</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54965.html">D6B5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54976">Map</a></td>
+<td class="next">
+Next: <a href="55064.html">D718</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

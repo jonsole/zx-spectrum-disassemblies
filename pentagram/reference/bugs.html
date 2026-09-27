@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#droptimer">The drop timer reads one record eighteen times</a></li>
+<li><a href="#percent">Nothing done is 56 per cent</a></li>
+<li><a href="#directional">Steering by direction was left half done</a></li>
+<li><a href="#drawlist">Too much in room 87 crashes the game</a></li>
+<li><a href="#wellbolts">The well counts one bolt's puff and not the other's</a></li>
+<li><a href="#128k">A stray OUT pages a 128K's memory</a></li>
+<li><a href="#allfour">The last quest item's link is bent</a></li>
+<li><a href="#lives">Lives are added without BCD</a></li>
+</ul>
+<div><span id="droptimer"></span></div>
+<div class="box box-1">
+<div class="box-title">The drop timer reads one record eighteen times</div>
+<div class="paragraph">
+Things fall from the sky once DROP_TIMER has run out (<a href="../asm/52139.html">SKY_DROP</a>), and
+<a href="../asm/52273.html">RESET_DROP_TIMER</a> sets it at the start of every room and after every
+drop. By its shape it counts the quest items still to do -- a loop over the
+eighteen quest records at <a href="../asm/54322.html">QUEST_RECORDS</a>, adding one for each graphic of 112 to 115
+-- and sets four turns for each, plus eight: 8 to 24 turns. But the loop
+loads DE with the record length and never adds it to HL. It tests the first
+record eighteen times, so the timer is 80 turns while the first quest item
+(the one in room 122) is still to do, and 8 once it is done, whatever the
+other three are.
+</div>
+<div class="paragraph">
+Watched in the emulator, reading DROP_TIMER at the first turn in room 30:
+80 with the quest items as a new game has them; 8 with only the first staged
+as done; 80 with the other three done and not the first; 8 with all four.
+Meant: 24, 20, 12 and 8.
+</div>
+</div>
+<div><span id="percent"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing done is 56 per cent</div>
+<div class="paragraph">
+<a href="../asm/50922.html">PERCENTAGE</a> adds up the game-over score -- half the rooms seen, at
+most 54, 4 for each quest item done and 6 for each collectable placed -- and
+counts it into BCD one at a time with ADD A,1 / DAA in a DJNZ loop. With a
+sum of 0 the loop runs 256 times, not none, and 256 in BCD with the hundreds
+dropped is 56. The sum is 0 whenever a game ends before a second room has
+been seen, since one room halves to nothing. So a player who loses every
+life in the room he started in is told he has done more than half the quest.
+</div>
+<div class="paragraph">
+<div><img src="../images/reference/gameover.png" alt="The game-over screen of a game lost in its first room"/></div>
+The picture was drawn by the game's own code in SkoolKit's simulator: a first
+game started from the menu, the lives taken away at its first turn and the
+player killed; the game's own death, game over and percentage followed, and
+printed 56. Watched in the emulator too: the same in the start
+room gave 56, and with one more room seen, 01.
+</div>
+</div>
+<div><span id="directional"></span></div>
+<div class="box box-1">
+<div class="box-title">Steering by direction was left half done</div>
+<div class="paragraph">
+Knight Lore let a joystick steer by direction -- push the way you want him to
+face -- and Pentagram keeps the code: <a href="../asm/50376.html">HANDLE_LEFT_RIGHT</a> has a directional branch, and
+<a href="../asm/48998.html">CHK_PICKUP_DROP</a> takes the pick-up control from bit 5 of INPUT instead of bit 4 in that
+mode, which bit 3 of CONTROL selects. No menu choice sets bit 3, so it is
+reachable only by a poke, and there it is broken three ways. <a href="../asm/48632.html">READ_CONTROLS</a> never
+sets bit 5, so nothing can be picked up or put down. The directional code
+takes bit 4 as down, but every joystick reads down as jump (bit 3) and bit 4
+is the pick-up keys, so the stick can never turn him to face down and left,
+and the pick-up keys turn him instead. And <a href="../asm/48088.html">FLASH_MENU</a> would flash the start line
+of the menu, where Knight Lore had a line for this mode (read, not seen).
+</div>
+<div class="paragraph">
+Watched in the emulator, with the cursor joystick chosen and a bucket staged
+beside him in room 30: the bottom-row key picked it up with CONTROL 4; with
+CONTROL 12 (bit 3 set) the bucket stayed where it was and he turned from
+facing 0 to facing 3; the stick's down (6) left him facing 0.
+</div>
+</div>
+<div><span id="drawlist"></span></div>
+<div class="box box-2">
+<div class="box-title">Too much in room 87 crashes the game</div>
+<div class="paragraph">
+<a href="../asm/46385.html">LIST_DRAWN</a> writes the number of every record to be drawn into
+<a href="../asm/46426.html">DRAW_LIST</a>, and an $FF after the last. The list has 48
+bytes -- Knight Lore's size, for its forty records -- but Pentagram has 54,
+and nothing checks: a list of more than 47 records runs over the first
+bytes of <a href="../asm/46474.html">SORT_AND_DRAW</a>, which follows it. On the first turn in a room
+everything is listed, because everything has to be drawn. Counted from the
+room data the way <a href="../asm/51500.html">BUILD_ROOM</a> reads it, the fullest rooms fill, of their 48
+records: 87 (43), 80 (42), 2 (40), 59 (40), 93 (39). Room 87 lists 45 with the player's legs and
+body, 5 records to spare -- and the quest things he carries fill
+records too when they are put down there. Three of them are enough.
+</div>
+<div class="paragraph">
+With 48 listed, the $FF lands on the XOR A that begins SORT_AND_DRAW
+and stays there. $FF is RST $38: every turn from then on starts drawing with a
+call to the ROM's interrupt routine, which ends with EI, so interrupts come on
+in a game written to run without them. The next frame interrupt lands while
+the sprite drawer (<a href="../asm/46035.html">DRAW_OBJECT</a>) is reading a sprite with the stack pointer
+pointed into it, and the return address pushed there overwrites the sprite;
+the game goes wrong from there. With more listed, record numbers overwrite the code as well.
+</div>
+<div class="paragraph">
+Watched in the emulator, with collectables' quest records staged into room
+87 (as if carried there and put down) and the room entered by the
+game's own restart: with two, 47 were listed and 300 turns went by
+normally; with three, 48 were listed, SORT_AND_DRAW began with $FF,
+the ROM's interrupt routine ran over and over during the first turn --
+called at first from $B58B, then from all over the drawing code with the
+stack inside sprite data. In that run the game never finished its first turn
+in the room; in another, stopped differently, it went four turns with its
+variables overwritten -- the turn counter and the room number read as
+nonsense -- and hung. With five, 50 were listed and it ran six turns before
+it hung.
+</div>
+</div>
+<div><span id="wellbolts"></span></div>
+<div class="box box-1">
+<div class="box-title">The well counts one bolt's puff and not the other's</div>
+<div class="paragraph">
+<a href="../asm/53170.html">BOLT_TOUCHING</a> asks whether either of his two bolts is touching the
+well, with HIT_TEST, which ignores a puff -- graphics 64 to 71, what a
+bolt turns into when it hits something. The second bolt goes in at the top,
+but the first goes in at HIT_TEST_Z, past the test for a puff. So a bolt fired
+from the first record counts for the turn it touches the well and then for
+each of the eight turns its puff hangs there; one from the second record
+counts once. <a href="../asm/53202.html">WELL</a> wants 32.
+</div>
+<div class="paragraph">
+Watched in the emulator, logging the well's count at the instruction that
+adds to it, in room 71 with a shot every five turns: 32 counts in 35 turns,
+from 7 shots, all but a few of them made by the first record's bolt or its
+puff. With the first record sent through the puff test like the second
+(below), the same shooting took 32 shots and 160 turns, one count a shot.
+Which of the two was meant is not known; the difference is only that they are
+not the same.
+</div>
+<div class="paragraph">
+POKE 53182,22
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-2">
+<div class="box-title">A stray OUT pages a 128K's memory</div>
+<div class="paragraph">
+<a href="../asm/47442.html">READ_KEYS</a> does OUT ($FD),A before IN A,($FE), with the half-rows to
+read in A. OUT (n),A puts A on the top half of the address bus, so the port
+is A * 256 + $FD. A 48K ignores it. A 128K takes any port with bits 15 and 1
+clear as its paging port, $7FFD: every half-row value with bit 7 clear is a
+paging write. The menu tune's "any key" test (<a href="../asm/54940.html">PLAY_TUNE_ONCE</a>) reads with A = 0,
+which pages the 128's editor ROM in and does no harm, since the game never
+calls the ROM. But in play the keyboard reads SPACE's half-row as $7F, and
+the pause test (<a href="../asm/46304.html">PAUSE</a>) reads $7E every turn, whatever the controls: that
+puts RAM bank 7 or 6 at $C000, where most of the code and the screen buffer
+are, and locks the paging. The game cannot survive its first turn.
+</div>
+<div class="paragraph">
+Watched in the emulator's 128K, from the loaded game put into a 128K snapshot
+with the 48 BASIC ROM and bank 0 paged in, as the 128's Tape Loader leaves
+it: the menu worked, with ROM 0 paged in by the tune's key test; at the first
+turn of play READ_KEYS was called with $7F from the keyboard reader, the
+paging port became $7F, locked, and the machine ended in the ROM, reset.
+So on a 128K the game must be run in 48 mode. Knight Lore's
+<a href="../knightlore/asm/46583.html">keyboard routine</a> has the same OUT,
+and its callers pass $7E too; it was not tried on a 128K. The poke that
+removes the OUT is with the pokes.
+</div>
+</div>
+<div><span id="allfour"></span></div>
+<div class="box box-1">
+<div class="box-title">The last quest item's link is bent</div>
+<div class="paragraph">
+When the fourth quest item is done, <a href="../asm/53562.html">ALL_FOUR_DONE</a> walks the quest
+records setting bit 4 of each pentagram piece's flags, and with each piece it
+also sets bit 0 of +$11 of IX -- the quest item that called it. +$10 and +$11
+are that object's link to its own quest record, so the link now points 256
+bytes further on. Nothing follows a quest item's link -- only a carried
+thing's link is used, by <a href="../asm/49017.html">TAKE_OR_LEAVE</a>, and a quest item cannot be carried -- and
+the record is matched by graphic when he leaves the room (<a href="../asm/45333.html">QUEST_OUT_OF_ROOM</a>), so it
+does no harm. What the SET was meant to do is not known.
+</div>
+<div class="paragraph">
+Watched in the emulator, with three quest items staged as done and the
+bucket staged as carried into room 122 and put down: it rose, flew to the
+stone and was used up in 58 turns; the stone became graphic 116, QUEST_DONE
+went to 4, the lives from 4 to 5, PENTAGRAM_ON was set, and the stone's link
+went from $D432 to $D532.
+</div>
+</div>
+<div><span id="lives"></span></div>
+<div class="box box-2">
+<div class="box-title">Lives are added without BCD</div>
+<div class="paragraph">
+LIVES is printed as two BCD digits (<a href="../asm/49818.html">DRAW_LIVES</a>) and a quest item adds one with a
+plain INC (<a href="../asm/53096.html">QUEST_ITEM</a>); <a href="../asm/49900.html">RESTART_PLAYER</a> takes one with a plain DEC. Past 9 the INC would
+make $0A, not $10. It never happens: a game starts with five, the first
+life takes one, and there are only four quest items, so a player who never
+dies ends with eight. Read from the code; the one extra life was watched (see
+the bug above).
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

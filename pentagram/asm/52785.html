@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CE31</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52667.html">CDBB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52785">Map</a></td>
+<td class="next">
+Next: <a href="52890.html">CE9A</a>
+</td>
+</tr>
+</table>
+<div class="description">CE31: The update routine for a thing that bobs up and down</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52890.html">DEADLY_BOBBER</a>.
+</div>
+<div class="paragraph">
+Used by graphic 86 through <a href="52890.html">DEADLY_BOBBER</a>, which makes it deadly first; graphic 85 comes here directly, but no room places one. It keeps its state in bit 2 of +D, which the kill bits (5 to 7) leave free: clear while it falls, set while it rises.
+</div>
+<div class="paragraph">
+Falling, it drops one unit a turn; when it lands on something it starts rising, one unit a turn (the 2 it stores on landing is overwritten with 1 before any move uses it; measured in room 88: one unit a turn from the first), until its height reaches 176, when it falls again. If something above stops it rising, it falls at once. When the player (or the heavy block) is standing on it the rise is three a turn; a jump by him clears that.
+</div>
+<div class="paragraph">
+Measured in the simulator in room 11 (graphic 86, nothing on it): it rose one unit a turn to 176 and fell back one a turn to where it had landed, over and over.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER</td>
+<td class="address-2"><span id="52785"></span>CE31</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52788"></span>CE34</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="5">no sideways step; rising?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52789"></span>CE35</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52792"></span>CE38</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52795"></span>CE3B</td>
+<td class="instruction">BIT 2,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52799"></span>CE3F</td>
+<td class="instruction">JR NZ,<a href="52785.html#52831">BOBBER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52801"></span>CE41</td>
+<td class="instruction">LD (IX+$0B),A</td>
+<td class="comment-1" rowspan="2">falling: one unit a turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52804"></span>CE44</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52807"></span>CE47</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">landed: start rising (the 2 stored here is replaced before it is used)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52811"></span>CE4B</td>
+<td class="instruction">JR Z,<a href="52785.html#52821">BOBBER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52813"></span>CE4D</td>
+<td class="instruction">SET 2,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52817"></span>CE51</td>
+<td class="instruction">LD (IX+$0B),$02</td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_0</td>
+<td class="address-2"><span id="52821"></span>CE55</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">no sideways step; redraw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52822"></span>CE56</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52825"></span>CE59</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52828"></span>CE5C</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_1</td>
+<td class="address-2"><span id="52831"></span>CE5F</td>
+<td class="instruction">LD A,(<a href="42863.html#42875">PLAYER_BUMPED</a>)</td>
+<td class="comment-1" rowspan="4">rising: if he has jumped, he is no longer on it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52834"></span>CE62</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52836"></span>CE64</td>
+<td class="instruction">JR Z,<a href="52785.html#52842">BOBBER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52838"></span>CE66</td>
+<td class="instruction">RES 7,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_2</td>
+<td class="address-2"><span id="52842"></span>CE6A</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="6">he is on it, or it is moving: carry on up; stopped: fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52845"></span>CE6D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52846"></span>CE6E</td>
+<td class="instruction">BIT 7,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52850"></span>CE72</td>
+<td class="instruction">JR NZ,<a href="52785.html#52855">BOBBER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52852"></span>CE74</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52853"></span>CE75</td>
+<td class="instruction">JR Z,<a href="52785.html#52881">BOBBER_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_3</td>
+<td class="address-2"><span id="52855"></span>CE77</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="4">one unit a turn up, or three with him on it (the sign of what was tested last)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52857"></span>CE79</td>
+<td class="instruction">JP P,<a href="52785.html#52862">BOBBER_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52860"></span>CE7C</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_4</td>
+<td class="address-2"><span id="52862"></span>CE7E</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52865"></span>CE81</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+<td class="comment-1" rowspan="6">move; at 176 or above, fall from now on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52868"></span>CE84</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52871"></span>CE87</td>
+<td class="instruction">CP $B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52873"></span>CE89</td>
+<td class="instruction">JR C,<a href="52785.html#52821">BOBBER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52875"></span>CE8B</td>
+<td class="instruction">RES 2,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52879"></span>CE8F</td>
+<td class="instruction">JR <a href="52785.html#52821">BOBBER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER_5</td>
+<td class="address-2"><span id="52881"></span>CE91</td>
+<td class="instruction">CALL <a href="47481.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+<td class="comment-1" rowspan="3">stopped from above: fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52884"></span>CE94</td>
+<td class="instruction">RES 2,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52888"></span>CE98</td>
+<td class="instruction">JR <a href="52785.html#52821">BOBBER_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52667.html">CDBB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52785">Map</a></td>
+<td class="next">
+Next: <a href="52890.html">CE9A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

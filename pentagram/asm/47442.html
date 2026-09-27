@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B952</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47416.html">B938</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47442">Map</a></td>
+<td class="next">
+Next: <a href="47450.html">B95A</a>
+</td>
+</tr>
+</table>
+<div class="description">B952: Read a half-row of the keyboard</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="46304.html">PAUSE</a>, <a href="47988.html">MENU</a>, <a href="48632.html">READ_CONTROLS</a> and <a href="54940.html">PLAY_TUNE_ONCE</a>.
+</div>
+<div class="paragraph">
+Knight Lore's routine, byte for byte. The IN does the selecting on its own: IN A,($FE) puts A on the top half of the address bus, so each 0 bit in A selects a half-row. The CPL turns the keys' active-low bits the right way up.
+</div>
+<div class="paragraph">
+The OUT before it is not needed for the read. It writes A to port A*256+$FD, which nothing on a 48K Spectrum answers. A 128K machine's paging port would decode it whenever A has bit 7 clear, and the first such write comes as soon as the keyboard is read: $7F from the keyboard read in <a href="48632.html">READ_CONTROLS</a> (RAM page 7), or $7E from a joystick's (<a href="48632.html#48893">READ_BOTTOM_ROW</a>) and from <a href="46304.html">PAUSE</a> every turn (page 6). In 128 mode that would put another RAM page at the top 16K, where much of the game lives, show the other screen and lock the paging. Tried on the emulator's 128K, from a 128K snapshot: at the first turn of play $7F went to the paging port, bank 7 appeared at the top, the paging locked, and the machine reset (the menu tune's key test had already paged the editor ROM in).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the half-rows to read, as the port's high byte</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the keys pressed, bits 0-4, a set bit for a key down</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_KEYS</td>
+<td class="address-2"><span id="47442"></span>B952</td>
+<td class="instruction">OUT ($FD),A</td>
+<td class="comment-0" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47444"></span>B954</td>
+<td class="instruction">IN A,($FE)</td>
+<td class="comment-0" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47446"></span>B956</td>
+<td class="instruction">CPL</td>
+<td class="comment-0" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47447"></span>B957</td>
+<td class="instruction">AND $1F</td>
+<td class="comment-0" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47449"></span>B959</td>
+<td class="instruction">RET</td>
+<td class="comment-0" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47416.html">B938</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47442">Map</a></td>
+<td class="next">
+Next: <a href="47450.html">B95A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

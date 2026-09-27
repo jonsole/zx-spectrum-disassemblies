@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at B674</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46705.html">B671</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46708">Map</a></td>
+<td class="next">
+Next: <a href="46768.html">B6B0</a>
+</td>
+</tr>
+</table>
+<div class="description">B674: The other object must be drawn first</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="46648.html">DEPTH_ORDER</a>. IY is behind the candidate, so it becomes the candidate instead -- unless it is already in the chain of objects that have been candidates since the last draw (<a href="46797.html">CANDIDATE_CHAIN</a>), in which case the order has gone round in a circle and IY is drawn straight away.
+</div>
+<div class="paragraph">
+Nothing checks the chain's length: <a href="46797.html">CANDIDATE_CHAIN</a> has room for fifteen numbers and the $FF, twice Knight Lore's, and a sixteenth link would put its $FF on the first byte of <a href="46813.html">FILL_RECT</a>. Measured over every room's first turn: the longest chain is 9, in the four start rooms, and four rooms go past Knight Lore's 7 -- so Knight Lore's eight bytes would have overflowed here (that this is why it was doubled is an inference).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST</td>
+<td class="address-2"><span id="46708"></span>B674</td>
+<td class="instruction">LD HL,(<a href="42761.html#42779">SORT_SECOND</a>)</td>
+<td class="comment-1" rowspan="3">C = IY's number, from its entry in the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46711"></span>B677</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46712"></span>B678</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46713"></span>B679</td>
+<td class="instruction">LD DE,<a href="46797.html">CANDIDATE_CHAIN</a></td>
+<td class="comment-1" rowspan="8">search the chain for it</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST_0</td>
+<td class="address-2"><span id="46716"></span>B67C</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46717"></span>B67D</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46719"></span>B67F</td>
+<td class="instruction">JR Z,<a href="46708.html#46727">IY_BECOMES_CANDIDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46721"></span>B681</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46722"></span>B682</td>
+<td class="instruction">JR Z,<a href="46708.html#46749">BREAK_ORDER_CYCLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46724"></span>B684</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46725"></span>B685</td>
+<td class="instruction">JR <a href="46708.html#46716">IY_GOES_FIRST_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">IY_BECOMES_CANDIDATE</td>
+<td class="address-2"><span id="46727"></span>B687</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">not there: add it, with a new $FF after it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46728"></span>B688</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46729"></span>B689</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46730"></span>B68A</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46732"></span>B68C</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46733"></span>B68D</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">IX = IY, and SORT_FIRST = SORT_SECOND</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46735"></span>B68F</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46737"></span>B691</td>
+<td class="instruction">LD HL,(<a href="42761.html#42779">SORT_SECOND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46740"></span>B694</td>
+<td class="instruction">LD (<a href="42761.html#42777">SORT_FIRST</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46743"></span>B697</td>
+<td class="instruction">LD DE,<a href="46426.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="2">compare it with the whole list from the top, since it need not be the first undrawn entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46746"></span>B69A</td>
+<td class="instruction">JP <a href="46474.html#46506">COMPARE_NEXT_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label">BREAK_ORDER_CYCLE</td>
+<td class="address-2"><span id="46749"></span>B69D</td>
+<td class="instruction">LD HL,<a href="46426.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="7">a circle: find IY's entry in the list (its number is certain to be there, so the exit to a new pass is never taken)</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST_1</td>
+<td class="address-2"><span id="46752"></span>B6A0</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46753"></span>B6A1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46754"></span>B6A2</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46756"></span>B6A4</td>
+<td class="instruction">JP Z,<a href="46474.html#46482">SORT_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46759"></span>B6A7</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46760"></span>B6A8</td>
+<td class="instruction">JR NZ,<a href="46708.html#46752">IY_GOES_FIRST_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46762"></span>B6AA</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="3">IX = IY; draw it, HL just past its entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46764"></span>B6AC</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46766"></span>B6AE</td>
+<td class="instruction">JR <a href="46771.html#46774">DRAW_AND_NEXT_PASS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46705.html">B671</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46708">Map</a></td>
+<td class="next">
+Next: <a href="46768.html">B6B0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

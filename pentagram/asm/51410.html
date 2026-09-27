@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at C8D2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51373.html">C8AD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51410">Map</a></td>
+<td class="next">
+Next: <a href="51447.html">C8F7</a>
+</td>
+</tr>
+</table>
+<div class="description">C8D2: Nudge the player towards the middle of an arch</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51117.html">FIRST_PILLAR</a>.
+</div>
+<div class="paragraph">
+If the player's legs are within 15 of the arch's middle in U and V and 4 in Z, sets a nudge of one unit towards its middle line in +$0E (U) or +$0F (V), which <a href="50794.html">CALC_PLYR_DUV</a> adds to his step when he next walks: this is why he slides into line with an arch as he walks through. An arch in a wall of constant U (not mirrored) nudges along V; one in a wall of constant V along U.
+</div>
+<div class="paragraph">
+The routine is picked from <a href="51447.html">ROUTINES_BIT3_SET</a>, through the jump at the end of <a href="50794.html">CALC_PLYR_DUV</a>, by the pillar's own facing. Knight Lore does the same for each of the player's records; here only the legs are nudged.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The first pillar, holding the arch's middle at +$09 to +$0B</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ARCH_NUDGE_TO_CENTRE</td>
+<td class="address-2"><span id="51410"></span>C8D2</td>
+<td class="instruction">LD HL,$0F0F</td>
+<td class="comment-1" rowspan="1">15 either way in U and V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51413"></span>C8D5</td>
+<td class="instruction">LD IY,<a href="42863.html">OBJECTS</a></td>
+<td class="comment-1" rowspan="4">The player's legs, if there are any</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51417"></span>C8D9</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51420"></span>C8DC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51421"></span>C8DD</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51422"></span>C8DE</td>
+<td class="instruction">BIT 3,(IY+$07)</td>
+<td class="comment-1" rowspan="2">Not one that uses doorways</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51426"></span>C8E2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51427"></span>C8E3</td>
+<td class="instruction">CALL <a href="51373.html">IS_NEAR_TO</a></td>
+<td class="comment-1" rowspan="2">Not near</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51430"></span>C8E6</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51431"></span>C8E7</td>
+<td class="instruction">LD BC,<a href="51447.html">ROUTINES_BIT3_SET</a></td>
+<td class="comment-1" rowspan="3">Graphic 8: the first table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51434"></span>C8EA</td>
+<td class="instruction">BIT 3,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51438"></span>C8EE</td>
+<td class="instruction">JP NZ,<a href="50794.html#50822">DISPATCH_ON_FACING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51441"></span>C8F1</td>
+<td class="instruction">LD BC,<a href="51447.html#51455">ROUTINES_BIT3_CLEAR</a></td>
+<td class="comment-1" rowspan="2">Graphic 6: the second</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51444"></span>C8F4</td>
+<td class="instruction">JP <a href="50794.html#50822">DISPATCH_ON_FACING</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51373.html">C8AD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51410">Map</a></td>
+<td class="next">
+Next: <a href="51447.html">C8F7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

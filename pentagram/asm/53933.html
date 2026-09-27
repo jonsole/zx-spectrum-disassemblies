@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at D2AD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53841.html">D251</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53933">Map</a></td>
+<td class="next">
+Next: <a href="53982.html">D2DE</a>
+</td>
+</tr>
+</table>
+<div class="description">D2AD: The update routine for the crumbling block</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphics 136 to 139: a block that crumbles a stage for each turn he stands on it, and vanishes after the fourth. It needs both bit 7 of +17, which the collision code sets when he (or the heavy block, <a href="52597.html">HEAVY_BLOCK</a>) lands on it (<a href="47248.html">MARK_STOOD_ON</a>), and bit 3 of +D, set for anything landing on it (<a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>); it clears both, then moves up a graphic, or from 139 becomes graphic 1, which <a href="46035.html">DRAW_OBJECT</a> rubs out and turns into an empty record.
+</div>
+<div class="paragraph">
+Measured in the simulator in room 4: he landed on it and it went 136, 137, 138, 139, gone, a turn each, and he fell.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CRUMBLING_BLOCK</td>
+<td class="address-2"><span id="53933"></span>D2AD</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="3">the drawing nudge; no fall; move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53936"></span>D2B0</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53940"></span>D2B4</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53943"></span>D2B7</td>
+<td class="instruction">BIT 7,(IX+$17)</td>
+<td class="comment-1" rowspan="6">he has landed on it this turn?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53947"></span>D2BB</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53948"></span>D2BC</td>
+<td class="instruction">RES 7,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53952"></span>D2C0</td>
+<td class="instruction">BIT 3,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53956"></span>D2C4</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53957"></span>D2C5</td>
+<td class="instruction">RES 3,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53961"></span>D2C9</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">the next stage; redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53964"></span>D2CC</td>
+<td class="instruction">CP $8B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53966"></span>D2CE</td>
+<td class="instruction">JR Z,<a href="53933.html#53975">CRUMBLING_BLOCK_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53968"></span>D2D0</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53969"></span>D2D1</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53972"></span>D2D4</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">CRUMBLING_BLOCK_0</td>
+<td class="address-2"><span id="53975"></span>D2D7</td>
+<td class="instruction">LD (IX+$00),$01</td>
+<td class="comment-1" rowspan="2">after the last: vanish</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53979"></span>D2DB</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53841.html">D251</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53933">Map</a></td>
+<td class="next">
+Next: <a href="53982.html">D2DE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

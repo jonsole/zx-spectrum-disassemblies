@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at BB29</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47912.html">BB28</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47913">Map</a></td>
+<td class="next">
+Next: <a href="47972.html">BB64</a>
+</td>
+</tr>
+</table>
+<div class="description">BB29: Add BC to the score, in BCD, and print it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49764.html">SHOOT_DOWN</a>.
+</div>
+<div class="paragraph">
+C goes into the last two digits (the third byte of SCORE), B with the carry into the middle two and the carry into the first two. The score is then printed into the buffer; the only caller, <a href="49764.html">SHOOT_DOWN</a>, copies it to the screen with <a href="45381.html">SHOW_SCORE</a>.
+</div>
+<div class="paragraph">
+The entry point PRINT_BCD prints B bytes of BCD at DE, two digits each, into the buffer at HL; PRINT_BCD_LSD starts with only the second digit of the first byte. <a href="49818.html">DRAW_LIVES</a> prints the lives with the first, <a href="50922.html">PERCENTAGE</a> the percentage with both.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">the points, BCD</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE</td>
+<td class="address-2"><span id="47913"></span>BB29</td>
+<td class="instruction">LD HL,$A746</td>
+<td class="comment-1" rowspan="5">the last two digits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47916"></span>BB2C</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47917"></span>BB2D</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47918"></span>BB2E</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47919"></span>BB2F</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47920"></span>BB30</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">the middle two, with the carry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47921"></span>BB31</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47922"></span>BB32</td>
+<td class="instruction">ADC A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47923"></span>BB33</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47924"></span>BB34</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47925"></span>BB35</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">the first two</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47926"></span>BB36</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47927"></span>BB37</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47929"></span>BB39</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47930"></span>BB3A</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47931"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="47892.html">PRINT_SCORE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_SCORE_DIGITS</td>
+<td class="address-2"><span id="47931"></span>BB3B</td>
+<td class="instruction">LD BC,$10B8</td>
+<td class="comment-1" rowspan="6">HL = the buffer at pixel x 184, pixel y 16; three bytes from SCORE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47934"></span>BB3E</td>
+<td class="instruction">CALL <a href="45951.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47937"></span>BB41</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47938"></span>BB42</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47939"></span>BB43</td>
+<td class="instruction">LD DE,<a href="42761.html#42820">SCORE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47942"></span>BB46</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47944"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="49818.html">DRAW_LIVES</a> and <a href="50922.html">PERCENTAGE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_BCD</td>
+<td class="address-2"><span id="47944"></span>BB48</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="4">the font's own address as the base: digits are codes 0-9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47945"></span>BB49</td>
+<td class="instruction">LD HL,<a href="33621.html">FONT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47948"></span>BB4C</td>
+<td class="instruction">LD (<a href="42761.html#42802">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47951"></span>BB4F</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47952"></span>BB50</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="7">the first digit, from the high four bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47953"></span>BB51</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47954"></span>BB52</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47955"></span>BB53</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47956"></span>BB54</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47957"></span>BB55</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47959"></span>BB57</td>
+<td class="instruction">CALL <a href="47850.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47962"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="50922.html">PERCENTAGE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_BCD_LSD</td>
+<td class="address-2"><span id="47962"></span>BB5A</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">the second, from the low four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47963"></span>BB5B</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47965"></span>BB5D</td>
+<td class="instruction">CALL <a href="47850.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47968"></span>BB60</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="3">the next byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47969"></span>BB61</td>
+<td class="instruction">DJNZ <a href="47913.html#47944">PRINT_BCD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47971"></span>BB63</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47912.html">BB28</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47913">Map</a></td>
+<td class="next">
+Next: <a href="47972.html">BB64</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

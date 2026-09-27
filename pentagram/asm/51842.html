@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CA82</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51839.html">CA7F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51842">Map</a></td>
+<td class="next">
+Next: <a href="51950.html">CAEE</a>
+</td>
+</tr>
+</table>
+<div class="description">CA82: Put the player in the doorway he came in by</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50870.html">ENTER_ROOM</a>.
+</div>
+<div class="paragraph">
+Called when a room has been built. A U or V of 0 or $FF is the marker an exit (<a href="51267.html">EXIT_LOW_U</a> to <a href="51354.html">EXIT_LOW_V</a>) left: 0 in U means he left through a wall at low U and comes in by this room's wall at high U, $FF the other way, and the same for V. He is put with his inner edge 2 inside the wall's line, the rest of him in the doorway, and the walk into a room brings him in. <a href="51950.html">FIND_ENTRY_ARCH</a> finds the arch in that wall and lines him up with its middle and its floor. Without a marker -- a new game, or a life lost where one began -- he stays where his record says.
+</div>
+<div class="paragraph">
+Knight Lore does the same with the same markers; the walls are where the room's size (<a href="24071.html">ROOM_SIZES</a>) puts them, so the doorway's place is worked out from ROOM_EXTENT.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The player's legs</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE</td>
+<td class="address-2"><span id="51842"></span>CA82</td>
+<td class="instruction">LD A,(<a href="42761.html#42781">ROOM_EXTENT</a>)</td>
+<td class="comment-1" rowspan="6">L, H = the room's half-sizes in U and V, less 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51845"></span>CA85</td>
+<td class="instruction">SUB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51847"></span>CA87</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51848"></span>CA88</td>
+<td class="instruction">LD A,($A71E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51851"></span>CA8B</td>
+<td class="instruction">SUB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51853"></span>CA8D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51854"></span>CA8E</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="3">U 0: came in at high U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51857"></span>CA91</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51858"></span>CA92</td>
+<td class="instruction">JR Z,<a href="51842.html#51937">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51860"></span>CA94</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="2">U $FF: came in at low U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51861"></span>CA95</td>
+<td class="instruction">JR Z,<a href="51842.html#51921">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51863"></span>CA97</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="3">V 0: came in at high V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51866"></span>CA9A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51867"></span>CA9B</td>
+<td class="instruction">JR Z,<a href="51842.html#51908">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51869"></span>CA9D</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="3">V $FF: came in at low V; otherwise nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51870"></span>CA9E</td>
+<td class="instruction">JR Z,<a href="51842.html#51873">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51872"></span>CAA0</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_0</td>
+<td class="address-2"><span id="51873"></span>CAA1</td>
+<td class="instruction">LD C,$03</td>
+<td class="comment-1" rowspan="5">At low V: the arch there, and V puts his inner edge 2 inside the wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51875"></span>CAA3</td>
+<td class="instruction">CALL <a href="51950.html">FIND_ENTRY_ARCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51878"></span>CAA6</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51880"></span>CAA8</td>
+<td class="instruction">SUB H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51881"></span>CAA9</td>
+<td class="instruction">SUB (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_1</td>
+<td class="address-2"><span id="51884"></span>CAAC</td>
+<td class="instruction">LD (IX+$02),A</td>
+<td class="comment-1" rowspan="1">Store V</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_2</td>
+<td class="address-2"><span id="51887"></span>CAAF</td>
+<td class="instruction">SET 4,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Draw both of his records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51891"></span>CAB3</td>
+<td class="instruction">SET 4,(IX+$27)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51895"></span>CAB7</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="5">The body at the same U and V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51898"></span>CABA</td>
+<td class="instruction">LD (IX+$21),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51901"></span>CABD</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51904"></span>CAC0</td>
+<td class="instruction">LD (IX+$22),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51907"></span>CAC3</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_3</td>
+<td class="address-2"><span id="51908"></span>CAC4</td>
+<td class="instruction">LD C,$02</td>
+<td class="comment-1" rowspan="6">At high V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51910"></span>CAC6</td>
+<td class="instruction">CALL <a href="51950.html">FIND_ENTRY_ARCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51913"></span>CAC9</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51914"></span>CACA</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51916"></span>CACC</td>
+<td class="instruction">ADD A,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51919"></span>CACF</td>
+<td class="instruction">JR <a href="51842.html#51884">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_4</td>
+<td class="address-2"><span id="51921"></span>CAD1</td>
+<td class="instruction">LD C,$01</td>
+<td class="comment-1" rowspan="5">At low U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51923"></span>CAD3</td>
+<td class="instruction">CALL <a href="51950.html">FIND_ENTRY_ARCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51926"></span>CAD6</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51928"></span>CAD8</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51929"></span>CAD9</td>
+<td class="instruction">SUB (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_5</td>
+<td class="address-2"><span id="51932"></span>CADC</td>
+<td class="instruction">LD (IX+$01),A</td>
+<td class="comment-1" rowspan="2">Store U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51935"></span>CADF</td>
+<td class="instruction">JR <a href="51842.html#51887">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_6</td>
+<td class="address-2"><span id="51937"></span>CAE1</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="6">At high U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51939"></span>CAE3</td>
+<td class="instruction">CALL <a href="51950.html">FIND_ENTRY_ARCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51942"></span>CAE6</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51943"></span>CAE7</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51945"></span>CAE9</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51948"></span>CAEC</td>
+<td class="instruction">JR <a href="51842.html#51932">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE_5</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51839.html">CA7F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51842">Map</a></td>
+<td class="next">
+Next: <a href="51950.html">CAEE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pentagram: Routine at CDBB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../pentagram.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Pentagram</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52640.html">CDA0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52667">Map</a></td>
+<td class="next">
+Next: <a href="52785.html">CE31</a>
+</td>
+</tr>
+</table>
+<div class="description">CDBB: The update routine for the lift</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Graphic 84, a block that carries him up. It keeps its state in +17: bit 0 while it is moving, bit 1 while it is on the way down, and bit 7, set by the collision code when he (or the heavy block, <a href="52597.html">HEAVY_BLOCK</a>) lands on it (<a href="47248.html">MARK_STOOD_ON</a>).
+</div>
+<div class="paragraph">
+At rest, it waits for him: landing on it passes his Z step down to it (<a href="47072.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>), it moves, bumps the floor, and with bit 7 set it starts to rise. Rising, it asks for two units a turn, gives him a Z step of 3 and tells his code he is standing on something (bit 2 of PLAYER_BUMPED); it rises only while it keeps bumping into something above it -- him -- so the moment he steps off it turns round. At a height of 176 it stops, and he is given a Z step of -2. On the way down it sinks one a turn until it bumps into something below, and then it is at rest again.
+</div>
+<div class="paragraph">
+Measured in the simulator in room 2: he landed on it at Z 128 and it rose one unit a turn with him on top, 12 above it; at 176 he fell, pushing the lift down with him faster and faster, and at the floor it started up again, and so on for as long as he stood there.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT</td>
+<td class="address-2"><span id="52667"></span>CDBB</td>
+<td class="instruction">LD (IX+$09),$00</td>
+<td class="comment-1" rowspan="2">no sideways step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52671"></span>CDBF</td>
+<td class="instruction">LD (IX+$0A),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52675"></span>CDC3</td>
+<td class="instruction">CALL <a href="51039.html">DRAW_AT_L16_D8</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52678"></span>CDC6</td>
+<td class="instruction">CALL <a href="47481.html#47484">CLIP_AND_MOVE</a></td>
+<td class="comment-1" rowspan="4">move by its Z step, without falling; no sideways step again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52681"></span>CDC9</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52682"></span>CDCA</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52685"></span>CDCD</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52688"></span>CDD0</td>
+<td class="instruction">BIT 0,(IX+$17)</td>
+<td class="comment-1" rowspan="2">moving?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52692"></span>CDD4</td>
+<td class="instruction">JR NZ,<a href="52667.html#52716">LIFT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52694"></span>CDD6</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">at rest: did something land on it this turn?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52698"></span>CDDA</td>
+<td class="instruction">JR Z,<a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52700"></span>CDDC</td>
+<td class="instruction">BIT 7,(IX+$17)</td>
+<td class="comment-1" rowspan="2">was it him?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52704"></span>CDE0</td>
+<td class="instruction">JR Z,<a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52706"></span>CDE2</td>
+<td class="instruction">RES 7,(IX+$17)</td>
+<td class="comment-1" rowspan="3">yes: start moving, upwards</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52710"></span>CDE6</td>
+<td class="instruction">SET 0,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52714"></span>CDEA</td>
+<td class="instruction">JR <a href="52667.html#52758">LIFT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_0</td>
+<td class="address-2"><span id="52716"></span>CDEC</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="5">moving, and nothing above it: go down, one a turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52720"></span>CDF0</td>
+<td class="instruction">JR NZ,<a href="52667.html#52733">LIFT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52722"></span>CDF2</td>
+<td class="instruction">SET 1,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52726"></span>CDF6</td>
+<td class="instruction">LD (IX+$0B),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52730"></span>CDFA</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_1</td>
+<td class="address-2"><span id="52733"></span>CDFD</td>
+<td class="instruction">BIT 1,(IX+$17)</td>
+<td class="comment-1" rowspan="2">bumped: on the way down, that is the floor or something below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52737"></span>CE01</td>
+<td class="instruction">JR NZ,<a href="52667.html#52778">LIFT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52739"></span>CE03</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="3">on the way up: below 176?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52742"></span>CE06</td>
+<td class="instruction">CP $B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52744"></span>CE08</td>
+<td class="instruction">JR C,<a href="52667.html#52758">LIFT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52746"></span>CE0A</td>
+<td class="instruction">LD (IX+$03),$B0</td>
+<td class="comment-1" rowspan="4">at the top: stay at 176; he is sent down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52750"></span>CE0E</td>
+<td class="instruction">LD A,$FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52752"></span>CE10</td>
+<td class="instruction">LD ($A77A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52755"></span>CE13</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_2</td>
+<td class="address-2"><span id="52758"></span>CE16</td>
+<td class="instruction">LD (IX+$0B),$02</td>
+<td class="comment-1" rowspan="7">rise: two units a turn for the lift, three for him, and he stands on it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52762"></span>CE1A</td>
+<td class="instruction">LD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52764"></span>CE1C</td>
+<td class="instruction">LD ($A77A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52767"></span>CE1F</td>
+<td class="instruction">LD A,(<a href="42863.html#42875">PLAYER_BUMPED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52770"></span>CE22</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52772"></span>CE24</td>
+<td class="instruction">LD (<a href="42863.html#42875">PLAYER_BUMPED</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52775"></span>CE27</td>
+<td class="instruction">JP <a href="52299.html#52446">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_3</td>
+<td class="address-2"><span id="52778"></span>CE2A</td>
+<td class="instruction">LD (IX+$17),$00</td>
+<td class="comment-1" rowspan="2">down again: at rest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52782"></span>CE2E</td>
+<td class="instruction">JP <a href="52609.html#52615">STOP_MOVING</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The Z step it gives him is written into his record whether or not he is the one on top.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52640.html">CDA0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52667">Map</a></td>
+<td class="next">
+Next: <a href="52785.html">CE31</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_pentagram.py</code>.</div>
+</footer>
+</body>
+</html>
