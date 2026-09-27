@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../antattack.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#throwing">Throwing on the move blows you up</a></li>
+<li><a href="#nearmiss">A near miss cures a paralysed ant</a></li>
+<li><a href="#badfall">A bad fall drowns out the other person's news</a></li>
+<li><a href="#stunnedfall">A fall that starts stunned is never landed</a></li>
+<li><a href="#farside">Found from the far side of the world</a></li>
+<li><a href="#neverfalls">A flag that nothing sets</a></li>
+</ul>
+<div><span id="throwing"></span></div>
+<div class="box box-1">
+<div class="box-title">Throwing on the move blows you up</div>
+<div class="paragraph">
+Each frame <a href="../asm/36480.html">GAME_FRAME</a> moves the player first and the grenade after. A throw
+(<a href="../asm/36096.html">THROW_GRENADE</a>) puts the grenade in the player's cell and it moves on one cell
+that same frame; on every later frame of the flight, before moving it again,
+the code checks whether it shares a cell with the player -- and a player who
+walks on after it has just stepped into exactly that cell, since both move a
+cell a frame the same way. So throwing with V held, or walking on in the
+direction of the throw at any time during the flight, blows the player up:
+"SILLY! YOU BLEW YOURSELF UP !", and the energy goes to 0.
+</div>
+<div class="paragraph">
+Presumably the check is there for a grenade that lands on the player or the
+rescued person; catching up with it from behind looks unintended. Watched in the emulator: with V and S pressed together the
+grenade was one cell ahead of the player after the throw, and on the next
+frame the player was in that cell, exploding, with energy 0; thrown from
+standing and left alone, the same grenade hurt nobody. The pokes have a fix.
+</div>
+</div>
+<div><span id="nearmiss"></span></div>
+<div class="box box-2">
+<div class="box-title">A near miss cures a paralysed ant</div>
+<div class="paragraph">
+Landing on an ant paralyses it for good: <a href="../asm/35793.html">PARALYSE_ANT</a> sets its stun count at +$06
+to $FF, and <a href="../asm/35421.html">ANT_TURN</a> never moves an ant with that value. But <a href="../asm/34720.html">BLAST_ANT</a>, which
+stuns any ant five to seven cells from an exploding grenade, writes 24 frames
+of stun into the same byte without looking at what was there. A near miss
+turns permanent paralysis into an ordinary stun, and 24 of the ant's frames
+later it is up and chasing again. (A direct hit also clears it, but that
+kills the ant anyway, and it comes back at its home like any other.)
+</div>
+<div class="paragraph">
+Watched in the emulator: a paralysed ant eight cells in front of the player
+was still paralysed, and had not moved, 80 frames later; with a grenade
+thrown to explode six cells from it, its stun read $17 a few frames after
+the blast, and within the same 80 frames it had walked over and bitten the
+player.
+</div>
+</div>
+<div><span id="badfall"></span></div>
+<div class="box box-1">
+<div class="box-title">A bad fall drowns out the other person's news</div>
+<div class="paragraph">
+<a href="../asm/36608.html">HANDLE_EVENTS</a> reads the player's and the rescued person's events (+$0F) together,
+the player's in E and the other's in D. A bad fall is dealt with first, by
+a CALL to <a href="../asm/36352.html">PLAY_SCRIPT_ONE</a> or <a href="../asm/36354.html">PLAY_SCRIPT</a> -- and <a href="../asm/36354.html">PLAY_SCRIPT</a> keeps the script number in D,
+which <a href="../asm/36365.html">RUN_SCRIPT</a> counts down to 0 while it finds the script. So if the player
+falls badly, whatever happened to the rescued person that frame is lost; and
+if the rescued person falls badly, the routine returns without looking at
+the player's event at all. A bite then costs no energy and a grenade blast
+does not end the attempt.
+</div>
+<div class="paragraph">
+It needs the two events in the same frame, so it is rare in play. Watched in
+the emulator, by writing the two events at <a href="../asm/36608.html">HANDLE_EVENTS</a> and letting it run: the
+player bitten alone lost a point and heard "BITTEN!"; bitten while the
+rescued person fell badly, only "HELP! I FELL!" played and the energy stayed
+at 20, and the same with the player blown up; the player's bad fall with the
+rescued person bitten played only "NASTY FALL !", and both falling badly
+played only the player's.
+</div>
+</div>
+<div><span id="stunnedfall"></span></div>
+<div class="box box-2">
+<div class="box-title">A fall that starts stunned is never landed</div>
+<div class="paragraph">
+<a href="../asm/34816.html">MOVE_OBJECT</a> asks whether there is anything underneath before it looks at the stun
+count, so an object in the air falls (<a href="../asm/34944.html">FALL</a>) and its stun does not count
+down. When it reaches the ground the stun is still there, so <a href="../asm/34816.html">MOVE_OBJECT</a> takes
+its stunned branch, <a href="../asm/34992.html">STUNNED</a> -- which clears the fall count -- and <a href="../asm/34912.html">LANDED</a> is
+never reached: no stun for the fall, no "NASTY FALL !", however far it was.
+</div>
+<div class="paragraph">
+In play this is nearly latent. Nothing stunned walks, so it only arises when
+what a stunned object stands on moves away -- an ant, or the other person,
+and <a href="../asm/34000.html">SHARE_CELL</a> clears both people's stuns while one is on the other's head. The
+rescued person starts every level stunned for four frames, so a drop at the
+start would do them no harm, but every waiting place is on solid ground. Watched in the emulator: the player
+dropped five blocks over open ground landed stunned for 48 frames with
+"NASTY FALL !"; the same drop starting with a stun of 10 kept the 10 all the
+way down, landed without a message, and simply counted the 10 away.
+</div>
+</div>
+<div><span id="farside"></span></div>
+<div class="box box-1">
+<div class="box-title">Found from the far side of the world</div>
+<div class="paragraph">
+<a href="../asm/35456.html">DISTANCE</a> measures distance as the difference in x plus the difference in y,
+each worked out in eight bits, and the sum is eight bits too. A difference
+of exactly 128 comes out as 128, and 128 + 128 wraps round to 0. The walls
+keep everything inside to differences below 128, but outside them the
+player's coordinates run all the way down to 0, so there is one cell
+outside the city -- the waiting person's x and y each 128 away -- that the
+code takes to be the waiting person's own.
+</div>
+<div class="paragraph">
+<a href="../asm/36736.html">MOVE_RESCUEE</a> finds the person when the distance is under 4 and the two are at the
+same height. Everyone waits on a block or higher, and outside the walls the
+player walks on the ground, so it takes a jump: watched in the emulator, on
+level 1, the player jumping in that one cell was found -- "MY HERO!", and the
+person started following -- from 256 cells away along the grid, while the
+same jump one cell along found nobody. Ants reckon their distance from the
+player with the same routine, so they too must misjudge a player far outside
+(read from the code, not watched).
+</div>
+</div>
+<div><span id="neverfalls"></span></div>
+<div class="box box-2">
+<div class="box-title">A flag that nothing sets</div>
+<div class="paragraph">
+<a href="../asm/34944.html">FALL</a> starts by testing bit 3 of an object's flags, and if it is set,
+clears the fall count and carries on as if standing: the object would never
+fall. Nothing sets that bit -- not the DATA that sets up the records, not
+any code -- so these are the only instructions in the game never seen to run
+in the build's playthroughs. A leftover, or a feature that was not finished;
+it does no harm. Watched in the emulator with the bit set by hand: the player
+put five blocks up over open ground stayed at that height, standing on
+nothing, for as long as it was watched.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

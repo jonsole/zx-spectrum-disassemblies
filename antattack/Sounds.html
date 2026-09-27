@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Sounds</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="antattack.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Ant Attack</a></td>
+<td class="page-header">Sounds</td>
+</tr>
+</table>
+<p>A 48K Spectrum has one bit of sound hardware, bit 4 of port $FE, and Ant Attack makes every sound by flipping it with the processor counting in between. The machine code has four OUTs to the port, two in <a href="asm/35712.html">TONE</a> and two in <a href="asm/35658.html">NOISE</a>, and only two routines call those: <a href="asm/36365.html">RUN_SCRIPT</a>, which plays the sound bytes in a script, and <a href="asm/36608.html">HANDLE_EVENTS</a>, which clicks for a footstep. There is no other sound in a frame -- no sound for a thrown grenade in flight, an ant or a fall except through a script -- and while a script plays the game stands still. The BASIC adds four BEEP statements of its own, played by the ROM.</p>
+<p>The same port sets the border colour (bits 0-2) and the MIC output (bit 3), so an OUT that only meant to move the speaker would turn the border black. That is what $B42C is for: both routines start from it with bits 3 and 4 set, so the border stays whatever BASIC made it. BASIC sets it to 0 for play (it is one of the variables from <a href="asm/46112.html">VIEW_ORIGIN</a> on that <a href="asm/25614.html">line 200</a> POKEs from DATA, to go with <a href="asm/25907.html">line 300</a>'s BORDER 0) and to 5 before the ending (<a href="asm/31563.html">line 3600</a>, to go with <a href="asm/30063.html">line 2000</a>'s BORDER 5); each recording below says which colour its OUTs wrote.</p>
+<p><a href="asm/35712.html">TONE</a> plays one entry of <a href="asm/35761.html">TONES</a>: a pitch delay E and a count of half-waves B. Each half-wave is E turns of a 14 T-state loop (DEC A, JP NZ) and 84 T-states more, the ten NOPs among them; E = 0 goes round 256 times. B rises as the pitch does, so every note lasts about 39 ms. The table is a chromatic scale, a semitone a step from 477 Hz (40 cents above A#4) to 1078 Hz (49 cents below C#6), tuned to itself rather than to concert pitch. TONE's first OUT turns the speaker off. After another note or a BEEP it is off already, so the note begins with a half-wave of silence; after a burst of noise, which leaves it on, that first OUT is an edge. Note 15 is never played as a note: <a href="asm/36365.html">RUN_SCRIPT</a> takes it as noise, 256 turns of <a href="asm/35658.html">NOISE</a>. Its speaker bit is bit 4 of what <a href="asm/33632.html">RANDOM</a> leaves in A, not the carry <a href="asm/33632.html">RANDOM</a> returns: that is bit 2 of the generator's first byte ($B428) as it was before the step, the carry being clear on entry as it always is in <a href="asm/35658.html">NOISE</a> -- checked by running <a href="asm/33632.html">RANDOM</a> for all 256 values of that byte. So a burst sets the speaker to a new random bit every 194 T-states, some 18,041 a second: a hiss.</p>
+<table class="default">
+<tr><th>Note</th><th>E</th><th>B</th><th>Half-wave</th><th>Pitch</th><th>Semitones up</th><th>Length</th><th>Measured</th></tr>
+<tr><td>0</td><td>256</td><td>37</td><td>3,668 T</td><td>477.1 Hz</td><td>0.00</td><td>38.8 ms</td><td>477.1 Hz, 2,030 waves</td></tr>
+<tr><td>1</td><td>241</td><td>39</td><td>3,458 T</td><td>506.1 Hz</td><td>1.02</td><td>38.5 ms</td><td>506.1 Hz, 1,850 waves</td></tr>
+<tr><td>2</td><td>227</td><td>41</td><td>3,262 T</td><td>536.5 Hz</td><td>2.03</td><td>38.2 ms</td><td>536.5 Hz, 3,588 waves</td></tr>
+<tr><td>3</td><td>214</td><td>44</td><td>3,080 T</td><td>568.2 Hz</td><td>3.02</td><td>38.7 ms</td><td>568.2 Hz, 1,134 waves</td></tr>
+<tr><td>4</td><td>201</td><td>47</td><td>2,898 T</td><td>603.9 Hz</td><td>4.08</td><td>38.9 ms</td><td>603.9 Hz, 3,645 waves</td></tr>
+<tr><td>5</td><td>190</td><td>49</td><td>2,744 T</td><td>637.8 Hz</td><td>5.02</td><td>38.4 ms</td><td>637.8 Hz, 3,290 waves</td></tr>
+<tr><td>6</td><td>179</td><td>52</td><td>2,590 T</td><td>675.7 Hz</td><td>6.02</td><td>38.5 ms</td><td>675.7 Hz, 950 waves</td></tr>
+<tr><td>7</td><td>168</td><td>56</td><td>2,436 T</td><td>718.4 Hz</td><td>7.09</td><td>39.0 ms</td><td>718.4 Hz, 918 waves</td></tr>
+<tr><td>8</td><td>159</td><td>59</td><td>2,310 T</td><td>757.6 Hz</td><td>8.01</td><td>38.9 ms</td><td>757.6 Hz, 741 waves</td></tr>
+<tr><td>9</td><td>149</td><td>63</td><td>2,170 T</td><td>806.5 Hz</td><td>9.09</td><td>39.1 ms</td><td>806.5 Hz, 3,172 waves</td></tr>
+<tr><td>10</td><td>141</td><td>67</td><td>2,058 T</td><td>850.3 Hz</td><td>10.01</td><td>39.4 ms</td><td>850.3 Hz, 2,015 waves</td></tr>
+<tr><td>11</td><td>132</td><td>71</td><td>1,932 T</td><td>905.8 Hz</td><td>11.10</td><td>39.2 ms</td><td>905.8 Hz, 1,035 waves</td></tr>
+<tr><td>12</td><td>124</td><td>76</td><td>1,820 T</td><td>961.5 Hz</td><td>12.13</td><td>39.5 ms</td><td>961.5 Hz, 2,294 waves</td></tr>
+<tr><td>13</td><td>117</td><td>80</td><td>1,722 T</td><td>1016.3 Hz</td><td>13.09</td><td>39.4 ms</td><td>1016.3 Hz, 3,822 waves</td></tr>
+<tr><td>14</td><td>110</td><td>86</td><td>1,624 T</td><td>1077.6 Hz</td><td>14.11</td><td>39.9 ms</td><td>1077.6 Hz, 2,520 waves</td></tr>
+<tr><td>15</td><td>104</td><td>91</td><td>1,540 T</td><td>1136.4 Hz</td><td>15.02</td><td>40.0 ms</td><td>never played: noise</td></tr>
+</table>
+<p>Pitch and half-wave are worked out from the table and the loop's T-states; Measured is from the recordings of all the scripts below, every whole wave timed from the OUT that started it to the next but one.</p>
+<p>A script's sound bytes are $80-$FE: bits 0-3 the note, bits 4-6 one less than how many times to play it. They sit among the letters of its message, so <a href="asm/36365.html">RUN_SCRIPT</a> prints a letter, plays a note, prints the next -- and a message types itself out to its own tune. See the <a href="Scripts.html">scripts page</a> for what each one says.</p>
+<p>Every recording here is the game's own code, or the ROM's, running in SkoolKit's simulator, with the T-state of each change of the speaker bit logged and rendered as 16-bit mono at 44100 Hz; nothing is synthesised. The simulated machine is uncontended; the machine code's loops are in uncontended memory anyway, so only the OUTs would be held up on a real Spectrum, by a few T-states each. Each recording says how its sound was checked against what the code implies.</p>
+<h3>The scripts</h3>
+<p>Scripts 8 and 11 have no sound bytes: they only reprint a number on the panel, and are left out.</p>
+<div id="script01" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 1: NASTY FALL !</h4>
+<p>The player lands after falling for five frames or more: <a href="asm/34912.html">LANDED</a> records a bad fall in the player's event byte, and <a href="asm/36608.html">HANDLE_EVENTS</a> plays this through <a href="asm/36352.html">PLAY_SCRIPT_ONE</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 1 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 451 OUTs (the script's notes imply 451: B + 1 each) and 440 edges (implied 440); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>280 ms, 440 edges; notes 2, 4, 7, 9, 11, 13, 14: 536 to 1078 Hz from the table, 536 to 1078 Hz measured.</p>
+<audio controls preload="none" src="audio/script01.wav"><a href="audio/script01.wav">script01.wav</a></audio>
+</div>
+<div id="script02" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 2: "HELP! I FELL!"</h4>
+<p>The same for the rescued person: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 2 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 502 OUTs (the script's notes imply 502: B + 1 each) and 490 edges (implied 490); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>321 ms, 490 edges; notes 2, 3, 4, 5, 11, 12, 13, 14: 536 to 1078 Hz from the table, 536 to 1078 Hz measured.</p>
+<audio controls preload="none" src="audio/script02.wav"><a href="audio/script02.wav">script02.wav</a></audio>
+</div>
+<div id="script03" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 3: GOOD SHOT!</h4>
+<p>A grenade's blast kills an ant: <a href="asm/36816.html">GRENADE_SOUNDS</a>, from bit 2 of $B42D. Notes, noise, and the play area flashing through colours (<a href="asm/35584.html">FILL_PLAY_ATTRIBUTES</a>) around the words.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 3 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 527 OUTs (the script's notes imply 527: B + 1 each) and 511 edges (implied 511); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 2570 OUTs (implied 2570: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>547 ms, 1811 edges; notes 0, 1, 4, 5, 7, 8, 12, 13: 477 to 1016 Hz from the table, 477 to 1016 Hz measured; 10 bursts of noise.</p>
+<audio controls preload="none" src="audio/script03.wav"><a href="audio/script03.wav">script03.wav</a></audio>
+</div>
+<div id="script04" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 4: a grenade thrown</h4>
+<p>A grenade is thrown: <a href="asm/36816.html">GRENADE_SOUNDS</a> (bit 0 of $B42D) plays it to reprint the count. <a href="asm/33252.html">PRINT_COUNTERS</a> plays it too, at the start of every call of <a href="asm/32768.html">PLAY</a> -- so the same blip sounds twice as each level begins, once as the city is drawn behind the ready prompt and once as play starts.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 4 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 77 OUTs (the script's notes imply 77: B + 1 each) and 76 edges (implied 76); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; and in the run the BASIC recordings come from, between the story card's key and the start of play, TONE played 2 notes (154 OUTs) with pitch delay 124 (note 12's is 124); the only other sounds were 2 footstep clicks as the run's V walked the player in, and the ROM wrote the port once with the speaker bit clear (line 300's BORDER 0); every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>43 ms, 76 edges; notes 12: 962 Hz from the table, 962 Hz measured.</p>
+<audio controls preload="none" src="audio/script04.wav"><a href="audio/script04.wav">script04.wav</a></audio>
+</div>
+<div id="script05" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 5: a grenade going off</h4>
+<p>A grenade goes off: <a href="asm/36816.html">GRENADE_SOUNDS</a> (bit 1 of $B42D). Four bursts of noise, the only sound a grenade makes.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 5 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: NOISE made 1028 OUTs (implied 1028: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>58 ms, 509 edges; 4 bursts of noise.</p>
+<audio controls preload="none" src="audio/script05.wav"><a href="audio/script05.wav">script05.wav</a></audio>
+</div>
+<div id="script06" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 6: SILLY! YOU BLEW / YOURSELF UP !</h4>
+<p>The player is caught in their own blast: <a href="asm/36608.html">HANDLE_EVENTS</a> sets their energy to 0 and plays this.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 6 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 2072 OUTs (the script's notes imply 2072: B + 1 each) and 1978 edges (implied 1978); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>1.82 s, 1978 edges; notes 1, 2, 4, 5: 506 to 638 Hz from the table, 506 to 638 Hz measured.</p>
+<audio controls preload="none" src="audio/script06.wav"><a href="audio/script06.wav">script06.wav</a></audio>
+</div>
+<div id="script07" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 7: BITTEN!</h4>
+<p>An ant bites the player, taking a point of energy: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 7 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 115 OUTs (the script's notes imply 115: B + 1 each) and 113 edges (implied 113); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 2056 OUTs (implied 2056: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>200 ms, 1149 edges; notes 0, 12: 477 to 962 Hz from the table, 477 to 962 Hz measured; 8 bursts of noise.</p>
+<audio controls preload="none" src="audio/script07.wav"><a href="audio/script07.wav">script07.wav</a></audio>
+</div>
+<div id="script09" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 9: " HOW COULD YOU ? / AFTER ALL WE'VE / BEEN THROUGH ?"</h4>
+<p>The rescued person is caught in the player's blast: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 9 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 2302 OUTs (the script's notes imply 2302: B + 1 each) and 2205 edges (implied 2205); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 1799 OUTs (implied 1799: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>2.05 s, 3106 edges; notes 1, 2, 4, 5, 11, 12, 13: 506 to 1016 Hz from the table, 506 to 1016 Hz measured; 7 bursts of noise.</p>
+<audio controls preload="none" src="audio/script09.wav"><a href="audio/script09.wav">script09.wav</a></audio>
+</div>
+<div id="script10" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 10: "THEY GOT ME"</h4>
+<p>An ant bites the rescued person: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 10 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 168 OUTs (the script's notes imply 168: B + 1 each) and 167 edges (implied 167); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 2056 OUTs (implied 2056: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>204 ms, 1203 edges; notes 13, 14: 1016 to 1078 Hz from the table, 1016 to 1078 Hz measured; 8 bursts of noise.</p>
+<audio controls preload="none" src="audio/script10.wav"><a href="audio/script10.wav">script10.wav</a></audio>
+</div>
+<div id="script12" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 12: "MY HERO!" / "TAKE ME AWAY / FROM ALL THIS !"</h4>
+<p>The player comes within three cells of the person waiting, at the same height: <a href="asm/36736.html">MOVE_RESCUEE</a>. The letters are typed out between the notes, so the tune and the message arrive together.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 12 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 5116 OUTs (the script's notes imply 5116: B + 1 each) and 4944 edges (implied 4944); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>3.91 s, 4944 edges; notes 0, 1, 2, 3, 5, 6, 8, 10, 13: 477 to 1016 Hz from the table, 477 to 1016 Hz measured.</p>
+<audio controls preload="none" src="audio/script12.wav"><a href="audio/script12.wav">script12.wav</a></audio>
+</div>
+<div id="script13" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 13: CONGRATULATIONS !</h4>
+<p>The player and the rescued person are both outside the walls: <a href="asm/36512.html">CHECK_RESCUED</a>. Towards the end the play area is refilled in a new colour (<a href="asm/35584.html">FILL_PLAY_ATTRIBUTES</a>) before each run of notes as the scale climbs.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 13 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 4697 OUTs (the script's notes imply 4697: B + 1 each) and 4534 edges (implied 4534); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>3.71 s, 4534 edges; notes 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14: 477 to 1078 Hz from the table, 477 to 1078 Hz measured.</p>
+<audio controls preload="none" src="audio/script13.wav"><a href="audio/script13.wav">script13.wav</a></audio>
+</div>
+<div id="script14" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 14: EATEN ALIVE</h4>
+<p>An ant bites the player's last point of energy away: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 14 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 934 OUTs (the script's notes imply 934: B + 1 each) and 891 edges (implied 891); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 1799 OUTs (implied 1799: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>961 ms, 1792 edges; notes 0, 2, 4: 477 to 604 Hz from the table, 477 to 604 Hz measured; 7 bursts of noise.</p>
+<audio controls preload="none" src="audio/script14.wav"><a href="audio/script14.wav">script14.wav</a></audio>
+</div>
+<div id="script15" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 15: IVE BEEN EATEN ALIVE</h4>
+<p>An ant bites the rescued person's last point of energy away: <a href="asm/36608.html">HANDLE_EVENTS</a>.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 15 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 934 OUTs (the script's notes imply 934: B + 1 each) and 891 edges (implied 891); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 1799 OUTs (implied 1799: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>966 ms, 1792 edges; notes 0, 2, 4: 477 to 604 Hz from the table, 477 to 604 Hz measured; 7 bursts of noise.</p>
+<audio controls preload="none" src="audio/script15.wav"><a href="audio/script15.wav">script15.wav</a></audio>
+</div>
+<div id="script16" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 16: PARALYSED AN ANT !</h4>
+<p>The player lands on top of an ant that is neither exploding nor already paralysed, and <a href="asm/35793.html">PARALYSE_ANT</a> paralyses it for good.</p>
+<p>Recorded: <a href="asm/36354.html">PLAY_SCRIPT</a> called with A = 16 on a copy of the machine at the start of play, the speaker off; to its return.</p>
+<p>Checked: TONE made 1778 OUTs (the script's notes imply 1778: B + 1 each) and 1740 edges (implied 1740); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; NOISE made 1285 OUTs (implied 1285: 257 a burst), every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply; its edges depend on the random bits; every OUT wrote border colour 0 (bits 0-2, from $B42C).</p>
+<p>1.18 s, 2381 edges; notes 4, 7, 10, 13: 604 to 1016 Hz from the table, 604 to 1016 Hz measured; 5 bursts of noise.</p>
+<audio controls preload="none" src="audio/script16.wav"><a href="audio/script16.wav">script16.wav</a></audio>
+</div>
+<div id="script17" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Script 17: YOU ARE A REAL / AT LAST YOUR MISSION IS OVER! / YOUR NEW FRIENDS WISH TO / THANK YOU FOR SAVING THEIR / LIVES.</h4>
+<p>The tenth rescue: BASIC <a href="asm/31563.html">line 3600</a> clears the screen (line 2000, which also sets BORDER 5), POKEs 5 into $B42C to match, and calls <a href="asm/36594.html">FINAL_SCRIPT</a> (USR 36594). The whole tribute types itself out a letter or two a note.</p>
+<p>Recorded: <a href="asm/36594.html">FINAL_SCRIPT</a> called on a copy of the machine at the start of play, with the screen cleared to PAPER 6 and $B42C set to 5, as BASIC <a href="asm/31563.html">line 3600</a> leaves them; to its return.</p>
+<p>Checked: TONE made 15236 OUTs (the script's notes imply 15236: B + 1 each) and 14842 edges (implied 14842); every whole wave measured was exactly 2(14E + 84) T-states for its note's E; every OUT wrote border colour 5 (bits 0-2, from $B42C).</p>
+<p>9.53 s, 14842 edges; notes 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14: 477 to 1078 Hz from the table, 477 to 1078 Hz measured.</p>
+<audio controls preload="none" src="audio/script17.wav"><a href="audio/script17.wav">script17.wav</a></audio>
+</div>
+<h3>Footsteps</h3>
+<div id="footsteps" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>A click a step</h4>
+<p><a href="asm/36608.html">HANDLE_EVENTS</a>, every frame the player or the rescued person takes a step: <a href="asm/34816.html">MOVE_OBJECT</a> sets the object's event byte (+$0F) to 1 for a step and for a short landing, and when that is all that happened to either of them <a href="asm/36608.html">HANDLE_EVENTS</a> calls <a href="asm/35658.html">NOISE</a> with B = 5 -- five random speaker bits and the speaker left on, a click. A frame that also has a bite, a blast or a bad fall plays that script instead, and no click.</p>
+<p>Recorded: A copy of the machine at the start of play, the player moved to open ground (x $8D, y $90, facing x up) and V held, run frame by frame from <a href="asm/36480.html">GAME_FRAME</a>; recorded over 12 frames from the first step.</p>
+<p>Checked: 12 of the 12 frames clicked, each with 6 OUTs (implied 6: B random ones and one to leave the speaker on); all 72 came from <a href="asm/35658.html">NOISE</a>, every random bit 194 T-states after the last and the final OUT 23 after that, as its instructions imply. The player ended 12 cells further along x. The frames were 534,699 to 545,468 T-states, so 6.5 steps a second; a click itself is over in 799 T-states, 0.23 ms.</p>
+<p>1.85 s, 30 edges.</p>
+<audio controls preload="none" src="audio/footsteps.wav"><a href="audio/footsteps.wav">footsteps.wav</a></audio>
+</div>
+<h3>BASIC's BEEPs</h3>
+<p>Played by the ROM's BEEP command ($03B5 is its BEEPER) from the game's own BASIC, run in the simulator: the recordings are the ROM working from the numbers BASIC gives it, not a reconstruction.</p>
+<div id="title" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>The title screen's logo</h4>
+<p><a href="asm/30682.html">BASIC line 3110</a>, at the title screen: the logo is printed eight times over in inks 7 down to 0, five times round, and each printing is preceded by a BEEP of 0.05 s -- pitch 1 (C#4) for the first four inks and 0 (middle C) for the last four, from <code>INT (i/4)</code>. 40 BEEPs; the silences between are the logo being printed.</p>
+<p>The line: <code>3110 PRINT AT 12,6;"© SANDY WHITE 1983";AT 16,3; INK 2;"SOFT SOLID 3-D Pat.Pending": FOR j=1 TO 5: FOR i=7 TO 0 STEP -1: BEEP .05,INT (i/4): PRINT AT 7,2;: LET ink=i: GO SUB 3000: NEXT i: NEXT j</code></p>
+<p>Recorded: The game run from the end of its loader with the key presses the build's playing_machine() uses, from the first BEEP of the title to the first of the scale.</p>
+<p>Checked: at the 40 entries to the ROM's BEEPER ($03B5), read in the simulator, DE was round(f &times; t) &minus; 1 and HL was round(437500/f &minus; 30.125) in all 40 -- f being middle C &times; 2<sup>p/12</sup>, t and p the BEEP's duration and pitch, the ROM's own sums. Every call made 2(DE + 1) edges, DE + 1 whole waves in all 40; and every half-wave lasted 4 &times; HL + 118 T-states, as BEEPER's instructions imply in all 40. That is 2.5 T-states shorter than the 4 &times; (HL + 30.125) the ROM's constant allows for, which, with HL rounded, left the pitches within 1.0 cents of what BASIC asked for.</p>
+<p>7.47 s, 1080 edges (2(DE + 1) summed over the calls: 1080); asked 262 to 277 Hz, measured 262 to 277 Hz.</p>
+<audio controls preload="none" src="audio/title.wav"><a href="audio/title.wav">title.wav</a></audio>
+</div>
+<div id="title_scale" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>The title screen's scale</h4>
+<p><a href="asm/30897.html">BASIC line 3120</a>, straight after: 21 BEEPs of 0.02 s climbing from middle C in steps of three semitones (a diminished-seventh arpeggio) to pitch 60, five octaves up, before the girl-or-boy question appears.</p>
+<p>The line: <code>3120 FOR i=0 TO 60 STEP 3: BEEP .02,i: NEXT i: PRINT AT 21,6; FLASH 1; BRIGHT 1;" Girl or Boy (g/b)? ": RETURN</code></p>
+<p>Recorded: The same run, from the scale's first BEEP to the end of its last.</p>
+<p>Checked: at the 21 entries to the ROM's BEEPER ($03B5), read in the simulator, DE was round(f &times; t) &minus; 1 and HL was round(437500/f &minus; 30.125) in all 21 -- f being middle C &times; 2<sup>p/12</sup>, t and p the BEEP's duration and pitch, the ROM's own sums. Every call made 2(DE + 1) edges, DE + 1 whole waves in all 21; and every half-wave lasted 4 &times; HL + 118 T-states, as BEEPER's instructions imply in all 21. That is 2.5 T-states shorter than the 4 &times; (HL + 30.125) the ROM's constant allows for, which, with HL rounded, left the pitches within 25.3 cents of what BASIC asked for -- sharpest at the top, where a half-wave is only a few hundred T-states.</p>
+<p>1000 ms, 2048 edges (2(DE + 1) summed over the calls: 2048); asked 262 to 8372 Hz, measured 262 to 8495 Hz.</p>
+<audio controls preload="none" src="audio/title_scale.wav"><a href="audio/title_scale.wav">title_scale.wav</a></audio>
+</div>
+<div id="any_key" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>A key pressed on a card</h4>
+<p><a href="asm/27734.html">BASIC line 960</a>, the end of every story card and score card: <a href="asm/32919.html">WAIT_KEY</a> waits for a key, then one BEEP of 0.01 s at pitch 40 (E7). Recorded after the key on the first story card.</p>
+<p>The line: <code>960 GO SUB 100: GO SUB 200: PRINT AT 21,8; PAPER 0; INK 7;" PRESS ANY KEY ": RANDOMIZE USR 32919: BEEP .01,40: RETURN</code></p>
+<p>Recorded: The same run, on through "b" for boy to the first story card, and SPACE pressed there; from the entry to BEEPER to its return.</p>
+<p>Checked: at the entry to the ROM's BEEPER ($03B5), read in the simulator, DE was round(f &times; t) &minus; 1 and HL was round(437500/f &minus; 30.125) -- f being middle C &times; 2<sup>p/12</sup>, t and p the BEEP's duration and pitch, the ROM's own sums. Every call made 2(DE + 1) edges, DE + 1 whole waves; and every half-wave lasted 4 &times; HL + 118 T-states, as BEEPER's instructions imply. That is 2.5 T-states shorter than the 4 &times; (HL + 30.125) the ROM's constant allows for, which, with HL rounded, left the pitches within 4.3 cents of what BASIC asked for.</p>
+<p>10 ms, 52 edges (2(DE + 1) summed over the calls: 52); asked 2637 Hz, measured 2644 Hz.</p>
+<audio controls preload="none" src="audio/any_key.wav"><a href="audio/any_key.wav">any_key.wav</a></audio>
+</div>
+<div id="out_of_time" style="margin:1.2em 0;padding-bottom:0.8em;border-bottom:1px solid silver">
+<h4>Out of time</h4>
+<p><a href="asm/31372.html">BASIC line 3220</a>, the end of the "out of time" card (lines 3200-3220, reached from line 60 when the clock at $B436 reads 0): 14 BEEPs of 0.2 s falling from pitch 40 to 1, three semitones at a time.</p>
+<p>The line: <code>3220 FOR i=40 TO 0 STEP -3: BEEP .2,i: NEXT i: RETURN</code></p>
+<p>Recorded: A copy of the same run once play has started, with the clock at $B436 poked down to 2 (one tick is three frames) and no key held, run on until the fourteen BEEPs have played: from the first BEEP to the end of the last. The silences are BASIC going round its FOR loop.</p>
+<p>Checked: at the 14 entries to the ROM's BEEPER ($03B5), read in the simulator, DE was round(f &times; t) &minus; 1 and HL was round(437500/f &minus; 30.125) in all 14 -- f being middle C &times; 2<sup>p/12</sup>, t and p the BEEP's duration and pitch, the ROM's own sums. Every call made 2(DE + 1) edges, DE + 1 whole waves in all 14; and every half-wave lasted 4 &times; HL + 118 T-states, as BEEPER's instructions imply in all 14. That is 2.5 T-states shorter than the 4 &times; (HL + 30.125) the ROM's constant allows for, which, with HL rounded, left the pitches within 7.0 cents of what BASIC asked for -- sharpest at the top, where a half-wave is only a few hundred T-states.</p>
+<p>3.17 s, 6042 edges (2(DE + 1) summed over the calls: 6042); asked 277 to 2637 Hz, measured 277 to 2644 Hz.</p>
+<audio controls preload="none" src="audio/out_of_time.wav"><a href="audio/out_of_time.wav">out_of_time.wav</a></audio>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

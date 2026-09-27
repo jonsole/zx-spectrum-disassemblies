@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Animations</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="antattack.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Animations">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Ant Attack</a></td>
+<td class="page-header">Animations</td>
+</tr>
+</table>
+<div class="aa-animations">
+<p>An object's picture in Ant Attack is one number, worked out afresh every frame by <a href="asm/34304.html">PROJECT_SPRITES</a>: the first frame in its record (+3: the boy $DC, the girl $6C, an ant $F8), plus four times its animation frame (+8), plus its facing turned by the view -- or, when +8 has bit 7 set, +8 itself, outright. Frame f is the 64 bytes at $8000 + 64f (<a href="asm/32928.html">DRAW_SPRITE</a>). So an animation is whatever writes +8: <a href="asm/35200.html">CHOOSE_FRAME</a> for the two people, whose five poses -- standing, walking, arms out, lying, arms up -- are the animation frames 0 to 4; <a href="asm/35328.html">MOVE_ANT</a> for an ant, which has only 0 and 1; <a href="asm/36096.html">THROW_GRENADE</a> for the grenade in flight ($F4 outright, and the thrower's arms-out pose); and <a href="asm/33504.html">BLAST_FRAME</a> and <a href="asm/35200.html">CHOOSE_FRAME</a> for anything exploding ($F4 to $F7 outright).</p>
+<p>Every animation below was made by running the game's own code in SkoolKit's simulator when these pages were built: a game started the way the build starts one, from the title screen, with the pieces put where the scene needs them at the end of a frame -- the player on open ground, an ant a few cells off, the ants not wanted parked outside the walls and paralysed -- and then one real frame of the game after another, each picture read off the screen. Only the starting positions are staged; the moving, the frame choices, the projection, the painting and the copy are the game's. Each picture lasts as long as the game took over it: the T-states from the copy to the screen that put it there to the next copy, at 3.5MHz and without the memory contention of a real Spectrum, which would be a little slower. A game frame takes about 140ms, some 500,000 T-states. Where a script plays -- a tune with its letters between the notes, all inside one frame of the game -- the screen is read every fiftieth of a second instead, and FLASH is drawn in the phase the ULA would be in. Identical pictures in a row are one. Each GIF is cropped to the 16 by 16 boxes the game drew its sprites in (from their places in <a href="asm/46336.html">PLANES</a>, through <a href="asm/33072.html">PLANE_TO_BUFFER</a>), or shows the whole play area where words appear in it; under each, the sprite frames in each picture and how long it lasts.</p>
+<p>Frames $F0-$F3 are never drawn. Nothing can produce them: +3 is only ever $DC, $6C, $68 or $F8 (BASIC's POKEs and DATA), the writers of +8 above give 0-4, $F4-$F7 or $F4, and no first frame plus 4 x (0 to 4) plus a facing lands in $F0-$F3 (the boy's would need animation frame 5, an ant's -2). That is read from the code; and the runs on this page, which between them draw 33 of the 60 frames in the two sprite blocks, never draw one of the four. Of the others they do not draw, the grenade's own frames $68-$6B would be shown only at its home, $00, $40, far out of view; the rest ($74, $75, $76, $77, $78, $79, $7A, $7B, $7C, $7D, $7E, $7F, $E6, $E7, $E9, $EA, $EB, $EE, $EF) are poses and facings of the two people that these scenes happen not to show.</p>
+<div class="aa-animation" id="boy-walking-0">
+<h3>The boy walking</h3>
+<p><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/boy-walking-0.gif" alt="The boy walking, facing 0, y up" width="240" height="156"><br>facing 0, y up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/boy-walking-1.gif" alt="The boy walking, facing 1, x up" width="240" height="156"><br>facing 1, x up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/boy-walking-2.gif" alt="The boy walking, facing 2, y down" width="240" height="156"><br>facing 2, y down</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/boy-walking-3.gif" alt="The boy walking, facing 3, x down" width="240" height="156"><br>facing 3, x down</span></p>
+<p>V held (<a href="asm/32864.html">READ_CONTROLS</a> sets the move bit, +7 bit 2) on open ground, the view at 0, the other people and the ants parked out of the way. <a href="asm/34816.html">MOVE_OBJECT</a> steps the boy a cell a frame, and <a href="asm/35200.html">CHOOSE_FRAME</a> turns the animation frame (+8) over, 0, 1, 0, 1, while the move bit is set: the standing pose ($DC + facing) and the walking pose ($E0 + facing) take turns, one cell each. The facing added is the boy's own plus the view (<a href="asm/34304.html">PROJECT_SPRITES</a>), so in view 0 it is the direction walked: 0 is y up, 1 x up, 2 y down, 3 x down. Each facing is its own GIF, eight steps from a frame standing; each picture is one frame of the game, about 150ms. The picture is fixed on the ground: where the view scrolls to keep the boy near the middle (<a href="asm/33888.html">SCROLL_VIEW</a>) the picture scrolls with it.</p>
+<p>Sprite frames drawn: $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $DD (<a href="asm/46912.html">FRAMEDD</a>), $DE (<a href="asm/46976.html">FRAMEDE</a>), $DF (<a href="asm/47040.html">FRAMEDF</a>), $E0 (<a href="asm/47104.html">FRAMEE0</a>), $E1 (<a href="asm/47168.html">FRAMEE1</a>), $E2 (<a href="asm/47232.html">FRAMEE2</a>), $E3 (<a href="asm/47296.html">FRAMEE3</a>).</p>
+<p>Facing 0, y up: in the picture: $E0 (150ms), $DC (150ms), $E0 (150ms), $DC (150ms), $E0 (150ms), $DC (140ms), $E0 (140ms), $DC (140ms): 8 pictures, 1.2s in all.</p>
+<p>Facing 1, x up: in the picture: $E1 (140ms), $DD (140ms), $E1 (140ms), $DD (140ms), $E1 (140ms), $DD (140ms), $E1 (140ms), $DD (140ms): 8 pictures, 1.1s in all.</p>
+<p>Facing 2, y down: in the picture: $E2 (140ms), $DE (140ms), $E2 (140ms), $DE (140ms), $E2 (140ms), $DE (140ms), $E2 (140ms), $DE (140ms): 8 pictures, 1.1s in all.</p>
+<p>Facing 3, x down: in the picture: $E3 (140ms), $DF (150ms), $E3 (140ms), $DF (140ms), $E3 (150ms), $DF (140ms), $E3 (140ms), $DF (140ms): 8 pictures, 1.1s in all.</p>
+</div>
+<div class="aa-animation" id="girl-walking-0">
+<h3>The girl walking</h3>
+<p><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/girl-walking-0.gif" alt="The girl walking, facing 0, y up" width="240" height="156"><br>facing 0, y up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/girl-walking-1.gif" alt="The girl walking, facing 1, x up" width="240" height="156"><br>facing 1, x up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/girl-walking-2.gif" alt="The girl walking, facing 2, y down" width="240" height="156"><br>facing 2, y down</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/girl-walking-3.gif" alt="The girl walking, facing 3, x down" width="240" height="156"><br>facing 3, x down</span></p>
+<p>V held (<a href="asm/32864.html">READ_CONTROLS</a> sets the move bit, +7 bit 2) on open ground, the view at 0, the other people and the ants parked out of the way. <a href="asm/34816.html">MOVE_OBJECT</a> steps the girl a cell a frame, and <a href="asm/35200.html">CHOOSE_FRAME</a> turns the animation frame (+8) over, 0, 1, 0, 1, while the move bit is set: the standing pose ($6C + facing) and the walking pose ($70 + facing) take turns, one cell each. The facing added is the girl's own plus the view (<a href="asm/34304.html">PROJECT_SPRITES</a>), so in view 0 it is the direction walked: 0 is y up, 1 x up, 2 y down, 3 x down. Each facing is its own GIF, eight steps from a frame standing; each picture is one frame of the game, about 150ms. The picture is fixed on the ground: where the view scrolls to keep the girl near the middle (<a href="asm/33888.html">SCROLL_VIEW</a>) the picture scrolls with it.</p>
+<p>Sprite frames drawn: $6C (<a href="asm/39680.html">FRAME6C</a>), $6D (<a href="asm/39744.html">FRAME6D</a>), $6E (<a href="asm/39808.html">FRAME6E</a>), $6F (<a href="asm/39872.html">FRAME6F</a>), $70 (<a href="asm/39936.html">FRAME70</a>), $71 (<a href="asm/40000.html">FRAME71</a>), $72 (<a href="asm/40064.html">FRAME72</a>), $73 (<a href="asm/40128.html">FRAME73</a>).</p>
+<p>Facing 0, y up: in the picture: $70 (150ms), $6C (150ms), $70 (150ms), $6C (150ms), $70 (150ms), $6C (140ms), $70 (140ms), $6C (140ms): 8 pictures, 1.2s in all.</p>
+<p>Facing 1, x up: in the picture: $71 (140ms), $6D (140ms), $71 (140ms), $6D (140ms), $71 (140ms), $6D (140ms), $71 (140ms), $6D (140ms): 8 pictures, 1.1s in all.</p>
+<p>Facing 2, y down: in the picture: $72 (140ms), $6E (140ms), $72 (140ms), $6E (140ms), $72 (140ms), $6E (140ms), $72 (140ms), $6E (140ms): 8 pictures, 1.1s in all.</p>
+<p>Facing 3, x down: in the picture: $73 (140ms), $6F (150ms), $73 (140ms), $6F (140ms), $73 (150ms), $6F (140ms), $73 (140ms), $6F (140ms): 8 pictures, 1.1s in all.</p>
+</div>
+<div class="aa-animation" id="jumping">
+<h3>Jumping</h3>
+<p><img class="aa-picture" src="images/animations/jumping.gif" alt="Jumping" width="72" height="96"></p>
+<p>C held on open ground. Standing, <a href="asm/34816.html">MOVE_OBJECT</a> takes the jump bit to <a href="asm/35024.html">RISE</a>, which lifts the boy a block if the cell above is clear; with nothing under him, <a href="asm/34944.html">FALL</a> lets him have one frame where he is and then drops him a block; <a href="asm/34912.html">LANDED</a> lands him after two frames of falling, which stuns him for two frames (the arms-out pose, <a href="asm/35200.html">CHOOSE_FRAME</a>) and counts as a step (a click, <a href="asm/36608.html">HANDLE_EVENTS</a>). Then, C still held, again. His height frame by frame: 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0. A jump is one block up, and nothing sideways unless V is held too.</p>
+<p>Sprite frames drawn: $DD (<a href="asm/46912.html">FRAMEDD</a>), $E5 (<a href="asm/47424.html">FRAMEE5</a>), $ED (<a href="asm/47936.html">FRAMEED</a>).</p>
+<p>In the picture: $DD (290ms), $ED (140ms), $E5 (290ms), $DD x2 (430ms), $ED (140ms), $E5 (290ms), $DD (140ms): 8 pictures, 1.7s in all.</p>
+</div>
+<div class="aa-animation" id="climbing">
+<h3>Climbing over a wall</h3>
+<p><img class="aa-picture" src="images/animations/climbing.gif" alt="Climbing over a wall" width="156" height="144"></p>
+<p>A wall one block high at $B3, $EE. V to walk up to it, then V and C together for one frame: <a href="asm/35024.html">RISE</a> lifts the boy a block, and <a href="asm/34944.html">FALL</a>'s frame of grace lets him walk forward in the air -- onto the top of the wall. V again walks him off the far side, where the same grace carries him a cell out before he drops, and <a href="asm/34912.html">LANDED</a> stuns him for two frames on landing. His height frame by frame: 0, 1, 1, 1, 1, 0, 0, 0, 0.</p>
+<p>Sprite frames drawn: $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $E0 (<a href="asm/47104.html">FRAMEE0</a>), $E4 (<a href="asm/47360.html">FRAMEE4</a>), $EC (<a href="asm/47872.html">FRAMEEC</a>).</p>
+<p>In the picture: $E0 (140ms), $DC (140ms), $E0 (140ms), $DC (140ms), $E0 (140ms), $EC (140ms), $E4 (280ms), $DC (140ms): 8 pictures, 1.3s in all.</p>
+</div>
+<div class="aa-animation" id="falling">
+<h3>A bad fall</h3>
+<p><img class="aa-picture" src="images/animations/falling.gif" alt="A bad fall" width="72" height="192"></p>
+<p>The boy put five blocks up over open ground. <a href="asm/34944.html">FALL</a> gives him a frame where he is, then drops him a block a frame; <a href="asm/35200.html">CHOOSE_FRAME</a> shows the arms-up pose (4) from the second frame of falling. He lands after 6 frames: five or more is a bad fall (<a href="asm/34912.html">LANDED</a>), stunned for eight frames for each frame fallen -- 48 here -- and script 1 (<em>NASTY FALL !</em>). While the stun is five or more he lies flat (pose 3), then for the last four frames stands with his arms out (pose 2), then gets up: the whole thing took 57 frames of the game.</p>
+<p>Sprite frames drawn: $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $E4 (<a href="asm/47360.html">FRAMEE4</a>), $E8 (<a href="asm/47616.html">FRAMEE8</a>), $EC (<a href="asm/47872.html">FRAMEEC</a>).</p>
+<p>In the picture: $DC (140ms), $EC x5 (700ms), $E8 (6540ms), $E4 (570ms), $DC (430ms): 9 pictures, 8.4s in all.</p>
+</div>
+<div class="aa-animation" id="ant-walking-0">
+<h3>An ant walking</h3>
+<p><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/ant-walking-0.gif" alt="An ant walking, facing 0, y up" width="192" height="132"><br>facing 0, y up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/ant-walking-1.gif" alt="An ant walking, facing 1, x up" width="192" height="132"><br>facing 1, x up</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/ant-walking-2.gif" alt="An ant walking, facing 2, y down" width="192" height="132"><br>facing 2, y down</span><span style="display:inline-block;margin:0 12px 8px 0;vertical-align:top;text-align:center"><img class="aa-picture" src="images/animations/ant-walking-3.gif" alt="An ant walking, facing 3, x down" width="192" height="132"><br>facing 3, x down</span></p>
+<p>The fast ant (the first, +$0D 20, line 140's DATA) walking at the boy along each of the four directions. <a href="asm/35328.html">MOVE_ANT</a> moves it and, when the move brought it closer to him, turns its animation frame over, 0, 1, 0, 1: $F8 + facing and $FC + facing, one foot and the other. That is the only thing that writes an ant's +8 apart from the blast (below), so an ant has two poses. <a href="asm/35421.html">ANT_TURN</a> skips the move one frame in every +$0D: 20 for this ant, 2 -- every other frame -- for the others until the fourth rescue.</p>
+<p>Sprite frames drawn: $F8 (<a href="asm/48640.html">FRAMEF8</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>), $FA (<a href="asm/48768.html">FRAMEFA</a>), $FB (<a href="asm/48832.html">FRAMEFB</a>), $FC (<a href="asm/48896.html">FRAMEFC</a>), $FD (<a href="asm/48960.html">FRAMEFD</a>), $FE (<a href="asm/49024.html">FRAMEFE</a>), $FF (<a href="asm/49088.html">FRAMEFF</a>).</p>
+<p>Facing 0, y up: in the picture: $F8 (140ms), $FC (140ms), $F8 (140ms), $FC (140ms), $F8 (140ms), $FC (140ms): 6 pictures, 0.8s in all.</p>
+<p>Facing 1, x up: in the picture: $F9 (140ms), $FD (140ms), $F9 (140ms), $FD (140ms), $F9 (140ms), $FD (140ms): 6 pictures, 0.8s in all.</p>
+<p>Facing 2, y down: in the picture: $FA (140ms), $FE (140ms), $FA (140ms), $FE (140ms), $FA (140ms), $FE (140ms): 6 pictures, 0.8s in all.</p>
+<p>Facing 3, x down: in the picture: $FB (140ms), $FF (140ms), $FB (140ms), $FF (140ms), $FB (140ms), $FF (140ms): 6 pictures, 0.8s in all.</p>
+</div>
+<div class="aa-animation" id="ant-biting">
+<h3>An ant biting</h3>
+<p><img class="aa-picture" src="images/animations/ant-biting.gif" alt="An ant biting" width="480" height="232"></p>
+<p>The fast ant two cells from the boy, facing him. Nothing is solid but the map, and the boy is not in it, so the ant walks straight into his cell (<a href="asm/34816.html">MOVE_OBJECT</a>). The ant is in the map (<a href="asm/35136.html">TOGGLE_MAP_BIT</a>), so on the boy's next move <a href="asm/34816.html">MOVE_OBJECT</a> finds a block in his own cell: <a href="asm/34976.html">BITTEN</a>, a bite, pushes him up a block, and <a href="asm/36608.html">HANDLE_EVENTS</a> takes a point of energy and runs script 7 (<em>BITTEN!</em>). He falls back into the ant's cell and is bitten again: 3 bites in 14 frames. The screen is read every fiftieth of a second, so the words appear as the script prints them; the next frame's copy wipes them. The whole play area is shown, since that is where the words go.</p>
+<p>Sprite frames drawn: $DD (<a href="asm/46912.html">FRAMEDD</a>), $E5 (<a href="asm/47424.html">FRAMEE5</a>), $ED (<a href="asm/47936.html">FRAMEED</a>), $F8 (<a href="asm/48640.html">FRAMEF8</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>), $FA (<a href="asm/48768.html">FRAMEFA</a>), $FB (<a href="asm/48832.html">FRAMEFB</a>), $FD (<a href="asm/48960.html">FRAMEFD</a>), $FE (<a href="asm/49024.html">FRAMEFE</a>), $FF (<a href="asm/49088.html">FRAMEFF</a>).</p>
+<p>In the picture: $DD+$FB x2 (300ms), $DD+$F8 x2 (330ms), $DD+$F9 (140ms), $ED+$FE (140ms), $E5+$FB (160ms), $E5+$F8 x2 (330ms), $E5+$FB (140ms), $E5+$FA (150ms), $DD+$FD (140ms), $DD+$F9 (150ms), $DD+$FF (160ms), $DD+$F8 x2 (320ms), $DD+$F9 (150ms), $ED+$FE (500ms): 18 pictures, 3.1s in all.</p>
+</div>
+<div class="aa-animation" id="grenade">
+<h3>A grenade thrown</h3>
+<p><img class="aa-picture" src="images/animations/grenade.gif" alt="A grenade thrown" width="176" height="112"></p>
+<p>F, the eight-frame throw, on open ground. <a href="asm/36096.html">THROW_GRENADE</a> puts the boy in the arms-out pose for the frame of the throw (+8 = 2, at $8D22), starts the grenade in his cell and sets its frame outright to $F4 ($8D32); it then moves like anything else, a cell a frame. When the time runs out it stops and its explosion count (+9) is set to 5, with script 5, a sound with no words. <a href="asm/35280.html">MOVE_OR_RESPAWN</a> counts +9 down before <a href="asm/33504.html">BLAST_FRAME</a> picks the frame, $F4 + (count AND 3), so the counts drawn are 4, 3, 2, 1: $F4 -- the flight frame again, for the frame it bursts -- then $F7, $F6 and $F5. At 0 the grenade goes home, to $00, $40, out of view.</p>
+<p>Sprite frames drawn: $DD (<a href="asm/46912.html">FRAMEDD</a>), $E5 (<a href="asm/47424.html">FRAMEE5</a>), $F4 (<a href="asm/48384.html">FRAMEF4</a>), $F5 (<a href="asm/48448.html">FRAMEF5</a>), $F6 (<a href="asm/48512.html">FRAMEF6</a>), $F7 (<a href="asm/48576.html">FRAMEF7</a>).</p>
+<p>In the picture: $E5+$F4 (180ms), $DD+$F4 x7 (1180ms), $DD+$F7 (140ms), $DD+$F6 (140ms), $DD+$F5 (140ms), $DD (280ms): 12 pictures, 2.1s in all.</p>
+</div>
+<div class="aa-animation" id="ant-stunned">
+<h3>An ant stunned by a grenade</h3>
+<p><img class="aa-picture" src="images/animations/ant-stunned.gif" alt="An ant stunned by a grenade" width="224" height="136"></p>
+<p>The fast ant walking at the boy from 14 cells, and a grenade thrown at it with D, four frames' flight. It bursts five to seven cells short of the ant -- the nearest start that does, found by running each -- and <a href="asm/34720.html">BLAST_ANT</a> stuns it for 24 frames (+6), and again on each frame the blast lasts. <a href="asm/34816.html">MOVE_OBJECT</a> does not move a stunned object, so <a href="asm/35328.html">MOVE_ANT</a> finds the ant no closer each frame: it puts the animation frame back to 0 and turns the ant left or right at random (<a href="asm/33632.html">RANDOM</a>). A stunned ant spins on the spot. It was stunned for 27 frames of the game in all here (the count goes down only on the frames it moves), then came on again.</p>
+<p>Sprite frames drawn: $F4 (<a href="asm/48384.html">FRAMEF4</a>), $F5 (<a href="asm/48448.html">FRAMEF5</a>), $F6 (<a href="asm/48512.html">FRAMEF6</a>), $F7 (<a href="asm/48576.html">FRAMEF7</a>), $F8 (<a href="asm/48640.html">FRAMEF8</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>), $FA (<a href="asm/48768.html">FRAMEFA</a>), $FB (<a href="asm/48832.html">FRAMEFB</a>), $FF (<a href="asm/49088.html">FRAMEFF</a>).</p>
+<p>In the picture: $FB+$F4 (190ms), $FF+$F4 (150ms), $FB+$F4 (140ms), $FF+$F4 (140ms), $F8+$F4 (200ms), $F9+$F7 (140ms), $FA+$F6 (140ms), $FB+$F5 (140ms), $F8 (140ms), $F9 (140ms), $FA (140ms), $F9 (140ms), $F8 (140ms), $F9 (140ms), and so on: 34 pictures, 5.0s in all.</p>
+</div>
+<div class="aa-animation" id="ant-blown-up">
+<h3>An ant blown up</h3>
+<p><img class="aa-picture" src="images/animations/ant-blown-up.gif" alt="An ant blown up" width="128" height="88"></p>
+<p>A slow ant (+$0D 2, as four of the five are on the first levels) walking at the boy from 7 cells, and a grenade thrown with D bursting within four cells of it: <a href="asm/34720.html">BLAST_ANT</a> sets its explosion count, and script 3 (<em>GOOD SHOT!</em>). <a href="asm/35421.html">ANT_TURN</a> calls <a href="asm/33504.html">BLAST_FRAME</a> for the blast frame -- but then <a href="asm/35328.html">MOVE_ANT</a>, which moves the ant, writes its animation frame again (0 or 1) after it. So the blast is drawn only in the frames the ant skips, when <a href="asm/35328.html">MOVE_ANT</a> is not called: every other frame for a slow ant, which flickers between ant and blast; and the count goes down only when it moves, so it lasts twice as long. What was drawn for the ant, frame by frame: $FF, $FB, $FB, $FF, $F5, $FA, $F4, $F9, $F7, $FA, $F6, $FB, $F5. Then it is sent home, out of view.</p>
+<p>Sprite frames drawn: $F4 (<a href="asm/48384.html">FRAMEF4</a>), $F5 (<a href="asm/48448.html">FRAMEF5</a>), $F6 (<a href="asm/48512.html">FRAMEF6</a>), $F7 (<a href="asm/48576.html">FRAMEF7</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>), $FA (<a href="asm/48768.html">FRAMEFA</a>), $FB (<a href="asm/48832.html">FRAMEFB</a>), $FF (<a href="asm/49088.html">FRAMEFF</a>).</p>
+<p>In the picture: $FF+$F4 (190ms), $FB+$F4 x2 (290ms), $FF+$F4 (140ms), $F5+$F4 (750ms), $FA+$F7 (140ms), $F4+$F6 (140ms), $F9+$F5 (140ms), $F7 (140ms), $FA (140ms), $F6 (140ms), $FB (140ms), $F5 (140ms), - (540ms): 14 pictures, 3.0s in all.</p>
+</div>
+<div class="aa-animation" id="ant-blown-up-fast">
+<h3>An ant blown up: the fast one</h3>
+<p><img class="aa-picture" src="images/animations/ant-blown-up-fast.gif" alt="An ant blown up: the fast one" width="144" height="96"></p>
+<p>The same for the fast ant, from 9 cells. It skips only one frame in twenty, so <a href="asm/35328.html">MOVE_ANT</a> overwrites the blast frame every time: what was drawn for it was $FB, $FF, $FB, $FF, $F8, $FB, $F8, $F9 -- an ant, spinning on the spot, never the blast -- and then it vanishes home. Read from the code and seen here; the grenade's own blast is drawn beside it.</p>
+<p>Sprite frames drawn: $F4 (<a href="asm/48384.html">FRAMEF4</a>), $F5 (<a href="asm/48448.html">FRAMEF5</a>), $F6 (<a href="asm/48512.html">FRAMEF6</a>), $F7 (<a href="asm/48576.html">FRAMEF7</a>), $F8 (<a href="asm/48640.html">FRAMEF8</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>), $FB (<a href="asm/48832.html">FRAMEFB</a>), $FF (<a href="asm/49088.html">FRAMEFF</a>).</p>
+<p>In the picture: $FB+$F4 (190ms), $FF+$F4 (150ms), $FB+$F4 (140ms), $FF+$F4 (140ms), $F8+$F4 (750ms), $FB+$F7 (140ms), $F8+$F6 (140ms), $F9+$F5 (140ms), - (550ms): 9 pictures, 2.3s in all.</p>
+</div>
+<div class="aa-animation" id="paralysing">
+<h3>Landing on an ant</h3>
+<p><img class="aa-picture" src="images/animations/paralysing.gif" alt="Landing on an ant" width="480" height="232"></p>
+<p>The boy three blocks up over a stunned ant (as the build's own scene stages it). He lands at height 1, on the ant's back: <a href="asm/34912.html">LANDED</a> calls <a href="asm/35793.html">PARALYSE_ANT</a>, which sets the ant's stun to $FF for good and runs script 16 (<em>PARALYSED AN ANT !</em>). From then on <a href="asm/35421.html">ANT_TURN</a> does nothing for it, so it stays in the frame it had, and he stands on it.</p>
+<p>Sprite frames drawn: $DD (<a href="asm/46912.html">FRAMEDD</a>), $E5 (<a href="asm/47424.html">FRAMEE5</a>), $ED (<a href="asm/47936.html">FRAMEED</a>), $F8 (<a href="asm/48640.html">FRAMEF8</a>), $F9 (<a href="asm/48704.html">FRAMEF9</a>).</p>
+<p>In the picture: $ED+$F8 x2 (270ms), $ED+$F9 (20ms), $E5+$F9 x3 (1740ms), $DD+$F9 (930ms): 7 pictures, 3.0s in all.</p>
+</div>
+<div class="aa-animation" id="view-turning">
+<h3>Turning the view</h3>
+<p><img class="aa-picture" src="images/animations/view-turning.gif" alt="Turning the view" width="480" height="232"></p>
+<p>The first frames of a game, at the city gate, with 0, P, ENTER and SPACE pressed in turn for a frame each: <a href="asm/33792.html">READ_VIEW_KEYS</a> sets the view to 3, 2, 1 and 0 and moves its origin (<a href="asm/46112.html">VIEW_ORIGIN</a>) so the boy is in the same place on the screen. Views in the run: 0, 3, 2, 1, 0. The boy has not moved, but his frame changes with the view, since <a href="asm/34304.html">PROJECT_SPRITES</a> adds the view to his facing; the blocks are drawn by <a href="asm/33283.html">DRAW_BLOCK</a> or <a href="asm/34563.html">DRAW_BLOCK_TURNED</a>, one for each pair of views (<a href="asm/34160.html">SELECT_BLOCK_DRAWER</a>). Nothing animates a turn: each view is drawn whole, the next frame.</p>
+<p>Sprite frames drawn: $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $DD (<a href="asm/46912.html">FRAMEDD</a>), $DE (<a href="asm/46976.html">FRAMEDE</a>), $DF (<a href="asm/47040.html">FRAMEDF</a>).</p>
+<p>In the picture: $DE (150ms), $DD (740ms), $DC (690ms), $DF (690ms), $DE (720ms): 5 pictures, 3.0s in all.</p>
+</div>
+<div class="aa-animation" id="my-hero">
+<h3>Found</h3>
+<p><img class="aa-picture" src="images/animations/my-hero.gif" alt="Found" width="480" height="232"></p>
+<p>The girl waiting on open ground, stood up (BASIC starts her lying down, stunned), and the boy walking up to her. <a href="asm/36736.html">MOVE_RESCUEE</a> measures the distance every frame; within three cells at the same height she is found -- her +$0D goes to 1 -- and script 12 (<em>"MY HERO!" / "TAKE ME AWAY / FROM ALL THIS !"</em>) plays with its letters between the notes, inside that one frame of the game (read here every fiftieth of a second). Found on the fourth step. The whole play area, since that is where the words go.</p>
+<p>Sprite frames drawn: $6E (<a href="asm/39808.html">FRAME6E</a>), $72 (<a href="asm/40064.html">FRAME72</a>), $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $E0 (<a href="asm/47104.html">FRAMEE0</a>).</p>
+<p>In the picture: $E0+$6E x2 (280ms), $DC+$6E (140ms), $E0+$6E (20ms), $DC+$6E x9 (4190ms), $DC+$72 (140ms), $DC+$6E (500ms): 15 pictures, 5.3s in all.</p>
+</div>
+<div class="aa-animation" id="following">
+<h3>Following</h3>
+<p><img class="aa-picture" src="images/animations/following.gif" alt="Following" width="160" height="136"></p>
+<p>After that, V held with one frame of SYMBOL SHIFT to turn the corner. <a href="asm/35510.html">FOLLOW_PLAYER</a> sets the girl's move bit while she is two to five cells from the boy and faces her along her way if one more step would leave her beside him, otherwise towards him; <a href="asm/35200.html">CHOOSE_FRAME</a> animates her as it does him. She keeps one cell behind all the way: the distance, frame by frame, was 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1. The view scrolled 9 times to follow them (<a href="asm/33888.html">SCROLL_VIEW</a>); the picture stays fixed on the ground.</p>
+<p>Sprite frames drawn: $6C (<a href="asm/39680.html">FRAME6C</a>), $6F (<a href="asm/39872.html">FRAME6F</a>), $70 (<a href="asm/39936.html">FRAME70</a>), $73 (<a href="asm/40128.html">FRAME73</a>), $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $DF (<a href="asm/47040.html">FRAMEDF</a>), $E0 (<a href="asm/47104.html">FRAMEE0</a>), $E3 (<a href="asm/47296.html">FRAMEE3</a>).</p>
+<p>In the picture: $E0+$70 (140ms), $DC+$6C (150ms), $E0+$70 (140ms), $DC+$6C (140ms), $E0+$70 (140ms), $DF+$6C (140ms), $E3+$73 (140ms), $DF+$6F (140ms), $E3+$73 (140ms), $DF+$6F (140ms), $E3+$73 (140ms), $DF+$6F (560ms): 12 pictures, 2.1s in all.</p>
+</div>
+<div class="aa-animation" id="walking-out">
+<h3>Leading her out</h3>
+<p><img class="aa-picture" src="images/animations/walking-out.gif" alt="Leading her out" width="480" height="232"></p>
+<p>The boy just inside the gate, the girl following two cells behind, and V held. Outside the walls a coordinate is below $80; once both are out, <a href="asm/36512.html">CHECK_RESCUED</a> sets her +$0D to 2 (BASIC's w), runs script 13 (<em>CONGRATULATIONS !</em>) -- its letters coloured one by one and the play area filled with colour after colour by the script's $7D codes -- and stores 1 in $B438, so PLAY returns to BASIC at the end of that frame. 4 frames of the game from the first step.</p>
+<p>Sprite frames drawn: $6C (<a href="asm/39680.html">FRAME6C</a>), $70 (<a href="asm/39936.html">FRAME70</a>), $DC (<a href="asm/46848.html">MORE_SPRITES</a>), $E0 (<a href="asm/47104.html">FRAMEE0</a>).</p>
+<p>In the picture: $E0+$6C x2 (280ms), $DC+$70 (150ms), $E0+$6C (160ms), $DC+$70 x26 (5700ms): 30 pictures, 6.3s in all.</p>
+</div>
+<div class="aa-animation" id="ending">
+<h3>The ending</h3>
+<p><img class="aa-picture" src="images/animations/ending.gif" alt="The ending" width="576" height="448"></p>
+<p>After the tenth rescue BASIC's line 95 runs line 3600: GO SUB 2000 clears the screen, POKE 46124,5 sets the border colour the sound routines use, and USR 36594 (<a href="asm/36594.html">FINAL_SCRIPT</a>) runs script 17 (<em>YOU ARE A REAL / AT LAST YOUR MISSION IS OVER! / YOUR NEW FRIENDS WISH TO / THANK YOU FOR SAVING THEIR / LIVES.</em>); then BASIC draws the medal with CIRCLE, prints the score and waits, PAUSE 500, before line 2600's prompt and the wait for a key. This is BASIC running with interrupts on, read off the screen every fiftieth of a second, border and all: 41.0s from line 3600 to the key wait, and three seconds more to show the flashing. To get there, a first rescue is made by putting both people outside the walls, and as PLAY returns BASIC's sg is set to 8, so that line 90 counts it to 9 and BASIC sets up the tenth level itself; the second rescue is then the tenth. (Staged the quicker way, with fin set to 1 on the first level, the ending runs out of memory in line 3610's CIRCLE -- the first level's long story card is still in c$ -- and <a href="asm/38807.html">INTERRUPT</a> restarts the game.)</p>
+<p>In the picture: 516 pictures, 41.0s in all.</p>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

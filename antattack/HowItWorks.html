@@ -4,6 +4,7 @@
 <title>Ant Attack: How the game works</title>
 <meta charset="utf-8" />
 <link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="antattack.css" />
 <link rel="stylesheet" type="text/css" href="site.css" />
 </head>
 <body class="HowItWorks">
@@ -34,7 +35,7 @@
 The tape holds a BASIC header, a 76-byte program and one headerless block of 41984 bytes. The program is a single line,
 <pre>1 RANDOMIZE USR (PEEK 23635+256*PEEK 23636+53)</pre>
 which is PROG plus 53: the machine code sitting after the line's own ENTER. That code loads the big block to $5C00 -- the system variables -- and everything above, to the top of memory. It replaces the running BASIC program with the game's own, 8K of it, and survives doing so because nothing returns to the old program: LD-BYTES is entered with <a href="asm/38656.html">LOADED</a> pushed as its return address.
-<a href="asm/38656.html">LOADED</a> checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: <a href="asm/38816.html">RESTART_BASIC</a> types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header has no auto-run line; the game starts itself.
+<a href="asm/38656.html">LOADED</a> checks the flags and DE the ROM left (a tape error or a short load resets the machine), switches to interrupt mode 2, and then starts the game's BASIC the way ENTER would: <a href="asm/38816.html">RESTART_BASIC</a> types <code>RUN</code> into the edit line and jumps into the ROM's statement loop. The header's own auto-run line, 1, starts the loader; nothing would start the game's BASIC that the block brings in, so the game starts it itself.
 </div>
 </div>
 <div><span id="break"></span></div>
@@ -50,7 +51,7 @@ Interrupt mode 2 sends every interrupt through <a href="asm/38912.html">INTERRUP
 <div class="paragraph">
 BASIC runs everything that is not the city: the title screen, "Girl or Boy (g/b)?", the story cards, the score card, "Have another go!", and the setting up of each level, which is a matter of POKEing the object records at <a href="asm/46208.html">PLAYER</a> from DATA (lines 100-190) and the variables at <a href="asm/46112.html">VIEW_ORIGIN</a> (lines 200-230). The ten places the person to be rescued waits are DATA too -- see <a href="Levels.html">the levels</a>.
 The machine code is entered through four USRs: <a href="asm/32768.html">PLAY</a> (32768) to play, <a href="asm/32912.html">GET_KEY</a> (32912) for the girl-or-boy key, <a href="asm/32919.html">WAIT_KEY</a> (32919) to wait for a key, and <a href="asm/36594.html">FINAL_SCRIPT</a> (36594) for the ending.
-<a href="asm/32768.html">PLAY</a> is called twice a level. With 2 in <a href="asm/46112.html#46136">FRAMES_LEFT</a> it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- five frames after time or energy runs out (<a href="asm/36560.html">CHECK_GAME_OVER</a>), one after a rescue (<a href="asm/36512.html">CHECK_RESCUED</a>). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (<a href="asm/46208.html#46237">RESCUEE_STATE</a>, BASIC's <code>w</code>) is a rescue.
+<a href="asm/32768.html">PLAY</a> is called twice a level. With 2 in <a href="asm/46112.html#46136">FRAMES_LEFT</a> it draws two frames and returns, so the city is on the screen behind "READY WHEN YOU ARE"; the second call finds 0 there, counts it round to $FF, and runs until the game stores a small count again -- at the end of the fourth frame after time or energy runs out (<a href="asm/36560.html">CHECK_GAME_OVER</a>), at the end of the same frame after a rescue (<a href="asm/36512.html">CHECK_RESCUED</a>). Pressing 1 leaves at once. BASIC then reads what happened from the rescued person's record: 2 at +$0D (<a href="asm/46208.html#46237">RESCUEE_STATE</a>, BASIC's <code>w</code>) is a rescue.
 </div>
 </div>
 <div><span id="objects"></span></div>
@@ -115,7 +116,7 @@ The player and the rescued person may stand on each other (bit 0 of the flags, <
 <div class="box-title">The ants</div>
 <div class="paragraph">
 <a href="asm/35421.html">ANT_TURN</a> gives each ant a turn every frame but one in +$0D. The first ant's +$0D is 20 (line 140) -- nearly full speed. The other four take BASIC's <code>sp</code>, which is 2 (half speed) for the first four levels and one more for every four rescues after that.
-<a href="asm/35328.html">MOVE_ANT</a> steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within four cells turns to face the player. Not closer: it stops and turns left or right at random (<a href="asm/33632.html">RANDOM</a>). There is no path-finding; the city's walls do the rest.
+<a href="asm/35328.html">MOVE_ANT</a> steps the ant the way it faces and compares its distance from the player before and after. Closer: it walks on, and within three cells turns to face the player. Not closer: it stops and turns left or right at random (<a href="asm/33632.html">RANDOM</a>). There is no path-finding; the city's walls do the rest.
 A grenade (<a href="asm/36096.html">THROW_GRENADE</a>: S, D, F or G throw for 2, 4, 8 or 16 frames) explodes where it is when the time runs out. <a href="asm/34720.html">BLAST_ANT</a> blows up any ant at the same height within four cells ("GOOD SHOT!") and stuns one within seven. The grenade is checked against the player's and the rescued person's cells on every frame of its flight, not just the last: anything it meets on the way is blown up.
 </div>
 </div>
@@ -139,11 +140,11 @@ Every message and every sound is a script in <a href="asm/36864.html">SCRIPTS</a
 <div class="box-title">Leftovers</div>
 <div class="paragraph">
 <ul>
-<li>Sandy White's name is in the code three times: "SandyWhite1983" at <a href="asm/32820.html">8034</a> (twice) and at <a href="asm/33864.html">8448</a>, in the gaps between routines.</li>
-<li><a href="asm/35680.html">8B60</a> is a script that nothing runs: "OWCH!", with notes, in the script format but outside <a href="asm/36864.html">SCRIPTS</a>.</li>
+<li>Sandy White's name is in the code three times: "SandyWhite1983" at <a href="asm/32820.html">PLAY_PAD</a> (twice) and at <a href="asm/33864.html">READ_VIEW_KEYS_PAD</a>, in the gaps between routines.</li>
+<li><a href="asm/35680.html">UNUSED_SCRIPT</a> is a script that nothing runs: "OWCH!", with notes, in the script format but outside <a href="asm/36864.html">SCRIPTS</a>.</li>
 <li>The three bytes before each block drawer are <code>LD DE,31</code>, that routine's own first instruction; both are entered three bytes in, since <a href="asm/34048.html">DRAW_SCENE</a> has already set DE.</li>
 <li>Bit 3 of the flags, "never falls", is tested by <a href="asm/34944.html">FALL</a> and set by nothing. Its three instructions are the only ones in the game not seen to run.</li>
-<li>Five NOPs sit where something was taken out: three in <a href="asm/34000.html">SHARE_CELL</a>, one in <a href="asm/35008.html">ON_TOP</a> and one in <a href="asm/36096.html">THROW_GRENADE</a>.</li>
+<li>Five NOPs sit where something was taken out: three in <a href="asm/34000.html">SHARE_CELL</a>, one in <a href="asm/35008.html">ON_TOP</a> and one in <a href="asm/36096.html">THROW_GRENADE</a>. A sixth, after the JP (IY) in <a href="asm/34048.html">DRAW_SCENE</a>, can never be reached.</li>
 <li><a href="asm/36304.html">COUNT_DOWN_TIME</a> decrements the time's low byte and then overwrites it with the same result worked out another way.</li>
 <li>Frames $F0-$F3 are an ant on its back, and nothing draws them.</li>
 </ul>

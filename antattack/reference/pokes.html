@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../antattack.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#time">Infinite time</a></li>
+<li><a href="#grenades">Infinite grenades</a></li>
+<li><a href="#energy">Infinite energy</a></li>
+<li><a href="#theirenergy">Infinite energy for the one you rescue</a></li>
+<li><a href="#safegrenades">Grenades that hurt nobody</a></li>
+<li><a href="#slowants">Every ant at half speed</a></li>
+</ul>
+<div><span id="time"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite time</div>
+<div class="paragraph">
+<a href="../asm/36304.html">COUNT_DOWN_TIME</a> takes a tick off the clock every third frame, but first checks for
+zero with a JR Z at $8DDD that jumps straight to the printing. Make it
+an unconditional JR: the time is still printed, but never goes down, so the
+game can never run out of time (and every rescue scores the full clock, since
+the score is the time left times the rescues). Tested: with the clock set to 5
+at the start of level 1, the game ran out of time within 40 frames and went to
+the "TIME UP!" card without the poke; with it the clock still read 5 after 40
+frames, and play went on.
+</div>
+<div class="paragraph">
+POKE 36317,24
+</div>
+</div>
+<div><span id="grenades"></span></div>
+<div class="box box-2">
+<div class="box-title">Infinite grenades</div>
+<div class="paragraph">
+<a href="../asm/36096.html">THROW_GRENADE</a> checks that there is a grenade left and then takes one with DEC A at
+$8D1A; make that a NOP. The count stays at 20 however many are
+thrown. Tested: three throws from the city gate took the count from 20 to 17
+without the poke, and left it at 20 with it.
+</div>
+<div class="paragraph">
+POKE 36122,0
+</div>
+</div>
+<div><span id="energy"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite energy</div>
+<div class="paragraph">
+A bite costs the player a point of energy in <a href="../asm/36608.html">HANDLE_EVENTS</a>, with DEC (HL) at
+$8F41; make it a NOP. "BITTEN!" still shows, but the energy stays
+at 20. It does not cover being caught in your own grenade's blast, which
+sets the energy to 0 outright: for that, see the grenades that hurt nobody. Tested: an ant put
+two cells from the player bit eight times in 60 frames, taking the energy
+from 20 to 12 without the poke; with it the energy stayed at 20 through the
+same eight bites.
+</div>
+<div class="paragraph">
+POKE 36673,0
+</div>
+</div>
+<div><span id="theirenergy"></span></div>
+<div class="box box-2">
+<div class="box-title">Infinite energy for the one you rescue</div>
+<div class="paragraph">
+The same for the person being rescued: their bite is the DEC (HL) at
+$8F6A in <a href="../asm/36608.html">HANDLE_EVENTS</a>. Since either energy reaching 0 ends the
+attempt (<a href="../asm/36560.html">CHECK_GAME_OVER</a>), this keeps a follower from being eaten on the way out.
+Tested: an ant placed beyond the stunned rescuee bit them once in 80 frames,
+20 to 19, without the poke; with it their energy stayed at 20.
+</div>
+<div class="paragraph">
+POKE 36714,0
+</div>
+</div>
+<div><span id="safegrenades"></span></div>
+<div class="box box-1">
+<div class="box-title">Grenades that hurt nobody</div>
+<div class="paragraph">
+Every frame of its flight, <a href="../asm/36096.html">THROW_GRENADE</a> checks whether the grenade is in the
+player's cell or the rescued person's, and if so blows them up (see the bug
+about throwing on the move). Both checks end in a RET NZ that skips someone
+already exploding: make them plain RETs, at $8D67 and
+$8D8A, and the grenade passes through people. The blast still
+kills and stuns ants as before (<a href="../asm/36250.html">GRENADE_BLAST</a>). Tested: throwing while walking blew
+the player up, energy 0, without the poke, and with it the player walked on
+at 20; a grenade thrown at the rescued person two cells ahead blew them up
+("HOW COULD YOU ?") without the poke, and exploded harmlessly beside them
+with it.
+</div>
+<div class="paragraph">
+POKE 36199,201: POKE 36234,201
+</div>
+</div>
+<div><span id="slowants"></span></div>
+<div class="box box-2">
+<div class="box-title">Every ant at half speed</div>
+<div class="paragraph">
+<a href="../asm/35421.html">ANT_TURN</a> lets an ant move on every frame but one in n, where n is the ant's
+own speed at +$0D: 20 for the first ant, so it hardly ever rests, and 2 for
+the other four at first, rising to 3 and 4 as the rescues mount up (BASIC's
+sp, <a href="../asm/24137.html">line 90</a>). Where it reloads the count, replace LD A,(IX+$0D) at
+$8A6F with LD A,2 and a NOP, and every ant rests every other frame
+whatever its speed. On the first levels this only slows the fast ant; from
+the fourth rescue on it slows them all. Tested: over the first 60 frames of
+level 1 the fast ant took 57 steps without the poke and 39 with it, as its
+counter predicts (it was 19 frames from its first rest); the other four took
+30 steps each both times.
+</div>
+<div class="paragraph">
+POKE 35439,62: POKE 35440,2: POKE 35441,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

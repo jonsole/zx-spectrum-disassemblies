@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Ant Attack: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../antattack.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Ant Attack</a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#owch">A script that says OWCH, and nothing plays</a></li>
+<li><a href="#frames">Four frames that nothing draws</a></li>
+<li><a href="#grenadeball">The grenade's own picture, far outside the walls</a></li>
+<li><a href="#break">BREAK starts the game again</a></li>
+<li><a href="#energy">Energy is not a life</a></li>
+<li><a href="#keyone">Key 1 is a free refill</a></li>
+<li><a href="#random">Every attempt is dealt the same ants</a></li>
+<li><a href="#seed">A random number for nobody</a></li>
+<li><a href="#xor">The ants are part of the map</a></li>
+<li><a href="#load">Loaded over the system variables</a></li>
+<li><a href="#score">The score is time times rescues</a></li>
+<li><a href="#clock">The clock counts frames</a></li>
+<li><a href="#fastant">One ant is fast</a></li>
+</ul>
+<div><span id="owch"></span></div>
+<div class="box box-1">
+<div class="box-title">A script that says OWCH, and nothing plays</div>
+<div class="paragraph">
+At <a href="../asm/35680.html">$8B60</a>, outside the table <a href="../asm/36365.html">RUN_SCRIPT</a> counts its scripts from, is one more in
+the same format: a PRINT AT near the bottom of the view, then letters between
+notes. Its letters spell "OWCH!". Nothing refers to it. It would not work as
+it is either: it has no stream byte at the front, and an end marker sits
+between the C and the H, so run by the game's own <a href="../asm/36365.html">RUN_SCRIPT</a> from a copy with a
+stream byte put in front, it plays its notes and prints only the first three
+letters:
+</div>
+<div class="paragraph">
+<img src="../images/reference/owch.png" width="512" height="384" alt="The unused script, run">
+</div>
+</div>
+<div><span id="frames"></span></div>
+<div class="box box-2">
+<div class="box-title">Four frames that nothing draws</div>
+<div class="paragraph">
+Frames $F0-$F3 (<a href="../asm/48128.html">at $BC00</a>), between the boy's last pose and the
+grenade's flight, are never drawn. <a href="../asm/34304.html">PROJECT_SPRITES</a> picks an object's frame from +$08: with bit 7 set, the
+frame is +$08 itself, and nothing writes such a value except the blast
+frames $F4-$F7 (<a href="../asm/33504.html">BLAST_FRAME</a>, <a href="../asm/35200.html">CHOOSE_FRAME</a>, <a href="../asm/36096.html">THROW_GRENADE</a>); otherwise it is the first frame
+plus four times +$08 plus the facing, and +$08 is never more than 4 for the
+people and 1 for the ants. The boy's twenty frames end at $EF and the ants'
+eight start at $F8. What the four were meant to show -- they are drawn on
+<a href="../Sprites.html">the sprites page</a> -- is not known.
+</div>
+</div>
+<div><span id="grenadeball"></span></div>
+<div class="box box-1">
+<div class="box-title">The grenade's own picture, far outside the walls</div>
+<div class="paragraph">
+The grenade's record gives frames $68-$6B as its sprite (<a href="../asm/39424.html">at $9A00</a>): a
+large round bomb with a fuse, stored with the girl's frames. In flight and exploding it is
+drawn as $F4-$F7 instead, and when it has gone off it goes home -- to x 0,
+y $40, far outside the city, where it waits for the next throw. Nobody need
+ever go there, but it is open ground, and anyone who walks out that far
+finds the big grenade sitting there: watched in the emulator, with the
+player put two cells from it.
+</div>
+</div>
+<div><span id="break"></span></div>
+<div class="box box-2">
+<div class="box-title">BREAK starts the game again</div>
+<div class="paragraph">
+The interrupt routine, <a href="../asm/38807.html">INTERRUPT</a>, passes each interrupt to the ROM unless an
+error is waiting in ERR_NR -- and then, instead, it types RUN and starts the
+BASIC again (<a href="../asm/38816.html">RESTART_BASIC</a>). So BREAK, which the ROM turns into error L between
+BASIC statements, takes the game back to its title screen rather than
+stopping it. Watched in the emulator: CAPS SHIFT and SPACE at the girl-or-boy
+question stopped at <a href="../asm/38816.html">RESTART_BASIC</a> with ERR_NR holding $14 (report L), and the
+title came round again. During play the machine code never lets the ROM
+look for BREAK, so the same two keys only pick view 0: 30 frames of them
+changed nothing else.
+</div>
+</div>
+<div><span id="energy"></span></div>
+<div class="box box-1">
+<div class="box-title">Energy is not a life</div>
+<div class="paragraph">
+When either energy reaches 0 (<a href="../asm/36560.html">CHECK_GAME_OVER</a>) the level simply starts again: BASIC's
+<a href="../asm/23947.html">line 60</a> ends the game only when the time has run out, and otherwise
+<a href="../asm/24045.html">line 70</a> says "Have another go!" and sets the level up afresh, both energies
+back to 20 -- but not the clock, which only <a href="../asm/23888.html">line 20</a> resets, after a rescue.
+So there are no lives: every failure costs only the time it took. Watched in
+the emulator: the player eaten with 968 left on the clock was back at the
+gate, ready to go, with 968 still on it.
+</div>
+</div>
+<div><span id="keyone"></span></div>
+<div class="box box-2">
+<div class="box-title">Key 1 is a free refill</div>
+<div class="paragraph">
+Key 1 goes back to the gate: <a href="../asm/32768.html">PLAY</a> returns to BASIC the moment it sees it,
+and BASIC treats that as a failed attempt. The level is set up again from
+its DATA (<a href="../asm/24337.html">line 100</a>), with 20 grenades and both energies full, and the
+person to be rescued back at their post -- while the clock runs on from where
+it was. Watched in the emulator: with 18 grenades, 17 energy and 979 on the
+clock, pressing 1 gave 20, 20 and 978.
+</div>
+</div>
+<div><span id="random"></span></div>
+<div class="box box-1">
+<div class="box-title">Every attempt is dealt the same ants</div>
+<div class="paragraph">
+The only randomness in the machine code is <a href="../asm/33632.html">RANDOM</a>, a 32-bit shift register
+at $B428, which decides which way an ant turns when it is not getting closer
+(and makes the hiss of <a href="../asm/35658.html">NOISE</a>).
+BASIC's <a href="../asm/25682.html">line 210</a> sets it to 1, 1, 1, 1 with the other variables at the start
+of every level and every retry, so an attempt played with the same keys on
+the same frames plays out the same, ant for ant. Watched in the emulator: it
+held 1, 1, 1, 1 at the start of <a href="../asm/32768.html">PLAY</a> on a retry, as on a new level.
+</div>
+</div>
+<div><span id="seed"></span></div>
+<div class="box box-2">
+<div class="box-title">A random number for nobody</div>
+<div class="paragraph">
+Every time <a href="../asm/32768.html">PLAY</a> finishes normally it copies the first byte of its random
+number into the ROM's SEED, for BASIC. BASIC calls it as RANDOMIZE USR 32768,
+and RANDOMIZE then stores its own argument, the USR result, in SEED on top of
+it -- and the BASIC has no RND anywhere to use either. Watched with a
+watchpoint on SEED: the write at $802F was followed at once by the ROM's own
+at $1E5A.
+</div>
+</div>
+<div><span id="xor"></span></div>
+<div class="box box-1">
+<div class="box-title">The ants are part of the map</div>
+<div class="paragraph">
+Nothing in the game tests one object against another for collisions. Each
+ant is a set bit in the city map at <a href="../asm/49152.html">CITY_MAP</a>, XORed out by <a href="../asm/35136.html">TOGGLE_MAP_BIT</a> before it
+moves and back in after (<a href="../asm/35328.html">MOVE_ANT</a>), so everything else walks into it as into a
+wall, and a bite is simply finding one's own cell occupied (<a href="../asm/34816.html">MOVE_OBJECT</a>). The
+map in memory changes as the ants walk. See <a href="../HowItWorks.html">how the game
+works</a>.
+</div>
+</div>
+<div><span id="load"></span></div>
+<div class="box box-2">
+<div class="box-title">Loaded over the system variables</div>
+<div class="paragraph">
+The game is one headerless block of 41984 bytes loaded to $5C00: over the
+system variables and the BASIC program that is loading it, and on to the top
+of memory. The loader survives because it never returns to that program --
+LD-BYTES returns to <a href="../asm/38656.html">LOADED</a>, which switches to its own interrupt routine and
+types RUN into the game's own BASIC, loaded with everything else.
+</div>
+</div>
+<div><span id="score"></span></div>
+<div class="box box-1">
+<div class="box-title">The score is time times rescues</div>
+<div class="paragraph">
+BASIC's <a href="../asm/24137.html">line 90</a> scores a rescue as the time left on the clock times the
+number rescued so far, including this one: the same speed is worth ten times
+as much on the tenth level as on the first. The time left also decides where
+the next person waits (see <a href="../Levels.html">the levels</a>).
+</div>
+</div>
+<div><span id="clock"></span></div>
+<div class="box box-2">
+<div class="box-title">The clock counts frames</div>
+<div class="paragraph">
+<a href="../asm/36304.html">COUNT_DOWN_TIME</a> takes a tick off the clock every third frame, and there is no frame
+pacing anywhere: a frame takes as long as the drawing does. The clock's 1001
+ticks are 3003 frames, and at the 500,000-600,000 T-states a frame measured
+for this disassembly (six or seven frames a second) that comes to about
+eight minutes -- more in a busy view, less in an empty one.
+</div>
+</div>
+<div><span id="fastant"></span></div>
+<div class="box box-1">
+<div class="box-title">One ant is fast</div>
+<div class="paragraph">
+Of the five ants, the first always rests only one frame in 20 (<a href="../asm/24833.html">line 140</a>),
+while the other four rest every other frame until the fourth rescue, and one
+frame in three or four after it (<a href="../asm/35421.html">ANT_TURN</a>). Counted in the emulator over the
+first 60 frames of level 1: 57 steps for the first ant, 30 for each of the
+others.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1983 Sandy White (Quicksilva)</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_antattack.py</code>.</div>
+</footer>
+</body>
+</html>

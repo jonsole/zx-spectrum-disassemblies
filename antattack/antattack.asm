@@ -6,7 +6,7 @@
 ; The tape block starts here, so it carries a set of system variables of its
 ; own: PROG, VARS and the rest point at the game's BASIC, and ERR_SP and RAMTOP
 ; at its stack, just below the machine code.
-L5C00:
+SYSTEM_VARIABLES:
   DEFB $FF,$00,$00,$00,$FF,$00,$22,$0D
   DEFB $0D,$23,$05,$00,$00,$00,$00,$00
   DEFB $01,$00,$06,$00,$0B,$00,$01,$00
@@ -33,8 +33,8 @@ E_LINE:
   DEFB $02,$00,$00,$FE,$FF,$01,$00,$00
   DEFB $00,$B6,$1A
 SEED:
-  DEFB $00,$00            ; SEED: PLAY leaves the game's random number here for
-                          ; RND
+  DEFB $00,$00            ; SEED: PLAY leaves the game's random number here,
+                          ; and RANDOMIZE USR overwrites it at once
   DEFB $1E,$33,$00,$58,$FF,$00,$00,$21
   DEFB $00,$5B,$21,$17,$00,$40,$E0,$50
   DEFB $21,$18,$21,$17,$01,$38,$00,$38
@@ -45,7 +45,7 @@ SEED:
   DEFB $00,$00,$FF,$7F,$FF,$FF
 
 ; Channel information
-L5CB6:
+CHANNELS:
   DEFB $F4,$09,$A8,$10,$4B,$F4,$09,$C4
   DEFB $15,$53,$81,$0F,$C4,$15,$52,$F4
   DEFB $09,$C4,$15,$50,$80
@@ -54,7 +54,7 @@ L5CB6:
 ;
 ; 10 INK 0: PAPER 6: LET w=46237: LET r=0: LET ink=0: LET sp=2: LET fin=10: LET
 ; se=0: LET sg=0: POKE w,0: GO SUB 600
-L5CCB:
+LINE10:
   DEFB $00,$0A,$81,$00    ; Line number (big-endian) and length
   DEFB $D9,$30,$0E,$00,$00,$00,$00,$00
   DEFB $3A,$DA,$36,$0E,$00,$00,$06,$00
@@ -77,7 +77,7 @@ L5CCB:
 ; BASIC line 20
 ;
 ; 20 GO SUB 750: GO SUB 800: GO SUB 900: GO SUB 300: GO SUB 700
-L5D50:
+LINE20:
   DEFB $00,$14,$37,$00    ; Line number (big-endian) and length
   DEFB $ED,$37,$35,$30,$0E,$00,$00,$EE
   DEFB $02,$00,$3A,$ED,$38,$30,$30,$0E
@@ -91,7 +91,7 @@ L5D50:
 ;
 ; 60 IF PEEK 46134=0 AND PEEK 46135=0 AND PEEK w<>2 THEN GO SUB 3200: GO SUB
 ; 2600: RANDOMIZE USR 32919: RUN
-L5D8B:
+LINE60:
   DEFB $00,$3C,$5E,$00    ; Line number (big-endian) and length
   DEFB $FA,$BE,$34,$36,$31,$33,$34,$0E
   DEFB $00,$00,$36,$B4,$00,$3D,$30,$0E
@@ -110,7 +110,7 @@ L5D8B:
 ;
 ; 70 IF PEEK w<>2 THEN GO SUB 400: GO SUB 800: GO SUB 100: GO SUB 200: GO SUB
 ; 300: GO SUB 700: GO TO 60
-L5DED:
+LINE70:
   DEFB $00,$46,$58,$00    ; Line number (big-endian) and length
   DEFB $FA,$BE,$77,$C9,$32,$0E,$00,$00
   DEFB $02,$00,$00,$CB,$ED,$34,$30,$30
@@ -128,7 +128,7 @@ L5DED:
 ;
 ; 90 LET sg=sg+1: LET tim=PEEK 46135+(PEEK 46134)*256: LET scr=tim*sg: LET
 ; se=se+scr: IF sg>=4 THEN LET sp=2+INT (sg/4)
-L5E49:
+LINE90:
   DEFB $00,$5A,$77,$00    ; Line number (big-endian) and length
   DEFB $F1,$73,$67,$3D,$73,$67,$2B,$31
   DEFB $0E,$00,$00,$01,$00,$00,$3A,$F1
@@ -150,7 +150,7 @@ L5E49:
 ;
 ; 95 IF sg>=fin THEN GO SUB 3600: PAUSE 500: GO SUB 2600: RANDOMIZE USR 32919:
 ; RUN
-L5EC4:
+LINE95:
   DEFB $00,$5F,$3B,$00    ; Line number (big-endian) and length
   DEFB $FA,$73,$67,$C8,$66,$69,$6E,$CB
   DEFB $ED,$33,$36,$30,$30,$0E,$00,$00
@@ -164,7 +164,7 @@ L5EC4:
 ; BASIC line 99
 ;
 ; 99 GO TO 20
-L5F03:
+LINE99:
   DEFB $00,$63,$0A,$00    ; Line number (big-endian) and length
   DEFB $EC,$32,$30,$0E,$00,$00,$14,$00
   DEFB $00,$0D
@@ -172,7 +172,7 @@ L5F03:
 ; BASIC line 100
 ;
 ; 100 RESTORE 100: FOR i=46208 TO 46207+16*8: READ p: IF p>=0 THEN POKE i,p
-L5F11:
+LINE100:
   DEFB $00,$64,$4A,$00    ; Line number (big-endian) and length
   DEFB $E5,$31,$30,$30,$0E,$00,$00,$64
   DEFB $00,$00,$3A,$EB,$69,$3D,$34,$36
@@ -188,14 +188,14 @@ L5F11:
 ; BASIC line 105
 ;
 ; 105 NEXT i
-L5F5F:
+LINE105:
   DEFB $00,$69,$03,$00    ; Line number (big-endian) and length
   DEFB $F3,$69,$0D
 
 ; BASIC line 110
 ;
 ; 110 DATA 0,0,0,-1,2,0,0,1,0,1,185,4,0,0,0,0
-L5F66:
+LINE110:
   DEFB $00,$6E,$84,$00    ; Line number (big-endian) and length
   DEFB $E4,$30,$0E,$00,$00,$00,$00,$00
   DEFB $2C,$30,$0E,$00,$00,$00,$00,$00
@@ -218,7 +218,7 @@ L5F66:
 ; BASIC line 120
 ;
 ; 120 DATA -1,-1,-1,-1,0,0,4,17,3,0,0,0,0,0,0,0
-L5FEE:
+LINE120:
   DEFB $00,$78,$86,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -241,7 +241,7 @@ L5FEE:
 ; BASIC line 130
 ;
 ; 130 DATA 0,0,0,104,0,0,0,16,0,1,0,64,0,0,0,0
-L6078:
+LINE130:
   DEFB $00,$82,$85,$00    ; Line number (big-endian) and length
   DEFB $E4,$30,$0E,$00,$00,$00,$00,$00
   DEFB $2C,$30,$0E,$00,$00,$00,$00,$00
@@ -264,7 +264,7 @@ L6078:
 ; BASIC line 140
 ;
 ; 140 DATA -1,-1,-1,248,0,0,0,4,0,1,186,168,0,20,1,0
-L6101:
+LINE140:
   DEFB $00,$8C,$8B,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -288,7 +288,7 @@ L6101:
 ; BASIC line 150
 ;
 ; 150 DATA -1,-1,-1,248,0,0,0,4,0,1,184,168,0,2,4,0
-L6190:
+LINE150:
   DEFB $00,$96,$8A,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -312,7 +312,7 @@ L6190:
 ; BASIC line 160
 ;
 ; 160 DATA -1,-1,-1,248,0,0,0,4,0,1,182,168,0,2,3,0
-L621E:
+LINE160:
   DEFB $00,$A0,$8A,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -336,7 +336,7 @@ L621E:
 ; BASIC line 170
 ;
 ; 170 DATA -1,-1,-1,248,0,0,0,4,0,1,180,168,0,2,2,0
-L62AC:
+LINE170:
   DEFB $00,$AA,$8A,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -360,7 +360,7 @@ L62AC:
 ; BASIC line 180
 ;
 ; 180 DATA -1,-1,-1,248,0,0,0,4,0,1,178,168,0,2,1,0
-L633A:
+LINE180:
   DEFB $00,$B4,$8A,$00    ; Line number (big-endian) and length
   DEFB $E4,$2D,$31,$0E,$00,$00,$01,$00
   DEFB $00,$2C,$2D,$31,$0E,$00,$00,$01
@@ -384,7 +384,7 @@ L633A:
 ; BASIC line 190
 ;
 ; 190 POKE 46285,sp: POKE 46301,sp: POKE 46317,sp: POKE 46333,sp: RETURN
-L63C8:
+LINE190:
   DEFB $00,$BE,$42,$00    ; Line number (big-endian) and length
   DEFB $F4,$34,$36,$32,$38,$35,$0E,$00
   DEFB $00,$CD,$B4,$00,$2C,$73,$70,$3A
@@ -399,7 +399,7 @@ L63C8:
 ; BASIC line 200
 ;
 ; 200 RESTORE 200: FOR i=46112 TO 46136: READ p: IF p>=0 THEN POKE i,p
-L640E:
+LINE200:
   DEFB $00,$C8,$39,$00    ; Line number (big-endian) and length
   DEFB $E5,$32,$30,$30,$0E,$00,$00,$C8
   DEFB $00,$00,$3A,$EB,$69,$3D,$34,$36
@@ -413,14 +413,14 @@ L640E:
 ; BASIC line 205
 ;
 ; 205 NEXT i
-L644B:
+LINE205:
   DEFB $00,$CD,$03,$00    ; Line number (big-endian) and length
   DEFB $F3,$69,$0D
 
 ; BASIC line 210
 ;
 ; 210 DATA 185,237,0,1,1,1,1,1,1,1,1,1,0,0
-L6452:
+LINE210:
   DEFB $00,$D2,$75,$00    ; Line number (big-endian) and length
   DEFB $E4,$31,$38,$35,$0E,$00,$00,$B9
   DEFB $00,$00,$2C,$32,$33,$37,$0E,$00
@@ -441,7 +441,7 @@ L6452:
 ; BASIC line 220
 ;
 ; 220 DATA 0,0,20,0,20,0,20,1,-1,-1,1
-L64CB:
+LINE220:
   DEFB $00,$DC,$5E,$00    ; Line number (big-endian) and length
   DEFB $E4,$30,$0E,$00,$00,$00,$00,$00
   DEFB $2C,$30,$0E,$00,$00,$00,$00,$00
@@ -459,7 +459,7 @@ L64CB:
 ; BASIC line 230
 ;
 ; 230 RETURN
-L652D:
+LINE230:
   DEFB $00,$E6,$02,$00    ; Line number (big-endian) and length
   DEFB $FE,$0D
 
@@ -467,7 +467,7 @@ L652D:
 ;
 ; 300 PAPER 7: INK 0: BORDER 0: CLS : GO SUB 350: GO SUB 350: PRINT
 ; "{0x8F}";TAB 31;: FOR i=1 TO 13: PRINT "{0x8F}{0x8F}";TAB 31;: NEXT i
-L6533:
+LINE300:
   DEFB $01,$2C,$6B,$00    ; Line number (big-endian) and length
   DEFB $DA,$37,$0E,$00,$00,$07,$00,$00
   DEFB $3A,$D9,$30,$0E,$00,$00,$00,$00
@@ -487,7 +487,7 @@ L6533:
 ; BASIC line 302
 ;
 ; 302 GO SUB 350: PRINT "{0x8F}";: FOR i=1 TO 5: GO SUB 350:: NEXT i
-L65A2:
+LINE302:
   DEFB $01,$2E,$33,$00    ; Line number (big-endian) and length
   DEFB $ED,$33,$35,$30,$0E,$00,$00,$5E
   DEFB $01,$00,$3A,$F5,$22,$8F,$22,$3B
@@ -500,7 +500,7 @@ L65A2:
 ; BASIC line 305
 ;
 ; 305 PRINT AT 0,2; PAPER 0; INK 7;"SCORE :";se;AT 0,18;"Rescued :";sg;
-L65D9:
+LINE305:
   DEFB $01,$31,$53,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$30,$0E,$00,$00,$00,$00
   DEFB $00,$2C,$32,$0E,$00,$00,$02,$00
@@ -518,7 +518,7 @@ L65D9:
 ;
 ; 310 PRINT AT 17,1; PAPER 3; INK 7;"                              ";AT 21,1;"
 ; AMMO  ";b$;"  ";g$;"  TIME  SCAN "
-L6630:
+LINE310:
   DEFB $01,$36,$7D,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$37,$0E,$00,$00,$11
   DEFB $00,$00,$2C,$31,$0E,$00,$00,$01
@@ -542,7 +542,7 @@ L6630:
 ; 320 PRINT AT 18,1; PAPER
 ; 1;"{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}
 ; {0x8F}{0x8F}"
-L66B1:
+LINE320:
   DEFB $01,$40,$38,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$38,$0E,$00,$00,$12
   DEFB $00,$00,$2C,$31,$0E,$00,$00,$01
@@ -557,7 +557,7 @@ L66B1:
 ; 330 PRINT AT 20,1; PAPER
 ; 1;"{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x8F}
 ; {0x8F}{0x8F}": RETURN
-L66ED:
+LINE330:
   DEFB $01,$4A,$3A,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$32,$30,$0E,$00,$00,$14
   DEFB $00,$00,$2C,$31,$0E,$00,$00,$01
@@ -573,7 +573,7 @@ L66ED:
 ; 350 PRINT
 ; "{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}{0x8F}";:
 ; RETURN
-L672B:
+LINE350:
   DEFB $01,$5E,$27,$00    ; Line number (big-endian) and length
   DEFB $F5,$22,$8F,$8F,$8F,$8F,$8F,$8F
   DEFB $8F,$8F,$8F,$8F,$8F,$8F,$8F,$8F
@@ -585,7 +585,7 @@ L672B:
 ;
 ; 400 PRINT AT 6,7; FLASH 1; PAPER 6;" Have another go! ";AT 7,7;" ";AT 5,7;"
 ; ": RETURN
-L6756:
+LINE400:
   DEFB $01,$90,$87,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$36,$0E,$00,$00,$06,$00
   DEFB $00,$2C,$37,$0E,$00,$00,$07,$00
@@ -608,7 +608,7 @@ L6756:
 ; BASIC line 600
 ;
 ; 600 GO SUB 3100
-L67E1:
+LINE600:
   DEFB $02,$58,$0C,$00    ; Line number (big-endian) and length
   DEFB $ED,$33,$31,$30,$30,$0E,$00,$00
   DEFB $1C,$0C,$00,$0D
@@ -617,7 +617,7 @@ L67E1:
 ;
 ; 610 LET sx=USR 32912: IF sx=0 THEN LET b$="BOY ": LET g$="GIRL": POKE
 ; 46211,220: POKE 46227,108: RETURN
-L67F1:
+LINE610:
   DEFB $02,$62,$63,$00    ; Line number (big-endian) and length
   DEFB $F1,$73,$78,$3D,$C0,$33,$32,$39
   DEFB $31,$32,$0E,$00,$00,$90,$80,$00
@@ -637,7 +637,7 @@ L67F1:
 ;
 ; 620 IF sx=6 THEN LET b$="GIRL": LET g$="BOY ": POKE 46211,108: POKE
 ; 46227,220: RETURN
-L6858:
+LINE620:
   DEFB $02,$6C,$52,$00    ; Line number (big-endian) and length
   DEFB $FA,$73,$78,$3D,$36,$0E,$00,$00
   DEFB $06,$00,$00,$CB,$F1,$62,$24,$3D
@@ -654,7 +654,7 @@ L6858:
 ; BASIC line 630
 ;
 ; 630 GO TO 610
-L68AE:
+LINE630:
   DEFB $02,$76,$0B,$00    ; Line number (big-endian) and length
   DEFB $EC,$36,$31,$30,$0E,$00,$00,$62
   DEFB $02,$00,$0D
@@ -663,7 +663,7 @@ L68AE:
 ;
 ; 700 POKE 46136,2: RANDOMIZE USR 32768: PRINT AT 17,6; PAPER 6; FLASH 1;"
 ; READY WHEN YOU ARE "
-L68BD:
+LINE700:
   DEFB $02,$BC,$5F,$00    ; Line number (big-endian) and length
   DEFB $F4,$34,$36,$31,$33,$36,$0E,$00
   DEFB $00,$38,$B4,$00,$2C,$32,$0E,$00
@@ -681,7 +681,7 @@ L68BD:
 ; BASIC line 710
 ;
 ; 710 RANDOMIZE USR 32919
-L6920:
+LINE710:
   DEFB $02,$C6,$0E,$00    ; Line number (big-endian) and length
   DEFB $F9,$C0,$33,$32,$39,$31,$39,$0E
   DEFB $00,$00,$97,$80,$00,$0D
@@ -690,7 +690,7 @@ L6920:
 ;
 ; 720 PRINT AT 17,1; PAPER 3;"                              ": RANDOMIZE USR
 ; 32768: RETURN
-L6932:
+LINE720:
   DEFB $02,$D0,$4D,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$37,$0E,$00,$00,$11
   DEFB $00,$00,$2C,$31,$0E,$00,$00,$01
@@ -706,7 +706,7 @@ L6932:
 ; BASIC line 750
 ;
 ; 750 POKE 46134,3: POKE 46135,233: RETURN
-L6983:
+LINE750:
   DEFB $02,$EE,$2E,$00    ; Line number (big-endian) and length
   DEFB $F4,$34,$36,$31,$33,$34,$0E,$00
   DEFB $00,$36,$B4,$00,$2C,$33,$0E,$00
@@ -719,7 +719,7 @@ L6983:
 ;
 ; 800 LET c$="": LET t=sg*10+1000: RESTORE t: GO SUB t: GO SUB 850: READ t:
 ; POKE 46224,t: READ t: POKE 46225,t: READ t: POKE 46226,t: RETURN
-L69B5:
+LINE800:
   DEFB $03,$20,$6A,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$22,$3A,$F1
   DEFB $74,$3D,$73,$67,$2A,$31,$30,$0E
@@ -739,7 +739,7 @@ L69B5:
 ; BASIC line 850
 ;
 ; 850 IF PEEK 46237=2 THEN LET r=tim-(INT (tim/4))*4
-L6A23:
+LINE850:
   DEFB $03,$52,$36,$00    ; Line number (big-endian) and length
   DEFB $FA,$BE,$34,$36,$32,$33,$37,$0E
   DEFB $00,$00,$9D,$B4,$00,$3D,$32,$0E
@@ -752,7 +752,7 @@ L6A23:
 ; BASIC line 860
 ;
 ; 860 IF r<>0 THEN FOR i=1 TO r: READ t: READ t: READ t: NEXT i: RETURN
-L6A5D:
+LINE860:
   DEFB $03,$5C,$26,$00    ; Line number (big-endian) and length
   DEFB $FA,$72,$C9,$30,$0E,$00,$00,$00
   DEFB $00,$00,$CB,$EB,$69,$3D,$31,$0E
@@ -763,7 +763,7 @@ L6A5D:
 ; BASIC line 870
 ;
 ; 870 RETURN
-L6A87:
+LINE870:
   DEFB $03,$66,$02,$00    ; Line number (big-endian) and length
   DEFB $FE,$0D
 
@@ -771,7 +771,7 @@ L6A87:
 ;
 ; 900 GO SUB 2000: IF sg=0 THEN PRINT AT 2,2;"WELCOME TO ....";AT 5,2;: GO SUB
 ; 3000: PRINT AT 11,2; PAPER 8;c$: GO TO 960
-L6A8D:
+LINE900:
   DEFB $03,$84,$84,$00    ; Line number (big-endian) and length
   DEFB $ED,$32,$30,$30,$30,$0E,$00,$00
   DEFB $D0,$07,$00,$3A,$FA,$73,$67,$3D
@@ -796,7 +796,7 @@ L6A8D:
 ; 910 PRINT ;AT 2,6; PAPER 0; INK 7;"**** ANT ATTACK ****";AT 3,6;"**** SCORE
 ; CARD ****": PRINT AT 6,2; INK 1;"LIVES SAVED :";TAB 24;sg;AT 9,2;"TIME LEFT
 ; :";TAB 24;tim
-L6B15:
+LINE910:
   DEFB $03,$8E,$CB,$00    ; Line number (big-endian) and length
   DEFB $F5,$3B,$AC,$32,$0E,$00,$00,$02
   DEFB $00,$00,$2C,$36,$0E,$00,$00,$06
@@ -828,7 +828,7 @@ L6B15:
 ; BASIC line 920
 ;
 ; 920 PRINT AT 13,2;"TOTAL SCORE :"
-L6BE4:
+LINE920:
   DEFB $03,$98,$23,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$33,$0E,$00,$00,$0D
   DEFB $00,$00,$2C,$32,$0E,$00,$00,$02
@@ -839,7 +839,7 @@ L6BE4:
 ; BASIC line 930
 ;
 ; 930 LET x=12: LET y=23: GO SUB 3700
-L6C0B:
+LINE930:
   DEFB $03,$A2,$24,$00    ; Line number (big-endian) and length
   DEFB $F1,$78,$3D,$31,$32,$0E,$00,$00
   DEFB $0C,$00,$00,$3A,$F1,$79,$3D,$32
@@ -850,7 +850,7 @@ L6C0B:
 ; BASIC line 950
 ;
 ; 950 PRINT AT 16,2; PAPER 8;c$
-L6C33:
+LINE950:
   DEFB $03,$B6,$1F,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$36,$0E,$00,$00,$10
   DEFB $00,$00,$2C,$32,$0E,$00,$00,$02
@@ -861,7 +861,7 @@ L6C33:
 ;
 ; 960 GO SUB 100: GO SUB 200: PRINT AT 21,8; PAPER 0; INK 7;" PRESS ANY KEY ":
 ; RANDOMIZE USR 32919: BEEP .01,40: RETURN
-L6C56:
+LINE960:
   DEFB $03,$C0,$71,$00    ; Line number (big-endian) and length
   DEFB $ED,$31,$30,$30,$0E,$00,$00,$64
   DEFB $00,$00,$3A,$ED,$32,$30,$30,$0E
@@ -885,7 +885,7 @@ L6C56:
 ; walled city of Antescher.       As you stand at the gate you    hear a call
 ; of distress ,       irresistable to a HERO like     you. You must answer it
 ; ..      Good luck !": RETURN
-L6CCB:
+LINE1000:
   DEFB $03,$E8,$F4,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$41,$66,$74
   DEFB $65,$72,$20,$61,$20,$6C,$6F,$6E
@@ -922,7 +922,7 @@ L6CCB:
 ; BASIC line 1001
 ;
 ; 1001 DATA 182,243,1
-L6DC3:
+LINE1001:
   DEFB $03,$E9,$1D,$00    ; Line number (big-endian) and length
   DEFB $E4,$31,$38,$32,$0E,$00,$00,$B6
   DEFB $00,$00,$2C,$32,$34,$33,$0E,$00
@@ -933,7 +933,7 @@ L6DC3:
 ;
 ; 1010 LET c$="Well done,but that was easy.    Now there's someone else to save
 ; !": RETURN
-L6DE4:
+LINE1010:
   DEFB $03,$F2,$4F,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$57,$65,$6C
   DEFB $6C,$20,$64,$6F,$6E,$65,$2C,$62
@@ -949,7 +949,7 @@ L6DE4:
 ; BASIC line 1011
 ;
 ; 1011 DATA 200,213,3,198,234,1,212,195,1,141,227,1
-L6E37:
+LINE1011:
   DEFB $03,$F3,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$32,$30,$30,$0E,$00,$00,$C8
   DEFB $00,$00,$2C,$32,$31,$33,$0E,$00
@@ -971,7 +971,7 @@ L6E37:
 ;
 ; 1020 LET c$="So far so good. On your feet    once more...   no time for a
 ; coffee break !": RETURN
-L6EAC:
+LINE1020:
   DEFB $03,$FC,$57,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$53,$6F,$20
   DEFB $66,$61,$72,$20,$73,$6F,$20,$67
@@ -988,7 +988,7 @@ L6EAC:
 ; BASIC line 1021
 ;
 ; 1021 DATA 240,223,5,192,188,5,184,157,2,181,174,6
-L6F07:
+LINE1021:
   DEFB $03,$FD,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$32,$34,$30,$0E,$00,$00,$F0
   DEFB $00,$00,$2C,$32,$32,$33,$0E,$00
@@ -1010,7 +1010,7 @@ L6F07:
 ;
 ; 1030 LET c$="Are you brave enough to try     again ? DONT WASTE TOO MUCH TIME
 ; THINKING!": RETURN
-L6F7C:
+LINE1030:
   DEFB $04,$06,$57,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$41,$72,$65
   DEFB $20,$79,$6F,$75,$20,$62,$72,$61
@@ -1027,7 +1027,7 @@ L6F7C:
 ; BASIC line 1031
 ;
 ; 1031 DATA 207,250,3,241,243,6,190,254,1,154,232,2
-L6FD7:
+LINE1031:
   DEFB $04,$07,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$32,$30,$37,$0E,$00,$00,$CF
   DEFB $00,$00,$2C,$32,$35,$30,$0E,$00
@@ -1049,7 +1049,7 @@ L6FD7:
 ;
 ; 1040 LET c$="You have a brave heart ...      Better use your BRAIN from now
 ; on too !!!!": RETURN
-L704C:
+LINE1040:
   DEFB $04,$10,$58,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$59,$6F,$75
   DEFB $20,$68,$61,$76,$65,$20,$61,$20
@@ -1066,7 +1066,7 @@ L704C:
 ; BASIC line 1041
 ;
 ; 1041 DATA 241,183,1,224,158,2,149,176,1,135,175,2
-L70A8:
+LINE1041:
   DEFB $04,$11,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$32,$34,$31,$0E,$00,$00,$F1
   DEFB $00,$00,$2C,$31,$38,$33,$0E,$00
@@ -1088,7 +1088,7 @@ L70A8:
 ;
 ; 1050 LET c$="Survival of the fittest !!      Are you fit enough to survive ?
 ; Then PROVE IT !!!": RETURN
-L711D:
+LINE1050:
   DEFB $04,$1A,$64,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$53,$75,$72
   DEFB $76,$69,$76,$61,$6C,$20,$6F,$66
@@ -1107,7 +1107,7 @@ L711D:
 ; BASIC line 1051
 ;
 ; 1051  DATA 209,135,1,185,141,1,132,140,3,200,155,2
-L7185:
+LINE1051:
   DEFB $04,$1B,$72,$00    ; Line number (big-endian) and length
   DEFB $20,$E4,$32,$30,$39,$0E,$00,$00
   DEFB $D1,$00,$00,$2C,$31,$33,$35,$0E
@@ -1129,7 +1129,7 @@ L7185:
 ;
 ; 1060 LET c$="You handled that well.          It must have been too easy.. Try
 ; again !": RETURN
-L71FB:
+LINE1060:
   DEFB $04,$24,$54,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$59,$6F,$75
   DEFB $20,$68,$61,$6E,$64,$6C,$65,$64
@@ -1146,7 +1146,7 @@ L71FB:
 ; BASIC line 1061
 ;
 ; 1061 DATA 245,159,6,145,176,6,199,173,3,206,140,4
-L7253:
+LINE1061:
   DEFB $04,$25,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$32,$34,$35,$0E,$00,$00,$F5
   DEFB $00,$00,$2C,$31,$35,$39,$0E,$00
@@ -1168,7 +1168,7 @@ L7253:
 ;
 ; 1070 LET c$="Who would have thought you      could get so far ? Better not be
 ; silly now !": RETURN
-L72C8:
+LINE1070:
   DEFB $04,$2E,$5B,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$57,$68,$6F
   DEFB $20,$77,$6F,$75,$6C,$64,$20,$68
@@ -1186,7 +1186,7 @@ L72C8:
 ; BASIC line 1071
 ;
 ; 1071 DATA 140,150,3,221,137,5,184,147,3,255,159,2
-L7327:
+LINE1071:
   DEFB $04,$2F,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$31,$34,$30,$0E,$00,$00,$8C
   DEFB $00,$00,$2C,$31,$35,$30,$0E,$00
@@ -1208,7 +1208,7 @@ L7327:
 ;
 ; 1080 LET c$="Although you are weak , you     cannot give up while human life
 ; is in peril !!": RETURN
-L739C:
+LINE1080:
   DEFB $04,$38,$5C,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$41,$6C,$74
   DEFB $68,$6F,$75,$67,$68,$20,$79,$6F
@@ -1226,7 +1226,7 @@ L739C:
 ; BASIC line 1081
 ;
 ; 1081 DATA 147,245,4,154,232,6,219,145,6,178,134,4
-L73FC:
+LINE1081:
   DEFB $04,$39,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$31,$34,$37,$0E,$00,$00,$93
   DEFB $00,$00,$2C,$32,$34,$35,$0E,$00
@@ -1248,7 +1248,7 @@ L73FC:
 ;
 ; 1090 LET c$="There is only one person        left in the city. Your mission
 ; will soon be       accomplished.. IF you live !": RETURN
-L7471:
+LINE1090:
   DEFB $04,$42,$85,$00    ; Line number (big-endian) and length
   DEFB $F1,$63,$24,$3D,$22,$54,$68,$65
   DEFB $72,$65,$20,$69,$73,$20,$6F,$6E
@@ -1271,7 +1271,7 @@ L7471:
 ; BASIC line 1091
 ;
 ; 1091 DATA 136,219,3,240,138,5,227,225,3,163,197,6
-L74FA:
+LINE1091:
   DEFB $04,$43,$71,$00    ; Line number (big-endian) and length
   DEFB $E4,$31,$33,$36,$0E,$00,$00,$88
   DEFB $00,$00,$2C,$32,$31,$39,$0E,$00
@@ -1293,7 +1293,7 @@ L74FA:
 ;
 ; 2000 BORDER 5: PAPER 6: CLS : PRINT PAPER 3;" ";: FOR i=0 TO 20: PRINT ;
 ; PAPER 3;AT i,31;"  ";: NEXT i: PRINT PAPER 3;" ": RETURN
-L756F:
+LINE2000:
   DEFB $07,$D0,$A3,$00    ; Line number (big-endian) and length
   DEFB $E7,$35,$0E,$00,$00,$05,$00,$00
   DEFB $3A,$DA,$36,$0E,$00,$00,$06,$00
@@ -1321,7 +1321,7 @@ L756F:
 ;
 ; 2500 PRINT AT 6,7; FLASH 1; PAPER 6;" Have another go! ";AT 7,7;" ";AT 5,7;"
 ; ": RETURN
-L7616:
+LINE2500:
   DEFB $09,$C4,$87,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$36,$0E,$00,$00,$06,$00
   DEFB $00,$2C,$37,$0E,$00,$00,$07,$00
@@ -1344,7 +1344,7 @@ L7616:
 ; BASIC line 2600
 ;
 ; 2600 PRINT AT 21,3; PAPER 7; FLASH 1;" PRESS A KEY FOR NEW GAME ": RETURN
-L76A1:
+LINE2600:
   DEFB $0A,$28,$44,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$32,$31,$0E,$00,$00,$15
   DEFB $00,$00,$2C,$33,$0E,$00,$00,$03
@@ -1367,7 +1367,7 @@ L76A1:
 ; {0x8B}{0x83}{0x8E}{0x86}  {0x85}{0x87}{0x88}   {0x84}{0x8A}
 ; {0x85}{0x85}{0x81}{0x8F} {0x8A}  {0x85}{0x82} {0x87}{0x85}  {0x8A}{0x85}
 ; {0x85}{0x81}{0x8C}{0x89}{0x85} {0x87}{0x88}"
-L76E9:
+LINE3000:
   DEFB $0B,$B8,$8F,$00    ; Line number (big-endian) and length
   DEFB $F5,$DA,$38,$0E,$00,$00,$08,$00
   DEFB $00,$3B,$D9,$69,$6E,$6B,$3B,$22
@@ -1391,14 +1391,14 @@ L76E9:
 ; BASIC line 3010
 ;
 ; 3010 RETURN
-L777C:
+LINE3010:
   DEFB $0B,$C2,$02,$00    ; Line number (big-endian) and length
   DEFB $FE,$0D
 
 ; BASIC line 3100
 ;
 ; 3100 GO SUB 2000: PRINT AT 2,3; INK 1;"QUICKSILVA";AT 4,10;"present ..."
-L7782:
+LINE3100:
   DEFB $0C,$1C,$54,$00    ; Line number (big-endian) and length
   DEFB $ED,$32,$30,$30,$30,$0E,$00,$00
   DEFB $D0,$07,$00,$3A,$F5,$AC,$32,$0E
@@ -1417,7 +1417,7 @@ L7782:
 ; 3110 PRINT AT 12,6;"© SANDY WHITE 1983";AT 16,3; INK 2;"SOFT SOLID 3-D
 ; Pat.Pending": FOR j=1 TO 5: FOR i=7 TO 0 STEP -1: BEEP .05,INT (i/4): PRINT
 ; AT 7,2;: LET ink=i: GO SUB 3000: NEXT i: NEXT j
-L77DA:
+LINE3110:
   DEFB $0C,$26,$D3,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$32,$0E,$00,$00,$0C
   DEFB $00,$00,$2C,$36,$0E,$00,$00,$06
@@ -1451,7 +1451,7 @@ L77DA:
 ;
 ; 3120 FOR i=0 TO 60 STEP 3: BEEP .02,i: NEXT i: PRINT AT 21,6; FLASH 1; BRIGHT
 ; 1;" Girl or Boy (g/b)? ": RETURN
-L78B1:
+LINE3120:
   DEFB $0C,$30,$6A,$00    ; Line number (big-endian) and length
   DEFB $EB,$69,$3D,$30,$0E,$00,$00,$00
   DEFB $00,$00,$CC,$36,$30,$0E,$00,$00
@@ -1473,7 +1473,7 @@ L78B1:
 ; 3200 GO SUB 2000: PRINT PAPER 8;AT
 ; 2,3;"{0x8F}{0x8F}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x8E}{0x80}{0x8D}{0x8F}{0x80}{0x8F}{0x8F}{0x8F}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x8F}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x8F}{0x8C}{0x8F}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x81}{0x8F}{0x82}{0x8F}{0x80}{0x8F}{0x8F}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x8F}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}
 ; {0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x8F}{0x80}{0x8F}{0x8F}{0x8F}{0x80}{0x80}{0x8F}{0x8F}{0x8F}{0x80}{0x8F}{0x80}{0x80}{0x80}{0x8F}"
-L791F:
+LINE3200:
   DEFB $0C,$80,$C4,$00    ; Line number (big-endian) and length
   DEFB $ED,$32,$30,$30,$30,$0E,$00,$00
   DEFB $D0,$07,$00,$3A,$F5,$DA,$38,$0E
@@ -1506,7 +1506,7 @@ L791F:
 ; 3210 PRINT AT 9,2; PAPER 8;"TOO BAD SLOWCOACH ! YOU RAN     OUT OF TIME !":
 ; GO SUB 3500: PRINT AT 18,2; PAPER 8;"SURELY YOU CAN DO BETTER        THAN
 ; THAT !"
-L79E7:
+LINE3210:
   DEFB $0C,$8A,$A1,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$39,$0E,$00,$00,$09,$00
   DEFB $00,$2C,$32,$0E,$00,$00,$02,$00
@@ -1533,7 +1533,7 @@ L79E7:
 ; BASIC line 3220
 ;
 ; 3220 FOR i=40 TO 0 STEP -3: BEEP .2,i: NEXT i: RETURN
-L7A8C:
+LINE3220:
   DEFB $0C,$94,$2E,$00    ; Line number (big-endian) and length
   DEFB $EB,$69,$3D,$34,$30,$0E,$00,$00
   DEFB $28,$00,$00,$CC,$30,$0E,$00,$00
@@ -1545,7 +1545,7 @@ L7A8C:
 ; BASIC line 3500
 ;
 ; 3500 PRINT AT 12,2;"LIVES SAVED    ....";TAB 24;sg
-L7ABE:
+LINE3500:
   DEFB $0D,$AC,$36,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$32,$0E,$00,$00,$0C
   DEFB $00,$00,$2C,$32,$0E,$00,$00,$02
@@ -1559,7 +1559,7 @@ L7ABE:
 ;
 ; 3510 PRINT AT 15,2;"YOUR SCORE iS  ....": LET x=14: LET y=23: GO SUB 3700:
 ; RETURN
-L7AF8:
+LINE3510:
   DEFB $0D,$B6,$4F,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$35,$0E,$00,$00,$0F
   DEFB $00,$00,$2C,$32,$0E,$00,$00,$02
@@ -1575,7 +1575,7 @@ L7AF8:
 ; BASIC line 3600
 ;
 ; 3600 GO SUB 2000: POKE 46124,5: RANDOMIZE USR 36594
-L7B4B:
+LINE3600:
   DEFB $0E,$10,$2F,$00    ; Line number (big-endian) and length
   DEFB $ED,$32,$30,$30,$30,$0E,$00,$00
   DEFB $D0,$07,$00,$3A,$F4,$34,$36,$31
@@ -1588,7 +1588,7 @@ L7B4B:
 ;
 ; 3610 INK 2: FOR i=22 TO 28: CIRCLE 100,40,i: NEXT i: FOR i=70 TO 155 STEP 5:
 ; CIRCLE 170-i,i,3: CIRCLE 30+i,i,3: NEXT i
-L7B7E:
+LINE3610:
   DEFB $0E,$1A,$85,$00    ; Line number (big-endian) and length
   DEFB $D9,$32,$0E,$00,$00,$02,$00,$00
   DEFB $3A,$EB,$69,$3D,$32,$32,$0E,$00
@@ -1612,7 +1612,7 @@ L7B7E:
 ;
 ; 3620 PRINT AT 15,11;"TEN";AT 16,10;"LIVES";AT 17,10;"SAVED";AT 18,12;"!": INK
 ; 0
-L7C07:
+LINE3620:
   DEFB $0E,$24,$70,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$35,$0E,$00,$00,$0F
   DEFB $00,$00,$2C,$31,$31,$0E,$00,$00
@@ -1634,7 +1634,7 @@ L7C07:
 ; 3630 PRINT AT 15,2;"TOTAL";AT 16,2;"SCORE:";AT 15,17;"Please accept";AT
 ; 16,17;"this";AT 17,17;"{0x1401}SOLID GOLD{0x1400}";AT 18,17;"medal !": LET
 ; x=17: LET y=2: GO SUB 3700: RETURN
-L7C7B:
+LINE3630:
   DEFB $0E,$2E,$D9,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$31,$35,$0E,$00,$00,$0F
   DEFB $00,$00,$2C,$32,$0E,$00,$00,$02
@@ -1669,7 +1669,7 @@ L7C7B:
 ;
 ; 3700 PRINT AT x,y; INK 5; FLASH 1;"       ";AT x+1,y;" ";AT x+1,y+6;" ";AT
 ; x+2,y;"       ": PRINT AT x+1,y+1;se: RETURN
-L7D58:
+LINE3700:
   DEFB $0E,$74,$7E,$00    ; Line number (big-endian) and length
   DEFB $F5,$AC,$78,$2C,$79,$3B,$D9,$35
   DEFB $0E,$00,$00,$05,$00,$00,$3B,$DB
@@ -1692,7 +1692,7 @@ L7D58:
 ;
 ; Up to RAMTOP: the variables area (empty on the tape), the edit line, the
 ; calculator stack and the machine stack.
-L7DDA:
+BASIC_VARIABLES:
   DEFB $80,$F9,$C0,$32,$33,$32,$39,$36
   DEFB $0E,$00,$00,$00,$5B,$00,$0D,$80
   DEFB $00,$00,$00,$5B,$00,$00,$0A,$00
@@ -1800,8 +1800,11 @@ PLAY_1:
   DEC A                   ; Otherwise count a frame off, and stop at zero.
   LD (FRAMES_LEFT),A      ;
   JP NZ,PLAY_0            ;
-  LD A,(RANDOM_BITS)      ; Leave the random number in SEED, for BASIC's RND.
-  LD (SEED),A             ;
+  LD A,(RANDOM_BITS)      ; Leave the random number in SEED -- to no end: the
+  LD (SEED),A             ; RANDOMIZE in the BASIC's RANDOMIZE USR that calls
+                          ; this overwrites SEED with what the USR returns, and
+                          ; the BASIC has no RND (watched: the ROM's write at
+                          ; $1E5A replaces this one).
   EI
   RET
 
@@ -1809,8 +1812,8 @@ PLAY_1:
 ;
 ; "SandyWhite1983" twice, with a leading fragment and $7F between the copies,
 ; padded out to the next routine. Nothing reads it. There is another copy at
-; L8448.
-L8034:
+; READ_VIEW_KEYS_PAD.
+PLAY_PAD:
   DEFM "dyWhite1983"      ; The tail of a third copy
   DEFB $7F
   DEFM "SandyWhite1983"
@@ -1957,7 +1960,7 @@ MOVE_ANTS:
 ;
 ; $FF filler, like almost every gap between the routines, which start on
 ; 16-byte boundaries where they can.
-L80FF:
+MOVE_ANTS_PAD:
   DEFB $FF
 
 ; Copy the render buffer to the screen
@@ -2005,7 +2008,7 @@ COPY_TO_SCREEN_3:
   RET
 
 ; Unused
-L812F:
+COPY_TO_SCREEN_PAD:
   DEFB $FF
 
 ; Convert a place in PLANES to an address in the render buffer
@@ -2042,7 +2045,7 @@ PLANE_TO_BUFFER:
   RET
 
 ; Unused
-L814A:
+PLANE_TO_BUFFER_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
@@ -2074,7 +2077,7 @@ CLEAR_PLANES_0:
   RET
 
 ; Unused
-L8179:
+CLEAR_PLANES_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Mark one height's blocks in PLANES
@@ -2124,7 +2127,7 @@ MARK_PLANE_4:
   RET
 
 ; Unused
-L81A4:
+MARK_PLANE_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF
 
@@ -2177,7 +2180,7 @@ PRINT_COUNTERS:
 ; $FF filler, and in its last three bytes LD DE,31: the first instruction of
 ; DRAW_BLOCK, which is entered three bytes in because DRAW_SCENE has already
 ; set DE.
-L81F4:
+PRINT_COUNTERS_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$11,$1F,$00
 
@@ -2324,7 +2327,7 @@ COPY_POSITION:
   RET
 
 ; Unused
-L82B9:
+COPY_POSITION_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Move the player
@@ -2342,7 +2345,7 @@ MOVE_PLAYER:
   RET                     ;
 
 ; Unused
-L82D2:
+MOVE_PLAYER_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
@@ -2350,7 +2353,12 @@ L82D2:
 ;
 ; Used by the routines at MOVE_GRENADE and ANT_TURN.
 ;
-; Frames $F4-$F7, chosen by the low two bits of the count.
+; Frames $F4-$F7, chosen by the low two bits of the count. The grenade's count
+; has already gone from 5 to 4 when this runs (MOVE_OBJECT), so its blast shows
+; $F4 -- its flight frame -- then $F7, $F6, $F5. An ant's is written over by
+; MOVE_ANT on every frame the ant moves, so the blast shows only on frames it
+; skips: a slow ant flickers between ant and blast, and the fast one never
+; shows it (measured in a simulator).
 BLAST_FRAME:
   LD A,(IX+$09)
   AND A
@@ -2361,7 +2369,7 @@ BLAST_FRAME:
   RET
 
 ; Unused
-L82ED:
+BLAST_FRAME_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF
@@ -2452,7 +2460,7 @@ CLEAR_BUFFER_ROWS_0:
   RET
 
 ; Unused
-L8358:
+CLEAR_BUFFER_ROWS_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Step the random number generator
@@ -2460,9 +2468,13 @@ L8358:
 ; Used by the routines at MOVE_ANT and NOISE.
 ;
 ; A 32-bit shift register at RANDOM_BITS, big-endian, fed back from two bits of
-; its first byte. The carry out is the random bit: MOVE_ANT uses it to pick
-; which way an ant turns and NOISE to make a hiss.
+; its first byte. The carry out is the random bit, and MOVE_ANT uses it to pick
+; which way an ant turns. NOISE takes bit 4 of A instead, which after the
+; rotations is bit 2 of the first byte, before the shift, XOR the carry the
+; routine was entered with -- always clear there. (Checked in a simulator for
+; every first byte and both carries.)
 ;
+; O:A Bit 4 another random bit
 ; O:F Carry the random bit
 RANDOM:
   LD HL,RANDOM_BITS       ; The feedback bit into the carry.
@@ -2484,7 +2496,7 @@ RANDOM:
   RET
 
 ; Unused
-L8379:
+RANDOM_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Read one cell of the city map
@@ -2520,7 +2532,7 @@ READ_MAP_CELL_0:
   RET                     ;
 
 ; Unused
-L839B:
+READ_MAP_CELL_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF
@@ -2547,7 +2559,7 @@ GATHER_VIEW:
   JP (HL)                 ;
 
 ; Unused
-L83C8:
+GATHER_VIEW_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
@@ -2565,7 +2577,7 @@ MOVE_GRENADE:
   RET                     ;
 
 ; Unused
-L83F5:
+MOVE_GRENADE_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF
 
@@ -2624,7 +2636,7 @@ READ_VIEW_KEYS_4:
 ; Unused
 ;
 ; $FF filler, with another "SandyWhite1983" in the middle of it.
-L8448:
+READ_VIEW_KEYS_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $7F
   DEFM "SandyWhite1983"
@@ -2674,7 +2686,7 @@ SCROLL_VIEW_0:
   RET
 
 ; Unused
-L8497:
+SCROLL_VIEW_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF
 
@@ -2704,7 +2716,7 @@ DRAW_VIEW:
   RET                     ;
 
 ; Unused
-L84C8:
+DRAW_VIEW_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; The rescued person and the player in one cell: nobody falls
@@ -2744,7 +2756,7 @@ SHARE_CELL_0:
   RET
 
 ; Unused
-L84FA:
+SHARE_CELL_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
 ; Paint PLANES and the sprites into the render buffer, back to front
@@ -2786,7 +2798,9 @@ DRAW_SCENE_2:
   PUSH HL                 ; Draw the block through the pointer
   DEC HL                  ; SELECT_BLOCK_DRAWER set.
   JP (IY)                 ;
-  NOP
+  NOP                     ; Never reached: the JP (IY) before it does not fall
+                          ; through, and the block drawers come back at
+                          ; BLOCK_DRAWN. A spare byte.
 
 ; Where DRAW_BLOCK and DRAW_BLOCK_TURNED come back to
 ;
@@ -2813,7 +2827,7 @@ DRAW_HERE:
   JR DRAW_SCENE_2
 
 ; Unused
-L8541:
+DRAW_HERE_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
@@ -2837,7 +2851,7 @@ NEXT_SPRITE:
   JR NEXT_SPRITE          ;
 
 ; Unused
-L8561:
+NEXT_SPRITE_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
@@ -2895,7 +2909,7 @@ SORT_SPRITES_3:
   RET
 
 ; Unused
-L85C2:
+SORT_SPRITES_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
@@ -2926,7 +2940,7 @@ SPRITE_DISTANCES_1:
   RET
 
 ; Unused
-L85F7:
+SPRITE_DISTANCES_PAD:
   DEFB $FF,$FF,$FF
 
 ; An object out of view: a place past the end, so it is never drawn
@@ -2937,7 +2951,7 @@ OFF_VIEW:
   JR PROJECT_SPRITES_5
 
 ; Unused
-L85FE:
+OFF_VIEW_PAD:
   DEFB $FF,$FF
 
 ; Work out where each object falls in PLANES
@@ -3037,7 +3051,7 @@ PROJECT_SPRITES_5:
 PROJECT_SPRITES_6:
   LD (HL),A
   INC HL
-  LD BC,$FFF0             ; The object before.
+  LD BC,$FFF0             ; The object before: BC is -16, not an address.
   ADD IX,BC               ;
   EX AF,AF'
   DEC A
@@ -3075,7 +3089,7 @@ GATHER_VIEW0_1:
   RET
 
 ; Unused
-L869F:
+GATHER_VIEW0_PAD:
   DEFB $FF,$FF
 
 ; Gather the cells in view, view 1
@@ -3105,7 +3119,7 @@ GATHER_VIEW1_1:
   RET
 
 ; Unused
-L86BF:
+GATHER_VIEW1_PAD:
   DEFB $FF,$FF
 
 ; Gather the cells in view, view 2
@@ -3135,7 +3149,7 @@ GATHER_VIEW2_1:
   RET
 
 ; Unused
-L86DF:
+GATHER_VIEW2_PAD:
   DEFB $FF,$FF
 
 ; Gather the cells in view, view 3
@@ -3168,7 +3182,7 @@ GATHER_VIEW3_1:
 ;
 ; $FF, then LD DE,31: the unused first instruction of DRAW_BLOCK_TURNED, as
 ; before DRAW_BLOCK.
-L86FF:
+GATHER_VIEW3_PAD:
   DEFB $FF,$11,$1F,$00
 
 ; Draw a block (views 1 and 3)
@@ -3291,8 +3305,9 @@ DRAW_BLOCK_TURNED:
 ;
 ; Only ants at the grenade's height and not already exploding. Within four
 ; cells (counted along the grid, not diagonally) the ant is blown up -- "GOOD
-; SHOT!" -- and within seven it is stunned for 24 frames. Both seen in play, in
-; staged scenes.
+; SHOT!" -- and within seven it is stunned for 24 of its turns -- about 48
+; frames for a half-speed ant, since the stun counts down only on turns it
+; takes. Both seen in play, in staged scenes.
 ;
 ; HL The grenade's x and y
 ; C Its height
@@ -3360,7 +3375,7 @@ SCANNER_1:
   RET
 
 ; Unused
-L87F5:
+SCANNER_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF
 
@@ -3418,7 +3433,7 @@ MOVE_OBJECT_2:
   RET
 
 ; Unused
-L8857:
+MOVE_OBJECT_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF
 
@@ -3452,7 +3467,7 @@ LANDED_0:
   RET
 
 ; Unused
-L887F:
+LANDED_PAD:
   DEFB $FF
 
 ; Fall, after a frame's grace
@@ -3482,7 +3497,7 @@ FALL_0:
   RET
 
 ; Unused
-L889D:
+FALL_PAD:
   DEFB $FF,$FF,$FF
 
 ; Something is in this cell: a bite
@@ -3495,7 +3510,7 @@ BITTEN:
   JP RISE
 
 ; Unused
-L88A7:
+BITTEN_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF
 
@@ -3515,7 +3530,7 @@ STUNNED:
   RET
 
 ; Unused
-L88B9:
+STUNNED_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; The rescued person shares the player's cell
@@ -3554,7 +3569,7 @@ RISE:
   RET
 
 ; Unused
-L88DF:
+RISE_PAD:
   DEFB $FF
 
 ; Blocked: step up onto it, for things that can
@@ -3577,7 +3592,7 @@ STEP_UP:
   RET
 
 ; Unused
-L88F5:
+STEP_UP_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF
 
@@ -3607,7 +3622,7 @@ STEP_2:
   RET                     ;
 
 ; Unused
-L8914:
+STEP_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF
 
@@ -3649,7 +3664,7 @@ TEST_MAP_BIT_2:
   RET
 
 ; Unused
-L893B:
+TEST_MAP_BIT_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF
 
 ; Flip a height's bit in a map cell
@@ -3691,7 +3706,7 @@ TOGGLE_MAP_BIT_0:
   RET
 
 ; Unused
-L8959:
+TOGGLE_MAP_BIT_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Is there anything to stand on?
@@ -3727,7 +3742,7 @@ TEST_BELOW_2:
   RET
 
 ; Unused
-L897C:
+TEST_BELOW_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Choose the animation frame
@@ -3779,7 +3794,7 @@ CHOOSE_FRAME_5:
   RET
 
 ; Unused
-L89C9:
+CHOOSE_FRAME_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF
 
 ; Move an object, or count down its explosion and send it home
@@ -3813,7 +3828,7 @@ MOVE_OR_RESPAWN_0:
   RET
 
 ; Unused
-L89FC:
+MOVE_OR_RESPAWN_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Move an ant towards the player
@@ -3821,7 +3836,7 @@ L89FC:
 ; Used by the routine at ANT_TURN.
 ;
 ; The ant is taken out of the map, moved, and put back. If the move brought it
-; closer to the player it walks on (and, within four cells, turns to face the
+; closer to the player it walks on (and, within three cells, turns to face the
 ; player); otherwise it stops and turns a random way.
 MOVE_ANT:
   LD D,(IX+$01)           ; Out of the map...
@@ -3850,7 +3865,7 @@ MOVE_ANT:
   INC A                   ;
   AND $01                 ;
   LD (IX+$08),A           ;
-  LD A,C                  ; Within four: face the player.
+  LD A,C                  ; Within three cells (under four): face the player.
   CP $04                  ;
   RET NC                  ;
   LD H,(IX+$01)           ;
@@ -3869,7 +3884,7 @@ MOVE_ANT_1:
   RET                     ;
 
 ; Unused
-L8A5C:
+MOVE_ANT_PAD:
   DEFB $FF
 
 ; An ant's turn
@@ -3877,9 +3892,12 @@ L8A5C:
 ; Used by the routine at MOVE_ANTS.
 ;
 ; A paralysed ant does nothing. Otherwise an ant moves every frame except one
-; in every +D: 2 is half speed, 20 very nearly full. The first ant is the fast
-; one (line 140's DATA); BASIC sets the others' speed from sp, which goes up as
-; the levels do.
+; in every +D: 2 is half speed, 20 very nearly full. Its explosion count goes
+; down only on the frames it moves, so a slow ant's blast lasts twice as long.
+; A stunned ant cannot move, so MOVE_ANT finds it no closer every frame and
+; turns it at random: it spins where it stands (measured in a simulator). The
+; first ant is the fast one (line 140's DATA); BASIC sets the others' speed
+; from sp, which goes up as the levels do.
 ANT_TURN:
   LD A,(IX+$06)           ; Paralysed.
   CP $FF                  ;
@@ -3895,7 +3913,7 @@ ANT_TURN_0:
   RET
 
 ; Unused
-L8A76:
+ANT_TURN_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF
 
@@ -4008,7 +4026,7 @@ FOLLOW_PLAYER_2:
   RET
 
 ; Unused
-L8AFC:
+FOLLOW_PLAYER_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Fill the play area's attributes
@@ -4089,7 +4107,7 @@ FILL_PLAY_ATTRIBUTES_0:
   RET
 
 ; Unused
-L8B46:
+FILL_PLAY_ATTRIBUTES_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; A burst of noise on the speaker
@@ -4103,21 +4121,23 @@ NOISE:
   OR $18                  ;
   LD C,A                  ;
 NOISE_0:
-  CALL RANDOM             ; A random speaker bit, each time round.
-  AND $10                 ;
+  CALL RANDOM             ; A random speaker bit, each time round: bit 4 of
+  AND $10                 ; what RANDOM leaves in A.
   XOR C                   ;
   OUT ($FE),A             ;
   DJNZ NOISE_0
-  LD A,C
-  OUT ($FE),A
-  RET
+  LD A,C                  ; The border colour again, with the speaker bit set:
+  OUT ($FE),A             ; unlike TONE, a burst leaves the speaker on.
+  RET                     ;
 
 ; An unused script
 ;
-; In the RUN_SCRIPT format -- AT 15,12, then letters between notes -- and
-; spelling "OWCH!". It is not among the ones SCRIPTS counts from, so nothing
-; ever runs it: a leftover.
-L8B60:
+; Nearly in the RUN_SCRIPT format -- AT 15,12, then letters between notes --
+; and its letters spell "OWCH!". But it has no stream byte before the AT, and
+; an end marker stands between the C and the H, so run through RUN_SCRIPT (in a
+; simulator) it prints only "OWC". It is not among the ones SCRIPTS counts
+; from, so nothing ever runs it: a leftover.
+UNUSED_SCRIPT:
   DEFB $16,$0F,$0C,$4F,$9F,$8F,$83,$8C
   DEFB $57,$81,$85,$9F,$83,$84,$43,$8A
   DEFB $8D,$8E,$FF,$83,$48,$81,$85,$8B
@@ -4229,7 +4249,7 @@ PARALYSE_ANT_2:
 ;
 ; A repeating 5-byte pattern -- 0E 00 3A 25 B4, which reads as LD C,0 and a LD
 ; A,(nn) -- filling the page. Nothing reads it.
-L8BFF:
+PARALYSE_ANT_PAD:
   DEFB $FF,$0E,$00,$3A,$25,$B4,$0E,$00
   DEFB $3A,$25,$B4,$0E,$00,$3A,$25,$B4
   DEFB $0E,$00,$3A,$25,$B4,$0E,$00,$3A
@@ -4350,7 +4370,7 @@ THROW_GRENADE_3:
   RET
 
 ; Unused
-L8D94:
+THROW_GRENADE_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
 ; Check each ant against an exploding grenade
@@ -4376,7 +4396,7 @@ GRENADE_BLAST:
   RET
 
 ; Unused
-L8DCC:
+GRENADE_BLAST_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Count the time down and print it
@@ -4418,7 +4438,7 @@ COUNT_DOWN_TIME_0:
   RET
 
 ; Unused
-L8DFD:
+COUNT_DOWN_TIME_PAD:
   DEFB $FF,$FF,$FF
 
 ; Run script 1, "NASTY FALL !"
@@ -4441,7 +4461,7 @@ PLAY_SCRIPT:
   RET
 
 ; Unused
-L8E0B:
+PLAY_SCRIPT_PAD:
   DEFB $FF,$FF
 
 ; Run a script: text, sound and colour
@@ -4545,7 +4565,7 @@ GAME_FRAME:
   RET                     ;
 
 ; Unused
-L8E9C:
+GAME_FRAME_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Have the player and the rescued person both left the city?
@@ -4554,7 +4574,8 @@ L8E9C:
 ;
 ; Seen in play. Once both are outside the walls, the rescued person's +D is set
 ; to 2 -- BASIC's w, which line 70 reads as success -- "CONGRATULATIONS !" is
-; shown, and the game stops next frame.
+; shown, and the game stops at the end of this same frame: PLAY counts the 1
+; down to 0 before it looks again.
 CHECK_RESCUED:
   LD HL,PLAYER            ; The player is inside if both x and y have bit 7
   LD A,(HL)               ; set...
@@ -4579,7 +4600,7 @@ CHECK_RESCUED:
   RET
 
 ; Unused
-L8EC6:
+CHECK_RESCUED_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF
 
@@ -4587,7 +4608,8 @@ L8EC6:
 ;
 ; Used by the routine at PLAY.
 ;
-; Five frames later, so the last message is seen. Seen in play for the time.
+; At the end of the fourth frame after this one -- PLAY counts the 5 down once
+; in this frame -- so the last message is seen. Seen in play for the time.
 CHECK_GAME_OVER:
   LD HL,PLAYER_ENERGY_LOW ; Either energy at zero...
   LD A,(HL)               ;
@@ -4606,7 +4628,7 @@ CHECK_GAME_OVER_0:
   LD A,(FRAMES_LEFT)      ; Only once.
   CP $FF                  ;
   RET NZ                  ;
-  LD A,$05                ; Five more frames.
+  LD A,$05                ; Five, counted down from the end of this frame.
   LD (FRAMES_LEFT),A      ;
   LD (TIME_TICKS),A       ;
   RET
@@ -4614,7 +4636,11 @@ CHECK_GAME_OVER_0:
 ; The ending (USR 36594)
 ;
 ; Script 17, "YOU ARE A REAL HERO", called from BASIC line 3600 after the tenth
-; rescue. Seen in play, with BASIC's fin set to 1.
+; rescue. The script is seen in the build's session with BASIC's fin set to 1
+; on the first level -- but there the ending's BASIC stops at line 3610 with
+; out of memory, since c$ still holds the first level's long story card, and
+; BREAK's handler starts the game again. A real tenth rescue runs the whole
+; ending (the animations page stages one).
 FINAL_SCRIPT:
   DI
   LD A,$11
@@ -4623,7 +4649,7 @@ FINAL_SCRIPT:
   RET
 
 ; Unused
-L8EFA:
+FINAL_SCRIPT_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
 ; React to what happened to the player and the rescued person
@@ -4634,7 +4660,11 @@ L8EFA:
 ; "NASTY FALL !" or "HELP! I FELL!"; blown up, energy to 0 with "SILLY! YOU
 ; BLEW YOURSELF UP !" or "HOW COULD YOU ?"; bitten, an energy point off with
 ; "BITTEN!" or "THEY GOT ME", or when it reaches 0, "EATEN ALIVE" or "IVE BEEN
-; EATEN ALIVE". All seen in play.
+; EATEN ALIVE". All seen in play. A bad fall returns early from here, and
+; PLAY_SCRIPT loads its script number into D, which held the other person's
+; event, so whatever else happened to either of them that frame -- a bite, a
+; blast -- is lost (tested in a simulator and in the emulator by writing both
+; event bytes).
 HANDLE_EVENTS:
   XOR A                   ; E = the player's event, D = the other's, both
   LD HL,PLAYER_EVENT      ; cleared.
@@ -4716,7 +4746,7 @@ HANDLE_EVENTS_10:
   RET
 
 ; Unused
-L8F7A:
+HANDLE_EVENTS_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF
 
 ; The person to be rescued: wait, or follow
@@ -4760,7 +4790,7 @@ MOVE_RESCUEE_0:
   RET
 
 ; Unused
-L8FCC:
+MOVE_RESCUEE_PAD:
   DEFB $FF,$FF,$FF,$FF
 
 ; Show and sound what the grenade did
@@ -4795,7 +4825,7 @@ GRENADE_SOUNDS_2:
   RET
 
 ; Unused
-L8FF4:
+GRENADE_SOUNDS_PAD:
   DEFB $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
   DEFB $FF,$FF,$FF,$FF
 
@@ -5586,7 +5616,7 @@ SCRIPT17:
 ; Unused
 ;
 ; Filled with $02.
-L93BA:
+SCRIPT17_PAD:
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
@@ -5712,7 +5742,7 @@ LOADED:
 ;
 ; Zeros, $02 filler, and just before INTERRUPT a stray copy of the interrupt
 ; set-up.
-L9712:
+LOADED_PAD:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
@@ -5749,7 +5779,9 @@ INTERRUPT:
 ;
 ; Clears the error, resets the stack from ERR_SP, puts RUN and ENTER in the
 ; edit line and jumps into the ROM's line executor. This is also how the game
-; starts after loading, since the tape's program header has no auto-run line.
+; starts after loading, since the header's own auto-run line, 1, starts the
+; loader; nothing would start the game's BASIC that the block brings in, so the
+; game starts it itself.
 RESTART_BASIC:
   LD A,$FF                ; No error.
   LD (ERR_NR),A           ;
@@ -5769,7 +5801,7 @@ RESTART_BASIC_0:
   JP $0038                ;
 
 ; Unused
-L97BB:
+RESTART_BASIC_PAD:
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
@@ -5822,7 +5854,7 @@ INTERRUPT_VECTORS:
 ; Unused
 ;
 ; Filled with $02.
-L9902:
+INTERRUPT_VECTORS_PAD:
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
   DEFB $02,$02,$02,$02,$02,$02,$02,$02
@@ -5858,210 +5890,467 @@ L9902:
 
 ; Sprites: the grenade and the girl
 ;
-; Frames $68-$6B are the grenade's by its record, but in flight it is drawn as
-; $F4 and at home it is out of view, so these are not seen in play; $6C-$7F are
-; the girl. 64 bytes a frame, mask and graphic interleaved (see DRAW_SPRITE).
+; This entry is frame $68: grenade's own frames.
+;
+; Frames $68-$6B are the grenade's by its record. In flight it is drawn as $F4
+; onwards, and its home, x=0, y=$40, is open ground far outside the walls --
+; but it is drawn there, as these frames, whenever the player goes near it
+; (watched in the emulator). $6C-$7F are the girl. 64 bytes a frame, mask and
+; graphic interleaved (see DRAW_SPRITE).
 SPRITES:
-  DEFB $FF,$00,$FF,$00,$FF,$07,$FF,$E0
-  DEFB $FF,$1F,$FF,$F8,$FD,$3D,$FF,$FC
-  DEFB $C7,$47,$E3,$E2,$FB,$FB,$C1,$C1
-  DEFB $CD,$CD,$85,$85,$D7,$D7,$05,$05
-  DEFB $DB,$DB,$2D,$2D,$CB,$CB,$35,$35
-  DEFB $D3,$D3,$25,$25,$FB,$7B,$23,$22
-  DEFB $FB
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$1F,$FF,$F8    ;
+  DEFB $FD,$3D,$FF,$FC    ;
+  DEFB $C7,$47,$E3,$E2    ;
+  DEFB $FB,$FB,$C1,$C1    ;
+  DEFB $CD,$CD,$85,$85    ;
+  DEFB $D7,$D7,$05,$05    ;
+  DEFB $DB,$DB,$2D,$2D    ;
+  DEFB $CB,$CB,$35,$35    ;
+  DEFB $D3,$D3,$25,$25    ;
+  DEFB $FB,$7B,$23,$22    ;
+  DEFB $FB,$3B,$27,$24    ;
+  DEFB $FF,$1F,$9F,$98    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Message at 9A31
-L9A31:
-  DEFM ";'$"
+; Sprite frame $69: grenade's own frames
+FRAME69:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$1F,$FF,$F8    ;
+  DEFB $FF,$3F,$BF,$BC    ;
+  DEFB $C7,$47,$E3,$E2    ;
+  DEFB $83,$83,$DF,$DF    ;
+  DEFB $B1,$B1,$B3,$B3    ;
+  DEFB $A8,$A8,$6B,$6B    ;
+  DEFB $A4,$A4,$DB,$DB    ;
+  DEFB $A4,$A4,$D3,$D3    ;
+  DEFB $B4,$B4,$CB,$CB    ;
+  DEFB $CC,$4C,$DF,$DE    ;
+  DEFB $E0,$20,$DF,$DC    ;
+  DEFB $F9,$19,$FF,$F8    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Data block at 9A34
-L9A34:
-  DEFB $FF,$1F,$9F,$98,$FF,$07,$FF,$E0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$07,$FF,$E0,$FF,$1F,$FF,$F8
-  DEFB $FF,$3F,$BF,$BC,$C7,$47,$E3,$E2
-  DEFB $83,$83,$DF,$DF,$B1,$B1,$B3,$B3
-  DEFB $A8,$A8,$6B,$6B,$A4,$A4,$DB,$DB
-  DEFB $A4,$A4,$D3,$D3,$B4,$B4,$CB,$CB
-  DEFB $CC,$4C,$DF,$DE,$E0,$20,$DF,$DC
-  DEFB $F9,$19,$FF,$F8,$FF,$07,$FF,$E0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$07,$FF,$E0,$FF,$1F,$BF,$B8
-  DEFB $FF,$3F,$FF,$FC,$C7,$47,$E3,$E2
-  DEFB $FB,$FB,$C1,$C1,$DD,$DD,$89,$89
-  DEFB $DE,$DE,$15,$15,$CB,$CB,$25,$25
-  DEFB $D3,$D3,$25,$25,$DB,$DB,$2D,$2D
-  DEFB $FB,$7B,$33,$32,$FB,$3B,$07,$04
-  DEFB $FF,$1F,$9F,$98,$FF,$07,$FF,$E0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$07,$FF,$E0,$FD,$1D,$FF,$F8
-  DEFB $FF,$3F,$FF,$FC,$C7,$47,$E3,$E2
-  DEFB $83,$83,$DF,$DF,$A1,$A1,$BB,$BB
-  DEFB $A0,$A0,$7B,$7B,$B4,$B4,$D3,$D3
-  DEFB $AC,$AC,$CB,$CB,$A4,$A4,$DB,$DB
-  DEFB $C4,$44,$DF,$DE,$E4,$24,$DF,$DC
-  DEFB $F9,$19,$FF,$F8,$FF,$07,$FF,$E0
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$06,$7F,$40
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FE,$06,$BF,$80,$FF,$07,$FF,$C0
-  DEFB $FF,$05,$FF,$C0,$FF,$0F,$FF,$C0
-  DEFB $FF,$0F,$FF,$E0,$F5,$05,$5F,$50
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$80
-  DEFB $FF,$03,$FF,$80,$FF,$01,$FF,$C0
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$05,$FF,$C0,$FF,$0F,$FF,$E0
-  DEFB $FF,$0F,$FF,$E0,$F5,$05,$5F,$50
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$03,$FF,$80
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$03,$FF,$E0
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$E0,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$A0,$FF,$07,$FF,$F0
-  DEFB $FF,$07,$FF,$F0,$FA,$0A,$AF,$A0
-  DEFB $FF,$01,$FF,$80,$FF,$01,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$C0
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$02,$7F,$60
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$E0
-  DEFB $FD,$01,$7F,$60,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$A0,$FF,$03,$FF,$F0
-  DEFB $FF,$07,$FF,$F0,$FA,$0A,$AF,$A0
-  DEFB $FF,$01,$FF,$80,$FF,$01,$FF,$C0
-  DEFB $FF,$01,$FF,$C0,$FF,$03,$FF,$80
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$06,$7F,$40
-  DEFB $FF,$01,$FF,$80,$FE,$06,$BF,$A0
-  DEFB $FF,$0F,$FF,$F0,$FF,$1B,$FF,$D8
-  DEFB $FF,$11,$FF,$88,$FF,$33,$FF,$C8
-  DEFB $FF,$07,$DF,$C0,$F5,$05,$7F,$70
-  DEFB $FF,$1E,$FF,$C0,$FF,$10,$FF,$40
-  DEFB $FF,$18,$FF,$70,$FF,$00,$FF,$60
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$01,$FF,$80,$FF,$07,$FF,$E0
-  DEFB $FF,$0F,$FF,$F0,$FF,$1B,$FF,$D0
-  DEFB $FF,$11,$FF,$98,$FF,$13,$FF,$CC
-  DEFB $FF,$07,$FF,$E0,$F7,$07,$BF,$A0
-  DEFB $FD,$0D,$7F,$70,$FF,$18,$FF,$1C
-  DEFB $FF,$18,$FF,$18,$FF,$0C,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$03,$FF,$E0
-  DEFB $FF,$01,$FF,$80,$FF,$07,$FF,$E0
-  DEFB $FF,$0F,$FF,$F8,$FF,$0B,$FF,$CC
-  DEFB $FF,$19,$FF,$84,$FF,$33,$FF,$C0
-  DEFB $FF,$07,$FF,$E0,$FB,$13,$EF,$E0
-  DEFB $FE,$1E,$BF,$A0,$FF,$19,$FF,$F0
-  DEFB $FF,$00,$FF,$18,$FF,$00,$FF,$38
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$02,$7F,$60
-  DEFB $FF,$01,$FF,$80,$FD,$05,$7F,$60
-  DEFB $FF,$0F,$FF,$F0,$FF,$0B,$FF,$D8
-  DEFB $FF,$19,$FF,$88,$FF,$03,$FF,$C8
-  DEFB $FB,$03,$FF,$E0,$FE,$0E,$AF,$A0
-  DEFB $FF,$03,$FF,$7C,$FF,$02,$FF,$0C
-  DEFB $FF,$0E,$FF,$08,$FF,$06,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$06,$7F,$40
-  DEFB $FF,$01,$FF,$8C,$FF,$37,$BF,$BC
-  DEFB $FE,$3E,$FF,$F0,$FF,$03,$AF,$A0
-  DEFB $FE,$00,$FF,$F8,$F7,$17,$FF,$F8
-  DEFB $FF,$03,$FF,$F0,$FF,$0F,$FF,$E0
-  DEFB $FF,$04,$FF,$80,$FF,$06,$FF,$C0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$31,$FF,$86,$FF,$3F,$FF,$FE
-  DEFB $FF,$07,$DF,$D0,$FF,$01,$EF,$E0
-  DEFB $FE,$02,$BF,$B8,$F7,$17,$FF,$F8
-  DEFB $FF,$03,$FF,$F0,$FF,$0F,$FF,$E0
-  DEFB $FF,$04,$FF,$80,$FF,$06,$FF,$C0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$03,$FF,$E0
-  DEFB $FF,$31,$FF,$8C,$FF,$3F,$FF,$FC
-  DEFB $FD,$0D,$FF,$F0,$F7,$07,$FF,$80
-  DEFB $FE,$1E,$DF,$C0,$FF,$1F,$F7,$F4
-  DEFB $FF,$0F,$FF,$E0,$FF,$07,$FF,$C0
-  DEFB $FF,$02,$FF,$60,$FF,$06,$FF,$C0
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$02,$7F,$60
-  DEFB $FF,$19,$FF,$8C,$FD,$1D,$FF,$FC
-  DEFB $FF,$07,$7F,$70,$F5,$05,$FF,$C0
-  DEFB $FF,$0F,$7F,$00,$FF,$1F,$EF,$E8
-  DEFB $FF,$0F,$FF,$C0,$FF,$07,$FF,$F0
-  DEFB $FF,$01,$FF,$20,$FF,$03,$FF,$60
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$78,$FF,$00
-  DEFB $CF,$4F,$FF,$C0,$DD,$5D,$FF,$E0
-  DEFB $F7,$F7,$1F,$14,$FF,$1F,$1F,$14
-  DEFB $FE,$1A,$7F,$7C,$FE,$0E,$FF,$F8
-  DEFB $FF,$05,$FF,$80,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$08,$FF,$01,$BF,$BC
-  DEFB $FF,$33,$DF,$DC,$FB,$3B,$EF,$E8
-  DEFB $FE,$1E,$FF,$F8,$E7,$27,$F7,$F0
-  DEFB $E7,$67,$FF,$F0,$FF,$3E,$FF,$F0
-  DEFB $FF,$0C,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$10,$FF,$00,$FD,$3D,$FF,$80
-  DEFB $FB,$3B,$FF,$CC,$F7,$17,$DF,$DC
-  DEFB $FF,$1F,$7F,$78,$EF,$0F,$E7,$E4
-  DEFB $FF,$0F,$E7,$E6,$FF,$0F,$FF,$7C
-  DEFB $FF,$00,$FF,$30,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$1E
-  DEFB $FF,$03,$F3,$F2,$FF,$07,$BB,$BA
-  DEFB $F8,$28,$EF,$EF,$F8,$28,$FF,$F8
-  DEFB $FE,$3E,$7F,$58,$FF,$1F,$7F,$70
-  DEFB $FF,$01,$FF,$A0,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$06,$7F,$40
-  DEFB $FF,$01,$FF,$80,$FF,$27,$FF,$C8
-  DEFB $DE,$1E,$BF,$B8,$FB,$1B,$F7,$F0
-  DEFB $FF,$0F,$7F,$70,$FA,$02,$DF,$C0
-  DEFB $FC,$00,$3F,$00,$FE,$00,$BF,$00
-  DEFB $FE,$00,$BF,$00,$FF,$03,$FF,$C0
-  DEFB $FF,$01,$FF,$40,$FF,$01,$FF,$40
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$01,$FF,$80,$FF,$27,$FF,$C8
-  DEFB $DF,$1F,$FF,$F8,$FB,$1B,$F7,$F0
-  DEFB $FF,$0F,$7F,$70,$FA,$0A,$DF,$C0
-  DEFB $FC,$00,$3F,$00,$FE,$00,$BF,$00
-  DEFB $FE,$00,$BF,$00,$FF,$03,$FF,$C0
-  DEFB $FF,$01,$FF,$40,$FF,$01,$FF,$40
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$03,$FF,$E0
-  DEFB $FF,$01,$FF,$80,$FF,$27,$FF,$C8
-  DEFB $DF,$1F,$FF,$FC,$FB,$1B,$EB,$E8
-  DEFB $FF,$0F,$7F,$70,$FA,$02,$DF,$D0
-  DEFB $FC,$00,$3F,$00,$FE,$00,$BF,$00
-  DEFB $FE,$00,$BF,$00,$FF,$01,$FF,$E0
-  DEFB $FF,$01,$FF,$40,$FF,$01,$FF,$40
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FE,$02,$7F,$60
-  DEFB $FF,$01,$FF,$80,$FF,$2B,$FF,$E8
-  DEFB $DD,$1D,$7F,$78,$F7,$17,$F7,$F0
-  DEFB $FF,$0F,$BF,$B0,$FC,$04,$DF,$C0
-  DEFB $FE,$00,$1F,$00,$FE,$00,$BF,$00
-  DEFB $FE,$00,$BF,$00,$FF,$01,$FF,$E0
-  DEFB $FF,$01,$FF,$40,$FF,$01,$FF,$40
-  DEFB $FF,$00,$FF,$00
+; Sprite frame $6A: grenade's own frames
+FRAME6A:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$1F,$BF,$B8    ;
+  DEFB $FF,$3F,$FF,$FC    ;
+  DEFB $C7,$47,$E3,$E2    ;
+  DEFB $FB,$FB,$C1,$C1    ;
+  DEFB $DD,$DD,$89,$89    ;
+  DEFB $DE,$DE,$15,$15    ;
+  DEFB $CB,$CB,$25,$25    ;
+  DEFB $D3,$D3,$25,$25    ;
+  DEFB $DB,$DB,$2D,$2D    ;
+  DEFB $FB,$7B,$33,$32    ;
+  DEFB $FB,$3B,$07,$04    ;
+  DEFB $FF,$1F,$9F,$98    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $6B: grenade's own frames
+FRAME6B:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FD,$1D,$FF,$F8    ;
+  DEFB $FF,$3F,$FF,$FC    ;
+  DEFB $C7,$47,$E3,$E2    ;
+  DEFB $83,$83,$DF,$DF    ;
+  DEFB $A1,$A1,$BB,$BB    ;
+  DEFB $A0,$A0,$7B,$7B    ;
+  DEFB $B4,$B4,$D3,$D3    ;
+  DEFB $AC,$AC,$CB,$CB    ;
+  DEFB $A4,$A4,$DB,$DB    ;
+  DEFB $C4,$44,$DF,$DE    ;
+  DEFB $E4,$24,$DF,$DC    ;
+  DEFB $F9,$19,$FF,$F8    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $6C: girl, standing, facing 0
+FRAME6C:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$06,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FE,$06,$BF,$80    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$05,$FF,$C0    ;
+  DEFB $FF,$0F,$FF,$C0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $F5,$05,$5F,$50    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $6D: girl, standing, facing 1
+FRAME6D:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$05,$FF,$C0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $F5,$05,$5F,$50    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $6E: girl, standing, facing 2
+FRAME6E:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$A0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FA,$0A,$AF,$A0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $6F: girl, standing, facing 3
+FRAME6F:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$60    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FD,$01,$7F,$60    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$A0    ;
+  DEFB $FF,$03,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FA,$0A,$AF,$A0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $70: girl, walking, facing 0
+FRAME70:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$06,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$06,$BF,$A0    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$1B,$FF,$D8    ;
+  DEFB $FF,$11,$FF,$88    ;
+  DEFB $FF,$33,$FF,$C8    ;
+  DEFB $FF,$07,$DF,$C0    ;
+  DEFB $F5,$05,$7F,$70    ;
+  DEFB $FF,$1E,$FF,$C0    ;
+  DEFB $FF,$10,$FF,$40    ;
+  DEFB $FF,$18,$FF,$70    ;
+  DEFB $FF,$00,$FF,$60    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $71: girl, walking, facing 1
+FRAME71:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$1B,$FF,$D0    ;
+  DEFB $FF,$11,$FF,$98    ;
+  DEFB $FF,$13,$FF,$CC    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $F7,$07,$BF,$A0    ;
+  DEFB $FD,$0D,$7F,$70    ;
+  DEFB $FF,$18,$FF,$1C    ;
+  DEFB $FF,$18,$FF,$18    ;
+  DEFB $FF,$0C,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $72: girl, walking, facing 2
+FRAME72:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F8    ;
+  DEFB $FF,$0B,$FF,$CC    ;
+  DEFB $FF,$19,$FF,$84    ;
+  DEFB $FF,$33,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FB,$13,$EF,$E0    ;
+  DEFB $FE,$1E,$BF,$A0    ;
+  DEFB $FF,$19,$FF,$F0    ;
+  DEFB $FF,$00,$FF,$18    ;
+  DEFB $FF,$00,$FF,$38    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $73: girl, walking, facing 3
+FRAME73:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$60    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FD,$05,$7F,$60    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$0B,$FF,$D8    ;
+  DEFB $FF,$19,$FF,$88    ;
+  DEFB $FF,$03,$FF,$C8    ;
+  DEFB $FB,$03,$FF,$E0    ;
+  DEFB $FE,$0E,$AF,$A0    ;
+  DEFB $FF,$03,$FF,$7C    ;
+  DEFB $FF,$02,$FF,$0C    ;
+  DEFB $FF,$0E,$FF,$08    ;
+  DEFB $FF,$06,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $74: girl, arms out: stunned, or throwing, facing 0
+FRAME74:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$06,$7F,$40    ;
+  DEFB $FF,$01,$FF,$8C    ;
+  DEFB $FF,$37,$BF,$BC    ;
+  DEFB $FE,$3E,$FF,$F0    ;
+  DEFB $FF,$03,$AF,$A0    ;
+  DEFB $FE,$00,$FF,$F8    ;
+  DEFB $F7,$17,$FF,$F8    ;
+  DEFB $FF,$03,$FF,$F0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$04,$FF,$80    ;
+  DEFB $FF,$06,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $75: girl, arms out: stunned, or throwing, facing 1
+FRAME75:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$31,$FF,$86    ;
+  DEFB $FF,$3F,$FF,$FE    ;
+  DEFB $FF,$07,$DF,$D0    ;
+  DEFB $FF,$01,$EF,$E0    ;
+  DEFB $FE,$02,$BF,$B8    ;
+  DEFB $F7,$17,$FF,$F8    ;
+  DEFB $FF,$03,$FF,$F0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$04,$FF,$80    ;
+  DEFB $FF,$06,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $76: girl, arms out: stunned, or throwing, facing 2
+FRAME76:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$31,$FF,$8C    ;
+  DEFB $FF,$3F,$FF,$FC    ;
+  DEFB $FD,$0D,$FF,$F0    ;
+  DEFB $F7,$07,$FF,$80    ;
+  DEFB $FE,$1E,$DF,$C0    ;
+  DEFB $FF,$1F,$F7,$F4    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$02,$FF,$60    ;
+  DEFB $FF,$06,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $77: girl, arms out: stunned, or throwing, facing 3
+FRAME77:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$60    ;
+  DEFB $FF,$19,$FF,$8C    ;
+  DEFB $FD,$1D,$FF,$FC    ;
+  DEFB $FF,$07,$7F,$70    ;
+  DEFB $F5,$05,$FF,$C0    ;
+  DEFB $FF,$0F,$7F,$00    ;
+  DEFB $FF,$1F,$EF,$E8    ;
+  DEFB $FF,$0F,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$01,$FF,$20    ;
+  DEFB $FF,$03,$FF,$60    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $78: girl, lying down: stunned for longer, facing 0
+FRAME78:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$78,$FF,$00    ;
+  DEFB $CF,$4F,$FF,$C0    ;
+  DEFB $DD,$5D,$FF,$E0    ;
+  DEFB $F7,$F7,$1F,$14    ;
+  DEFB $FF,$1F,$1F,$14    ;
+  DEFB $FE,$1A,$7F,$7C    ;
+  DEFB $FE,$0E,$FF,$F8    ;
+  DEFB $FF,$05,$FF,$80    ;
+
+; Sprite frame $79: girl, lying down: stunned for longer, facing 1
+FRAME79:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$08    ;
+  DEFB $FF,$01,$BF,$BC    ;
+  DEFB $FF,$33,$DF,$DC    ;
+  DEFB $FB,$3B,$EF,$E8    ;
+  DEFB $FE,$1E,$FF,$F8    ;
+  DEFB $E7,$27,$F7,$F0    ;
+  DEFB $E7,$67,$FF,$F0    ;
+  DEFB $FF,$3E,$FF,$F0    ;
+  DEFB $FF,$0C,$FF,$00    ;
+
+; Sprite frame $7A: girl, lying down: stunned for longer, facing 2
+FRAME7A:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$10,$FF,$00    ;
+  DEFB $FD,$3D,$FF,$80    ;
+  DEFB $FB,$3B,$FF,$CC    ;
+  DEFB $F7,$17,$DF,$DC    ;
+  DEFB $FF,$1F,$7F,$78    ;
+  DEFB $EF,$0F,$E7,$E4    ;
+  DEFB $FF,$0F,$E7,$E6    ;
+  DEFB $FF,$0F,$FF,$7C    ;
+  DEFB $FF,$00,$FF,$30    ;
+
+; Sprite frame $7B: girl, lying down: stunned for longer, facing 3
+FRAME7B:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$1E    ;
+  DEFB $FF,$03,$F3,$F2    ;
+  DEFB $FF,$07,$BB,$BA    ;
+  DEFB $F8,$28,$EF,$EF    ;
+  DEFB $F8,$28,$FF,$F8    ;
+  DEFB $FE,$3E,$7F,$58    ;
+  DEFB $FF,$1F,$7F,$70    ;
+  DEFB $FF,$01,$FF,$A0    ;
+
+; Sprite frame $7C: girl, arms up: falling, facing 0
+FRAME7C:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$06,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$27,$FF,$C8    ;
+  DEFB $DE,$1E,$BF,$B8    ;
+  DEFB $FB,$1B,$F7,$F0    ;
+  DEFB $FF,$0F,$7F,$70    ;
+  DEFB $FA,$02,$DF,$C0    ;
+  DEFB $FC,$00,$3F,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $7D: girl, arms up: falling, facing 1
+FRAME7D:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$27,$FF,$C8    ;
+  DEFB $DF,$1F,$FF,$F8    ;
+  DEFB $FB,$1B,$F7,$F0    ;
+  DEFB $FF,$0F,$7F,$70    ;
+  DEFB $FA,$0A,$DF,$C0    ;
+  DEFB $FC,$00,$3F,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $7E: girl, arms up: falling, facing 2
+FRAME7E:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$27,$FF,$C8    ;
+  DEFB $DF,$1F,$FF,$FC    ;
+  DEFB $FB,$1B,$EB,$E8    ;
+  DEFB $FF,$0F,$7F,$70    ;
+  DEFB $FA,$02,$DF,$D0    ;
+  DEFB $FC,$00,$3F,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FF,$01,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $7F: girl, arms up: falling, facing 3
+FRAME7F:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$60    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$2B,$FF,$E8    ;
+  DEFB $DD,$1D,$7F,$78    ;
+  DEFB $F7,$17,$F7,$F0    ;
+  DEFB $FF,$0F,$BF,$B0    ;
+  DEFB $FC,$04,$DF,$C0    ;
+  DEFB $FE,$00,$1F,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FE,$00,$BF,$00    ;
+  DEFB $FF,$01,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$01,$FF,$40    ;
+  DEFB $FF,$00,$FF,$00    ;
 
 ; Render buffer
 ;
@@ -6073,388 +6362,192 @@ RENDER_BUFFER:
   DEFB $13,$1E,$03,$02,$03,$06,$03,$02
   DEFB $03,$02,$03,$5E,$03,$2E,$03,$06
   DEFB $03,$02,$03,$06,$03,$02,$1B,$91
-  DEFB $11,$42,$04,$42,$14,$4B,$14
-
-; Message at A027
-LA027:
-  DEFM "K4["
-
-; Data block at A02A
-LA02A:
-  DEFB $04,$42,$14,$4B,$04,$42,$04,$42
-  DEFB $0C,$5F,$F4
-
-; Message at A035
-LA035:
-  DEFM "[4K"
-
-; Data block at A038
-LA038:
+  DEFB $11,$42,$04,$42,$14,$4B,$14,$4B
+  DEFB $34,$5B,$04,$42,$14,$4B,$04,$42
+  DEFB $04,$42,$0C,$5F,$F4,$5B,$34,$4B
   DEFB $04,$42,$14,$4B,$04,$42,$1C,$44
   DEFB $46,$16,$11,$16,$71,$17,$71,$17
   DEFB $F1,$17,$11,$16,$31,$11,$71,$12
   DEFB $71,$12,$71,$14,$71,$11,$71,$11
   DEFB $71,$12,$71,$11,$71,$12,$71,$A9
-  DEFB $1B
-
-; Message at A061
-LA061:
-  DEFM "DDDDEDEDEDDDDDDDDDEDEDEDDDEDDDTn"
-
-; Data block at A081
-LA081:
-  DEFB $11,$11,$11,$11,$11,$91,$11,$11
+  DEFB $1B,$44,$44,$44,$44,$45,$44,$45
+  DEFB $44,$45,$44,$44,$44,$44,$44,$44
+  DEFB $44,$44,$44,$45,$44,$45,$44,$45
+  DEFB $44,$44,$44,$45,$44,$44,$44,$54
+  DEFB $6E,$11,$11,$11,$11,$11,$91,$11
   DEFB $11,$11,$11,$11,$11,$11,$11,$11
-  DEFB $11,$11,$11,$11,$11,$91,$11,$91
-  DEFB $11,$91,$11,$91,$11,$91,$11
-
-; Message at A0A0
-LA0A0:
-  DEFM "DFDDDFDDDDDDDDDDDDDDDDDDDDDFDFDDI"
-
-; Data block at A0C1
-LA0C1:
-  DEFB $1B,$11,$11,$11,$1B,$A9,$11,$11
+  DEFB $11,$11,$11,$11,$11,$11,$91,$11
+  DEFB $91,$11,$91,$11,$91,$11,$91,$11
+  DEFB $44,$46,$44,$44,$44,$46,$44,$44
+  DEFB $44,$44,$44,$44,$44,$44,$44,$44
+  DEFB $44,$44,$44,$44,$44,$44,$44,$44
+  DEFB $44,$44,$44,$46,$44,$46,$44,$44
+  DEFB $49,$1B,$11,$11,$11,$1B,$A9,$11
   DEFB $11,$11,$11,$11,$11,$11,$11,$11
-  DEFB $11,$11,$11,$11,$11,$A9,$11,$A9
-  DEFB $11,$A9,$1B,$A9,$1B,$A9,$11,$14
-
-; Message at A0E1
-LA0E1:
-  DEFM "nDDDnTDDDDDDDDDDDDDDDTDTDTnTnTD"
-
-; Data block at A100
-LA100:
+  DEFB $11,$11,$11,$11,$11,$11,$A9,$11
+  DEFB $A9,$11,$A9,$1B,$A9,$1B,$A9,$11
+  DEFB $14,$6E,$44,$44,$44,$6E,$54,$44
+  DEFB $44,$44,$44,$44,$44,$44,$44,$44
+  DEFB $44,$44,$44,$44,$44,$44,$54,$44
+  DEFB $54,$44,$54,$6E,$54,$6E,$54,$44
   DEFB $EE,$BB,$11,$11,$11,$BB,$AB,$11
   DEFB $11,$11,$11,$11,$11,$11,$11,$91
   DEFB $11,$11,$11,$11,$11,$91,$AA,$91
   DEFB $AB,$91,$AA,$BB,$AA,$BB,$AA,$AA
-  DEFB $BB,$EE
-
-; Message at A122
-LA122:
-  DEFM "DDF"
-
-; Data block at A125
-LA125:
-  DEFB $EE
-
-; Message at A126
-LA126:
-  DEFM "TDDDDDDDDDDDDDDDUDTDU"
-
-; Data block at A13B
-LA13B:
-  DEFB $EE,$55,$EE,$55,$F5,$EA,$BB,$11
-  DEFB $11,$1B,$BB,$B1,$11,$11,$11,$11
-  DEFB $11,$11,$11,$11,$A9,$11,$11,$11
-  DEFB $11,$11,$A9,$AA,$A9,$B1,$A9,$AA
-  DEFB $BB,$AA,$BB,$AA,$BA,$B5,$EE
-
-; Message at A162
-LA162:
-  DEFM "DDn"
-
-; Data block at A165
-LA165:
-  DEFB $EE
-
-; Message at A166
-LA166:
-  DEFM "DDDDDDDDDTDDDDDTUTDTU"
-
-; Data block at A17B
-LA17B:
-  DEFB $EE,$55,$EE,$55,$EF,$AA,$BA,$00
+  DEFB $BB,$EE,$44,$44,$46,$EE,$54,$44
+  DEFB $44,$44,$44,$44,$44,$44,$44,$44
+  DEFB $44,$44,$44,$44,$44,$44,$55,$44
+  DEFB $54,$44,$55,$EE,$55,$EE,$55,$F5
+  DEFB $EA,$BB,$11,$11,$1B,$BB,$B1,$11
+  DEFB $11,$11,$11,$11,$11,$11,$11,$A9
+  DEFB $11,$11,$11,$11,$11,$A9,$AA,$A9
+  DEFB $B1,$A9,$AA,$BB,$AA,$BB,$AA,$BA
+  DEFB $B5,$EE,$44,$44,$6E,$EE,$44,$44
+  DEFB $44,$44,$44,$44,$44,$44,$44,$54
+  DEFB $44,$44,$44,$44,$44,$54,$55,$54
+  DEFB $44,$54,$55,$EE,$55,$EE,$55,$EF
+  DEFB $AA,$BA,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$01,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$AA,$AA
-  DEFB $BB,$2A,$BB,$AA,$AA,$BB,$E8,$00
+  DEFB $00,$AA,$AA,$BB,$2A,$BB,$AA,$AA
+  DEFB $BB,$E8,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$04,$40,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$40,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$55,$55
-  DEFB $EC,$55,$EE,$F5,$55,$EE,$A0,$00
+  DEFB $00,$55,$55,$EC,$55,$EE,$F5,$55
+  DEFB $EE,$A0,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$11,$10,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$11,$10,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$AA,$AA
-  DEFB $B1,$12,$BB,$BA,$AA,$BB,$80,$00
+  DEFB $00,$AA,$AA,$B1,$12,$BB,$BA,$AA
+  DEFB $BB,$80,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$44,$44,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$44,$44,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$55,$55
-  DEFB $C4,$45,$EE,$EF,$55,$00,$00,$00
+  DEFB $00,$55,$55,$C4,$45,$EE,$EF,$55
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$91,$11,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$2A,$AA
-  DEFB $91,$11,$BB,$BB,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$91,$11,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$44,$46,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$15
-
-; Message at A23A
-LA23A:
-  DEFM "UDF"
-
-; Data block at A23D
-LA23D:
-  DEFB $EE,$EE,$40,$00,$00,$00,$00,$00
+  DEFB $00,$2A,$AA,$91,$11,$BB,$BB,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $A9,$1B,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$AA,$A9,$1B
-  DEFB $BB,$BB,$10,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$44,$46,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $54,$6E,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01
-
-; Message at A27A
-LA27A:
-  DEFM "UTn"
-
-; Data block at A27D
-LA27D:
-  DEFB $EE,$EE,$44,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$00
-  DEFB $AA,$BB,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$AA,$AA,$BB
-  DEFB $BB,$BB,$11,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$40
-  DEFB $55,$EE,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$55,$55,$EE
-  DEFB $EE,$EE,$46,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$11,$10
-  DEFB $AA,$BB,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$11,$AA,$AA,$BB
-  DEFB $BB,$BB,$1B,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00
-
-; Message at A2EB
-LA2EB:
-  DEFM "DDU"
-
-; Data block at A2EE
-LA2EE:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00
-
-; Message at A2F9
-LA2F9:
-  DEFM "DUU"
-
-; Data block at A2FC
-LA2FC:
-  DEFB $EE,$EE,$EE,$6E,$00,$00,$00,$00
+  DEFB $00,$15,$55,$44,$46,$EE,$EE,$40
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$A9,$1B,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$02,$AA,$A9,$1B,$BB,$BB,$10
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$54,$6E,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$01,$55,$54,$6E,$EE,$EE,$44
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$01,$00,$AA,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$01,$AA,$AA,$BB,$BB,$BB,$11
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$04,$40,$55,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$04,$55,$55,$EE,$EE,$EE,$46
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$11,$10,$AA,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$11,$AA,$AA,$BB,$BB,$BB,$1B
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$44,$44,$55,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$44,$55,$55,$EE,$EE,$EE,$6E
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$01,$11,$11,$2A,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $01,$11,$AA,$AA,$BA,$BB,$BB,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$04,$44,$46,$55,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $04,$44,$55,$F5,$ED,$EE,$EE,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$11,$11,$1B,$12,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $11,$11,$AA,$BA,$AA,$BB,$BB,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$44,$44,$6E,$45,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $44,$44,$55,$EF,$D5,$EE,$EE,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$01,$11,$11,$BB,$11,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $91,$11,$AA,$BB,$2A,$BB,$BB,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$04,$44,$46,$EE,$46,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $44,$46,$55,$EC,$55,$EE,$EE,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$11,$11,$1B,$BB,$1B,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $A9,$1B,$AA,$B1,$12,$BB,$BB,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$44,$44,$6E,$EE,$6E,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $54,$6E,$55,$C4,$45,$EE,$EE,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $01,$11,$11,$BB,$BB,$BB,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$BB,$AA,$91,$11,$BB,$BA,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $04,$44,$46,$EE,$EE,$EE,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$EE,$55,$44,$46,$EE,$ED,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $11,$11,$1B,$BB,$BB,$BB,$BB,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$BB,$AA,$A9,$1B,$BB,$AA,$BB
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $44,$44,$6E,$EE,$EE,$EE,$EE,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$EE,$55,$54,$6E,$EE,$D5,$EE
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $11,$11,$BB,$BB,$BB,$BB,$3B,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$BB,$2A,$AA,$BB,$BA,$2A,$BA
+  DEFB $00,$00,$00,$00,$00,$00,$00,$04
+  DEFB $44,$46,$EE,$EE,$EE,$EC,$4E,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$EC,$55,$55,$EE,$E8,$15,$E8
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11
+  DEFB $11,$1B,$BB,$BB,$BB,$B1,$13,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$B1,$12,$AA,$BB,$A0,$02,$A0
+  DEFB $00,$00,$00,$00,$00,$00,$00,$44
+  DEFB $44,$6E,$EE,$EE,$EE,$C4,$44,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$C4,$45,$55,$EE,$80,$01,$80
   DEFB $00,$00,$00,$00,$00,$00,$01,$11
-  DEFB $11,$2A,$BB,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$AA,$AA
-  DEFB $BA,$BB,$BB,$BB,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04
-
-; Message at A32B
-LA32B:
-  DEFM "DFU"
-
-; Data block at A32E
-LA32E:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$44,$55,$F5,$ED,$EE
-  DEFB $EE,$EE,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$11,$11,$1B,$12
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$11,$11,$AA,$BA,$AA,$BB
-  DEFB $BB,$BB,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00
-
-; Message at A36A
-LA36A:
-  DEFM "DDnE"
-
-; Data block at A36E
-LA36E:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00
-
-; Message at A378
-LA378:
-  DEFM "DDU"
-
-; Data block at A37B
-LA37B:
-  DEFB $EF,$D5,$EE,$EE,$EE,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$11
-  DEFB $11,$BB,$11,$BB,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$91,$11,$AA
-  DEFB $BB,$2A,$BB,$BB,$BB,$00,$00,$00
+  DEFB $11,$BB,$BB,$BB,$BB,$91,$11,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$91,$11,$AA,$BB,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$04,$44
-  DEFB $46,$EE,$46,$EE,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at A3B8
-LA3B8:
-  DEFM "DFU"
-
-; Data block at A3BB
-LA3BB:
-  DEFB $EC,$55,$EE,$EE,$EE,$00,$00,$00
+  DEFB $46,$EE,$EE,$EE,$EE,$44,$44,$40
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$44,$46,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$11,$11
-  DEFB $1B,$BB,$1B,$BB,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$A9,$1B,$AA
-  DEFB $B1,$12,$BB,$BB,$BB,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00
-
-; Message at A3E9
-LA3E9:
-  DEFM "DDn"
-
-; Data block at A3EC
-LA3EC:
-  DEFB $EE,$6E,$EE,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00
-
-; Message at A3F8
-LA3F8:
-  DEFM "TnU"
-
-; Data block at A3FB
-LA3FB:
-  DEFB $C4,$45,$EE,$EE,$EE,$00,$00,$00
+  DEFB $1B,$BB,$BB,$BB,$BB,$A9,$11,$10
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $AA,$A9,$1B,$AA,$BB,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$44,$44
+  DEFB $6E,$EE,$EE,$EE,$EE,$54,$44,$44
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $55,$54,$6E,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$01,$11,$11
-  DEFB $BB,$BB,$BB,$BB,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$AA,$BB,$AA
-  DEFB $91,$11,$BB,$BA,$BB,$00,$00,$00
+  DEFB $BB,$BB,$BB,$BB,$BB,$AA,$91,$11
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $2A,$AA,$BB,$AA,$BB,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$04,$44,$46
-  DEFB $EE,$EE,$EE,$EE,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$55,$EE
-
-; Message at A43A
-LA43A:
-  DEFM "UDF"
-
-; Data block at A43D
-LA43D:
-  DEFB $EE,$ED,$EE,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$11,$11,$1B,$BB,$BB
-  DEFB $BB,$BB,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$AA,$BB,$AA,$A9,$1B
-  DEFB $BB,$AA,$BB,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00
-
-; Message at A468
-LA468:
-  DEFM "DDn"
-
-; Data block at A46B
-LA46B:
-  DEFB $EE,$EE,$EE,$EE,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$55,$EE
-
-; Message at A47A
-LA47A:
-  DEFM "UTn"
-
-; Data block at A47D
-LA47D:
-  DEFB $EE,$D5,$EE,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$11,$11,$BB,$BB,$BB
-  DEFB $BB,$3B,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$AA,$BB,$2A,$AA,$BB
-  DEFB $BA,$2A,$BA,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$44,$46,$EE,$EE,$EE
-  DEFB $EC,$4E,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$55,$EC,$55,$55,$EE
-  DEFB $E8,$15,$E8,$00,$00,$00,$00,$00
-  DEFB $00,$00,$11,$11,$1B,$BB,$BB,$BB
-  DEFB $B1,$13,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$AA,$B1,$12,$AA,$BB
-  DEFB $A0,$02,$A0,$00,$00,$00,$00,$00
-  DEFB $00,$00
-
-; Message at A4E7
-LA4E7:
-  DEFM "DDn"
-
-; Data block at A4EA
-LA4EA:
-  DEFB $EE,$EE,$EE,$C4,$44,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$55,$C4
-  DEFB $45,$55,$EE,$80,$01,$80,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$91,$11,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$AA,$91
-  DEFB $11,$AA,$BB,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$44,$46,$EE
-  DEFB $EE,$EE,$EE,$44,$44,$40,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00
-
-; Message at A538
-LA538:
-  DEFM "UDFU"
-
-; Data block at A53C
-LA53C:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$11,$11,$1B,$BB,$BB,$BB
-  DEFB $BB,$A9,$11,$10,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$AA,$A9,$1B,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00
-
-; Message at A566
-LA566:
-  DEFM "DDn"
-
-; Data block at A569
-LA569:
-  DEFB $EE,$EE,$EE,$EE
-
-; Message at A56D
-LA56D:
-  DEFM "TDD"
-
-; Unused
-LA570:
-  DEFS $08
-
-; Message at A578
-LA578:
-  DEFM "UTnU"
-
-; Data block at A57C
-LA57C:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$01,$11,$11,$BB,$BB,$BB,$BB
-  DEFB $BB,$AA,$91,$11,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$2A,$AA,$BB,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$04,$44,$46,$EE,$EE,$EE,$EE
-  DEFB $EE
-
-; Message at A5AD
-LA5AD:
-  DEFM "UDF"
-
-; Data block at A5B0
-LA5B0:
+  DEFB $EE,$EE,$EE,$EE,$EE,$55,$44,$46
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $15,$55,$EE,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$11,$11,$1B
   DEFB $BB,$BB,$BB,$BB,$BB,$AA,$A9,$1B
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $02,$AA,$BB,$AA,$BB,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at A5E5
-LA5E5:
-  DEFM "DDn"
-
-; Data block at A5E8
-LA5E8:
-  DEFB $EE,$EE,$EE,$EE,$EE
-
-; Message at A5ED
-LA5ED:
-  DEFM "UTn"
-
-; Data block at A5F0
-LA5F0:
+  DEFB $00,$00,$00,$00,$00,$44,$44,$6E
+  DEFB $EE,$EE,$EE,$EE,$EE,$55,$54,$6E
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $01,$55,$EE,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$01,$11,$11,$BB
@@ -6469,454 +6562,271 @@ LA5F0:
   DEFB $BB,$BB,$BB,$BB,$BB,$AA,$AA,$BB
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$02,$A0,$02,$A0,$00,$00,$00
-  DEFB $00,$00,$00,$00
-
-; Message at A664
-LA664:
-  DEFM "DDn"
-
-; Data block at A667
-LA667:
-  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$55,$55
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$80,$01,$80,$00,$00
-  DEFB $00,$00,$00,$00,$00,$91,$11,$BB
-  DEFB $BB,$BB,$BB,$BB,$BA,$BB,$AA,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$44,$46,$EE
-  DEFB $EE,$EE,$EE,$EE,$ED,$EE,$55,$55
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$44,$44,$6E,$EE
+  DEFB $EE,$EE,$EE,$EE,$EE,$55,$55,$EE
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$A9,$1B,$BB
-  DEFB $BB,$BB,$BB,$BB,$AA,$BB,$AA,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$01,$80,$01,$80,$00,$00,$00
+  DEFB $00,$00,$00,$00,$91,$11,$BB,$BB
+  DEFB $BB,$BB,$BB,$BA,$BB,$AA,$AA,$BB
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$54,$6E,$EE
-  DEFB $EE,$EE,$EE,$EE,$D5,$EE,$55,$55
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$00,$AA,$BB,$BB
-  DEFB $BB,$BA,$BB,$BB,$2A,$BA,$2A,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$44,$46,$EE,$EE
+  DEFB $EE,$EE,$EE,$ED,$EE,$55,$55,$EE
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$04,$40,$55,$EE,$EE
-  DEFB $EE,$ED,$EE,$EE,$15,$E8,$15,$55
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$11,$10,$AA,$BB,$BB
-  DEFB $BB,$AA,$BB,$BB,$02,$A0,$02,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$A9,$1B,$BB,$BB
+  DEFB $BB,$BB,$BB,$AA,$BB,$AA,$AA,$BB
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00
-
-; Message at A762
-LA762:
-  DEFM "DDU"
-
-; Data block at A765
-LA765:
-  DEFB $EE,$EE,$EE,$D5,$EE,$EE,$01,$80
-  DEFB $01,$55,$EE,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$91,$11,$AA
-  DEFB $BB,$BB,$BB,$2A,$BB,$BB,$00,$00
-  DEFB $00,$2A,$BA,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$54,$6E,$EE,$EE
+  DEFB $EE,$EE,$EE,$D5,$EE,$55,$55,$EE
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at A7A2
-LA7A2:
-  DEFM "DFU"
-
-; Data block at A7A5
-LA7A5:
-  DEFB $EE,$EE,$EE,$D5,$EE,$EE,$00,$00
-  DEFB $00,$15,$E8,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$A9,$1B,$AA
-  DEFB $BB,$BB,$BB,$F2,$BB,$BB,$00,$00
-  DEFB $00,$02,$A0,$00,$00,$00,$00,$00
+  DEFB $00,$00,$01,$00,$AA,$BB,$BB,$BB
+  DEFB $BA,$BB,$BB,$2A,$BA,$2A,$AA,$BB
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at A7E2
-LA7E2:
-  DEFM "TnU"
-
-; Data block at A7E5
-LA7E5:
-  DEFB $EE,$EE,$EE,$15,$EE,$EE,$00,$00
-  DEFB $00,$01,$80,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$AA,$BB,$AA
-  DEFB $BB,$BB,$BB,$15,$BB,$BA,$00,$00
+  DEFB $00,$00,$04,$40,$55,$EE,$EE,$EE
+  DEFB $ED,$EE,$EE,$15,$E8,$15,$55,$EE
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$55,$EE,$55
-  DEFB $EE,$EE,$EE,$7E,$EE,$E8,$00,$00
+  DEFB $00,$00,$11,$10,$AA,$BB,$BB,$BB
+  DEFB $AA,$BB,$BB,$02,$A0,$02,$AA,$BB
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$AA,$BB,$AA
-  DEFB $BB,$BB,$BB,$FB,$BB,$A0,$00,$00
+  DEFB $00,$00,$44,$44,$55,$EE,$EE,$EE
+  DEFB $D5,$EE,$EE,$01,$80,$01,$55,$EE
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$55,$EE,$55
-  DEFB $EE,$EE,$EE,$EE,$EE,$80,$00,$00
+  DEFB $00,$00,$91,$11,$AA,$BB,$BB,$BB
+  DEFB $2A,$BB,$BB,$00,$00,$00,$2A,$BA
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$2A,$BB,$AA
-  DEFB $BB,$BB,$BB,$BB,$BA,$00,$00,$00
+  DEFB $00,$00,$44,$46,$55,$EE,$EE,$EE
+  DEFB $D5,$EE,$EE,$00,$00,$00,$15,$E8
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$55,$EE,$55
-  DEFB $EE,$EE,$EE,$EE,$E8,$00,$00,$00
+  DEFB $00,$00,$A9,$1B,$AA,$BB,$BB,$BB
+  DEFB $F2,$BB,$BB,$00,$00,$00,$02,$A0
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$11,$12,$BB,$AA
-  DEFB $BB,$BB,$BB,$BB,$A0,$00,$00,$00
+  DEFB $00,$00,$54,$6E,$55,$EE,$EE,$EE
+  DEFB $15,$EE,$EE,$00,$00,$00,$01,$80
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$44,$45,$EE,$55
-  DEFB $EE,$EE,$EE,$EE,$80,$00,$00,$00
+  DEFB $00,$00,$AA,$BB,$AA,$BB,$BB,$BB
+  DEFB $15,$BB,$BA,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$11,$11,$BB,$AA
-  DEFB $BB,$BB,$BB,$BA,$00,$00,$00,$00
+  DEFB $00,$00,$55,$EE,$55,$EE,$EE,$EE
+  DEFB $7E,$EE,$E8,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$04,$44,$46,$EE,$55
-  DEFB $EE,$EE,$EE,$E8,$00,$00,$00,$00
+  DEFB $00,$00,$AA,$BB,$AA,$BB,$BB,$BB
+  DEFB $FB,$BB,$A0,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$11,$11,$1B,$BB,$AA
-  DEFB $BB,$BB,$BB,$A0,$00,$00,$00,$00
+  DEFB $00,$00,$55,$EE,$55,$EE,$EE,$EE
+  DEFB $EE,$EE,$80,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00
-
-; Message at A960
-LA960:
-  DEFM "DDn"
-
-; Data block at A963
-LA963:
-  DEFB $EE,$55,$EE,$EE,$EE,$80,$00,$00
+  DEFB $00,$01,$2A,$BB,$AA,$BB,$BB,$BB
+  DEFB $BB,$BA,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$91,$11,$BB
-  DEFB $BB,$AA,$BB,$BB,$BA,$00,$00,$00
+  DEFB $00,$04,$55,$EE,$55,$EE,$EE,$EE
+  DEFB $EE,$E8,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$44,$46,$EE
-  DEFB $EE,$55,$EE,$EE,$E8,$00,$00,$00
+  DEFB $00,$11,$12,$BB,$AA,$BB,$BB,$BB
+  DEFB $BB,$A0,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$A9,$1B,$BB
-  DEFB $BB,$AA,$BB,$BB,$A0,$00,$00,$00
+  DEFB $00,$44,$45,$EE,$55,$EE,$EE,$EE
+  DEFB $EE,$80,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$54,$6E,$EE
-  DEFB $EE,$55,$EE,$EE,$80,$00,$00,$00
+  DEFB $01,$11,$11,$BB,$AA,$BB,$BB,$BB
+  DEFB $BA,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$45,$3B,$BB
-  DEFB $BB,$AA,$BB,$BA,$00,$00,$00,$00
+  DEFB $04,$44,$46,$EE,$55,$EE,$EE,$EE
+  DEFB $E8,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$91,$11,$4E,$EE
-  DEFB $EE,$55,$EE,$E8,$00,$00,$00,$00
+  DEFB $11,$11,$1B,$BB,$AA,$BB,$BB,$BB
+  DEFB $A0,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$44,$46,$13,$BB
-  DEFB $BB,$AA,$BB,$A0,$00,$00,$00,$00
+  DEFB $44,$44,$6E,$EE,$55,$EE,$EE,$EE
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$A9,$1B,$44,$EE
-  DEFB $EE,$55,$EE,$80,$00,$00,$00,$00
+  DEFB $91,$11,$BB,$BB,$AA,$BB,$BB,$BA
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$54,$6E,$11,$3B
-  DEFB $BB,$2A,$BA,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$80,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01
-
-; Message at AAA0
-LAAA0:
-  DEFM "DDN"
-
-; Data block at AAA3
-LAAA3:
-  DEFB $EE,$15,$E8,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$40,$00,$00
+  DEFB $44,$46,$EE,$EE,$55,$EE,$EE,$E8
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$49,$11,$13
-  DEFB $BB,$02,$A0,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$40,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$11,$14,$44,$44
-  DEFB $EE,$01,$80,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$80,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$44,$EE,$91,$11
-  DEFB $3B,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$E0,$00,$00
+  DEFB $A9,$1B,$BB,$BB,$AA,$BB,$BB,$A0
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$2A,$BB
-
-; Message at AB21
-LAB21:
-  DEFM "DDN"
-
-; Data block at AB24
-LAB24:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$E0,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$55,$EE,$A9,$11,$13
+  DEFB $54,$6E,$EE,$EE,$55,$EE,$EE,$80
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$E0,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$11,$12,$BB
-
-; Message at AB61
-LAB61:
-  DEFM "TDD"
-
-; Data block at AB64
-LAB64:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$20,$00,$00,$00
+  DEFB $45,$3B,$BB,$BB,$AA,$BB,$BA,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$44,$45,$EE,$AA,$91,$11
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$E0,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$91
+  DEFB $11,$4E,$EE,$EE,$55,$EE,$E8,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$01,$11,$11,$BB
-
-; Message at ABA1
-LABA1:
-  DEFM "UDD"
-
-; Data block at ABA4
-LABA4:
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$44
+  DEFB $46,$13,$BB,$BB,$AA,$BB,$A0,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$A9
+  DEFB $1B,$44,$EE,$EE,$55,$EE,$80,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$54
+  DEFB $6E,$11,$3B,$BB,$2A,$BA,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $44,$44,$4E,$EE,$15,$E8,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02
   DEFB $40,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$E0,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$04
+  DEFB $49,$11,$13,$BB,$02,$A0,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02
+  DEFB $40,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11
+  DEFB $14,$44,$44,$EE,$01,$80,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$44
+  DEFB $EE,$91,$11,$3B,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $E0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$01,$2A
+  DEFB $BB,$44,$44,$4E,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $E0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$04,$55
+  DEFB $EE,$A9,$11,$13,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $E0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$11,$12
+  DEFB $BB,$54,$44,$44,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$04,$44,$46,$EE,$AA,$A9,$11
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$80,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$11,$11,$1B,$BB
-
-; Message at ABE1
-LABE1:
-  DEFM "UTDD"
-
-; Data block at ABE5
-LABE5:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$80,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-
-; Message at ABFD
-LABFD:
-  DEFM "DDn"
-
-; Data block at AC00
-LAC00:
+  DEFB $20,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$44,$45
+  DEFB $EE,$AA,$91,$11,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $E0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$01,$11,$11
+  DEFB $BB,$55,$44,$44,$40,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $E0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$04,$44,$46
+  DEFB $EE,$AA,$A9,$11,$10,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$11,$11,$1B
+  DEFB $BB,$55,$54,$44,$44,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$44,$44,$6E
   DEFB $EE,$AA,$AA,$91,$11,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$01
   DEFB $C0,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB
-
-; Message at AC21
-LAC21:
-  DEFM "UUDF"
-
-; Data block at AC25
-LAC25:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$C0,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $44,$46,$EE,$EE,$AA,$AA,$A9,$1B
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$80,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$11
-  DEFB $11,$1B,$BB,$BB
-
-; Message at AC61
-LAC61:
-  DEFM "UUTn"
-
-; Unused
-LAC65:
-  DEFS $17
-
-; Message at AC7C
-LAC7C:
-  DEFM "DDn"
-
-; Data block at AC7F
-LAC7F:
-  DEFB $EE,$EE,$AA,$AA,$AA,$BB,$00,$00
+  DEFB $BB,$55,$55,$44,$46,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $C0,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$04,$44,$46,$EE
+  DEFB $EE,$AA,$AA,$A9,$1B,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03
+  DEFB $80,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$11,$11,$1B,$BB
+  DEFB $BB,$55,$55,$54,$6E,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB
-
-; Message at ACA1
-LACA1:
-  DEFM "UUU"
-
-; Data block at ACA4
-LACA4:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $44,$46,$EE,$EE,$EE,$AA,$AA,$AA
-  DEFB $BB,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$11
-  DEFB $11,$1B,$BB,$BB,$BB
-
-; Message at ACE1
-LACE1:
-  DEFM "UUU"
-
-; Data block at ACE4
-LACE4:
-  DEFB $EE,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00
-
-; Message at ACFB
-LACFB:
-  DEFM "DDn"
-
-; Data block at ACFE
-LACFE:
-  DEFB $EE,$EE,$EE,$AA,$AA,$AA,$BB,$00
+  DEFB $00,$00,$00,$00,$44,$44,$6E,$EE
+  DEFB $EE,$AA,$AA,$AA,$BB,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB
-
-; Message at AD21
-LAD21:
-  DEFM "UUU"
-
-; Data block at AD24
-LAD24:
-  DEFB $EC,$40,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$01,$11,$11,$BB,$BB
+  DEFB $BB,$55,$55,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$44
-  DEFB $46,$EE,$EE,$EE,$EE,$AA,$AA,$AA
-  DEFB $B1,$10,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$11,$11
-  DEFB $1B,$BB,$BB,$BB,$BB
-
-; Message at AD61
-LAD61:
-  DEFM "UUU"
-
-; Data block at AD64
-LAD64:
-  DEFB $C4,$44,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00
-
-; Message at AD7A
-LAD7A:
-  DEFM "DDn"
-
-; Data block at AD7D
-LAD7D:
-  DEFB $EE,$EE,$EE,$EE,$AA,$AA,$AA,$91
-  DEFB $11,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$BB
-
-; Message at ADA1
-LADA1:
-  DEFM "UUUDD"
-
-; Data block at ADA6
-LADA6:
-  DEFB $40,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$04,$44,$46,$EE,$EE
-  DEFB $EE,$EE,$EE,$AA,$AA,$AA,$A9,$11
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
+  DEFB $EE,$AA,$AA,$AA,$BB,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$11,$11,$1B,$BB,$BB
-  DEFB $BB,$BB,$BB
-
-; Message at ADE1
-LADE1:
-  DEFM "UUUTDD"
-
-; Unused
-LADE7:
-  DEFS $12
-
-; Message at ADF9
-LADF9:
-  DEFM "DDn"
-
-; Data block at ADFC
-LADFC:
-  DEFB $EE,$EE,$EE,$EE,$EE,$2A,$AA,$AA
-  DEFB $AA,$91,$11,$00,$00,$00,$00,$00
+  DEFB $BB,$55,$55,$55,$EE,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$BB,$BA,$15
-
-; Message at AE22
-LAE22:
-  DEFM "UUUDD"
-
-; Data block at AE27
-LAE27:
-  DEFB $40,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$44,$44,$6E,$EE,$EE
+  DEFB $EE,$AA,$AA,$AA,$BB,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$01,$11,$11,$BB,$BB,$BB
+  DEFB $BB,$55,$55,$55,$EC,$40,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$04,$44,$46,$EE,$EE,$EE
+  DEFB $EE,$AA,$AA,$AA,$B1,$10,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$11,$11,$1B,$BB,$BB,$BB
+  DEFB $BB,$55,$55,$55,$C4,$44,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$44,$44,$6E,$EE,$EE,$EE
+  DEFB $EE,$AA,$AA,$AA,$91,$11,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$01,$11,$11,$BB,$BB,$BB,$BB
+  DEFB $BB,$55,$55,$55,$44,$44,$40,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$04,$44,$46,$EE,$EE,$EE,$EE
-  DEFB $EE,$E8,$02,$AA,$AA,$AA,$A9,$11
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
+  DEFB $EE,$AA,$AA,$AA,$A9,$11,$10,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$11,$11,$1B,$BB,$BB,$BB,$BB
-  DEFB $BB,$A0,$01
-
-; Message at AE62
-LAE62:
-  DEFM "UUUTDD"
-
-; Unused
-LAE68:
-  DEFS $10
-
-; Message at AE78
-LAE78:
-  DEFM "DDn"
-
-; Data block at AE7B
-LAE7B:
-  DEFB $EE,$EE,$EE,$EE,$EE,$80,$00,$2A
-  DEFB $AA,$AA,$AA,$91,$11,$00,$00,$00
+  DEFB $BB,$55,$55,$55,$54,$44,$44,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$BB,$BB,$BB,$00,$15
-
-; Message at AEA3
-LAEA3:
-  DEFM "UUUDD"
-
-; Data block at AEA8
-LAEA8:
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$44,$44,$6E,$EE,$EE,$EE,$EE
+  DEFB $EE,$2A,$AA,$AA,$AA,$91,$11,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $01,$11,$11,$BB,$BB,$BB,$BB,$BB
+  DEFB $BA,$15,$55,$55,$55,$44,$44,$40
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $04,$44,$46,$EE,$EE,$EE,$EE,$EE
+  DEFB $E8,$02,$AA,$AA,$AA,$A9,$11,$10
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $11,$11,$1B,$BB,$BB,$BB,$BB,$BB
+  DEFB $A0,$01,$55,$55,$55,$54,$44,$44
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $44,$44,$6E,$EE,$EE,$EE,$EE,$EE
+  DEFB $80,$00,$2A,$AA,$AA,$AA,$91,$11
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01
+  DEFB $11,$11,$BB,$BB,$BB,$BB,$BB,$BB
+  DEFB $BB,$00,$15,$55,$55,$55,$44,$44
   DEFB $40,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$04
   DEFB $44,$46,$EE,$EE,$EE,$EE,$EE,$EE
@@ -6924,160 +6834,90 @@ LAEA8:
   DEFB $10,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$11
   DEFB $11,$1B,$BB,$BB,$BB,$BB,$BB,$BB
-  DEFB $BB,$00,$01
-
-; Message at AEE3
-LAEE3:
-  DEFM "UUUTDD"
-
-; Unused
-LAEE9:
-  DEFS $0E
-
-; Message at AEF7
-LAEF7:
-  DEFM "DDn"
-
-; Data block at AEFA
-LAEFA:
-  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$01,$00
-  DEFB $00,$2A,$AA,$AA,$AA,$91,$11,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$BB,$BA,$BB,$04,$40
-  DEFB $00,$15
-
-; Message at AF24
-LAF24:
-  DEFM "UUUDD"
-
-; Data block at AF29
-LAF29:
-  DEFB $40,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$04,$44,$46
-  DEFB $EE,$EE,$EE,$EE,$EE,$ED,$EE,$11
-  DEFB $10,$00,$02,$AA,$AA,$AA,$A9,$11
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$11,$11,$1B
-  DEFB $BB,$BB,$BB,$BB,$BB,$AA,$BB,$44
-  DEFB $44,$00,$01
-
-; Message at AF64
-LAF64:
-  DEFM "UUUTDD"
-
-; Unused
-LAF6A:
-  DEFS $0C
-
-; Message at AF76
-LAF76:
-  DEFM "DDn"
-
-; Data block at AF79
-LAF79:
-  DEFB $EE,$EE,$EE,$EE,$EE,$D5,$EE,$91
-  DEFB $11,$00,$00,$2A,$AA,$AA,$AA,$91
+  DEFB $BB,$00,$01,$55,$55,$55,$54,$44
+  DEFB $44,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$44
+  DEFB $44,$6E,$EE,$EE,$EE,$EE,$EE,$EE
+  DEFB $01,$00,$00,$2A,$AA,$AA,$AA,$91
   DEFB $11,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$11,$11,$BB
-  DEFB $BB,$BB,$BB,$BB,$BB,$2A,$BA,$44
-  DEFB $44,$40,$00,$15
-
-; Message at AFA5
-LAFA5:
-  DEFM "UUUDD"
-
-; Data block at AFAA
-LAFAA:
-  DEFB $40,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$04,$44,$46,$EE,$EE
-  DEFB $EE,$EE,$EE,$EE,$15,$E8,$A9,$11
-  DEFB $10,$00,$02,$AA,$AA,$AA,$A9,$11
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$11,$11,$1B,$BB,$BB
-  DEFB $BB,$BB,$BB,$BB,$02,$A0
-
-; Message at AFE0
-LAFE0:
-  DEFM "TDD"
-
-; Data block at AFE3
-LAFE3:
-  DEFB $00,$01
-
-; Message at AFE5
-LAFE5:
-  DEFM "UUUTDD"
-
-; Unused
-LAFEB:
-  DEFS $0A
-
-; Message at AFF5
-LAFF5:
-  DEFM "DDn"
-
-; Data block at AFF8
-LAFF8:
+  DEFB $00,$00,$00,$00,$00,$00,$01,$11
+  DEFB $11,$BB,$BB,$BB,$BB,$BB,$BA,$BB
+  DEFB $04,$40,$00,$15,$55,$55,$55,$44
+  DEFB $44,$40,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$04,$44
+  DEFB $46,$EE,$EE,$EE,$EE,$EE,$ED,$EE
+  DEFB $11,$10,$00,$02,$AA,$AA,$AA,$A9
+  DEFB $11,$10,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$11,$11
+  DEFB $1B,$BB,$BB,$BB,$BB,$BB,$AA,$BB
+  DEFB $44,$44,$00,$01,$55,$55,$55,$54
+  DEFB $44,$44,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$44,$44
+  DEFB $6E,$EE,$EE,$EE,$EE,$EE,$D5,$EE
+  DEFB $91,$11,$00,$00,$2A,$AA,$AA,$AA
+  DEFB $91,$11,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$01,$11,$11
+  DEFB $BB,$BB,$BB,$BB,$BB,$BB,$2A,$BA
+  DEFB $44,$44,$40,$00,$15,$55,$55,$55
+  DEFB $44,$44,$40,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$04,$44,$46
+  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$15,$E8
+  DEFB $A9,$11,$10,$00,$02,$AA,$AA,$AA
+  DEFB $A9,$11,$10,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$11,$11,$1B
+  DEFB $BB,$BB,$BB,$BB,$BB,$BB,$02,$A0
+  DEFB $54,$44,$44,$00,$01,$55,$55,$55
+  DEFB $54,$44,$44,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$44,$44,$6E
   DEFB $EE,$EE,$EE,$EE,$EE,$EE,$01,$80
   DEFB $AA,$91,$11,$AA,$AA,$AA,$AA,$AA
   DEFB $AA,$91,$11,$AA,$AA,$AA,$AA,$91
   DEFB $11,$91,$11,$91,$11,$91,$11,$BB
   DEFB $BB,$BB,$BB,$BB,$BB,$BB,$BA,$BB
-
-; Message at B020
-LB020:
-  DEFM "UDFUUUUUUDFUUUUDFDFDFDF"
-
-; Data block at B037
-LB037:
-  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$EE,$ED
-  DEFB $EE,$AA,$A9,$1B,$AA,$AA,$AA,$AA
-  DEFB $AA,$AA,$A9,$1B,$AA,$AA,$AA,$AA
-  DEFB $A9,$1B,$A9,$1B,$A9,$1B,$A9,$1B
-  DEFB $BB,$BB,$BB,$BB,$BB,$BB,$BB,$AA
-  DEFB $BB
-
-; Message at B060
-LB060:
-  DEFM "UTnUUUUUUTnUUUUTnTnTnTn"
-
-; Data block at B077
-LB077:
-  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$EE,$D5
-  DEFB $EE,$AA,$AA,$BB,$AA,$AA,$AA,$AA
-  DEFB $AA,$AA,$AA,$BB,$AA,$AA,$AA,$AA
-  DEFB $AA,$BB,$AA,$BB,$AA,$BB,$AA,$BB
-  DEFB $BA,$BB,$BA,$BB,$BA,$BB,$BA,$AA
-  DEFB $BB,$75,$55,$EE,$55,$F5,$55,$F5
-  DEFB $55,$F5,$55,$EE,$55,$F5,$55,$F5
-  DEFB $55,$EE,$55,$EE,$55,$EE,$55,$EE
-  DEFB $ED,$EE,$ED,$EE,$ED,$EE,$ED,$F5
-  DEFB $EE,$3A,$AA,$BB,$AA,$BA,$AA,$BA
-  DEFB $AA,$BA,$AA,$BB,$AA,$BA,$AA,$BA
-  DEFB $AA,$BB,$AA,$BB,$AA,$BB,$AA,$BB
-  DEFB $AA,$BB,$AA,$BB,$AA,$BB,$AA,$BA
-  DEFB $BE,$1F,$55,$EE,$55,$EF,$55,$EF
-  DEFB $55,$EF,$55,$EE,$55,$EF,$55,$EF
-  DEFB $55,$EE,$55,$EE,$55,$EE,$55,$EE
-  DEFB $D5,$EE,$D5,$EE,$D5,$EE,$D5,$EF
-  DEFB $F2,$02,$2A,$BB,$2A,$BB,$2A,$BB
-  DEFB $AA,$BB,$2A,$BB,$2A,$BB,$AA,$BB
-  DEFB $AA,$BB,$2A,$BB,$2A,$BB,$AA,$BB
-  DEFB $AA,$BA,$AA,$BA,$2A,$BA,$AA,$BA
-  DEFB $02,$02,$75,$EE,$75,$EE,$75,$EE
-  DEFB $75,$EE,$75,$EE,$75,$EE,$75,$EE
-  DEFB $75,$EE,$75,$EE,$75,$EC,$75,$EE
-  DEFB $75,$EE,$75,$EE,$75,$EE,$75,$EE
-  DEFB $02,$02,$3A,$BE,$3A,$BE,$BA,$BE
-  DEFB $3A,$BE,$BA,$BE,$BA,$BE,$3A,$BE
-  DEFB $BA,$BE,$BA,$BE,$BA,$B6,$BA,$BE
-  DEFB $3A,$BE,$BA,$BE,$BA,$BE,$3A,$BE
-  DEFB $02,$02,$0F,$F2,$0F,$F2,$6F,$FE
-  DEFB $1F,$F2,$6F,$FE,$6F,$FE,$1F,$F2
-  DEFB $7F,$FE,$7F,$FE,$7F,$FE,$7F,$FE
-  DEFB $1F,$F2,$7F,$FE,$7F,$FE,$1F,$F2
-  DEFB $02
+  DEFB $55,$44,$46,$55,$55,$55,$55,$55
+  DEFB $55,$44,$46,$55,$55,$55,$55,$44
+  DEFB $46,$44,$46,$44,$46,$44,$46,$EE
+  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$ED,$EE
+  DEFB $AA,$A9,$1B,$AA,$AA,$AA,$AA,$AA
+  DEFB $AA,$A9,$1B,$AA,$AA,$AA,$AA,$A9
+  DEFB $1B,$A9,$1B,$A9,$1B,$A9,$1B,$BB
+  DEFB $BB,$BB,$BB,$BB,$BB,$BB,$AA,$BB
+  DEFB $55,$54,$6E,$55,$55,$55,$55,$55
+  DEFB $55,$54,$6E,$55,$55,$55,$55,$54
+  DEFB $6E,$54,$6E,$54,$6E,$54,$6E,$EE
+  DEFB $EE,$EE,$EE,$EE,$EE,$EE,$D5,$EE
+  DEFB $AA,$AA,$BB,$AA,$AA,$AA,$AA,$AA
+  DEFB $AA,$AA,$BB,$AA,$AA,$AA,$AA,$AA
+  DEFB $BB,$AA,$BB,$AA,$BB,$AA,$BB,$BA
+  DEFB $BB,$BA,$BB,$BA,$BB,$BA,$AA,$BB
+  DEFB $75,$55,$EE,$55,$F5,$55,$F5,$55
+  DEFB $F5,$55,$EE,$55,$F5,$55,$F5,$55
+  DEFB $EE,$55,$EE,$55,$EE,$55,$EE,$ED
+  DEFB $EE,$ED,$EE,$ED,$EE,$ED,$F5,$EE
+  DEFB $3A,$AA,$BB,$AA,$BA,$AA,$BA,$AA
+  DEFB $BA,$AA,$BB,$AA,$BA,$AA,$BA,$AA
+  DEFB $BB,$AA,$BB,$AA,$BB,$AA,$BB,$AA
+  DEFB $BB,$AA,$BB,$AA,$BB,$AA,$BA,$BE
+  DEFB $1F,$55,$EE,$55,$EF,$55,$EF,$55
+  DEFB $EF,$55,$EE,$55,$EF,$55,$EF,$55
+  DEFB $EE,$55,$EE,$55,$EE,$55,$EE,$D5
+  DEFB $EE,$D5,$EE,$D5,$EE,$D5,$EF,$F2
+  DEFB $02,$2A,$BB,$2A,$BB,$2A,$BB,$AA
+  DEFB $BB,$2A,$BB,$2A,$BB,$AA,$BB,$AA
+  DEFB $BB,$2A,$BB,$2A,$BB,$AA,$BB,$AA
+  DEFB $BA,$AA,$BA,$2A,$BA,$AA,$BA,$02
+  DEFB $02,$75,$EE,$75,$EE,$75,$EE,$75
+  DEFB $EE,$75,$EE,$75,$EE,$75,$EE,$75
+  DEFB $EE,$75,$EE,$75,$EC,$75,$EE,$75
+  DEFB $EE,$75,$EE,$75,$EE,$75,$EE,$02
+  DEFB $02,$3A,$BE,$3A,$BE,$BA,$BE,$3A
+  DEFB $BE,$BA,$BE,$BA,$BE,$3A,$BE,$BA
+  DEFB $BE,$BA,$BE,$BA,$B6,$BA,$BE,$3A
+  DEFB $BE,$BA,$BE,$BA,$BE,$3A,$BE,$02
+  DEFB $02,$0F,$F2,$0F,$F2,$6F,$FE,$1F
+  DEFB $F2,$6F,$FE,$6F,$FE,$1F,$F2,$7F
+  DEFB $FE,$7F,$FE,$7F,$FE,$7F,$FE,$1F
+  DEFB $F2,$7F,$FE,$7F,$FE,$1F,$F2,$02
 
 ; The cells in view
 ;
@@ -7096,91 +6936,77 @@ VIEW_CELLS:
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$3E,$3E,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at B1ED
-LB1ED:
-  DEFM "> +"
-
-; Unused
-LB1F0:
-  DEFS $0C
-
-; Message at B1FC
-LB1FC:
-  DEFM "+2>"
-
-; Data block at B1FF
-LB1FF:
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$3E,$3E
-  DEFB $00,$00,$00,$00,$00,$00,$03,$0F
-  DEFB $00,$00,$00,$00,$00,$01,$2B,$20
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
+  DEFB $00,$00,$00,$00,$00,$3E,$20,$2B
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$0F,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$0E,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$0D,$00,$00,$00
+  DEFB $00,$00,$00,$00,$2B,$32,$3E,$00
+  DEFB $00,$00,$00,$00,$00,$03,$00,$00
+  DEFB $00,$00,$00,$00,$03,$3E,$3E,$00
+  DEFB $00,$00,$00,$00,$00,$03,$0F,$00
+  DEFB $00,$00,$00,$00,$01,$2B,$20,$00
+  DEFB $00,$00,$00,$00,$00,$00,$07,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$20
+  DEFB $00,$00,$00,$00,$00,$0F,$03,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$20
+  DEFB $00,$00,$00,$00,$00,$0E,$00,$03
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$0F,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$0F,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$0F,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$0D,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$0F,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$0F,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$0F,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$0F,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $06,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $06,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$07,$00,$00,$00,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$06,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$06,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
   DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $0F,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $0F,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0E
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
   DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$0E,$03,$00
-  DEFB $00,$07,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$0F,$02,$03,$00
-  DEFB $00,$00,$07,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$0F,$03,$02,$00
-  DEFB $00,$00,$03,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$0F,$00,$03,$00,$00
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$0E,$00
   DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $07,$00,$00,$0F,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$00,$00,$00,$00
-  DEFB $07,$00,$07,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$00,$0F,$00
+  DEFB $00,$00,$00,$03,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
   DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$07,$07,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
   DEFB $00,$00,$00,$00,$03,$00,$00,$00
+  DEFB $00,$00,$00,$00,$0F,$00,$00,$00
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00
+  DEFB $00,$00,$00,$00,$0E,$03,$00,$00
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00
+  DEFB $00,$00,$00,$0F,$02,$03,$00,$00
+  DEFB $00,$07,$00,$00,$00,$00,$03,$00
+  DEFB $00,$00,$00,$0F,$03,$02,$00,$00
+  DEFB $00,$03,$00,$00,$00,$00,$07,$00
+  DEFB $00,$00,$0F,$00,$03,$00,$00,$00
+  DEFB $00,$00,$03,$00,$00,$00,$00,$07
+  DEFB $00,$00,$0F,$00,$00,$00,$00,$00
+  DEFB $00,$00,$07,$00,$00,$00,$00,$07
   DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00
+  DEFB $00,$00,$00,$03,$00,$00,$00,$00
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00
+  DEFB $00,$00,$00,$03,$00,$00,$00,$00
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00
 
 ; Game variables
 ;
@@ -7370,2635 +7196,3383 @@ PLANES:
 
 ; Sprites: the boy, the grenade in flight, and the ants
 ;
+; This entry is frame $DC: boy, standing, facing 0.
+;
 ; Frames $DC-$EF the boy, $F4-$F7 the grenade in flight and exploding, $F8-$FF
-; the ants. What $F0-$F3 are has not been checked.
+; the ants. $F0-$F3 are never drawn: no write to an object's frame (+$08) and
+; nothing in PROJECT_SPRITES can produce them. What they show is not known;
+; they look like a sprawled figure.
 MORE_SPRITES:
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FE,$04,$3F,$00
-  DEFB $FF,$07,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$01,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$80,$FF,$03,$FF,$80
-  DEFB $FF,$01,$FF,$C0,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FE,$04,$3F,$00
-  DEFB $FF,$07,$FF,$C0,$FF,$07,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$80,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$E0,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$E0,$FC,$00,$7F,$20
-  DEFB $FF,$03,$FF,$A0,$FF,$03,$FF,$E0
-  DEFB $FF,$01,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$01,$FF,$C0,$FF,$03,$FF,$C0
-  DEFB $FF,$01,$FF,$C0,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$01,$FF,$80
-  DEFB $FF,$03,$FF,$E0,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$E0,$FC,$00,$7F,$20
-  DEFB $FF,$03,$FF,$E0,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$80,$FF,$01,$FF,$80
-  DEFB $FF,$01,$FF,$C0,$FF,$01,$FF,$C0
-  DEFB $FF,$03,$FF,$80,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$01,$FF,$80
-  DEFB $FF,$07,$FF,$E0,$FF,$0F,$FF,$F0
-  DEFB $FF,$1B,$FF,$D8,$FC,$10,$3F,$08
-  DEFB $FF,$33,$FF,$C8,$FF,$03,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FF,$1E,$FF,$C0
-  DEFB $FF,$10,$FF,$40,$FF,$18,$FF,$70
-  DEFB $FF,$00,$FF,$60,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$07,$FF,$E0,$FF,$0F,$FF,$F0
-  DEFB $FF,$1B,$FF,$D0,$FC,$10,$3F,$18
-  DEFB $FF,$13,$FF,$CC,$FF,$07,$FF,$E0
-  DEFB $FF,$07,$FF,$60,$FF,$0C,$FF,$30
-  DEFB $FF,$18,$FF,$1C,$FF,$18,$FF,$18
-  DEFB $FF,$0C,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$07,$FF,$E0,$FF,$0F,$FF,$F8
-  DEFB $FF,$0B,$FF,$CC,$FC,$18,$3F,$04
-  DEFB $FF,$31,$FF,$C0,$FF,$03,$FF,$C0
-  DEFB $FF,$17,$FF,$E0,$FF,$1E,$FF,$E0
-  DEFB $FF,$18,$FF,$70,$FF,$00,$FF,$18
-  DEFB $FF,$00,$FF,$38,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$01,$FF,$80
-  DEFB $FF,$07,$FF,$E0,$FF,$0F,$FF,$F0
-  DEFB $FF,$0B,$FF,$D8,$FC,$18,$3F,$08
-  DEFB $FF,$03,$FF,$C8,$FF,$03,$FF,$E0
-  DEFB $FF,$03,$FF,$E0,$FF,$03,$FF,$7C
-  DEFB $FF,$02,$FF,$0C,$FF,$0E,$FF,$08
-  DEFB $FF,$06,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$11,$FF,$8C
-  DEFB $FF,$1F,$FF,$FC,$FF,$1F,$FF,$E0
-  DEFB $FF,$03,$FF,$C0,$FC,$00,$3F,$00
-  DEFB $FF,$03,$FF,$E0,$FF,$07,$FF,$F0
-  DEFB $FF,$07,$FF,$F0,$FF,$06,$FF,$F0
-  DEFB $FF,$06,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$31,$FF,$86
-  DEFB $FF,$3F,$FF,$FE,$FF,$0F,$FF,$F8
-  DEFB $FF,$03,$FF,$C0,$FC,$00,$3F,$30
-  DEFB $FF,$03,$FF,$F0,$FF,$07,$FF,$F0
-  DEFB $FF,$07,$FF,$60,$FF,$06,$FF,$E0
-  DEFB $FF,$00,$FF,$C0,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$31,$FF,$8C
-  DEFB $FF,$3F,$FF,$FC,$FF,$0F,$FF,$F0
-  DEFB $FF,$03,$FF,$80,$FC,$0C,$7F,$00
-  DEFB $FF,$0F,$FF,$80,$FF,$0F,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FF,$06,$FF,$C0
-  DEFB $FF,$06,$FF,$C0,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$01,$FF,$80,$FE,$02,$7F,$40
-  DEFB $FE,$02,$7F,$40,$FF,$31,$FF,$80
-  DEFB $FF,$3F,$FF,$F8,$FF,$0F,$FF,$FC
-  DEFB $FF,$03,$FF,$CC,$FC,$00,$3F,$00
-  DEFB $FF,$0F,$FF,$C0,$FF,$0F,$FF,$E0
-  DEFB $FF,$0F,$FF,$E0,$FF,$03,$FF,$60
-  DEFB $FF,$00,$FF,$60,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$70,$FF,$00,$CF,$4F,$FF,$E0
-  DEFB $DF,$5F,$FF,$C0,$FF,$1F,$FF,$E4
-  DEFB $FF,$1F,$FF,$F4,$FF,$1B,$FF,$FC
-  DEFB $FF,$0C,$FF,$78,$FF,$04,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$08
-  DEFB $FF,$00,$FF,$7C,$FF,$33,$FF,$FC
-  DEFB $FF,$3F,$FF,$F8,$FF,$1F,$FF,$E0
-  DEFB $E7,$27,$FF,$C0,$E7,$27,$FF,$F0
-  DEFB $FF,$3C,$FF,$F0,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$10,$FF,$00
-  DEFB $FF,$3E,$FF,$00,$FF,$3F,$FF,$CC
-  DEFB $FF,$1F,$FF,$FC,$FF,$07,$FF,$F8
-  DEFB $FF,$03,$E7,$E4,$FF,$0F,$E7,$E4
-  DEFB $FF,$0F,$FF,$3C,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$0E,$FF,$07,$F3,$F2
-  DEFB $FF,$03,$FB,$FA,$FF,$27,$FF,$F8
-  DEFB $FF,$2F,$FF,$F8,$FF,$3F,$FF,$D8
-  DEFB $FF,$1E,$FF,$30,$FF,$00,$FF,$20
-  DEFB $FF,$03,$FF,$D8,$FE,$1A,$7F,$58
-  DEFB $FE,$18,$7F,$10,$FF,$09,$FF,$90
-  DEFB $FF,$0F,$FF,$F0,$FF,$07,$FF,$E0
-  DEFB $FF,$03,$FF,$C0,$FD,$01,$BF,$80
-  DEFB $FE,$02,$7F,$40,$FF,$03,$FF,$C0
-  DEFB $FF,$07,$FF,$C0,$FF,$0E,$FF,$F0
-  DEFB $FF,$18,$FF,$70,$FF,$18,$FF,$60
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$03,$FF,$C0,$FF,$0B,$FF,$D0
-  DEFB $FF,$09,$FF,$90,$FF,$09,$FF,$90
-  DEFB $FF,$0F,$FF,$D0,$FF,$07,$FF,$F0
-  DEFB $FF,$03,$FF,$E0,$FD,$01,$BF,$80
-  DEFB $FE,$02,$7F,$40,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$0E,$FF,$60
-  DEFB $FF,$0C,$FF,$30,$FF,$08,$FF,$30
-  DEFB $FF,$00,$FF,$20,$FF,$00,$FF,$00
-  DEFB $FF,$03,$FF,$D0,$FF,$0B,$FF,$D0
-  DEFB $FF,$09,$FF,$90,$FF,$09,$FF,$90
-  DEFB $FF,$0F,$FF,$F0,$FF,$07,$FF,$E0
-  DEFB $FF,$03,$FF,$C0,$FD,$01,$BF,$80
-  DEFB $FE,$02,$7F,$40,$FF,$03,$FF,$C0
-  DEFB $FF,$03,$FF,$C0,$FF,$06,$FF,$60
-  DEFB $FF,$0C,$FF,$30,$FF,$0C,$FF,$30
-  DEFB $FF,$04,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$1B,$FF,$C0,$FE,$1A,$7F,$58
-  DEFB $FE,$08,$7F,$18,$FF,$09,$FF,$90
-  DEFB $FF,$0F,$FF,$F0,$FF,$07,$FF,$E0
-  DEFB $FF,$03,$FF,$C0,$FD,$01,$BF,$80
-  DEFB $FE,$02,$7F,$40,$FF,$03,$FF,$C0
-  DEFB $FF,$07,$FF,$E0,$FF,$06,$FF,$60
-  DEFB $FF,$04,$FF,$60,$FF,$1C,$FF,$40
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$38,$FF,$00
-  DEFB $F7,$36,$FF,$00,$F5,$35,$FF,$0E
-  DEFB $F7,$36,$F1,$11,$C1,$41,$E1,$A1
-  DEFB $D8,$D8,$73,$72,$FC,$64,$7F,$7C
-  DEFB $FF,$03,$7F,$7C,$FE,$0E,$1B,$1A
-  DEFB $F0,$30,$23,$22,$C0,$40,$E3,$E2
-  DEFB $E3,$23,$FF,$1E,$FF,$1C,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$08,$FF,$00
-  DEFB $F7,$16,$FF,$00,$E1,$21,$FF,$9E
-  DEFB $F0
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FE,$04,$3F,$00    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Message at BC51
-LBC51:
-  DEFM "0sr"
+; Sprite frame $DD: boy, standing, facing 1
+FRAMEDD:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FE,$04,$3F,$00    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Data block at BC54
-LBC54:
-  DEFB $FC,$0C,$FB,$FA,$FF,$73,$FB,$FA
-  DEFB $CE,$CE,$67,$64,$C8,$C8,$03,$02
-  DEFB $C0,$C0,$E1,$E1,$CF,$CF,$F1,$11
-  DEFB $E7,$24,$F9,$09,$F3,$12,$FF,$06
-  DEFB $FF,$0C,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$10,$FF,$00,$EF,$68
-  DEFB $FF,$79,$87,$84,$CE,$4E,$0F,$0C
-  DEFB $DF,$5F,$3F,$30,$DF,$5F,$FF,$CE
-  DEFB $E6
+; Sprite frame $DE: boy, standing, facing 2
+FRAMEDE:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FC,$00,$7F,$20    ;
+  DEFB $FF,$03,$FF,$A0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Message at BC9D
-LBC9D:
-  DEFM "&ss"
+; Sprite frame $DF: boy, standing, facing 3
+FRAMEDF:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FC,$00,$7F,$20    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Data block at BCA0
-LBCA0:
-  DEFB $C0,$40,$13,$13,$87,$87,$03,$03
-  DEFB $8F,$88,$F3,$F3,$9F,$90,$E7,$24
-  DEFB $FF,$60,$CF,$48,$FF,$00,$FF,$30
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$1C
-  DEFB $FF,$00,$EF,$6C,$FF,$70,$AF,$AC
-  DEFB $8F,$88,$EF,$6C,$87,$85,$83,$82
-  DEFB $CE,$4E,$1B,$1B,$FE
+; Sprite frame $E0: boy, walking, facing 0
+FRAMEE0:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$1B,$FF,$D8    ;
+  DEFB $FC,$10,$3F,$08    ;
+  DEFB $FF,$33,$FF,$C8    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$1E,$FF,$C0    ;
+  DEFB $FF,$10,$FF,$40    ;
+  DEFB $FF,$18,$FF,$70    ;
+  DEFB $FF,$00,$FF,$60    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Message at BCDD
-LBCDD:
-  DEFM ">?&"
+; Sprite frame $E1: boy, walking, facing 1
+FRAMEE1:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$1B,$FF,$D0    ;
+  DEFB $FC,$10,$3F,$18    ;
+  DEFB $FF,$13,$FF,$CC    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$07,$FF,$60    ;
+  DEFB $FF,$0C,$FF,$30    ;
+  DEFB $FF,$18,$FF,$1C    ;
+  DEFB $FF,$18,$FF,$18    ;
+  DEFB $FF,$0C,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Data block at BCE0
-LBCE0:
-  DEFB $FE,$3E,$FF,$C0,$D8,$58,$7F,$70
-  DEFB $C4,$44,$0F,$0C,$C7,$47,$03,$02
-  DEFB $FF,$78,$C7,$C4,$FF,$00,$FF,$38
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$01,$FF,$80
-  DEFB $FE,$02,$7F,$40,$FC,$04,$7F,$60
-  DEFB $FE,$02,$FF,$C0,$FF,$01,$FF,$80
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$86,$FF,$10,$FB,$0B
-  DEFB $E7,$24,$F9,$09,$CE,$40,$FF,$4E
-  DEFB $CF,$48,$CF,$00,$F6,$30,$FB,$80
-  DEFB $FF,$00,$7F,$10,$FE,$04,$FF,$00
-  DEFB $ED,$00,$EF,$00,$FF,$00,$FF,$47
-  DEFB $FA,$48,$BF,$25,$FF,$00,$1F,$15
-  DEFB $FF,$30,$DF,$52,$DF,$55,$CF,$48
-  DEFB $9D,$90,$E7,$24,$FF,$60,$FF,$3C
-  DEFB $FF,$00,$FF,$00,$EF,$04,$FF,$0C
-  DEFB $FF,$56,$F6,$34,$FD,$65,$CF,$49
-  DEFB $DC,$54,$AF,$88,$EA,$2A,$3D,$10
-  DEFB $E1,$21,$5F,$5E,$F2,$12,$C1,$C1
-  DEFB $E7
+; Sprite frame $E2: boy, walking, facing 2
+FRAMEE2:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F8    ;
+  DEFB $FF,$0B,$FF,$CC    ;
+  DEFB $FC,$18,$3F,$04    ;
+  DEFB $FF,$31,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$17,$FF,$E0    ;
+  DEFB $FF,$1E,$FF,$E0    ;
+  DEFB $FF,$18,$FF,$70    ;
+  DEFB $FF,$00,$FF,$18    ;
+  DEFB $FF,$00,$FF,$38    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Message at BDA1
-LBDA1:
-  DEFM "'cb"
+; Sprite frame $E3: boy, walking, facing 3
+FRAMEE3:
+  DEFB $FF,$01,$FF,$80    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$0B,$FF,$D8    ;
+  DEFB $FC,$18,$3F,$08    ;
+  DEFB $FF,$03,$FF,$C8    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$7C    ;
+  DEFB $FF,$02,$FF,$0C    ;
+  DEFB $FF,$0E,$FF,$08    ;
+  DEFB $FF,$06,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
 
-; Data block at BDA4
-LBDA4:
-  DEFB $C9,$49,$9F,$9C,$F2,$F2,$3F,$21
-  DEFB $FF,$09,$9F,$90,$75,$11,$DF,$52
-  DEFB $ED,$2D,$FD,$38,$FF,$71,$BE,$18
-  DEFB $FF,$03,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$09,$FF,$00
-  DEFB $F7,$17,$FF,$40,$FA,$0A,$FF,$F0
-  DEFB $F8,$08,$7F,$78,$FC,$04,$3F,$20
-  DEFB $F8,$08,$3F,$20,$F4,$14,$DF,$D0
-  DEFB $EE,$2A,$EF,$A8,$DF,$11,$FF,$90
-  DEFB $FF,$01,$FF,$80,$FF,$00,$FF,$80
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$1E,$FF,$00
-  DEFB $FF,$3F,$FF,$20,$E7,$67,$FF,$A0
-  DEFB $DF,$DF,$FF,$F8,$FF,$FF,$FF,$C4
-  DEFB $FF,$FF,$FF,$E0,$FF,$7F,$FF,$FC
-  DEFB $FF,$39,$F7,$B4,$FF,$22,$EF,$AE
-  DEFB $FF,$24,$FF,$BA,$FF,$08,$FF,$92
-  DEFB $FF,$08,$FF,$98,$FF,$00,$FF,$80
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$30,$FF,$01,$FF,$64
-  DEFB $FF,$07,$FF,$7C,$FF,$3D,$FF,$F8
-  DEFB $FF,$7F,$FF,$F8,$E7,$E7,$FF,$C0
-  DEFB $DF,$DF,$FF,$F8,$FF,$FF,$FF,$E8
-  DEFB $FF,$FF,$FF,$A4,$FF,$7F,$FF,$A4
-  DEFB $FF,$1E,$FF,$A0,$FF,$00,$FF,$A0
-  DEFB $FF,$01,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$0C,$FF,$00,$FF,$26,$FF,$80
-  DEFB $FF,$3E,$FF,$E0,$FF,$1F,$FF,$BC
-  DEFB $FF,$1F,$EF,$EE,$FF,$03,$DF,$DF
-  DEFB $FF,$1F,$FF,$FF,$FF,$17,$FF,$FF
-  DEFB $FF,$25,$FF,$FF,$FF,$25,$FF,$FE
-  DEFB $FF,$05,$FF,$78,$FF,$05,$FF,$00
-  DEFB $FF,$00,$FF,$80,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$78
-  DEFB $FF,$00,$CF,$CC,$FF,$05,$BF,$BE
-  DEFB $FF,$33,$FF,$FF,$FF,$4F,$FF,$FF
-  DEFB $FF,$07,$FF,$FF,$FF,$3F,$FF,$FE
-  DEFB $EF,$2D,$FF,$98,$F7,$75,$FF,$44
-  DEFB $FF,$5D,$FF,$24,$FF,$49,$FF,$10
-  DEFB $FF,$19,$FF,$10,$FF,$01,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$3C,$FF,$00
-  DEFB $FF,$7E,$FF,$00,$FF,$FF,$FF,$80
-  DEFB $DF,$DF,$FF,$F0,$EF,$EF,$FF,$FE
-  DEFB $FF,$FF,$FB,$FA,$FF,$7E,$F7,$F7
-  DEFB $FF,$3F,$FF,$FD,$FF,$1D,$FF,$A7
-  DEFB $FF,$01,$FF,$B8,$FF,$02,$FF,$F0
-  DEFB $FF,$00,$FF,$40,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$0E
-  DEFB $FF,$00,$FF,$7A,$FF,$01,$FF,$BE
-  DEFB $FF,$03,$FF,$BC,$FF,$03,$FF,$FC
-  DEFB $FF,$0F,$FF,$E5,$FF,$1F,$FF,$DE
-  DEFB $FF,$3F,$FF,$FD,$E7,$67,$FF,$FE
-  DEFB $EF,$6F,$FF,$88,$FF,$7F,$FF,$88
-  DEFB $FF,$7F,$FF,$80,$FF,$3F,$FF,$00
-  DEFB $FF,$0E,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$70,$FF,$00
-  DEFB $FF,$5C,$FF,$00,$FF,$7C,$FF,$00
-  DEFB $FF,$3F,$FF,$C0,$FF,$3F,$FF,$C0
-  DEFB $FF,$A7,$FF,$F0,$FF,$7B,$FF,$F8
-  DEFB $FF,$BF,$9F,$9C,$FF,$7F,$FF,$FE
-  DEFB $FF,$11,$FF,$FE,$FF,$11,$FF,$FE
-  DEFB $FF,$01,$FF,$FE,$FF,$00,$FF,$FC
-  DEFB $FF,$00,$FF,$70,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$00,$FF,$00,$FF,$00
-  DEFB $FF,$00,$FF,$1E,$FF,$00,$F7,$37
-  DEFB $FF,$00,$EF,$6F,$FF,$01,$FF,$FF
-  DEFB $FF,$07,$FF,$FF,$FF,$7F,$FF,$FF
-  DEFB $DF,$DF,$FF,$FE,$EF,$EB,$FF,$7C
-  DEFB $FF,$7B,$FF,$00,$FF,$C7,$FF,$80
-  DEFB $FF,$3D,$FF,$40,$FF,$0B,$FF,$40
-  DEFB $FF,$16,$FF,$40
+; Sprite frame $E4: boy, arms out: stunned, or throwing, facing 0
+FRAMEE4:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$11,$FF,$8C    ;
+  DEFB $FF,$1F,$FF,$FC    ;
+  DEFB $FF,$1F,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FC,$00,$3F,$00    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$06,$FF,$F0    ;
+  DEFB $FF,$06,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $E5: boy, arms out: stunned, or throwing, facing 1
+FRAMEE5:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$31,$FF,$86    ;
+  DEFB $FF,$3F,$FF,$FE    ;
+  DEFB $FF,$0F,$FF,$F8    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FC,$00,$3F,$30    ;
+  DEFB $FF,$03,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$60    ;
+  DEFB $FF,$06,$FF,$E0    ;
+  DEFB $FF,$00,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $E6: boy, arms out: stunned, or throwing, facing 2
+FRAMEE6:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$31,$FF,$8C    ;
+  DEFB $FF,$3F,$FF,$FC    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$03,$FF,$80    ;
+  DEFB $FC,$0C,$7F,$00    ;
+  DEFB $FF,$0F,$FF,$80    ;
+  DEFB $FF,$0F,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$06,$FF,$C0    ;
+  DEFB $FF,$06,$FF,$C0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $E7: boy, arms out: stunned, or throwing, facing 3
+FRAMEE7:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$31,$FF,$80    ;
+  DEFB $FF,$3F,$FF,$F8    ;
+  DEFB $FF,$0F,$FF,$FC    ;
+  DEFB $FF,$03,$FF,$CC    ;
+  DEFB $FC,$00,$3F,$00    ;
+  DEFB $FF,$0F,$FF,$C0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$0F,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$60    ;
+  DEFB $FF,$00,$FF,$60    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $E8: boy, lying down: stunned for longer, facing 0
+FRAMEE8:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$70,$FF,$00    ;
+  DEFB $CF,$4F,$FF,$E0    ;
+  DEFB $DF,$5F,$FF,$C0    ;
+  DEFB $FF,$1F,$FF,$E4    ;
+  DEFB $FF,$1F,$FF,$F4    ;
+  DEFB $FF,$1B,$FF,$FC    ;
+  DEFB $FF,$0C,$FF,$78    ;
+  DEFB $FF,$04,$FF,$00    ;
+
+; Sprite frame $E9: boy, lying down: stunned for longer, facing 1
+FRAMEE9:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$08    ;
+  DEFB $FF,$00,$FF,$7C    ;
+  DEFB $FF,$33,$FF,$FC    ;
+  DEFB $FF,$3F,$FF,$F8    ;
+  DEFB $FF,$1F,$FF,$E0    ;
+  DEFB $E7,$27,$FF,$C0    ;
+  DEFB $E7,$27,$FF,$F0    ;
+  DEFB $FF,$3C,$FF,$F0    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $EA: boy, lying down: stunned for longer, facing 2
+FRAMEEA:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$10,$FF,$00    ;
+  DEFB $FF,$3E,$FF,$00    ;
+  DEFB $FF,$3F,$FF,$CC    ;
+  DEFB $FF,$1F,$FF,$FC    ;
+  DEFB $FF,$07,$FF,$F8    ;
+  DEFB $FF,$03,$E7,$E4    ;
+  DEFB $FF,$0F,$E7,$E4    ;
+  DEFB $FF,$0F,$FF,$3C    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $EB: boy, lying down: stunned for longer, facing 3
+FRAMEEB:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$0E    ;
+  DEFB $FF,$07,$F3,$F2    ;
+  DEFB $FF,$03,$FB,$FA    ;
+  DEFB $FF,$27,$FF,$F8    ;
+  DEFB $FF,$2F,$FF,$F8    ;
+  DEFB $FF,$3F,$FF,$D8    ;
+  DEFB $FF,$1E,$FF,$30    ;
+  DEFB $FF,$00,$FF,$20    ;
+
+; Sprite frame $EC: boy, arms up: falling, facing 0
+FRAMEEC:
+  DEFB $FF,$03,$FF,$D8    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$1A,$7F,$58    ;
+  DEFB $FE,$18,$7F,$10    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FD,$01,$BF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$C0    ;
+  DEFB $FF,$0E,$FF,$F0    ;
+  DEFB $FF,$18,$FF,$70    ;
+  DEFB $FF,$18,$FF,$60    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $ED: boy, arms up: falling, facing 1
+FRAMEED:
+  DEFB $FF,$03,$FF,$C0    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$0B,$FF,$D0    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$0F,$FF,$D0    ;
+  DEFB $FF,$07,$FF,$F0    ;
+  DEFB $FF,$03,$FF,$E0    ;
+  DEFB $FD,$01,$BF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$0E,$FF,$60    ;
+  DEFB $FF,$0C,$FF,$30    ;
+  DEFB $FF,$08,$FF,$30    ;
+  DEFB $FF,$00,$FF,$20    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $EE: boy, arms up: falling, facing 2
+FRAMEEE:
+  DEFB $FF,$03,$FF,$D0    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$0B,$FF,$D0    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FD,$01,$BF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$06,$FF,$60    ;
+  DEFB $FF,$0C,$FF,$30    ;
+  DEFB $FF,$0C,$FF,$30    ;
+  DEFB $FF,$04,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $EF: boy, arms up: falling, facing 3
+FRAMEEF:
+  DEFB $FF,$1B,$FF,$C0    ; Rows of mask, graphic, mask, graphic
+  DEFB $FE,$1A,$7F,$58    ;
+  DEFB $FE,$08,$7F,$18    ;
+  DEFB $FF,$09,$FF,$90    ;
+  DEFB $FF,$0F,$FF,$F0    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FD,$01,$BF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FF,$03,$FF,$C0    ;
+  DEFB $FF,$07,$FF,$E0    ;
+  DEFB $FF,$06,$FF,$60    ;
+  DEFB $FF,$04,$FF,$60    ;
+  DEFB $FF,$1C,$FF,$40    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F0: four frames nothing draws
+FRAMEF0:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$38,$FF,$00    ;
+  DEFB $F7,$36,$FF,$00    ;
+  DEFB $F5,$35,$FF,$0E    ;
+  DEFB $F7,$36,$F1,$11    ;
+  DEFB $C1,$41,$E1,$A1    ;
+  DEFB $D8,$D8,$73,$72    ;
+  DEFB $FC,$64,$7F,$7C    ;
+  DEFB $FF,$03,$7F,$7C    ;
+  DEFB $FE,$0E,$1B,$1A    ;
+  DEFB $F0,$30,$23,$22    ;
+  DEFB $C0,$40,$E3,$E2    ;
+  DEFB $E3,$23,$FF,$1E    ;
+  DEFB $FF,$1C,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F1: four frames nothing draws
+FRAMEF1:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$08,$FF,$00    ;
+  DEFB $F7,$16,$FF,$00    ;
+  DEFB $E1,$21,$FF,$9E    ;
+  DEFB $F0,$30,$73,$72    ;
+  DEFB $FC,$0C,$FB,$FA    ;
+  DEFB $FF,$73,$FB,$FA    ;
+  DEFB $CE,$CE,$67,$64    ;
+  DEFB $C8,$C8,$03,$02    ;
+  DEFB $C0,$C0,$E1,$E1    ;
+  DEFB $CF,$CF,$F1,$11    ;
+  DEFB $E7,$24,$F9,$09    ;
+  DEFB $F3,$12,$FF,$06    ;
+  DEFB $FF,$0C,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F2: four frames nothing draws
+FRAMEF2:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$10    ;
+  DEFB $FF,$00,$EF,$68    ;
+  DEFB $FF,$79,$87,$84    ;
+  DEFB $CE,$4E,$0F,$0C    ;
+  DEFB $DF,$5F,$3F,$30    ;
+  DEFB $DF,$5F,$FF,$CE    ;
+  DEFB $E6,$26,$73,$73    ;
+  DEFB $C0,$40,$13,$13    ;
+  DEFB $87,$87,$03,$03    ;
+  DEFB $8F,$88,$F3,$F3    ;
+  DEFB $9F,$90,$E7,$24    ;
+  DEFB $FF,$60,$CF,$48    ;
+  DEFB $FF,$00,$FF,$30    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F3: four frames nothing draws
+FRAMEF3:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$1C    ;
+  DEFB $FF,$00,$EF,$6C    ;
+  DEFB $FF,$70,$AF,$AC    ;
+  DEFB $8F,$88,$EF,$6C    ;
+  DEFB $87,$85,$83,$82    ;
+  DEFB $CE,$4E,$1B,$1B    ;
+  DEFB $FE,$3E,$3F,$26    ;
+  DEFB $FE,$3E,$FF,$C0    ;
+  DEFB $D8,$58,$7F,$70    ;
+  DEFB $C4,$44,$0F,$0C    ;
+  DEFB $C7,$47,$03,$02    ;
+  DEFB $FF,$78,$C7,$C4    ;
+  DEFB $FF,$00,$FF,$38    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F4: grenade
+FRAMEF4:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FE,$02,$7F,$40    ;
+  DEFB $FC,$04,$7F,$60    ;
+  DEFB $FE,$02,$FF,$C0    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F5: grenade
+FRAMEF5:
+  DEFB $FF,$00,$FF,$86    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$10,$FB,$0B    ;
+  DEFB $E7,$24,$F9,$09    ;
+  DEFB $CE,$40,$FF,$4E    ;
+  DEFB $CF,$48,$CF,$00    ;
+  DEFB $F6,$30,$FB,$80    ;
+  DEFB $FF,$00,$7F,$10    ;
+  DEFB $FE,$04,$FF,$00    ;
+  DEFB $ED,$00,$EF,$00    ;
+  DEFB $FF,$00,$FF,$47    ;
+  DEFB $FA,$48,$BF,$25    ;
+  DEFB $FF,$00,$1F,$15    ;
+  DEFB $FF,$30,$DF,$52    ;
+  DEFB $DF,$55,$CF,$48    ;
+  DEFB $9D,$90,$E7,$24    ;
+  DEFB $FF,$60,$FF,$3C    ;
+
+; Sprite frame $F6: grenade
+FRAMEF6:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $EF,$04,$FF,$0C    ;
+  DEFB $FF,$56,$F6,$34    ;
+  DEFB $FD,$65,$CF,$49    ;
+  DEFB $DC,$54,$AF,$88    ;
+  DEFB $EA,$2A,$3D,$10    ;
+  DEFB $E1,$21,$5F,$5E    ;
+  DEFB $F2,$12,$C1,$C1    ;
+  DEFB $E7,$27,$63,$62    ;
+  DEFB $C9,$49,$9F,$9C    ;
+  DEFB $F2,$F2,$3F,$21    ;
+  DEFB $FF,$09,$9F,$90    ;
+  DEFB $75,$11,$DF,$52    ;
+  DEFB $ED,$2D,$FD,$38    ;
+  DEFB $FF,$71,$BE,$18    ;
+  DEFB $FF,$03,$FF,$00    ;
+
+; Sprite frame $F7: grenade
+FRAMEF7:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$09,$FF,$00    ;
+  DEFB $F7,$17,$FF,$40    ;
+  DEFB $FA,$0A,$FF,$F0    ;
+  DEFB $F8,$08,$7F,$78    ;
+  DEFB $FC,$04,$3F,$20    ;
+  DEFB $F8,$08,$3F,$20    ;
+  DEFB $F4,$14,$DF,$D0    ;
+  DEFB $EE,$2A,$EF,$A8    ;
+  DEFB $DF,$11,$FF,$90    ;
+  DEFB $FF,$01,$FF,$80    ;
+  DEFB $FF,$00,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F8: ants, walking, one foot, facing 0
+FRAMEF8:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$1E,$FF,$00    ;
+  DEFB $FF,$3F,$FF,$20    ;
+  DEFB $E7,$67,$FF,$A0    ;
+  DEFB $DF,$DF,$FF,$F8    ;
+  DEFB $FF,$FF,$FF,$C4    ;
+  DEFB $FF,$FF,$FF,$E0    ;
+  DEFB $FF,$7F,$FF,$FC    ;
+  DEFB $FF,$39,$F7,$B4    ;
+  DEFB $FF,$22,$EF,$AE    ;
+  DEFB $FF,$24,$FF,$BA    ;
+  DEFB $FF,$08,$FF,$92    ;
+  DEFB $FF,$08,$FF,$98    ;
+  DEFB $FF,$00,$FF,$80    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $F9: ants, walking, one foot, facing 1
+FRAMEF9:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$30    ;
+  DEFB $FF,$01,$FF,$64    ;
+  DEFB $FF,$07,$FF,$7C    ;
+  DEFB $FF,$3D,$FF,$F8    ;
+  DEFB $FF,$7F,$FF,$F8    ;
+  DEFB $E7,$E7,$FF,$C0    ;
+  DEFB $DF,$DF,$FF,$F8    ;
+  DEFB $FF,$FF,$FF,$E8    ;
+  DEFB $FF,$FF,$FF,$A4    ;
+  DEFB $FF,$7F,$FF,$A4    ;
+  DEFB $FF,$1E,$FF,$A0    ;
+  DEFB $FF,$00,$FF,$A0    ;
+  DEFB $FF,$01,$FF,$00    ;
+
+; Sprite frame $FA: ants, walking, one foot, facing 2
+FRAMEFA:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$0C,$FF,$00    ;
+  DEFB $FF,$26,$FF,$80    ;
+  DEFB $FF,$3E,$FF,$E0    ;
+  DEFB $FF,$1F,$FF,$BC    ;
+  DEFB $FF,$1F,$EF,$EE    ;
+  DEFB $FF,$03,$DF,$DF    ;
+  DEFB $FF,$1F,$FF,$FF    ;
+  DEFB $FF,$17,$FF,$FF    ;
+  DEFB $FF,$25,$FF,$FF    ;
+  DEFB $FF,$25,$FF,$FE    ;
+  DEFB $FF,$05,$FF,$78    ;
+  DEFB $FF,$05,$FF,$00    ;
+  DEFB $FF,$00,$FF,$80    ;
+
+; Sprite frame $FB: ants, walking, one foot, facing 3
+FRAMEFB:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$78    ;
+  DEFB $FF,$00,$CF,$CC    ;
+  DEFB $FF,$05,$BF,$BE    ;
+  DEFB $FF,$33,$FF,$FF    ;
+  DEFB $FF,$4F,$FF,$FF    ;
+  DEFB $FF,$07,$FF,$FF    ;
+  DEFB $FF,$3F,$FF,$FE    ;
+  DEFB $EF,$2D,$FF,$98    ;
+  DEFB $F7,$75,$FF,$44    ;
+  DEFB $FF,$5D,$FF,$24    ;
+  DEFB $FF,$49,$FF,$10    ;
+  DEFB $FF,$19,$FF,$10    ;
+  DEFB $FF,$01,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+
+; Sprite frame $FC: ants, walking, the other, facing 0
+FRAMEFC:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$3C,$FF,$00    ;
+  DEFB $FF,$7E,$FF,$00    ;
+  DEFB $FF,$FF,$FF,$80    ;
+  DEFB $DF,$DF,$FF,$F0    ;
+  DEFB $EF,$EF,$FF,$FE    ;
+  DEFB $FF,$FF,$FB,$FA    ;
+  DEFB $FF,$7E,$F7,$F7    ;
+  DEFB $FF,$3F,$FF,$FD    ;
+  DEFB $FF,$1D,$FF,$A7    ;
+  DEFB $FF,$01,$FF,$B8    ;
+  DEFB $FF,$02,$FF,$F0    ;
+  DEFB $FF,$00,$FF,$40    ;
+
+; Sprite frame $FD: ants, walking, the other, facing 1
+FRAMEFD:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$0E    ;
+  DEFB $FF,$00,$FF,$7A    ;
+  DEFB $FF,$01,$FF,$BE    ;
+  DEFB $FF,$03,$FF,$BC    ;
+  DEFB $FF,$03,$FF,$FC    ;
+  DEFB $FF,$0F,$FF,$E5    ;
+  DEFB $FF,$1F,$FF,$DE    ;
+  DEFB $FF,$3F,$FF,$FD    ;
+  DEFB $E7,$67,$FF,$FE    ;
+  DEFB $EF,$6F,$FF,$88    ;
+  DEFB $FF,$7F,$FF,$88    ;
+  DEFB $FF,$7F,$FF,$80    ;
+  DEFB $FF,$3F,$FF,$00    ;
+  DEFB $FF,$0E,$FF,$00    ;
+
+; Sprite frame $FE: ants, walking, the other, facing 2
+FRAMEFE:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$70,$FF,$00    ;
+  DEFB $FF,$5C,$FF,$00    ;
+  DEFB $FF,$7C,$FF,$00    ;
+  DEFB $FF,$3F,$FF,$C0    ;
+  DEFB $FF,$3F,$FF,$C0    ;
+  DEFB $FF,$A7,$FF,$F0    ;
+  DEFB $FF,$7B,$FF,$F8    ;
+  DEFB $FF,$BF,$9F,$9C    ;
+  DEFB $FF,$7F,$FF,$FE    ;
+  DEFB $FF,$11,$FF,$FE    ;
+  DEFB $FF,$11,$FF,$FE    ;
+  DEFB $FF,$01,$FF,$FE    ;
+  DEFB $FF,$00,$FF,$FC    ;
+  DEFB $FF,$00,$FF,$70    ;
+
+; Sprite frame $FF: ants, walking, the other, facing 3
+FRAMEFF:
+  DEFB $FF,$00,$FF,$00    ; Rows of mask, graphic, mask, graphic
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$00    ;
+  DEFB $FF,$00,$FF,$1E    ;
+  DEFB $FF,$00,$F7,$37    ;
+  DEFB $FF,$00,$EF,$6F    ;
+  DEFB $FF,$01,$FF,$FF    ;
+  DEFB $FF,$07,$FF,$FF    ;
+  DEFB $FF,$7F,$FF,$FF    ;
+  DEFB $DF,$DF,$FF,$FE    ;
+  DEFB $EF,$EB,$FF,$7C    ;
+  DEFB $FF,$7B,$FF,$00    ;
+  DEFB $FF,$C7,$FF,$80    ;
+  DEFB $FF,$3D,$FF,$40    ;
+  DEFB $FF,$0B,$FF,$40    ;
+  DEFB $FF,$16,$FF,$40    ;
 
 ; The city of Antescher
+;
+; The row at y=$80: 340 blocks, up to 6 high.
 ;
 ; 128 x 128 cells, a byte each, one bit per height: bit 0 a block on the
 ; ground, up to bit 5. See READ_MAP_CELL.
 CITY_MAP:
-  DEFB $3F,$0F,$0F,$07,$03,$03,$07,$03
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$03,$07,$03,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$03
-  DEFB $03,$07,$03,$03,$07,$03,$03,$07
-  DEFB $0F,$0F,$0F,$0F,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$03
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$1B
-  DEFB $1B,$07,$03,$03,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $0F,$1B,$1B,$0F,$03,$03,$07,$03
-  DEFB $03,$07,$03,$03,$1F,$1B,$3B,$1B
-  DEFB $1B,$1F,$03,$03,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$0F,$3F
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$01,$01,$01,$01,$01,$01,$00
-  DEFB $00,$01,$01,$01,$00,$00,$01,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$01,$00
-  DEFB $00,$01,$00,$00,$00,$00,$01,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$03,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$03,$03,$03,$03,$00,$00,$00
-  DEFB $00,$01,$00,$01,$01,$00,$01,$00
-  DEFB $00,$01,$01,$01,$00,$00,$01,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $08,$08,$0F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$0D,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$00,$00,$00
-  DEFB $00,$01,$00,$01,$00,$00,$01,$00
-  DEFB $00,$00,$00,$01,$00,$00,$01,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$03,$01,$00,$00,$00,$00
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$01,$03,$07
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$1F,$10,$10,$10
-  DEFB $10,$10,$10,$10,$10,$1F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$00,$00,$00
-  DEFB $00,$01,$00,$01,$01,$00,$01,$00
-  DEFB $00,$00,$00,$01,$00,$00,$01,$00
-  DEFB $01,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $0C,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$30,$10,$00,$10
-  DEFB $10,$00,$10,$10,$00,$10,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$01,$00
-  DEFB $00,$01,$01,$01,$00,$00,$01,$01
-  DEFB $01,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$01,$09,$09
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$30,$10,$10,$10
-  DEFB $00,$10,$00,$10,$10,$10,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$07,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$01,$01,$01,$01,$01,$01,$00
-  DEFB $00,$01,$01,$01,$00,$00,$01,$01
-  DEFB $01,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $38,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$30,$10,$00,$10
-  DEFB $10,$10,$10,$10,$00,$10,$00,$00
-  DEFB $00,$00,$00,$00,$00,$1F,$17,$1D
-  DEFB $17,$1D,$1F,$18,$1A,$3F,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$03,$1F,$1F,$1F
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$08
-  DEFB $08,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$1F,$10,$10,$10
-  DEFB $10,$10,$10,$10,$10,$1F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$0F,$07,$37,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$06,$1C,$10,$1F
-  DEFB $00,$00,$00,$00,$06,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$1F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $03,$00,$00,$00,$03,$1F,$1F,$1F
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $3F,$08,$00,$00,$00,$00,$00,$00
-  DEFB $01,$01,$01,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$0F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$36,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$08
-  DEFB $08,$08,$00,$00,$00,$00,$00,$00
-  DEFB $01,$3F,$01,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$07,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$01,$01,$00,$00,$00,$00,$00
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$37,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$08,$08
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$3F,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$08
-  DEFB $08,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$01,$09,$09
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$3B,$02,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$36,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$07,$03,$03,$03,$03,$0F,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $20,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$3F,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$01,$01,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $3F,$08,$00,$00,$00,$00,$00,$00
-  DEFB $07,$00,$07,$00,$07,$00,$0F,$00
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$01,$01,$03,$07
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$3F,$08,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$37,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$03,$06,$0C
-  DEFB $08,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$0F,$0F,$0F
-  DEFB $0F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$18,$08,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$1F,$17,$1E
-  DEFB $17,$1F,$17,$1E,$17,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$0F,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$1F,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $3B,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $3B,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$01,$01,$00,$00,$00,$00,$00
-  DEFB $01,$01,$03,$03,$03,$00,$03,$03
-  DEFB $03,$03,$01,$03,$03,$02,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$01,$01,$01,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$1F
-  DEFB $1F,$1F,$1F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $07,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$03,$03,$03
-  DEFB $03,$03,$03,$03,$03,$02,$03,$03
-  DEFB $03,$03,$03,$03,$03,$03,$03,$03
-  DEFB $03,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $0F,$0B,$0F,$0B,$0F,$0B,$0F,$0B
-  DEFB $0F,$0B,$0F,$0B,$0F,$0B,$0F,$0B
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$07
-  DEFB $03,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$07,$07,$07
-  DEFB $07,$07,$07,$07,$07,$06,$07,$07
-  DEFB $07,$07,$07,$07,$07,$07,$07,$07
-  DEFB $07,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$1E
-  DEFB $10,$10,$10,$10,$10,$10,$10,$10
-  DEFB $10,$10,$10,$10,$10,$10,$10,$10
-  DEFB $1A,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $03,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$04,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00
-
-; Message at CFE7
-LCFE7:
-  DEFM "7    "
-
-; Unused
-LCFEC:
-  DEFS $01
-
-; Message at CFED
-LCFED:
-  DEFM "    "
-
-; Unused
-LCFF1:
-  DEFS $01
-
-; Message at CFF2
-LCFF2:
-  DEFM "     "
-
-; Data block at CFF7
-LCFF7:
-  DEFB $10,$1E,$00,$00,$00,$00,$00,$00
-  DEFB $3B,$07,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$00
-  DEFB $00,$00,$00,$04,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-
-; Message at D067
-LD067:
-  DEFM ">!              "
-
-; Data block at D077
-LD077:
-  DEFB $00,$1A,$00,$00,$00,$00,$00,$00
-  DEFB $3B,$03,$00,$00,$00,$00,$00,$00
-  DEFB $03,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$00
-  DEFB $00,$00,$00,$0F,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$03,$03,$07,$04,$0F,$0D
-  DEFB $0F,$0F,$0D,$0F,$04,$04,$07,$07
-  DEFB $07,$07,$07,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-
-; Message at D0E7
-LD0E7:
-  DEFM "7(<$,848<<<<<<<08"
-
-; Data block at D0F8
-LD0F8:
-  DEFB $1E,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $03,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$08
-
-; Message at D14E
-LD14E:
-  DEFM "0000"
-
-; Data block at D152
-LD152:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at D167
-LD167:
-  DEFM "3?8"
-
-; Data block at D16A
-LD16A:
-  DEFB $18,$0F,$07,$0C,$1C,$0F,$07,$0C
-  DEFB $0C,$0F,$0F,$0C,$0C,$0F,$07,$03
-  DEFB $01,$00,$00,$00,$00,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D1CE
-LD1CE:
-  DEFM "    "
-
-; Data block at D1D2
-LD1D2:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D24E
-LD24E:
-  DEFM "0  0"
-
-; Data block at D252
-LD252:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$01,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$04
-  DEFB $07,$00,$00,$00,$00,$00,$00,$01
-  DEFB $03,$07,$0F,$08
-
-; Message at D2CE
-LD2CE:
-  DEFM "    "
-
-; Data block at D2D2
-LD2D2:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$05
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D34E
-LD34E:
-  DEFM "0  0"
-
-; Data block at D352
-LD352:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$01,$01,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D3CE
-LD3CE:
-  DEFM "    "
-
-; Data block at D3D2
-LD3D2:
-  DEFB $08,$0F,$07,$03,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$07,$00,$00,$00,$1F,$1F,$1F
-  DEFB $1C,$1F,$1F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$01,$03,$02
-  DEFB $02,$02,$02,$02,$02,$02,$02,$02
-  DEFB $03,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D44E
-LD44E:
-  DEFM "0  0"
-
-; Data block at D452
-LD452:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$0F,$1F
-
-; Message at D48D
-LD48D:
-  DEFM "??1    "
-
-; Data block at D494
-LD494:
-  DEFB $11,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$03,$02,$02,$02
-  DEFB $02,$02,$02,$02,$03,$02,$02,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08
-
-; Message at D4CE
-LD4CE:
-  DEFM "    "
-
-; Data block at D4D2
-LD4D2:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$02
-  DEFB $02,$02,$02,$03,$03,$03,$01,$01
-  DEFB $03,$03,$03,$03,$03,$03,$03,$00
-  DEFB $03,$03,$03,$03,$03,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$1F
-
-; Message at D510
-LD510:
-  DEFM "    "
-
-; Data block at D514
-LD514:
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$02,$05,$04
-  DEFB $04,$04,$04,$04,$04,$02,$03,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08
-
-; Message at D54E
-LD54E:
-  DEFM "0  0"
-
-; Data block at D552
-LD552:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$02,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$02,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$11,$20,$00
-  DEFB $00,$20,$11,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$02,$02
-  DEFB $04,$08,$09,$08,$09,$08,$05,$03
-  DEFB $02,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$08
-
-; Message at D5CE
-LD5CE:
-  DEFM "    "
-
-; Data block at D5D2
-LD5D2:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$02,$00,$00
-  DEFB $00,$00,$00,$00,$00,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$1F
-
-; Message at D610
-LD610:
-  DEFM "    "
-
-; Data block at D614
-LD614:
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$02,$04,$08
-  DEFB $10,$10,$10,$08,$04,$02,$02,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$18
-
-; Message at D64E
-LD64E:
-  DEFM "0000"
-
-; Data block at D652
-LD652:
-  DEFB $08,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$0B,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$11
-
-; Message at D690
-LD690:
-  DEFM "    "
-
-; Data block at D694
-LD694:
-  DEFB $11,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$02,$04,$08
-  DEFB $10,$20,$10,$08,$04,$02,$02,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$07,$07,$07,$07,$04
-  DEFB $04,$0F,$0D,$0F,$0F,$0D,$0F,$04
-  DEFB $04,$07,$07,$07,$07,$07,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$3B,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F
-
-; Message at D710
-LD710:
-  DEFM "    "
-
-; Data block at D714
-LD714:
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$02,$04,$08
-  DEFB $10,$20,$10,$08,$04,$02,$02,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$0B,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$11
-
-; Message at D790
-LD790:
-  DEFM "    "
-
-; Data block at D794
-LD794:
-  DEFB $11,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$02,$04,$08
-  DEFB $10,$10,$10,$08,$04,$02,$02,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$07,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F
-
-; Message at D810
-LD810:
-  DEFM "  ! "
-
-; Data block at D814
-LD814:
-  DEFB $1F,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$02,$03,$05,$09
-  DEFB $08,$09,$09,$08,$05,$03,$03,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$00,$00,$03,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$07,$00,$00,$00
-
-; Message at D88B
-LD88B:
-  DEFM "?!?!?>!!??!?!?"
-
-; Data block at D899
-LD899:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$02
-  DEFB $03,$05,$05,$04,$05,$05,$04,$07
-  DEFB $03,$02,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$28
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00
-
-; Message at D90B
-LD90B:
-  DEFM "?!?!?!!!!?!?!?"
-
-; Data block at D919
-LD919:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$02
-  DEFB $03,$03,$03,$02,$03,$03,$02,$03
-  DEFB $03,$02,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$3F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$02
-  DEFB $03,$02,$02,$03,$03,$03,$02,$02
-  DEFB $02,$03,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$10
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$00,$00,$01,$01,$01,$00,$00
-  DEFB $00,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $0F,$04,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $00,$01,$01,$01,$01,$00,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $00,$01,$01,$01,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$0F,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$01,$01,$01,$01,$00,$00,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$03,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$07,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$03,$07,$0F,$1F,$10
-  DEFB $1F,$0F,$07,$03,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$0F
-  DEFB $04,$00,$00,$00,$04,$0F,$04,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$06,$06,$06,$07,$00
-  DEFB $07,$00,$00,$00,$07,$00,$07,$00
-  DEFB $07,$00,$07,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$02,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$02,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$00,$00,$00,$00,$00
-  DEFB $07,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$06,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$0F,$08,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$3B
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $03,$02,$03,$03,$03,$03,$03,$03
-  DEFB $00,$00,$00,$00,$00,$03,$03,$03
-  DEFB $03,$03,$03,$00,$00,$00,$00,$00
-  DEFB $00,$00,$0C,$00,$00,$00,$00,$00
-  DEFB $07,$00,$07,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$01,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$38
-  DEFB $30,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$18,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$01,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$08
-  DEFB $3F,$20,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-
-; Message at E1A1
-LE1A1:
-  DEFM "???"
-
-; Data block at E1A4
-LE1A4:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$3F,$00,$3F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$10
-  DEFB $3F,$10,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at E2A1
-LE2A1:
-  DEFM "?>?"
-
-; Data block at E2A4
-LE2A4:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $10,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$3B,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$3B,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$03,$03,$03
-  DEFB $00,$03,$03,$03,$03,$03,$03,$03
-  DEFB $03,$03,$03,$00,$03,$03,$03,$03
-  DEFB $03,$03,$03,$07,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$1F
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $04,$04,$04,$07,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $04,$04,$00,$04,$04,$04,$07,$07
-  DEFB $07,$00,$07,$07,$04,$04,$00,$04
-  DEFB $04,$07,$03,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $00,$04,$04,$04,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $04,$04,$00,$04,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $04,$04,$04,$07,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$04
-  DEFB $04,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$02,$02,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$3F
-  DEFB $04,$04,$04,$06,$02,$03,$00,$02
-  DEFB $1F,$1F,$1B,$1B,$1F,$1F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$07,$07,$07,$0F,$1F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$04,$3F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$02
-  DEFB $1F
-
-; Message at E965
-LE965:
-  DEFM "    "
-
-; Data block at E969
-LE969:
-  DEFB $1C,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$0F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$02,$13,$20,$20,$00,$20
-  DEFB $1C,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $1F,$1C,$1C,$1C,$1C,$1C,$1F,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F
-
-; Message at EA65
-LEA65:
-  DEFM "    "
-
-; Data block at EA69
-LEA69:
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$04,$04,$04
-  DEFB $04,$04,$07,$00,$07,$04,$04,$04
-  DEFB $14,$14,$14,$14,$14,$14,$14,$04
-  DEFB $04,$04,$07,$03,$03,$03,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$04,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$1F,$1F,$13,$13,$1F
-  DEFB $1F,$0C,$06,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$0F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $1F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $1F,$1C,$1C,$1C,$1C,$1C,$1F,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$04,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$02,$02,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $04,$04,$07,$00,$00,$00,$00,$00
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$08,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $3F,$3F,$00,$3F,$00,$3F,$1F,$0F
-  DEFB $04,$04,$04,$04,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$03,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$10,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$1F,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$04
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $1F,$10,$1F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$1F,$07
-  DEFB $00,$00,$00,$00,$00,$00,$07,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$07,$04
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$07,$07
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$3F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$00,$00
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$1F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$00,$00
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$11,$11
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$00,$00,$00
-  DEFB $00,$00,$0F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$04,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$11,$11
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$04,$04,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$1F,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$07,$00,$07,$04,$00,$00
-  DEFB $00,$00,$04,$04,$04,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$0F,$0F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$06,$06,$07,$0F
-  DEFB $00,$0F,$0F,$0F,$0D,$0F,$0F,$0E
-  DEFB $0F,$07,$0F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$04,$00,$00
-  DEFB $00,$00,$07,$04,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$03
-  DEFB $00,$00,$00,$00,$06,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$04,$00,$00
-  DEFB $00,$00,$04,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$03
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$01,$01,$01,$01,$01,$01,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$04,$04,$07
-  DEFB $04,$04,$04,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$07
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$00,$00,$00,$00,$00,$00,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$07,$0F
-  DEFB $00,$00,$00,$00,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$00,$00,$00,$00,$00,$00,$01
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$03,$0F
-  DEFB $00,$00,$00,$00,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03
-
-; Message at F41A
-LF41A:
-  DEFM "+>>+"
-
-; Data block at F41E
-LF41E:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$03,$07,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01
-
-; Message at F49A
-LF49A:
-  DEFM ">2 >"
-
-; Data block at F49E
-LF49E:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$01,$01,$01,$01,$01
-  DEFB $01,$01,$01,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$07,$07,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00
-
-; Message at F51A
-LF51A:
-  DEFM "+>>+"
-
-; Data block at F51E
-LF51E:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$1F,$07,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$20,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$01,$01
-  DEFB $01,$01,$01,$01,$01,$00,$00,$00
-  DEFB $01,$03,$07,$0F,$1F,$3F,$3F,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$3B,$03,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$20,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$02,$04,$08,$10,$20,$3F,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$3B,$03,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$20,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $01,$02,$04,$08,$10,$20,$3F,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$1F,$07,$00,$00,$00,$00,$03
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00
-
-; Message at F71B
-LF71B:
-  DEFM "    "
-
-; Data block at F71F
-LF71F:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$01,$01,$01,$01,$01
-  DEFB $01,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$08,$10,$20,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$03,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$20
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$08,$10,$20,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$03,$00,$00,$00,$00,$03,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$20
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$08,$10,$20,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $03,$07,$07,$07,$07,$07,$07,$07
-  DEFB $07,$07,$07,$07,$07,$07,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $03,$07,$00,$00,$00,$00,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$1F,$3E,$3F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$08,$10,$20,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$38,$18,$18,$18,$18,$18
-  DEFB $18,$18,$18,$18,$18,$38,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$03,$00,$00,$00,$00,$07,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$3E,$3F,$1F
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$00,$00,$00,$00,$00
-  DEFB $00,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$08,$10,$20,$3F,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$01
-  DEFB $02,$04,$18
-
-; Message at F96A
-LF96A:
-  DEFM "          "
-
-; Data block at F974
-LF974:
-  DEFB $18,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $03,$07,$0F,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$01,$01,$01
-  DEFB $01,$01,$01,$01,$01,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$01,$01,$01,$01
-  DEFB $01,$01,$01,$02,$04,$08,$10,$20
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$02,$04,$18
-
-; Message at F9EA
-LF9EA:
-  DEFM "         0"
-
-; Data block at F9F4
-LF9F4:
-  DEFB $09,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$07,$00,$00,$00
-  DEFB $00,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$03,$02,$02,$02
-  DEFB $02,$02,$02,$02,$04,$08,$10,$20
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$02,$04,$38,$18,$18
-  DEFB $18,$18,$18,$18,$18,$18,$18,$18
-  DEFB $38,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$03,$00,$00,$00
-  DEFB $00,$07,$07,$07,$0F,$0F,$0F,$0F
-  DEFB $0E,$0F,$0F,$0F,$0F,$0E,$0F,$0F
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$07,$04,$04,$04
-  DEFB $04,$04,$04,$04,$04,$08,$10,$20
-  DEFB $37,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$01,$03,$07,$07,$07,$07
-  DEFB $07,$07,$07,$07,$07,$07,$07,$07
-  DEFB $07,$07,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $02,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$0F,$08,$08,$08
-  DEFB $08,$04,$0C,$0F,$08,$08,$18,$20
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$03,$07,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$03
-  DEFB $02,$03,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$1F,$10,$10,$10
-  DEFB $18,$14,$1C,$1C,$18,$10,$10,$20
-  DEFB $3F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$07,$03,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00
-
-; Message at FC48
-LFC48:
-  DEFM "? - 8$<<9   ?"
-
-; Data block at FC55
-LFC55:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00
-
-; Message at FCC8
-LFCC8:
-  DEFM "?????7???????"
-
-; Data block at FCD5
-LFCD5:
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$07,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$0F
-  DEFB $07,$07,$07,$1F,$07,$01,$01,$01
-  DEFB $01,$01,$01,$07,$1F,$07,$07,$07
-  DEFB $0F,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $04,$04,$04,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$03,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$03,$07,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$07,$0F,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $07,$01,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$0F,$3F,$0F,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$03
-  DEFB $03,$07,$03,$03,$07,$03,$03,$07
-  DEFB $0F,$3B,$3B,$0F,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$07,$0F
-  DEFB $07,$00,$00,$00,$00,$00,$00,$00
-  DEFB $00,$00,$00,$00,$00,$00,$00,$07
-  DEFB $0F,$07,$03,$03,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$03,$03,$07,$03,$03,$0F,$0F
-  DEFB $0B,$0F,$0F,$03,$03,$03,$07,$03
-  DEFB $03,$07,$03,$03,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$0F,$3B
-  DEFB $0F,$07,$03,$03,$07,$03,$03,$07
-  DEFB $03,$03,$07,$03,$03,$07,$03,$03
-  DEFB $07,$0F,$3F
+  DEFB $3F,$0F,$0F,$07,$03,$03,$07,$03 ; x=$80 to $9F
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ;
+  DEFB $07,$03,$03,$03,$07,$03,$03,$03 ;
+  DEFB $07,$03,$03,$07,$03,$03,$07,$03 ;
+  DEFB $03,$07,$03,$03,$07,$03,$03,$07 ; x=$A0 to $BF
+  DEFB $0F,$0F,$0F,$0F,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ;
+  DEFB $07,$03,$03,$07,$03,$03,$07,$03 ;
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ; x=$C0 to $DF
+  DEFB $07,$03,$03,$07,$03,$03,$07,$1B ;
+  DEFB $1B,$07,$03,$03,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ;
+  DEFB $0F,$1B,$1B,$0F,$03,$03,$07,$03 ; x=$E0 to $FF
+  DEFB $03,$07,$03,$03,$1F,$1B,$3B,$1B ;
+  DEFB $1B,$1F,$03,$03,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$03,$03,$07,$0F,$3F ;
+
+; The city: the row at y=$81
+;
+; 12 blocks, up to 4 high.
+CITY_Y81:
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$82
+;
+; 11 blocks, up to 4 high.
+CITY_Y82:
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$83
+;
+; 9 blocks, up to 3 high.
+CITY_Y83:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$84
+;
+; 19 blocks, up to 2 high.
+CITY_Y84:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$00 ;
+  DEFB $00,$01,$01,$01,$00,$00,$01,$00 ;
+  DEFB $00,$00,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$85
+;
+; 29 blocks, up to 3 high.
+CITY_Y85:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$01,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$01,$00 ;
+  DEFB $00,$00,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$01,$01,$01 ;
+  DEFB $01,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$03,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$86
+;
+; 61 blocks, up to 4 high.
+CITY_Y86:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $03,$03,$03,$03,$03,$00,$00,$00 ;
+  DEFB $00,$01,$00,$01,$01,$00,$01,$00 ;
+  DEFB $00,$01,$01,$01,$00,$00,$01,$00 ;
+  DEFB $00,$00,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$0F ;
+  DEFB $08,$08,$0F,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$0D,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$87
+;
+; 55 blocks, up to 5 high.
+CITY_Y87:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$02,$00,$00,$00 ;
+  DEFB $00,$01,$00,$01,$00,$00,$01,$00 ;
+  DEFB $00,$00,$00,$01,$00,$00,$01,$00 ;
+  DEFB $00,$00,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $1F,$00,$03,$01,$00,$00,$00,$00 ;
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$01,$03,$07 ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$1F,$10,$10,$10 ;
+  DEFB $10,$10,$10,$10,$10,$1F,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$88
+;
+; 45 blocks, up to 6 high.
+CITY_Y88:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$02,$00,$00,$00 ;
+  DEFB $00,$01,$00,$01,$01,$00,$01,$00 ;
+  DEFB $00,$00,$00,$01,$00,$00,$01,$00 ;
+  DEFB $01,$00,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $0C,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$30,$10,$00,$10 ;
+  DEFB $10,$00,$10,$10,$00,$10,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$89
+;
+; 54 blocks, up to 6 high.
+CITY_Y89:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$01,$00 ;
+  DEFB $00,$01,$01,$01,$00,$00,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$01,$09,$09 ;
+  DEFB $01,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$30,$10,$10,$10 ;
+  DEFB $00,$10,$00,$10,$10,$10,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$07,$07,$07,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$8A
+;
+; 84 blocks, up to 6 high.
+CITY_Y8A:
+  DEFB $03,$00,$00,$00,$01,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$00 ;
+  DEFB $00,$01,$01,$01,$00,$00,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $38,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$30,$10,$00,$10 ;
+  DEFB $10,$10,$10,$10,$00,$10,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$1F,$17,$1D ;
+  DEFB $17,$1D,$1F,$18,$1A,$3F,$07,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$8B
+;
+; 73 blocks, up to 6 high.
+CITY_Y8B:
+  DEFB $03,$00,$00,$00,$03,$1F,$1F,$1F ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $08,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$1F,$10,$10,$10 ;
+  DEFB $10,$10,$10,$10,$10,$1F,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$0F,$07,$37,$07,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$8C
+;
+; 38 blocks, up to 6 high.
+CITY_Y8C:
+  DEFB $07,$00,$00,$00,$06,$1C,$10,$1F ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$06,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$1F,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$3F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$8D
+;
+; 51 blocks, up to 6 high.
+CITY_Y8D:
+  DEFB $03,$00,$00,$00,$03,$1F,$1F,$1F ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $3F,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $20,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$0F,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$36,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$8E
+;
+; 38 blocks, up to 6 high.
+CITY_Y8E:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $08,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$3F,$01,$00,$00,$00,$00,$00 ;
+  DEFB $20,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$03,$03,$07,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$3F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$8F
+;
+; 28 blocks, up to 6 high.
+CITY_Y8F:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$37,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$90
+;
+; 30 blocks, up to 6 high.
+CITY_Y90:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $20,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$08,$08 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$3F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$91
+;
+; 38 blocks, up to 6 high.
+CITY_Y91:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$08 ;
+  DEFB $08,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$01,$09,$09 ;
+  DEFB $01,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$3B,$02,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$36,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$92
+;
+; 59 blocks, up to 6 high.
+CITY_Y92:
+  DEFB $07,$07,$03,$03,$03,$03,$0F,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $20,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$0F,$0F,$0F ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$3F,$04,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$3F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$93
+;
+; 65 blocks, up to 6 high.
+CITY_Y93:
+  DEFB $03,$00,$00,$00,$01,$01,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $3F,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$00,$07,$00,$07,$00,$0F,$00 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$01,$01,$03,$07 ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$3F,$08,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$04,$37,$03,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$94
+;
+; 78 blocks, up to 6 high.
+CITY_Y94:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$03,$03,$06,$0C ;
+  DEFB $08,$08,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$01,$0F,$0F,$0F ;
+  DEFB $0F,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$18,$08,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$1F,$17,$1E ;
+  DEFB $17,$1F,$17,$1E,$17,$3F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$95
+;
+; 26 blocks, up to 5 high.
+CITY_Y95:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$01,$01,$01,$01 ;
+  DEFB $01,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$0F,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$96
+;
+; 17 blocks, up to 5 high.
+CITY_Y96:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$1F,$1F ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$97
+;
+; 8 blocks, up to 3 high.
+CITY_Y97:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$98
+;
+; 5 blocks, up to 3 high.
+CITY_Y98:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$99
+;
+; 7 blocks, up to 5 high.
+CITY_Y99:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$9A
+;
+; 8 blocks, up to 6 high.
+CITY_Y9A:
+  DEFB $3B,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$9B
+;
+; 11 blocks, up to 6 high.
+CITY_Y9B:
+  DEFB $3B,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$9C
+;
+; 78 blocks, up to 5 high.
+CITY_Y9C:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $03,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $01,$01,$03,$03,$03,$00,$03,$03 ;
+  DEFB $03,$03,$01,$03,$03,$02,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$01,$01,$01,$01 ;
+  DEFB $01,$01,$01,$01,$01,$00,$01,$01 ;
+  DEFB $01,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$01,$00,$00,$00,$00,$00,$1F ; x=$C0 to $DF
+  DEFB $1F,$1F,$1F,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$9D
+;
+; 119 blocks, up to 4 high.
+CITY_Y9D:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$03,$03,$03,$03 ;
+  DEFB $03,$03,$03,$03,$03,$02,$03,$03 ;
+  DEFB $03,$03,$03,$03,$03,$03,$03,$03 ;
+  DEFB $03,$03,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$0F ; x=$E0 to $FF
+  DEFB $0F,$0B,$0F,$0B,$0F,$0B,$0F,$0B ;
+  DEFB $0F,$0B,$0F,$0B,$0F,$0B,$0F,$0B ;
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$9E
+;
+; 100 blocks, up to 5 high.
+CITY_Y9E:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$07,$07,$07,$07 ;
+  DEFB $07,$07,$07,$07,$07,$06,$07,$07 ;
+  DEFB $07,$07,$07,$07,$07,$07,$07,$07 ;
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$1E ; x=$E0 to $FF
+  DEFB $10,$10,$10,$10,$10,$10,$10,$10 ;
+  DEFB $10,$10,$10,$10,$10,$10,$10,$10 ;
+  DEFB $1A,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$9F
+;
+; 37 blocks, up to 6 high.
+CITY_Y9F:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$37 ; x=$E0 to $FF
+  DEFB $20,$20,$20,$20,$00,$20,$20,$20 ;
+  DEFB $20,$00,$20,$20,$20,$20,$20,$10 ;
+  DEFB $1E,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$A0
+;
+; 43 blocks, up to 6 high.
+CITY_YA0:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$0F,$00,$00 ;
+  DEFB $00,$00,$04,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$3E ; x=$E0 to $FF
+  DEFB $21,$20,$20,$20,$20,$20,$20,$20 ;
+  DEFB $20,$20,$20,$20,$20,$20,$20,$00 ;
+  DEFB $1A,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$A1
+;
+; 128 blocks, up to 6 high.
+CITY_YA1:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$0F,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$03,$03,$07,$04,$0F,$0D,$0F ;
+  DEFB $0F,$0D,$0F,$04,$04,$07,$07,$07 ;
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$37 ; x=$E0 to $FF
+  DEFB $28,$3C,$24,$2C,$38,$34,$38,$3C ;
+  DEFB $3C,$3C,$3C,$3C,$3C,$3C,$30,$38 ;
+  DEFB $1E,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$A2
+;
+; 80 blocks, up to 6 high.
+CITY_YA2:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$30,$30 ;
+  DEFB $30,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$33 ; x=$E0 to $FF
+  DEFB $3F,$38,$18,$0F,$07,$0C,$1C,$0F ;
+  DEFB $07,$0C,$0C,$0F,$0F,$0C,$0C,$0F ;
+  DEFB $07,$03,$01,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$A3
+;
+; 19 blocks, up to 6 high.
+CITY_YA3:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$20,$20 ;
+  DEFB $20,$20,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$A4
+;
+; 29 blocks, up to 6 high.
+CITY_YA4:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$07,$07,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$30,$20 ;
+  DEFB $20,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$01,$03 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$A5
+;
+; 33 blocks, up to 6 high.
+CITY_YA5:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$04,$07,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$01,$03,$07,$0F,$08,$20,$20 ;
+  DEFB $20,$20,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$A6
+;
+; 28 blocks, up to 6 high.
+CITY_YA6:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$05,$07,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$30,$20 ;
+  DEFB $20,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$A7
+;
+; 32 blocks, up to 6 high.
+CITY_YA7:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$03,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$01,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$20,$20 ;
+  DEFB $20,$20,$08,$0F,$07,$03,$01,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$A8
+;
+; 65 blocks, up to 6 high.
+CITY_YA8:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$07,$00,$00,$00,$1F ;
+  DEFB $1F,$1F,$1C,$1F,$1F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $03,$02,$02,$02,$02,$02,$02,$02 ;
+  DEFB $02,$02,$03,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$30,$20 ;
+  DEFB $20,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$A9
+;
+; 102 blocks, up to 6 high.
+CITY_YA9:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$0F,$1F,$3F,$3F,$31 ;
+  DEFB $20,$20,$20,$20,$11,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $03,$02,$02,$02,$02,$02,$02,$02 ;
+  DEFB $03,$02,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$20,$20 ;
+  DEFB $20,$20,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $03,$02,$02,$02,$02,$03,$03,$03 ; x=$E0 to $FF
+  DEFB $01,$01,$03,$03,$03,$03,$03,$03 ;
+  DEFB $03,$00,$03,$03,$03,$03,$03,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$AA
+;
+; 46 blocks, up to 6 high.
+CITY_YAA:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+  DEFB $20,$20,$20,$20,$1F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$05,$04,$04,$04,$04,$04 ;
+  DEFB $04,$02,$03,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$30,$20 ;
+  DEFB $20,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$AB
+;
+; 40 blocks, up to 6 high.
+CITY_YAB:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11 ;
+  DEFB $20,$00,$00,$20,$11,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$04,$08,$09,$08,$09,$08 ;
+  DEFB $05,$03,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$08,$20,$20 ;
+  DEFB $20,$20,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$AC
+;
+; 48 blocks, up to 6 high.
+CITY_YAC:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+  DEFB $20,$20,$20,$20,$1F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$04,$08,$10,$10,$10,$08 ;
+  DEFB $04,$02,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$18,$30,$30 ;
+  DEFB $30,$30,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$AD
+;
+; 87 blocks, up to 6 high.
+CITY_YAD:
+  DEFB $0B,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11 ;
+  DEFB $20,$20,$20,$20,$11,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$04,$08,$10,$20,$10,$08 ;
+  DEFB $04,$02,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$07,$07 ; x=$C0 to $DF
+  DEFB $07,$07,$07,$04,$04,$0F,$0D,$0F ;
+  DEFB $0F,$0D,$0F,$04,$04,$07,$07,$07 ;
+  DEFB $07,$07,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$AE
+;
+; 39 blocks, up to 6 high.
+CITY_YAE:
+  DEFB $3B,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+  DEFB $20,$20,$20,$20,$1F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$04,$08,$10,$20,$10,$08 ;
+  DEFB $04,$02,$02,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$AF
+;
+; 29 blocks, up to 6 high.
+CITY_YAF:
+  DEFB $0B,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11 ;
+  DEFB $20,$20,$20,$20,$11,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$02,$04,$08,$10,$10,$10,$08 ;
+  DEFB $04,$02,$02,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$B0
+;
+; 51 blocks, up to 6 high.
+CITY_YB0:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+  DEFB $20,$20,$21,$20,$1F,$01,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$03,$05,$09,$08,$09,$09,$08 ;
+  DEFB $05,$03,$03,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+  DEFB $00,$00,$03,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$B1
+;
+; 93 blocks, up to 6 high.
+CITY_YB1:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $00,$00,$00,$3F,$21,$3F,$21,$3F ;
+  DEFB $3E,$21,$21,$3F,$3F,$21,$3F,$21 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$03,$05,$05,$04,$05,$05,$04 ;
+  DEFB $07,$03,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $28,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$B2
+;
+; 87 blocks, up to 6 high.
+CITY_YB2:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$3F,$21,$3F,$21,$3F ;
+  DEFB $21,$21,$21,$21,$3F,$21,$3F,$21 ;
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $02,$03,$03,$03,$02,$03,$03,$02 ;
+  DEFB $03,$03,$02,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $3F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$B3
+;
+; 38 blocks, up to 5 high.
+CITY_YB3:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $01,$01,$01,$01,$01,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $02,$03,$02,$02,$03,$03,$03,$02 ;
+  DEFB $02,$02,$03,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $10,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$B4
+;
+; 23 blocks, up to 3 high.
+CITY_YB4:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $01,$01,$00,$00,$01,$01,$01,$00 ;
+  DEFB $00,$00,$01,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$B5
+;
+; 16 blocks, up to 2 high.
+CITY_YB5:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$B6
+;
+; 26 blocks, up to 4 high.
+CITY_YB6:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $04,$0F,$04,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $01,$00,$01,$01,$01,$01,$00,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$B7
+;
+; 24 blocks, up to 3 high.
+CITY_YB7:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ; x=$E0 to $FF
+  DEFB $01,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$B8
+;
+; 21 blocks, up to 2 high.
+CITY_YB8:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ; x=$E0 to $FF
+  DEFB $01,$00,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$B9
+;
+; 24 blocks, up to 3 high.
+CITY_YB9:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ; x=$E0 to $FF
+  DEFB $01,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$BA
+;
+; 25 blocks, up to 4 high.
+CITY_YBA:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$04,$0F,$04,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$01,$01,$01,$01,$01,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$BB
+;
+; 17 blocks, up to 5 high.
+CITY_YBB:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$03,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$01,$01,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$BC
+;
+; 46 blocks, up to 5 high.
+CITY_YBC:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$07,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$01,$03,$07,$0F,$1F ;
+  DEFB $10,$1F,$0F,$07,$03,$01,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$BD
+;
+; 57 blocks, up to 5 high.
+CITY_YBD:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$04 ;
+  DEFB $0F,$04,$00,$00,$00,$04,$0F,$04 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$06,$06,$06,$07 ; x=$A0 to $BF
+  DEFB $00,$07,$00,$00,$00,$07,$00,$07 ;
+  DEFB $00,$07,$00,$07,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$BE
+;
+; 14 blocks, up to 4 high.
+CITY_YBE:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$02 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$BF
+;
+; 27 blocks, up to 4 high.
+CITY_YBF:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$07,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$08,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$C0
+;
+; 23 blocks, up to 5 high.
+CITY_YC0:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$03 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$06,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$0F,$08,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$C1
+;
+; 66 blocks, up to 6 high.
+CITY_YC1:
+  DEFB $3B,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $03,$03,$02,$03,$03,$03,$03,$03 ;
+  DEFB $03,$00,$00,$00,$00,$00,$03,$03 ;
+  DEFB $03,$03,$03,$03,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$0C,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$07,$00,$07,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$01,$01,$01,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $38,$30,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$C2
+;
+; 24 blocks, up to 6 high.
+CITY_YC2:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$18,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$01,$01,$01,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $08,$3F,$20,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$C3
+;
+; 35 blocks, up to 6 high.
+CITY_YC3:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$3F,$3F,$3F,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$01,$01,$01,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$10,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$C4
+;
+; 34 blocks, up to 6 high.
+CITY_YC4:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$3F,$00,$3F,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$01,$01,$01,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$10,$3F,$10,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$C5
+;
+; 32 blocks, up to 6 high.
+CITY_YC5:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$3F,$3E,$3F,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$10,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$C6
+;
+; 11 blocks, up to 6 high.
+CITY_YC6:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$C7
+;
+; 14 blocks, up to 5 high.
+CITY_YC7:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$C8
+;
+; 52 blocks, up to 3 high.
+CITY_YC8:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $03,$03,$03,$03,$00,$03,$03,$03 ; x=$E0 to $FF
+  DEFB $03,$03,$03,$03,$03,$03,$03,$00 ;
+  DEFB $03,$03,$03,$03,$03,$03,$03,$07 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$C9
+;
+; 65 blocks, up to 5 high.
+CITY_YC9:
+  DEFB $07,$03,$03,$07,$03,$03,$07,$03 ; x=$80 to $9F
+  DEFB $03,$07,$03,$03,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$1F,$0F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$04,$04,$04,$07 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$CA
+;
+; 38 blocks, up to 3 high.
+CITY_YCA:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$04,$04,$04,$00,$04 ;
+  DEFB $04,$04,$07,$07,$07,$00,$07,$07 ;
+  DEFB $04,$04,$00,$04,$04,$07,$03,$03 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$CB
+;
+; 9 blocks, up to 3 high.
+CITY_YCB:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$04,$00,$04,$04,$04 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$CC
+;
+; 9 blocks, up to 3 high.
+CITY_YCC:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$04,$04,$04,$00,$04 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$CD
+;
+; 13 blocks, up to 3 high.
+CITY_YCD:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$04,$04,$04,$07 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$CE
+;
+; 5 blocks, up to 3 high.
+CITY_YCE:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$CF
+;
+; 5 blocks, up to 3 high.
+CITY_YCF:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D0
+;
+; 9 blocks, up to 3 high.
+CITY_YD0:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$04,$04,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$02,$02 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D1
+;
+; 49 blocks, up to 6 high.
+CITY_YD1:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$3F,$04,$04,$04,$06 ;
+  DEFB $02,$03,$00,$02,$1F,$1F,$1B,$1B ; x=$E0 to $FF
+  DEFB $1F,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$D2
+;
+; 49 blocks, up to 6 high.
+CITY_YD2:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$07,$07,$07,$07,$07 ;
+  DEFB $0F,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$02,$1F,$20,$20,$20 ; x=$E0 to $FF
+  DEFB $20,$1C,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D3
+;
+; 29 blocks, up to 6 high.
+CITY_YD3:
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$04,$00,$00,$00,$00 ;
+  DEFB $00,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$08,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$02,$13,$20,$20,$00 ; x=$E0 to $FF
+  DEFB $20,$1C,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D4
+;
+; 59 blocks, up to 6 high.
+CITY_YD4:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$04,$00,$00,$00,$00 ;
+  DEFB $00,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$1F,$1C,$1C,$1C,$1C,$1C,$1F ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$1F,$20,$20,$20 ; x=$E0 to $FF
+  DEFB $20,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$D5
+;
+; 103 blocks, up to 6 high.
+CITY_YD5:
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$04,$00,$00,$00,$00 ;
+  DEFB $00,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$04,$04 ;
+  DEFB $04,$04,$04,$07,$00,$07,$04,$04 ; x=$A0 to $BF
+  DEFB $04,$14,$14,$14,$14,$14,$14,$14 ;
+  DEFB $04,$04,$04,$07,$03,$03,$03,$03 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$1F,$1F,$13,$13 ; x=$E0 to $FF
+  DEFB $1F,$1F,$0C,$06,$03,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D6
+;
+; 53 blocks, up to 6 high.
+CITY_YD6:
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$04,$00,$00,$00,$00 ;
+  DEFB $00,$1F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$1F,$1C,$1C,$1C,$1C,$1C,$1F ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$04,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$02,$02 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$D7
+;
+; 28 blocks, up to 6 high.
+CITY_YD7:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $04,$04,$04,$07,$00,$00,$00,$00 ;
+  DEFB $00,$3F,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$08,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$D8
+;
+; 62 blocks, up to 6 high.
+CITY_YD8:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $04,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$3F,$3F,$00,$3F,$00,$3F,$1F ;
+  DEFB $0F,$04,$04,$04,$04,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$01,$03,$03 ; x=$C0 to $DF
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$10,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$D9
+;
+; 19 blocks, up to 5 high.
+CITY_YD9:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $04,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$1F,$10,$1F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$DA
+;
+; 18 blocks, up to 6 high.
+CITY_YDA:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$DB
+;
+; 11 blocks, up to 3 high.
+CITY_YDB:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $04,$07,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$DC
+;
+; 25 blocks, up to 6 high.
+CITY_YDC:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$07 ; x=$80 to $9F
+  DEFB $07,$07,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$3F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$01 ;
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$DD
+;
+; 10 blocks, up to 3 high.
+CITY_YDD:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$00 ;
+  DEFB $00,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$DE
+;
+; 13 blocks, up to 5 high.
+CITY_YDE:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$1F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$00 ;
+  DEFB $00,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$DF
+;
+; 15 blocks, up to 5 high.
+CITY_YDF:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$01,$01,$11 ;
+  DEFB $11,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E0
+;
+; 22 blocks, up to 5 high.
+CITY_YE0:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$00,$0F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$04,$07,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$11 ;
+  DEFB $11,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$E1
+;
+; 20 blocks, up to 5 high.
+CITY_YE1:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$04,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$04,$04,$04,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+  DEFB $1F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E2
+;
+; 27 blocks, up to 4 high.
+CITY_YE2:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$07,$00,$07,$04,$00 ;
+  DEFB $00,$00,$00,$04,$04,$04,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E3
+;
+; 68 blocks, up to 4 high.
+CITY_YE3:
+  DEFB $07,$00,$00,$00,$00,$06,$06,$07 ; x=$80 to $9F
+  DEFB $0F,$00,$0F,$0F,$0F,$0D,$0F,$0F ;
+  DEFB $0E,$0F,$07,$0F,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$04,$00 ;
+  DEFB $00,$00,$00,$07,$04,$07,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$E4
+;
+; 14 blocks, up to 3 high.
+CITY_YE4:
+  DEFB $03,$00,$00,$00,$00,$06,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$04,$00 ;
+  DEFB $00,$00,$00,$04,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E5
+;
+; 27 blocks, up to 3 high.
+CITY_YE5:
+  DEFB $03,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$03,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$04,$04 ;
+  DEFB $07,$04,$04,$04,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E6
+;
+; 11 blocks, up to 3 high.
+CITY_YE6:
+  DEFB $07,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$E7
+;
+; 11 blocks, up to 4 high.
+CITY_YE7:
+  DEFB $0F,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E8
+;
+; 30 blocks, up to 6 high.
+CITY_YE8:
+  DEFB $0F,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$03,$2B,$3E,$3E,$2B,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$E9
+;
+; 38 blocks, up to 6 high.
+CITY_YE9:
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$3E,$32,$20,$3E,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$01,$01,$01,$01 ; x=$C0 to $DF
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$EA
+;
+; 35 blocks, up to 6 high.
+CITY_YEA:
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$2B,$3E,$3E,$2B,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$01,$01,$01,$01 ; x=$C0 to $DF
+  DEFB $01,$01,$01,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$EB
+;
+; 45 blocks, up to 6 high.
+CITY_YEB:
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$20,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$01,$01,$01,$01 ; x=$C0 to $DF
+  DEFB $01,$01,$01,$00,$00,$00,$01,$03 ;
+  DEFB $07,$0F,$1F,$3F,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$EC
+;
+; 22 blocks, up to 6 high.
+CITY_YEC:
+  DEFB $03,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$20,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$3B ;
+
+; The city: the row at y=$ED
+;
+; 22 blocks, up to 6 high.
+CITY_YED:
+  DEFB $03,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$20,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$1F ;
+
+; The city: the row at y=$EE
+;
+; 32 blocks, up to 6 high.
+CITY_YEE:
+  DEFB $07,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$20,$20,$20,$20,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$EF
+;
+; 21 blocks, up to 6 high.
+CITY_YEF:
+  DEFB $03,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$20,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F0
+;
+; 66 blocks, up to 6 high.
+CITY_YF0:
+  DEFB $03,$00,$00,$00,$00,$03,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$20,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$03 ; x=$E0 to $FF
+  DEFB $07,$07,$07,$07,$07,$07,$07,$07 ;
+  DEFB $07,$07,$07,$07,$07,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F1
+;
+; 74 blocks, up to 6 high.
+CITY_YF1:
+  DEFB $07,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$07,$1F,$3E,$3F,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ; x=$E0 to $FF
+  DEFB $04,$38,$18,$18,$18,$18,$18,$18 ;
+  DEFB $18,$18,$18,$18,$38,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$F2
+;
+; 59 blocks, up to 6 high.
+CITY_YF2:
+  DEFB $03,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$03,$3E,$3F,$1F,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$00,$00,$00,$00,$00,$00 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ; x=$E0 to $FF
+  DEFB $04,$18,$20,$20,$20,$20,$20,$20 ;
+  DEFB $20,$20,$20,$20,$18,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F3
+;
+; 65 blocks, up to 6 high.
+CITY_YF3:
+  DEFB $03,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$03,$03,$07,$0F,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$01,$01,$01,$01,$01,$01,$01 ;
+  DEFB $01,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $01,$01,$01,$01,$01,$01,$01,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ; x=$E0 to $FF
+  DEFB $04,$18,$20,$20,$20,$20,$20,$20 ;
+  DEFB $20,$20,$20,$30,$09,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F4
+;
+; 60 blocks, up to 6 high.
+CITY_YF4:
+  DEFB $07,$00,$00,$00,$00,$07,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $03,$02,$02,$02,$02,$02,$02,$02 ;
+  DEFB $04,$08,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$02 ; x=$E0 to $FF
+  DEFB $04,$38,$18,$18,$18,$18,$18,$18 ;
+  DEFB $18,$18,$18,$18,$38,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$F5
+;
+; 127 blocks, up to 6 high.
+CITY_YF5:
+  DEFB $03,$00,$00,$00,$00,$07,$07,$07 ; x=$80 to $9F
+  DEFB $0F,$0F,$0F,$0F,$0E,$0F,$0F,$0F ;
+  DEFB $0F,$0E,$0F,$0F,$0F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $07,$04,$04,$04,$04,$04,$04,$04 ;
+  DEFB $04,$08,$10,$20,$37,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$01,$03 ; x=$E0 to $FF
+  DEFB $07,$07,$07,$07,$07,$07,$07,$07 ;
+  DEFB $07,$07,$07,$07,$07,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F6
+;
+; 35 blocks, up to 6 high.
+CITY_YF6:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$03,$02,$03,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $0F,$08,$08,$08,$08,$04,$0C,$0F ;
+  DEFB $08,$08,$18,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F7
+;
+; 40 blocks, up to 6 high.
+CITY_YF7:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$03,$02,$03,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $1F,$10,$10,$10,$18,$14,$1C,$1C ;
+  DEFB $18,$10,$10,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$F8
+;
+; 42 blocks, up to 6 high.
+CITY_YF8:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $3F,$20,$2D,$20,$38,$24,$3C,$3C ;
+  DEFB $39,$20,$20,$20,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$F9
+;
+; 81 blocks, up to 6 high.
+CITY_YF9:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $3F,$3F,$3F,$3F,$3F,$37,$3F,$3F ;
+  DEFB $3F,$3F,$3F,$3F,$3F,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$FA
+;
+; 57 blocks, up to 5 high.
+CITY_YFA:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$0F,$07,$07,$07 ;
+  DEFB $1F,$07,$01,$01,$01,$01,$01,$01 ;
+  DEFB $07,$1F,$07,$07,$07,$0F,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$04,$04,$04 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$FB
+;
+; 10 blocks, up to 3 high.
+CITY_YFB:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$FC
+;
+; 10 blocks, up to 3 high.
+CITY_YFC:
+  DEFB $03,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$03 ;
+
+; The city: the row at y=$FD
+;
+; 12 blocks, up to 3 high.
+CITY_YFD:
+  DEFB $07,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$07 ;
+
+; The city: the row at y=$FE
+;
+; 15 blocks, up to 4 high.
+CITY_YFE:
+  DEFB $0F,$00,$00,$00,$00,$00,$00,$00 ; x=$80 to $9F
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$A0 to $BF
+  DEFB $00,$00,$00,$00,$07,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$07,$01,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$C0 to $DF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ; x=$E0 to $FF
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$0F ;
+
+; The city: the row at y=$FF
+;
+; 305 blocks, up to 6 high.
+CITY_YFF:
+  DEFB $3F,$0F,$07,$03,$03,$07,$03,$03 ; x=$80 to $9F
+  DEFB $07,$03,$03,$07,$03,$03,$07,$03 ;
+  DEFB $03,$07,$03,$03,$07,$0F,$3B,$3B ;
+  DEFB $0F,$07,$03,$03,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ; x=$A0 to $BF
+  DEFB $07,$03,$03,$07,$0F,$07,$00,$00 ;
+  DEFB $00,$00,$00,$00,$00,$00,$00,$00 ;
+  DEFB $00,$00,$00,$00,$07,$0F,$07,$03 ;
+  DEFB $03,$07,$03,$03,$07,$03,$03,$07 ; x=$C0 to $DF
+  DEFB $03,$03,$07,$03,$03,$07,$03,$03 ;
+  DEFB $07,$03,$03,$0F,$0F,$0B,$0F,$0F ;
+  DEFB $03,$03,$03,$07,$03,$03,$07,$03 ;
+  DEFB $03,$07,$03,$03,$07,$03,$03,$07 ; x=$E0 to $FF
+  DEFB $03,$03,$07,$0F,$3B,$0F,$07,$03 ;
+  DEFB $03,$07,$03,$03,$07,$03,$03,$07 ;
+  DEFB $03,$03,$07,$03,$03,$07,$0F,$3F ;
 
