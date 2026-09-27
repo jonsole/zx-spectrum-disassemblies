@@ -25,13 +25,16 @@ Next: <a href="37414.html">9226</a>
 </td>
 </tr>
 </table>
-<div class="description">9213: A plus a random -10 to +10, kept to 0-255</div>
+<div class="description">9213: A plus a random -10 to +10, meant to be kept to 0-255</div>
 <table class="disassembly">
 <tr>
 <td class="routine-comment" colspan="5">
 <div class="details">
 <div class="paragraph">
 Used by the routine at <a href="37233.html">DO_ATTACK</a>.
+</div>
+<div class="paragraph">
+The random number from RANDOM is added with ADD A,B, and a carry is taken as going past 255: then 0 if the number was negative, 255 if not. But a negative number is a byte of 246 to 255, which carries whenever the true result is fine, so every downward jostle of a value of 10 or more returns 0; below 10 a sum that really goes under 0 does not carry, and comes out as 246 or more. And RANDOM gives a negative number only about one time in 25 for a limit of 10 (see its description), so in practice a blow or a guard goes up by 0 to 10, and about one time in 25 is 0 -- and a guard of 0 loses to any blow over 16. Measured in the simulator: 2000 jostles of 104 came out 104 to 114, or 0 (71 times), never 94 to 103. Watched in the emulator: the vicious warg (strength 55) killed the player (defence 64) with one blow when the player's guard came out 0, which a true jostle could never allow.
 </div>
 </div>
 </td>

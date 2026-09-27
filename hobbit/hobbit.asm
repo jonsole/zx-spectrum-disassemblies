@@ -741,10 +741,11 @@ NEW_GAME:
   LD DE,TIMERS            ;
   LD BC,$00BF             ;
   LDIR                    ;
-  XOR A                   ; Black border; the ROM told the border is black too
-  OUT ($FE),A             ;
-  LD A,$38                ;
-  LD ($5C48),A            ;
+  XOR A                   ; Black border for now; but BORDCR is given $38 -- a
+  OUT ($FE),A             ; white border, black ink on white paper -- which is
+  LD A,$38                ; the colour the ROM puts back after each tape block
+  LD ($5C48),A            ; (measured: SA/LD-RET writes 7 after every SAVE
+                          ; block)
 TITLE_WAIT:
   XOR A                   ; The title screen: wait for a key
   IN A,($FE)              ;
@@ -1482,6 +1483,12 @@ PATTERN_OF:
 ; FLAGS_FIRST_WORDS are the second and first objects, bit 4 not narrated, bit 7
 ; an object that is a place, bit 0 PATTERN_OPTION; bit 6 of FLAGS_LAST_WORDS
 ; needs light.
+;
+; Traced further for the how-it-works pages (2026-09-27): in FLAGS_FIRST_WORDS,
+; bit 5 means the target's phrase carries the particle (read by the phrase
+; assignment); in FLAGS_LAST_WORDS, bits 2-3 and 0-1 are the find mode for the
+; target and for the instrument, bit 5 is set only by GIVE ... TO, and bit 7
+; only by CLIMB OUT OF, for its narration.
 ;
 ; I:IX The pattern
 PATTERN_FLAGS:
@@ -3469,13 +3476,13 @@ MATCH_AND_TRY:
   LD A,(FIRST_TARGET_FAILED) ;
   LD (TARGET),A              ;
   CALL START_INSTRUMENTS     ;
-  CALL WANTS_TARGET          ;
+  CALL WANTS_INSTRUMENT      ;
   JR NZ,MATCH_AND_TRY_3      ;
   RET                        ;
 MATCH_AND_TRY_0:
   LD HL,TARGETS_FOUND     ; Count it
   INC (HL)                ;
-  CALL WANTS_TARGET       ; Wants an instrument? Try each with it
+  CALL WANTS_INSTRUMENT   ; Wants an instrument? Try each with it
   JR Z,MATCH_AND_TRY_2    ;
   CALL START_INSTRUMENTS  ;
   CALL NEXT_INSTRUMENT    ;
@@ -3593,13 +3600,18 @@ SEARCH_START:
   LD IX,OBJECT_INDEX-$0003
   RET
 
-; Does the sentence still want a target found?
+; Does the sentence still want an instrument found?
 ;
 ; Used by the routines at MATCH_AND_TRY and TARGET_TROUBLE.
 ;
-; Only for a pattern with a first object (bit 2 of FLAGS_FIRST_WORDS). Not yet
-; worked out in full.
-WANTS_TARGET:
+; Only for a pattern with a second object -- an instrument, bit 2 of
+; FLAGS_FIRST_WORDS, "second object" on the actions page -- and not once
+; INSTRUMENT_STATE says one has been settled (bit 0). Returns NZ while one is
+; still wanted: when bit 1 of the pattern flags is clear. MATCH_AND_TRY calls
+; it as "wants an instrument? try each with it". (Renamed 2026-09-27 from
+; WANTS_TARGET, reported by the how-it-works agent and checked against the
+; pattern flags.)
+WANTS_INSTRUMENT:
   LD A,(FLAGS_FIRST_WORDS)
   BIT 2,A
   RET Z
@@ -3607,10 +3619,10 @@ WANTS_TARGET:
   BIT 0,(HL)
   RET NZ
   BIT 1,A
-  JR NZ,WANTS_TARGET_0
+  JR NZ,WANTS_INSTRUMENT_0
   OR $01
   RET
-WANTS_TARGET_0:
+WANTS_INSTRUMENT_0:
   XOR A
   RET
 
@@ -4174,7 +4186,7 @@ TARGET_TROUBLE_0:
   JR Z,SAY_WHY_NOT
   DEC A
   JR NZ,ASK_WHICH
-  CALL WANTS_TARGET
+  CALL WANTS_INSTRUMENT
   JR NZ,INSTRUMENT_TROUBLE
 ; This entry point is used by the routines at OBEY and INSTRUMENT_TROUBLE.
 SAY_WHY_NOT:
@@ -5471,10 +5483,14 @@ DO_SCORE:
 ;
 ; Used by the routines at DO_QUIT, DO_SCORE and PLAYER_DIES.
 ;
-; The score at SCORE is kept in tenths of a per cent, so a full game is 1000,
-; and it is printed with one decimal place: hundreds only if not zero, then
-; tens, a point, and units. Reaching the lonelands scores 25 (VISIT_SCORES),
-; which is the 2.5% a first death there reports.
+; The score at SCORE is kept in tenths of a per cent, so a full game would be
+; 1000, and it is printed as two digits, a point and a third: the tens of per
+; cent only if not zero, then the units, a point, and the tenths. There is no
+; hundreds digit: DIGIT would count ten tens in 1000 and print the character
+; after 9, so a full score comes out as ":0.0%" (watched in the emulator with
+; the score set to 1000). No game gets there: the places VISIT_SCORES lists are
+; worth 750. Reaching the lonelands scores 25 (VISIT_SCORES), which is the 2.5%
+; a first death there reports.
 SHOW_SCORE:
   PUSH HL
   PUSH DE
@@ -5482,16 +5498,16 @@ SHOW_SCORE:
   LD (INPUT_STYLE),A      ;
   LD HL,MSG_YOU_HAVE_M_A  ;
   CALL RUN_MESSAGE_HL     ;
-  LD HL,(SCORE)           ; Hundreds, if any
+  LD HL,(SCORE)           ; Tens of per cent, if not zero
   LD DE,$0064             ;
   CALL DIGIT              ;
   CALL NZ,PRINT_CHAR      ;
-  LD DE,$000A             ; Tens
+  LD DE,$000A             ; Units of per cent
   CALL DIGIT              ;
   CALL PRINT_CHAR         ;
   LD A,$2E                ; A decimal point
   CALL PRINT_CHAR         ;
-  LD A,L                  ; Units
+  LD A,L                  ; Tenths
   ADD A,$30               ;
   CALL PRINT_CHAR         ;
   XOR A                       ; "% of this adventure."
@@ -7442,11 +7458,13 @@ SAME_SIDE_0:
 ;
 ; The attacker's strength, byte 5 of its record, plus the weapon's if there is
 ; one -- bare hands are a FIST -- against the target's defence, byte 6, each
-; with a random -10 to +10 (JOSTLE). A blow no stronger than the defence is
-; wasted: "but the effort is wasted. his defense is too strong.". One more than
-; 16 stronger kills: "with one well placed blow you cleave his skull." and
-; KILL. Anything between picks a message from WOUNDS by how much stronger it
-; was, and wears the target's strength and defence down by it.
+; jostled by JOSTLE -- meant as a random -10 to +10, but in practice 0 to +10,
+; and about one time in 25 zero instead (see JOSTLE); a guard of 0 loses to any
+; blow over 16. A blow no stronger than the defence is wasted: "but the effort
+; is wasted. his defense is too strong.". One more than 16 stronger kills:
+; "with one well placed blow you cleave his skull." and KILL. Anything between
+; picks a message from WOUNDS by how much stronger it was, and wears the
+; target's strength and defence down by it.
 ;
 ; Only something in one place can be a weapon: "you cannot kill with the ...".
 ; And no one attacks their own side (SAME_SIDE).
@@ -7529,9 +7547,22 @@ DO_ATTACK_6:
   LD A,$06                      ;
   JP SAY_STATE                  ;
 
-; A plus a random -10 to +10, kept to 0-255
+; A plus a random -10 to +10, meant to be kept to 0-255
 ;
 ; Used by the routine at DO_ATTACK.
+;
+; The random number from RANDOM is added with ADD A,B, and a carry is taken as
+; going past 255: then 0 if the number was negative, 255 if not. But a negative
+; number is a byte of 246 to 255, which carries whenever the true result is
+; fine, so every downward jostle of a value of 10 or more returns 0; below 10 a
+; sum that really goes under 0 does not carry, and comes out as 246 or more.
+; And RANDOM gives a negative number only about one time in 25 for a limit of
+; 10 (see its description), so in practice a blow or a guard goes up by 0 to
+; 10, and about one time in 25 is 0 -- and a guard of 0 loses to any blow over
+; 16. Measured in the simulator: 2000 jostles of 104 came out 104 to 114, or 0
+; (71 times), never 94 to 103. Watched in the emulator: the vicious warg
+; (strength 55) killed the player (defence 64) with one blow when the player's
+; guard came out 0, which a true jostle could never allow.
 JOSTLE:
   PUSH BC
   LD B,A
@@ -9484,10 +9515,16 @@ RANDOM_POSITIVE:
 ; Used by the routines at JOSTLE, DO_STRIKE and RANDOM_POSITIVE.
 ;
 ; Mixes the last result, kept at RANDOM_LAST and seeded from R by START, with
-; the byte the pointer at RANDOM_POINTER has got to -- it steps on by one every
-; call -- and one DE bytes past it, and draws again if that repeats the last
-; result. The byte is then halved until it is no more than twice A, and A taken
-; off.
+; the byte the pointer at RANDOM_POINTER has got to -- which steps on 256 bytes
+; every call: INC (IX+1) is its high byte, and the low byte moves on only when
+; the high one wraps, so it sweeps the whole of memory a page at a time -- and
+; one DE bytes past it, and draws again if that repeats the last result. The
+; byte is then halved until it is no more than twice A, and A taken off.
+;
+; The halving keeps any byte over twice A in the upper half, A to twice A, so
+; the result is nearly always 0 to A: it is negative only when the byte is
+; under A, about one call in 25 for A = 10 (measured through JOSTLE: 71 in
+; 2000).
 ;
 ; Measured over 3000 calls each, through RANDOM_POSITIVE: every value from 0 to
 ; A comes up, but not evenly -- for A = 4 the ends come up half as often as the
@@ -9505,8 +9542,8 @@ RANDOM:
 RANDOM_0:
   LD B,A                  ;
 RANDOM_1:
-  LD IX,RANDOM_POINTER    ; Step the pointer on
-  INC (IX+$01)            ;
+  LD IX,RANDOM_POINTER    ; Step the pointer on a page: the high byte, and the
+  INC (IX+$01)            ; low one only when that wraps
   JR NZ,RANDOM_2          ;
   INC (IX+$00)            ;
 RANDOM_2:
@@ -11806,8 +11843,10 @@ GOLLUM_POCKETS:
 
 ; The trolls, the four turns after: eat the player, if still there
 ;
-; The troll eats the player (EAT, $1B) where they are both, and PLAYER_DIES.
-; Anywhere else it fails, and the script pauses a turn.
+; The troll eats the player (EAT, $1B) where they are both -- narrated, and
+; done by calling DO_EAT itself -- and then jumps to PLAYER_DIES; the player's
+; own EAT handlers are not used. Anywhere else it fails, and the script pauses
+; a turn.
 TROLLS_EAT:
   LD A,(ACTOR_AT)
   LD HL,PLAYER_AT

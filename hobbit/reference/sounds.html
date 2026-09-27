@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Sounds</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../hobbit.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="The Hobbit" src="../images/logo.png" /></a></td>
+<td class="page-header">Sounds</td>
+</tr>
+</table>
+<p>The Hobbit makes no sound. A 48K Spectrum has one bit of sound hardware, bit 4 of port $FE, and nothing in the game ever sets it: there is no beeper routine, no tune and no click. The pictures draw, the characters come and go and the fights are fought in silence. The only noise the machine makes while the game runs is SAVE's tape signal, and that is the ROM's.</p>
+<h3>What the game writes to port $FE</h3>
+<p>The listing has 10 OUT instructions. 6 write to port $FE, and each writes a border colour -- bits 0-2 -- with the MIC bit (3) and the speaker bit (4) clear:</p>
+<table class="default">
+<tr><th>OUT</th><th>Writes</th><th>What for</th><th>Seen in the run</th></tr>
+<tr><td>$6C66 in <a href="../asm/27648.html">START</a></td><td>$00</td><td>Black, before the title screen waits for a key (every new game).</td><td>1 &times; $00</td></tr>
+<tr><td>$6FD8 in <a href="../asm/28627.html">CLEAR_SCREEN</a></td><td>$07</td><td>White, as <a href="../asm/28627.html">CLEAR_SCREEN</a> wipes the screen to black on white.</td><td>1 &times; $07</td></tr>
+<tr><td>$821B in <a href="../asm/33291.html">CLEAR_CANVAS</a></td><td>the picture's first byte, or $00</td><td>The picture's border colour, the first byte of its stream; 0 (black) when <a href="../asm/38381.html">TOO_DARK</a> says the player cannot see.</td><td>7 &times; $07</td></tr>
+<tr><td>$843C in <a href="../asm/33850.html">DO_PAUSE</a></td><td>$04</td><td>Green, for PAUSE.</td><td>1 &times; $04</td></tr>
+<tr><td>$844C in <a href="../asm/33850.html">DO_PAUSE</a></td><td>$07</td><td>White again, once PAUSE has had its key.</td><td>1 &times; $07</td></tr>
+<tr><td>$96A5 in <a href="../asm/38554.html">WAIT_FOR_ANY_KEY</a></td><td>$07</td><td>White, after the key that follows every picture.</td><td>7 &times; $07</td></tr>
+</table>
+<p>The picture border bytes, read from the 22 streams in <a href="../asm/52224.html">PICTURE_TABLE</a>, are black (0), blue (1), red (2), green (4), cyan (5), yellow (6), white (7); <a href="../asm/43377.html">TROLLS_TURN_TO_STONE</a> writes 5 (cyan) over the trolls' clearing's when day dawns. None has bit 3 or 4 set, so no picture moves the speaker or the MIC line either.</p>
+<p>The other 4 OUTs, $8B31, $8B54, $8B66 and $8B72 in <a href="../asm/35618.html">LINE_TO_PRINTER</a>, are to port $FB, the ZX Printer, which PRINT drives a pixel at a time. Bit 0 of that port number is set, and the ULA only answers even ports, so they do nothing to the speaker; the whirr of a real printer is the printer's own.</p>
+<p>No key click either. The 48K ROM's click is made by its line editor (ED-LOOP), which calls BEEPER for every key; the game never goes near it. It reads the keyboard itself (<a href="../asm/35731.html">SCAN_KEYBOARD</a> and the waits that poll port $FE directly), with interrupts off -- <a href="../asm/27648.html">START</a> begins with DI -- and its only calls into the ROM are $04C2 and $0556 -- SA-BYTES and LD-BYTES, for SAVE, its verify and LOAD: $8498 in <a href="../asm/33944.html">LOAD_BLOCK</a>; $84EF, $84FB, $8507 and $8513 in <a href="../asm/33996.html">DO_SAVE</a>; $855A in <a href="../asm/34138.html">VERIFY_BLOCK</a>.</p>
+<h3>Checked by running it</h3>
+<p>The game run in SkoolKit's simulator from <a href="../asm/27648.html">START</a>: the title, the opening, the 32 commands of the build's walkthrough, then PAUSE and SAVE with its verify -- 9 minutes of emulated time, with every port write logged and every address run recorded. It wrote port $FE 124,413 times: 18 from the six OUTs above, with the values in the table, and 124,395 from the ROM. The speaker bit changed <b>not once</b>. The ZX Printer's port was never written (the walkthrough never turns PRINT on). The ROM wrote $01, $02, $07, $09, $0A, $0D, $0E, $0F, all during SAVE and its verify, every value with bit 4 clear. The ROM code that ran was the tape routines, $04C2-$0604, and $0038-$0052, $028E-$029B, $02AB-$02B2, $02BF-$02C8, $02D1-$02DB, $031E-$0324 -- the ROM's interrupt routine and the keyboard scan it calls. SA-BYTES ends, as every ROM tape routine does, with EI, and <a href="../asm/33996.html">DO_SAVE</a> does not DI again until TAPE_DONE, so interrupts are on from the end of the fourth block, through the "REWIND" prompt and its key, until the verify's LD-BYTES turns them off; the ROM's keyboard scan runs fifty times a second there. It only reads the keyboard; the click is the editor's. BEEPER ($03B5) never ran.</p>
+<h3>The one noise: SAVE</h3>
+<p>SAVE (<a href="../asm/33996.html">DO_SAVE</a>) writes four headerless blocks -- the variables, the objects, the timers and characters, the rooms -- through the ROM's SA-BYTES ($04C2) and then reads them back through LD-BYTES ($0556) in verify mode. SA-BYTES makes the tape signal by flipping bit 3 of port $FE, the MIC socket, with the border going red and cyan for the leader and blue and yellow for the data. It never touches bit 4, so this is the signal on the lead to the tape recorder, not the speaker; a real 48K plays it quietly through its speaker as well, because the MIC and speaker lines share a pin of the ULA (that is the hardware, not measured here). LOAD and the verify only read: LD-BYTES writes port $FE to flash the border with bit 3 set and bit 4 clear, so what is heard while loading is the tape itself.</p>
+<p>The recording is SAVE's first block, the 29 bytes at $B6EB, from the first OUT of SA-BYTES to its return: the leader, the two sync pulses, the flag byte, the block and the parity byte. The other three blocks follow at once and sound the same, only longer (10.1 s, 3.0 s, 9.7 s).</p>
+<div id="save" style="margin:1.2em 0">
+<h4>SAVE's first block</h4>
+<p>Recorded: the walkthrough's game in the simulator, SAVE typed at the prompt and a key pressed for its "start TAPE" message; the T-state of every change of bit 3 of port $FE logged, and rendered as 16-bit mono at 44100 Hz. Nothing is synthesised.</p>
+<p>2.14 s, 3,722 edges; the leader 807 Hz, the data 1023 Hz for a 1 and 2047 Hz for a 0, as measured.</p>
+<audio controls preload="none" src="../audio/save_block.wav"><a href="../audio/save_block.wav">save_block.wav</a></audio>
+<p>Checked against the ROM's loops and the timings the TZX tape format documents for them. The leader loop (a DJNZ from $A4, 163 turns of 13 T-states and a last of 8, and 41 more around it: 2,168) made 3,224 OUTs, so 3,223 pulses, every one 2,168 T-states (documented: 3,223 of 2,168 for a data block). The first is at the level the line was already at, so the recording hears one fewer. The sync pulses were 667 and 735 T-states (documented 667 and 735). Then 248 bits, 496 half-waves, every one exactly 855 or 1,710 T-states except the first of each byte, which is out by a few while the ROM fetches the byte: +1 for the flag byte, -3 for each of the 29 bytes of the block, and -1 for the parity byte; then SA/LD-RET wrote $07 (the white border BORDCR holds, and the line low) 945 T-states on. Read back as LD-BYTES reads it, the signal carries the flag byte $FF, the 29 bytes that were at $B6EB when SAVE ran, and a parity byte $D1, the exclusive-or of all the others.</p>
+<p>And the whole save, all four blocks (65,416 edges), played back into the EAR bit of port $FE half a second after the key for the verify: the ROM's own LD-BYTES accepted all four blocks and the game carried on, with no "TAPE ERROR".</p>
+</div>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>

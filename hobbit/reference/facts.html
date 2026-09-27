@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>The Hobbit: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../hobbit.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="The Hobbit" src="../images/logo.png" /></a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#cast">The player is one of the cast</a></li>
+<li><a href="#unseen">Fights you never see</a></li>
+<li><a href="#wait">Time passes without you</a></li>
+<li><a href="#sealed">A room nobody can enter</a></li>
+<li><a href="#read">READ is EXAMINE</a></li>
+<li><a href="#sword">The sword lights a room from the floor</a></li>
+<li><a href="#hundred">The score cannot say 100%</a></li>
+<li><a href="#wine">Drunk on the wine</a></li>
+<li><a href="#bard">Bard remembers his orders</a></li>
+<li><a href="#timers">Ten clocks, one alarm a turn</a></li>
+<li><a href="#words">562 words in the first four kilobytes</a></li>
+<li><a href="#compression">Five thousand characters in two and a half kilobytes</a></li>
+<li><a href="#printer">Its own printer driver</a></li>
+<li><a href="#interrupts">Interrupts off from start to finish</a></li>
+<li><a href="#pictures">Two pictures inside two others</a></li>
+<li><a href="#versions">What v1.0 is</a></li>
+</ul>
+<div><span id="cast"></span></div>
+<div class="box box-1">
+<div class="box-title">The player is one of the cast</div>
+<div class="paragraph">
+The player is object 0, with a record in <a href="../asm/49251.html">OBJECT_INDEX</a> laid out like
+anyone else's -- size, what it carries, strength, defence, sides, flags -- and
+the same code moves it, fights for it and tells what it does. Like the other
+objects it can carry handlers of its own, and it has two: EAT, the ordinary
+one (<a href="../asm/37557.html">DO_EAT</a>), and after it <a href="../asm/37074.html">PLAYER_DIES</a>. So the player is
+edible: anyone who manages to EAT it gains the strength food gives and takes it
+out of the world, and the second handler ends the game. The trolls do not go
+through it -- <a href="../asm/43342.html">TROLLS_EAT</a> calls the same eating and then the death
+itself -- but the record is ready for anyone who does. (Read from the record
+and the routines.)
+</div>
+</div>
+<div><span id="unseen"></span></div>
+<div class="box box-2">
+<div class="box-title">Fights you never see</div>
+<div class="paragraph">
+The characters act whether or not the player can see them (<a href="../asm/38926.html">CHARACTERS_ACT</a>),
+and that includes fighting each other. Watched in the emulator: after the
+player attacked Thorin in Bag End -- which takes him off the player's side for
+good (<a href="../asm/37194.html">SAME_SIDE</a>) -- he attacked Gandalf out of sight, and the two
+exchanged 23 blows each over the following turns while the player, whose
+defence had been poked to 255, waited at home; it ended with a blow of 121 from Gandalf
+against a guard of 0, the jostle bug's doing, which <a href="../asm/37233.html">DO_ATTACK</a> takes
+as a kill. In another trial a goblin fought Gandalf and Elrond, and the two
+trolls came to blows with each other, all out of the player's sight.
+</div>
+</div>
+<div><span id="wait"></span></div>
+<div class="box box-1">
+<div class="box-title">Time passes without you</div>
+<div class="paragraph">
+The world only moves in turns, but the game will take a turn by itself:
+<a href="../asm/29257.html">GET_KEY</a> gives the player 3000 keyboard scans (PATIENCE) to
+press something, and when they run out it types WAIT and presses ENTER. Each
+key pressed leaves what was left plus 500, never more than 3000, so it is a
+limit on pauses, not on the whole line. Watched in the emulator: from the
+first prompt with no key pressed, the WAIT came after 1171 frames, 23.4
+seconds. <a href="pokes.html#patience">A poke</a> stops the countdown.
+</div>
+</div>
+<div><span id="sealed"></span></div>
+<div class="box box-2">
+<div class="box-title">A room nobody can enter</div>
+<div class="paragraph">
+Location 47, an empty place, has ways in from the mountains to its west and
+from the other empty place to its south, and no ways out. It holds one thing,
+the stone, whose size is 254 -- exactly the room's capacity -- so
+<a href="../asm/40001.html">ROOM_LEFT</a> finds no space in it at all and <a href="../asm/36485.html">CAN_PASS</a> turns
+everybody away. No instruction names the room or the stone. Watched in the
+emulator: NORTH from location 51 and EAST from location 48 were both refused,
+the place being too full to enter. Whether it was sealed on purpose, or a room
+left unfinished, the code does not say.
+</div>
+</div>
+<div><span id="read"></span></div>
+<div class="box box-1">
+<div class="box-title">READ is EXAMINE</div>
+<div class="paragraph">
+The dictionary (<a href="../asm/24640.html">WORD_LIST</a>) makes READ a synonym of EXAMINE, and the
+tokeniser swaps it before anything else sees the word. So READ MAP is EXAMINE
+MAP -- watched: the two gave the same answer -- and that is why telling Elrond
+to read the map works: his reading is the curious map's own EXAMINE handler
+(<a href="../asm/42948.html">ELROND_READS_MAP</a>), which only does anything for Elrond. Other
+synonyms matter too: CAPTURE is ATTACK, so the player cannot capture anyone,
+only attack them.
+</div>
+</div>
+<div><span id="sword"></span></div>
+<div class="box box-2">
+<div class="box-title">The sword lights a room from the floor</div>
+<div class="paragraph">
+The only light in the game is the short strong sword, and <a href="../asm/38381.html">TOO_DARK</a>
+asks only whether it is within reach (<a href="../asm/40500.html">IN_REACH</a>), not whether anyone
+is holding it. So a dark place is lit while the sword lies in it -- as it does
+in the trolls' cave, where it starts. Watched in the emulator: in the trolls'
+cave LOOK described the cave, the sword on the floor among its contents;
+with the sword moved away, the same LOOK was refused as too dark. The torch
+has the sword's flags but is never tested, so it lights nothing.
+</div>
+</div>
+<div><span id="hundred"></span></div>
+<div class="box box-1">
+<div class="box-title">The score cannot say 100%</div>
+<div class="paragraph">
+<a href="../asm/33781.html">SHOW_SCORE</a> prints the score, in tenths of a per cent, as two digits,
+a point and a third, each digit worked out by <a href="../asm/33838.html">DIGIT</a>, which counts
+how many times its place value goes in and adds that to the character 0. The
+first digit is the tens of per cent, left out when it is 0; nothing prints
+hundreds. A full 1000 would be ten tens, and the character after 9 is a colon.
+Watched in the emulator: with SCORE set to 1000, SCORE said the
+player had mastered :0.0% of the adventure. Since the places the game scores
+are worth only 750 (see <a href="bugs.html#score">the bug</a>), no game ever gets there.
+</div>
+</div>
+<div><span id="wine"></span></div>
+<div class="box box-2">
+<div class="box-title">Drunk on the wine</div>
+<div class="paragraph">
+Drinking the wine from the barrel runs <a href="../asm/43769.html">WINE_DRUNK</a> after the ordinary
+DRINK, and it sets <a href="../asm/46848.html">DRUNK</a> and starts timer 7 for five turns. While it
+is set, <a href="../asm/34187.html">PRINT_CHAR</a> follows every S it prints with an H. Watched in
+the emulator, with the wine given to the player in Bag End: after DRINK WINE,
+every s in the story came out followed by an h, through the next four turns,
+and on the fifth turn after drinking the timer ran out and the text was sober
+again. The drink also added one to the player's strength.
+</div>
+</div>
+<div><span id="bard"></span></div>
+<div class="box box-1">
+<div class="box-title">Bard remembers his orders</div>
+<div class="paragraph">
+Bard takes orders unlike anyone else: his script is <a href="../asm/43179.html">BARD_TAKES_ORDER</a>
+and one step, and the routine writes each order he is given -- the action and
+its two objects -- into that step, which he then tries every turn until it
+works. So SAY TO BARD "SHOOT THE DRAGON" is carried out whenever it can be.
+Because the game rewrites its own script there, SAVE and LOAD carry those
+three bytes by hand; but a new game does not put them back, so Bard starts
+the next game with the last order he was given. On the tape the step is a
+placeholder that his first order replaces. (Read from the code.)
+</div>
+</div>
+<div><span id="timers"></span></div>
+<div class="box box-2">
+<div class="box-title">Ten clocks, one alarm a turn</div>
+<div class="paragraph">
+Besides the characters, the world's turn (<a href="../asm/38579.html">END_OF_TURN</a>) runs ten
+timers in <a href="../asm/51844.html">TIMERS</a>: the barrel's ride down the river, the spider web
+mending and smothering, the goblins' door, the bog, the magic door, the ring,
+the wine, the eyes in the forest and the side door into the mountain. Each
+has a length in turns, a routine for when it runs out and, for some, a
+warning for the turns before. Only one may go off in a turn: a second that
+reaches zero in the same turn is held back until the next. Most are started
+by arriving somewhere (<a href="../asm/51086.html">ARRIVAL_HOOKS</a>), which is why a place can be
+safe for a turn or two and then kill. (Read from the code.)
+</div>
+</div>
+<div><span id="words"></span></div>
+<div class="box box-1">
+<div class="box-title">562 words in the first four kilobytes</div>
+<div class="paragraph">
+The game's dictionary sits in the 4K from $6000: 355 words the parser
+understands, grouped by initial letter behind a 26-entry index
+(<a href="../asm/24640.html">WORD_LIST</a>), and 207 more that only the game's own sentences use,
+packed the same way but reached by no index at all (<a href="../asm/26539.html">SECOND_LIST</a>).
+Each letter takes a byte, five bits for the letter -- A is 1, so ASCII's low
+five bits are the code -- and the spare bits carry the word's class and
+whether it takes an ending. Everything else in the game names a word by a
+12-bit offset into this 4K and four bits of flags. (Read from the code and
+decoded by the build.)
+</div>
+</div>
+<div><span id="compression"></span></div>
+<div class="box box-2">
+<div class="box-title">Five thousand characters in two and a half kilobytes</div>
+<div class="paragraph">
+None of the game's text is stored as text. A message is a little program for
+<a href="../asm/29395.html">RUN_MESSAGE</a>: two bytes name a dictionary word, one byte one of 32
+common words (<a href="../asm/44349.html">COMMON_WORDS</a>), others print punctuation or call on a
+control code for the actor's name, IS or ARE, HIS or YOUR. The build's
+decoder counts about 5600 characters of fixed text in the 177 messages'
+2397 bytes, before any names are filled in; room and object names are six
+bytes each, whatever their length. Sentences about actions are not stored at
+all, but built from the action's pattern.
+</div>
+</div>
+<div><span id="printer"></span></div>
+<div class="box box-1">
+<div class="box-title">Its own printer driver</div>
+<div class="paragraph">
+PRINT sends every line of the story to a ZX Printer, and the game does it
+with its own code, not the ROM's. <a href="../asm/33445.html">PRINTER_ON</a> turns it on only if the
+printer answers on port $FB; then at each new line <a href="../asm/35618.html">LINE_TO_PRINTER</a>
+reads the line's eight rows of pixels straight off the screen and sends them
+out a dot at a time, as the ROM's COPY does. The printer buffer at $5B00 is
+never used. (Read from the code; the emulator has no ZX Printer to try it on.)
+</div>
+</div>
+<div><span id="interrupts"></span></div>
+<div class="box box-2">
+<div class="box-title">Interrupts off from start to finish</div>
+<div class="paragraph">
+<a href="../asm/27648.html">START</a> disables interrupts, and nothing in the game enables them
+again: the ROM's tape routines, used by SAVE and LOAD, end with EI, and the
+game disables them straight after. So the game reads the keyboard itself, and
+everything it times -- the WAIT it types, the pause at the end of a line --
+is counted in keyboard scans and busy loops, not in frames. (Read from the
+code: there is no EI in the game.)
+</div>
+</div>
+<div><span id="pictures"></span></div>
+<div class="box box-1">
+<div class="box-title">Two pictures inside two others</div>
+<div class="paragraph">
+The 22 pictures (<a href="../asm/52224.html">PICTURE_TABLE</a>) are programs of lines, fills and
+paint, about 10K between them -- a quarter of the game. Two of them save space
+by running on into another: the goblins' dungeon draws a few things of its
+own and then carries straight on as the dark dungeon's picture, and the
+trolls' clearing does the same into the levelled elvish clearing's. The
+clearing is also the only picture the game changes as it runs: drawn by night
+until the trolls turn to stone, and by day after (<a href="../asm/43377.html">TROLLS_TURN_TO_STONE</a>).
+(Read from the picture streams as the build decodes them.)
+</div>
+</div>
+<div><span id="versions"></span></div>
+<div class="box box-2">
+<div class="box-title">What v1.0 is</div>
+<div class="paragraph">
+Two releases of The Hobbit are archived: the first, known as v1.0 though its
+authors called it v1.1, and v1.2, the one disassembled here, which fixed its
+bugs and put the programmers' names on the loading screen. The Sinclair
+Research re-release is v1.0. Compared byte for byte, the two differ in most
+of their 40K -- the code has moved about -- but the scoring is the same:
+v1.0 keeps its score at $B5E8 rather than SCORE, adds to it in the
+same one place, and its table of scoring places is identical. Your Sinclair
+blamed the first release's troubles on a road near the long lake that never
+opened; which routines v1.2 changed has not been compared.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the v1.2 tape</div>
+<div class="copyright">&copy; 1982 Beam Software / Melbourne House</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_hobbit.py</code>.</div>
+</footer>
+</body>
+</html>
