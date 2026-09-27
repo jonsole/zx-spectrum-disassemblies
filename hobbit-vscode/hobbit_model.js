@@ -306,7 +306,7 @@ function describeStep(mem, address, nameOf) {
     notes.push('an order cannot interrupt it');
   }
   if (op & 0x20) {
-    notes.push('then its part in the story is over');
+    notes.push('used up once it succeeds: the step zeroes its own first byte, and the character carries on');
   }
   step.notes = notes;
   return step;

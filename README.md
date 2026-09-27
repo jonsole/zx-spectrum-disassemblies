@@ -129,7 +129,8 @@ found, how sure it is and what is still open -- a journal, and how to drive
 the game in the emulator. The HTML's prose pages are the polished form; the
 notes keep the evidence and the dead ends. Like the control files they are
 prose and addresses only, with no bytes of the game. So far:
-[The Hobbit](notes/hobbit/README.md), [Knight Lore](notes/knightlore/README.md) and
+[The Hobbit](notes/hobbit/README.md), [Atic Atac](notes/aticatac/README.md),
+[Knight Lore](notes/knightlore/README.md) and
 [Ant Attack](notes/antattack/README.md).
 
 ## Debugging

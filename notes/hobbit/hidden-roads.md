@@ -40,7 +40,18 @@ last records come up half as often as the other three).
 The player cannot do this; the map's own EXAMINE handler checks the actor is
 Elrond ($41). Elrond acts on "read the map" on his own turn, after the
 player's next command -- so SAY TO ELROND "READ MAP" is followed by the
-reading one turn later.
+reading one turn later. READ is a synonym of EXAMINE in the dictionary, which
+is why the order works at all ([`dictionary.md`](dictionary.md)); the player
+reading it gets the map's own description, symbols they cannot read
+(*measured* 2026-09-27).
+
+**The choice is not saved** (*read*, 2026-09-27). The road's record lives
+only in the operand at $A7D1, which none of SAVE's four blocks includes,
+while the zeroed exit is in the rooms block. A game loaded after a new game
+or a fresh load of the tape has its own road shut but $A7D1 naming another:
+Elrond then rewrites the wrong road and the loaded one stays shut. See
+[`save-load.md`](save-load.md); the odds of each road are in
+[`chance.md`](chance.md).
 
 To detect it in a running game: read the word at $A7D1 (this game's record),
 the exit address at record+1, and put a write watchpoint on those three bytes;

@@ -119,7 +119,7 @@ A turn, in outline:
 [How:reading:Reading a line]
 #R$6DD6(READ_LINE) prints the prompt and takes keys into #R$6FF9(INPUT_LINE): letters, space, quote, comma and full stop, with backspace to correct. Three things are more than a line editor:
 <ul>
-<li><b>The game types for you.</b> #R$7249(GET_KEY) counts down while it waits, and if nothing is pressed in time it types WAIT and presses ENTER itself -- which is why WAIT appears on screen when nobody typed it, and why the world goes on without you. The time allowed, #R$B714(PATIENCE), adapts to how fast the player types.</li>
+<li><b>The game types for you.</b> #R$7249(GET_KEY) counts down while it waits, and if nothing is pressed in time it types WAIT and presses ENTER itself -- which is why WAIT appears on screen when nobody typed it, and why the world goes on without you. The time allowed, #R$B714(PATIENCE), is 3000 keyboard scans at every prompt -- about 23 seconds -- and each key leaves what was left plus 500 scans, never more than 3000; pause mid-line for longer than that and the half-typed line is thrown away for the WAIT.</li>
 <li><b>One-key moves.</b> On an empty line the cursor keys 5, 6, 7 and 8 are W, S, N and E, and each is a whole command (#R$6E4F(ONE_KEY_MOVES)).</li>
 <li><b>@</b> on an empty line runs the last command again (#R$6E7A(REPEAT_LAST)).</li>
 </ul>
@@ -207,7 +207,7 @@ Every step can carry a <b>fallback</b>: where to go on if it is refused. A step 
 
 <b>Captivity.</b> A character held by something closed can do nothing; held by something open, it tries to CLIMB OUT OF it (#R$9B16(CAPTIVE)).
 
-<b>Leaving the story.</b> A step marked for it empties the character's slot when it succeeds, and a character that is killed gives its slot up (#R$977F(KILL)). Three slots start empty -- the butler's, Bard's and the dragon's -- and are filled by arrival hooks when the story reaches them.
+<b>Leaving the story.</b> A character that is killed gives its slot up (#R$977F(KILL)), and its script never runs again. (A step can also be marked to be used only once: when it works, #R$9928(SCRIPT_DO) zeroes the step's first byte. Only Thorin's remark about the small curious key is marked so; he goes on as before.) Three slots start empty -- the butler's, Bard's and the dragon's -- and are filled by arrival hooks when the story reaches them.
 
 [How:moving:Moving about]
 #R$8D9D(MOVE) moves whoever is acting, the player included. A room's record is a 10-byte head -- lit or dark, visited, capacity, name, description -- followed by its exits, three bytes each: a direction, an object the way goes through (a door, a gate, a river), and where it leads (#R$9F08(FIND_EXIT)).
@@ -219,12 +219,12 @@ The first time the player reaches a place, it is described in full with its pict
 One road in five is shut at the start of each game (#R$C80E(HIDDEN_ROADS)); it opens again when Elrond reads the curious map and tells you the way.
 
 [How:light:Light and dark]
-Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passages, Gollum's lake, the Elvenking's halls and the passage into the mountain. Only the player is ever in the dark -- the characters see everywhere (#R$95ED(TOO_DARK)). The one light in the game is the short strong sword, which glows from the start: carried, it lights every dark place.
+Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passages, Gollum's lake, the Elvenking's halls and the passage into the mountain. Only the player is ever in the dark -- the characters see everywhere (#R$95ED(TOO_DARK)). The one light in the game is the short strong sword, which glows from the start: within reach -- carried, or just lying in the same room -- it lights every dark place. The torch has the same flags, but only the sword is tested. And a player shut inside something closed is in the dark whatever the room: close the barrel over yourself without the sword and it is dark inside, and OPEN, which needs light, is refused.
 
-In the dark, a move goes in a random direction, and falling in the dark too often is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
+In the dark, a move goes in a random direction, and a way that is not there is a fall: each halves the player's strength, and the seventh is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
 
 [How:fighting:Fighting and breaking things]
-Every object and character has a strength and a defence, bytes 5 and 6 of its record. #R$9171(DO_ATTACK) sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (#R$9226(WOUNDS)) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows.
+Every object and character has a strength and a defence, bytes 5 and 6 of its record. #R$9171(DO_ATTACK) sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (#R$9226(WOUNDS)) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows. The wearing down is less even than that sounds: see <a href="bugs.html#wear">Bugs</a>.
 
 Characters have sides (byte 4), and no one attacks their own -- except the player, who can turn on a friend, who is an enemy from then on (#R$914A(SAME_SIDE)).
 
@@ -244,6 +244,8 @@ Either way the game starts again without reloading. At the very start #R$6C00(ST
 Each picture is a program for #R$7FA7(RUN_PICTURE), found through the picture table at #R$CC00(PICTURE_TABLE); each picture's own page here shows it being drawn, at the speed the game draws it. The stream starts with a border colour and the picture area's colours, then: move the pen, draw a line (two bytes: direction, length and a Bresenham step), flood-fill a region in a colour, or paint a path of attribute cells; $00 ends it.
 
 The flood fill (#R$8071(FLOOD_FILL)) keeps its queue of seed points on the machine stack and tests every pixel from each side it can be reached from, which is why the pictures fill so slowly. Holding N at the title screen turns the pictures off (#R$B707(PICTURES_ON)), and in the dark the canvas is blacked out instead of drawn (#R$820B(CLEAR_CANVAS)).
+
+One picture changes as the game goes on. The trolls' clearing starts with a black border and black paper -- night -- and when day dawns and the trolls turn to stone, #R$A971(TROLLS_TURN_TO_STONE) rewrites those first two bytes of its stream for a cyan border and cyan paper; every new game puts the night back (#R$6C27(NEW_GAME)).
 
 The same pictures can be drawn nine times faster without changing a pixel of them: see <a href="patches.html">Patches</a>.
 
@@ -304,14 +306,32 @@ SectionPrefix=Bug
 [Bug:jump:JUMP ONTO the barrel jumps into a message]
 The barrel's own JUMP ONTO handler, #R$AA27, refuses a jump from anywhere but directly above it. Where a way to the barrel exists but is not down, it does <code>JP NZ,$B301</code> -- and $B301 is the message "you cannot jump onto the ... from here", not code. It was surely meant to be <code>LD HL,$B301</code> and <code>JP</code> RUN_MESSAGE, as the line before it does. A quick test from the great halls beside the cellar did not reach it, because the parser will not name a barrel in another room; whether anything can reach it is not worked out.
 
-[Bug:fill:FILL looks as though it can never work]
-The barrel's FILL WITH, #R$8F69, fetches a fresh water and puts it in the barrel with the objects swapped, through PUT IN (#R$924F). But PUT IN begins with the last part of CAN_LIFT, which refuses a liquid -- and the water is a liquid. As read, then, filling the barrel is always refused. This has not been confirmed in play.
+[Bug:fill:FILL can never work]
+The barrel's FILL WITH, #R$8F69, fetches a fresh water and puts it in the barrel with the objects swapped, through PUT IN (#R$924F). But PUT IN begins with the last part of CAN_LIFT, which refuses a liquid -- and the water is a liquid. So filling the barrel is always refused. Tried in the simulator: at the long lake, with the barrel carried, opened and emptied, FILL BARREL WITH WATER was refused, the refusal naming the objects the other way round -- the swapped PUT IN that failed.
+
+[Bug:wear:A wound wears the target down erratically]
+When a blow lands but does not kill, #R$9171(DO_ATTACK) takes something off the target's strength and defence for how much stronger the blow was -- a margin of 1 to 16. It halves the margin with <code>RRCA</code>, twice, where a shift was surely meant: a rotate carries the margin's low bit round into bit 7. An even margin then takes about half of itself off the strength, as intended; an odd one takes 129 or more, which a weak target shrugs off (the result would go below zero, so nothing is written) and a strong one loses most of its strength to. The defence goes the same way a step further on. Tried in the simulator, the player attacking Thorin (strength 104, defence 120) with the sword: a margin of 8 left him 99/117, 10 left 98/120, 11 did nothing at all, and 13 took his defence to 52.
+
+[Bug:wounds:The wound messages are read one entry late]
+The same routine picks the wound's message from #R$9226(WOUNDS) with twice the margin as the index. The margins run from 1 to 16, so the table is read from its second entry: its first message is never shown, and a margin of exactly 16 reads the word after the table -- the first two bytes of #R$9246(ONE_PLACE)'s code, which make an address in the ROM -- and prints the ROM's bytes as a message. Run as one in the simulator, they came out as a few garbled dictionary words.
+
+[Bug:forest:The forest road kills whatever you do]
+Arriving on the forest road or in the forest (locations 2 and 3) starts timer 8 (#R$C7DD(IN_THE_FOREST)). For three turns #R$AB1F(EYES_WARNING) says pale eyes are watching and stings to death a player who is anywhere but those two places; on the fourth #R$AB3A(EYES_STING) stings to death a player who is still there. So stepping out kills and staying kills; only walking back and forth between the two, which starts the timer again each time, keeps the player alive. Tried four ways in the simulator, with the results just described. Whether the warning's test was meant the other way round cannot be told from the code.
+
+[Bug:load:A LOAD can lose the hidden road]
+Which road this game shut is kept only in the operand of an instruction in #R$A7C4(ELROND_READS_MAP), and SAVE writes the variables, the objects, the timers and characters and the rooms -- not that. The rooms carry the shut exit. So a game saved and then loaded after a new game has begun, or after the tape has been loaded again, has its own road shut while the operand names the new game's: when Elrond reads the map he puts back the new game's road, which the loaded rooms already have, and the loaded game's stays shut. Read from the code; not tried with a tape.
+
+[Bug:break:BREAK at the end of a tape block restarts the machine]
+SAVE and LOAD use the ROM's own tape routines, which end by testing BREAK and, if it is held, report an error through the ROM -- with the game's own registers, not the ones the ROM expects. Tried in the simulator: with SPACE held from SAVE's key press on, the first block ended in the ROM's error exit, and a few seconds later the Spectrum was restarting. Pressing SPACE for "press any key" and holding it is enough.
+
+[Bug:reset:A new game does not reset the characters' scripts]
+#R$6C27(NEW_GAME) copies back the objects, the rooms, the timers, the character slots and the variables, but not the scripts themselves, where the game keeps two things it changes: Bard's order, which #R$A8AB(BARD_TAKES_ORDER) writes into a step of his script, and Thorin's one-time remark about the small curious key, which #R$9928(SCRIPT_DO) zeroes once made. Both carry over into the next game until the tape is loaded again. Seen in the simulator for Thorin: after QUIT and a new game, the key was back in the goblins' cache and the step still zero.
 
 [Bug:score:The score cannot reach 100%]
 #R$83F5(SHOW_SCORE) prints the score at #R$B6F7(SCORE) as a percentage with one decimal place, from tenths of a per cent -- so a full game is 1000 -- and it is written to print a hundreds digit, so 100.0% was meant to be possible. But the only thing that ever adds to the score is MOVE (#R$8D9D), the first time the player reaches a place listed in #R$8D6E(VISIT_SCORES), and those fourteen places are worth 750 between them: the lower halls 20%, the long lake 10%, the goblins' dungeon 7.5%, the trolls' cave, the dark stuffy passage, the dark dungeon and the smooth straight passage 5% each, and the lonelands, the narrow place, Beorn's house, the smothering forest, the levelled elvish clearing, Dale valley and the side door 2.5% each. Nothing else writes to the score -- no action, no character's script, no treasure -- and winning (#R$A9D6(CHECK_WON)) adds nothing and does not even show it. So the best any game can do is 75.0%. Where the missing quarter was meant to come from -- the treasure, perhaps, or the dragon -- the code does not say.
 
 [Bug:unreached:Code nothing reaches]
-Six stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: an OPEN for the wood elf alone (#R$A536), a routine that would wipe an exit (#R$A70A), one that finds what an object holds (#R$A1AE), and three fragments (#R$78FB, #R$9030, #R$92E8). A seventh was on this list, special word slot 0's handler, until it turned out to be the quote mark's: #R$8315(SPECIAL_QUOTE). They are left as data here, with what they would do said beside them.
+Five sentence shapes -- PUT ON, TAKE FROM, THROW, CUT and CLIMB -- have patterns in #R$AB53(ACTION_PATTERNS) but no handler in #R$C730(ACTION_TABLE) or in any object's record, so they can never be done (tried: "i cannot do that."), and the PUT ON case in #R$924F(DO_PUT_IN) can never be reached. Six stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: an OPEN for the wood elf alone (#R$A536), a routine that would wipe an exit (#R$A70A), one that finds what an object holds (#R$A1AE), and three fragments (#R$78FB, #R$9030, #R$92E8). A seventh was on this list, special word slot 0's handler, until it turned out to be the quote mark's: #R$8315(SPECIAL_QUOTE). They are left as data here, with what they would do said beside them.
 
 [Page:Credits]
 SectionPrefix=Credit

@@ -1009,12 +1009,12 @@ CHARACTER_SIZE = 7
 # location, keyed by the location: they start the bog's and the web's timers,
 # and bring characters into the story.
 ARRIVAL_HOOKS = 0xC78E
-# Messages entered part-way through, with how the entry fits. Three begin at
+# Messages entered part-way through, with how the entry fits. Five begin at
 # an element boundary of another message, so the two share a tail; one begins
 # on the second byte of the word that ends the message before it, reading
 # that byte as a control code -- one byte doing two jobs, as at $8113.
-# The fourth tail is the last room description: location 67, "the east bank
-# of a black river", is the end of location 66's description of the other bank.
+# The last tail is the last room description: location 67, the east bank of
+# the black river, is the end of location 66's description of the other bank.
 MESSAGE_TAILS = {0xADA9: "a tail", 0xADC4: "a tail", 0xB018: "a tail",
                  0xB143: "a tail", 0xB6CF: "a tail", 0xAFB5: "an overlap"}
 # A word inside a message that the code writes before running it: DO_LOOK puts
@@ -1502,7 +1502,7 @@ def describe_step(memory, program: dict, step: dict, link) -> str:
     if step["op"] & 0x40:
         notes.append("an order cannot interrupt it")
     if step["op"] & 0x20:
-        notes.append("then its part in the story is over")
+        notes.append("used up once it works: the game zeroes it")
     if notes:
         text += " (" + "; ".join(notes) + ")"
     return text
@@ -1598,7 +1598,7 @@ def script_blocks(memory) -> tuple[str, list[tuple[int, int]]]:
                            f"$0E go to, $0F switch at random, $0C switch to a "
                            f"reaction. $10 added means an address follows, where "
                            f"the script goes on if the step is refused; $20 that "
-                           f"the character's part is over once it works; $40 "
+                           f"the step is used up once it works (SCRIPT_DO zeroes its first byte); $40 "
                            f"that an order from the player cannot interrupt it. "
                            f"So $14 is an action with no objects, with somewhere "
                            f"to go if it is refused. The Characters page has "

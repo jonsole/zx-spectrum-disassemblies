@@ -45,6 +45,14 @@ Total 750. Winning (`CHECK_WON`, the treasure held by the chest) goes through
 `WAIT_AND_RESTART` into NEW_GAME, which sets the score back to 0 -- it does
 not add anything first.
 
+**Five of the fourteen need the sword** (*read*, added 2026-09-27): `ARRIVE`
+begins with `TOO_DARK` and returns at once in the dark, before marking the
+room visited or scoring it. The trolls' cave, the goblins' dungeon, the dark
+dungeon, the smooth straight passage and the stuffy passage at 65 are dark,
+so their 275 points come only to a player who arrives with the sword in
+reach -- and since the visited bit is not set in the dark, coming back later
+with it still scores ([`light-and-dark.md`](light-and-dark.md)).
+
 ## How this was found
 
 1. *Read:* the score routines, named while annotating.

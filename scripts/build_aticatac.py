@@ -857,11 +857,14 @@ TEMPLATE_DOORS = 0x645D
 # The knight, the wizard and the serf: sixteen codes each, four headings of
 # four frames, and the headings run left, right, up, down.
 #
-# That order is not derived from anything here. The four sets are drawn by hand
-# rather than mirrored -- comparing them byte for byte finds no pair that is
-# the reverse of another -- so nothing in the data says which set faces which
-# way. It applies to the three characters only; the creatures are left with
-# their headings unnamed rather than assumed to match.
+# The data does not say so -- the four sets are drawn by hand rather than
+# mirrored, and comparing them byte for byte finds no pair that is the reverse
+# of another -- but the code does. FIRE_WEAPON fires a standing player's weapon
+# left (x - 4) for codes base+0-3, right for +4-7, up (y - 4) for +8-11 and down
+# for +12-15, and the three character handlers pick +0 or +4 by the sign of the
+# horizontal heading and +8 or +12 by the vertical. It applies to the three
+# characters only; the creatures are left with their headings unnamed rather
+# than assumed to match.
 PLAYER_CODE_MAX = 0x30
 PLAYER_HEADINGS = ("Left", "Right", "Up", "Down")
 
@@ -1073,7 +1076,7 @@ STATE_SLOTS, STATE_OBJECTS, STATE_MONSTERS, STATE_PAIRS = 0x600D, 0x6025, 0x63DD
 # The keys' colours are their drawing modes: $42 red, $44 green, $45 cyan,
 # $46 yellow, the colours DOOR_NEEDS_KEY matches against a door's.
 STATE_LABELS = {0x6025: "ACG_KEY_PARTS", 0x603D: "GREEN_KEY", 0x6045: "RED_KEY",
-                0x604D: "CYAN_KEY", 0x6055: "YELLOW_KEY", 0x605D: "COLLECTABLE_80",
+                0x604D: "CYAN_KEY", 0x6055: "YELLOW_KEY", 0x605D: "MUMMY_LURE",
                 0x6065: "DROP_SLOTS", 0x6095: "COLLECTABLES", 0x60D5: "FOOD",
                 0x6355: "MUSHROOMS", 0x63DD: "MONSTERS"}
 STATE_SLOT_NAMES = ["The player: filled in when a game starts",
@@ -1221,7 +1224,7 @@ def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
     ROOM_CONTENTS is only the index; the lists themselves follow it and run to
     $7C18, the byte before the game's entry point, with no gaps at all. Each is
     a run of record addresses ended by a zero, and each address is a template
-    one, so it needs the same +$8A83 relocation POPULATE_ROOM applies.
+    one, so it needs the same +$8A83 relocation DISPATCH_FROM_LIST applies.
     """
 
     memory = game_memory(snapshot)
@@ -1245,7 +1248,7 @@ def room_list_blocks(snapshot: Path) -> tuple[str, list[Span]]:
                      % (address, room, room))
         if count:
             lines.append("D $%04X %d record%s, then a zero to end the list. Each "
-                         "entry is its record in INITIAL_STATE, which POPULATE_ROOM "
+                         "entry is its record in INITIAL_STATE, which DISPATCH_FROM_LIST "
                          "relocates to where the running game keeps it."
                          % (address, count, "" if count == 1 else "s"))
         else:
@@ -1760,21 +1763,25 @@ SOUND_EFFECTS = [
      "$6004 -- four cycles of half-period $60, from the branch at $A3DB."),
     ("footstep_high", 0xA3AA, 0x40, 0x04, "Footstep, the high one",
      "$4004, from the branch at $A3D3. SOUND_FOOTSTEP alternates the two."),
-    ("bonus", 0xA3E0, None, None, "The bonus note",
-     "Played by FLASH_SCORE every sixteenth step of its countdown."),
-    ("spell_A445", 0xA445, None, None, "The wizard's spell",
-     "Its starting pitch comes from $5E25, the number of actors in the room,"
-     " so it is never quite the same twice."),
-    ("spell_A4B0", 0xA4B0, None, None, "The spell's second sound",
-     "The other of the two SPIN_SPELL makes."),
-    ("sweep_up", 0xA427, None, None, "A rising sweep",
-     "Sixteen calls to BEEP with the pitch walked upwards."),
-    ("sweep_down", 0xA438, None, None, "A falling blip",
-     "Eight steps with the pitch complemented, so it falls."),
-    ("sweep_A41B", 0xA41B, None, None, "The sweep at $A41B", "Reached from $8134."),
+    ("life_pip", 0xA3E0, None, None, "The pip at the start of a life",
+     "Played by FLASH_SCORE every sixteenth step of the 104-frame flash of the"
+     " score that begins every life."),
+    ("weapon_gone", 0xA445, None, None, "A weapon's flight ends",
+     "Played by SPIN_WEAPON when the axe, spell or sword expires or hits, and"
+     " at the end of every burst. Its starting pitch comes from $5E25, the"
+     " number of creatures in the room, so it is never quite the same twice."),
+    ("bounce", 0xA4B0, None, None, "A weapon bounces",
+     "Played by SPIN_WEAPON when any of the three weapons turns round at a wall."),
+    ("serf_fire", 0xA427, None, None, "The serf fires",
+     "Sixteen calls to BEEP with the pitch walked upwards, from SERF_FIRE."),
+    ("wizard_fire", 0xA438, None, None, "The wizard fires",
+     "Eight steps with the pitch complemented, from WIZARD_FIRE."),
+    ("knight_fire", 0xA41B, None, None, "The knight fires",
+     "Twelve steps with the pitch walked down, from KNIGHT_FIRE."),
     ("noise_burst", 0xA46E, None, None, "A rasp",
      "119 edges in eight milliseconds with the gaps swinging wildly -- not a"
-     " note at all. Reached from $917D."),
+     " note at all: the ROM's first 48 bytes sent to the speaker. Played when"
+     " a timed door slams or opens and when a trapdoor opens or closes."),
     ("beep_one_cycle", 0xA3A8, 0x40, 0x01, "One cycle of BEEP",
      "The smallest sound the game can make: a single square wave."),
 ]
@@ -2591,7 +2598,7 @@ def render_rooms(snapshot: Path, out_dir: Path) -> None:
     and every object whose room is this one. Nothing is reimplemented; what is
     captured is the 24 by 24 cells of the play area, as the game left them.
 
-    Doors open and shut on a timer (SCAN_DOORS), and START_GAME writes a value
+    Doors open and shut on a timer (CHOOSE_TIMED_DOORS), and START_GAME writes a value
     from the frame counter into the initial state (PLACE_KEYS), so these
     are one game's castle at its first moments.
     """

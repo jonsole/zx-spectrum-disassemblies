@@ -96,10 +96,15 @@ they are, since RUN_PICTURE uses them.
 
 If 410 bytes is not enough, the printer buffer at $5B00-$5BFF is unused -- the
 game never prints, and nothing on a 48K Spectrum writes there otherwise --
-and is page-aligned, which suits the mask table. (Wrong: the game has a PRINT
-command that copies its text to a ZX Printer through the ROM, which uses that
-buffer. What was used instead is special word slot 0's handler, $82FD-$8390,
-148 bytes that nothing can run -- wrong too: see the correction at the end.) The gap between the BASIC
+and is page-aligned, which suits the mask table. (Thought wrong at the time,
+on the grounds that the game has a PRINT command that copies its text to a ZX
+Printer through the ROM, which uses that buffer. That was itself wrong: the
+game's LINE_TO_PRINTER drives port $FB with its own code and reads the screen
+directly, and the only ROM routines the game calls are SA-BYTES and LD-BYTES,
+so the buffer is free after all -- noticed on 2026-09-27, when the patch no
+longer needed it. What was used instead is special word slot 0's handler,
+$82FD-$8390, 148 bytes that nothing can run -- wrong too: see the correction
+at the end.) The gap between the BASIC
 loader and the stack ($5CCB up to the stack under $5EFF) is not safe to use
 until the fill's worst-case stack depth has been measured.
 

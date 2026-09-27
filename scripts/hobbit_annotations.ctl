@@ -59,9 +59,9 @@
 
 @ $7F78 label=DRAW_LOCATION_PICTURE
 c $7F78 Draw the current location's picture
-D $7F78 Looks the location up in the picture table at #R$CC00, takes the stream pointer out of the record and runs it. Does nothing at all if the byte at #R$B707 is zero, which is believed to be the graphics on/off flag -- v1.2 was also sold as a text-only edition, and this is the only test standing between a location change and the whole of the drawing code.
+D $7F78 Looks the location up in the picture table at #R$CC00, takes the stream pointer out of the record and runs it. Does nothing at all if the byte at #R$B707 is zero: the pictures-off flag, which TITLE_WAIT (#R$6C6D) sets from the N key, so holding N there turns every picture off for the game. This is the only test standing between a location change and the whole of the drawing code.
 R $7F78 O:A The value stored at #R$7F77, from the table lookup
-  $7F79,3 #R$B707: nonzero to draw pictures at all (believed the graphics flag)
+  $7F79,3 #R$B707: nonzero to draw pictures at all (zero if N was held at the title)
   $7F8D,4 The picture table, indexed by location
   $7F91,3 Find this location's record; returns NZ if it has a picture
   $7F97,6 HL = the stream pointer, from bytes 1 and 2 of the record
@@ -120,7 +120,7 @@ R $81DE O:A The bit mask for x within that byte
   $81F5,8 x >> 3 gives the byte across
   $81FD,3 x & 7 selects the bit...
   $8205,4 ...by rotating a single bit that many places, one place at a time
-E $81DE The whole routine is a candidate for two lookup tables and an 8-byte mask table, which would roughly halve it. There is no room above the game for them -- the payload ends at $FC3F and the 960 bytes above that are live workspace -- but the printer buffer at $5B00 is page-aligned and unused, since RAMTOP is at $5FFF and nothing here prints.
+E $81DE The whole routine is a candidate for two lookup tables and an 8-byte mask table, which would roughly halve it. There is no room above the game for them -- the payload ends at $FC3F and the 960 bytes above that are live workspace -- but the printer buffer at $5B00 is page-aligned and unused: the game's PRINT drives the ZX Printer itself, through LINE_TO_PRINTER, and never goes through the ROM or its buffer.
 
 @ $81B5 label=PLOT_PIXEL
 c $81B5 Plot a pixel and colour its cell
@@ -252,8 +252,8 @@ E $8B93 Worth knowing when driving the game from a script: at uncapped emulation
 
 @ $8B78 label=DEBOUNCE_DELAY
 c $8B78 Busy-wait, 1000 times round
-D $8B78 About 26000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so while the game sits at its prompt this is 88% of everything it does -- idle, not work, but it is also the reason a scan is too expensive to call from inside the drawing code as it stands.
-  $8B78,8 1000 times round a four-instruction loop: about 26000 T-states
+D $8B78 About 26,000 T-states, or 7.4ms. SCAN_KEYBOARD calls it every time, so while the game sits at its prompt this is 88% of everything it does -- idle, not work, but it is also the reason a scan is too expensive to call from inside the drawing code as it stands.
+  $8B78,8 1000 times round a four-instruction loop: about 26,000 T-states
 
 @ $969A label=WAIT_FOR_ANY_KEY
 c $969A Wait until any key is pressed
@@ -350,7 +350,7 @@ D $C730 Every handler address here is real code on the table's own evidence: the
 @ $8D9D label=MOVE
 c $8D9D Move a character one step
 D $8D9D Called for every character that moves, the player included, with the direction in #R$B6E7. Watched directly: a single turn in which the player only typed INVENTORY ran this 21 times for nine other characters, each wandering on its own -- which is The Hobbit's independent cast, seen from the inside.
-D $8D9D For the player -- told apart by #R$B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood, and the four diagonals will be among 4 to 8, but which is which has not been watched and is not asserted here.
+D $8D9D For the player -- told apart by #R$B6EA being zero -- the codes observed are 1 north, 2 south, 3 east, 9 up and 10 down. West was not observed because it was blocked where the test stood. The rest follow the order of #R$A210(DIRECTION_WORDS), which DIRECTION_WORD indexes by the same code: 4 west, 5 northeast, 6 northwest, 7 southeast, 8 southwest.
   $8D9D,14 In the dark, the direction asked for is thrown away for a random one from 1 to 10
   $8DAB,11 Is the actor held by anything?
   $8DB6,9 Held by a thing, not a character: cannot move
@@ -494,12 +494,12 @@ D $B70C The address of the acting character's object record. MOVE, ACTOR_ROOM an
 
 @ $95ED label=TOO_DARK
 c $95ED Is it too dark for the player to see?
-D $95ED Characters are never in the dark: anyone but the player gets "no" at once. The player can see if inside something, or if the room is lit -- bit 7 of the first byte of its record. Otherwise only the short strong sword helps: it has to be with the player, and its flag byte at #R$C30C must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and carrying it lights every dark place.
-D $95ED Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, cavern and fourteen identical stuffy dark passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
+D $95ED Characters are never in the dark: anyone but the player gets "no" at once. A player shut inside something that cannot be seen into (SHUT_IN) skips the room's light altogether, so a closed barrel is dark inside even in a lit room; otherwise the player can see if the room is lit -- bit 7 of the first byte of its record. Failing that only the short strong sword helps: it has to be within the player's reach (lying in the same room will do), and its flag byte at #R$C30C must have bit 2 set, bit 3 clear and bit 4 set, which is what XOR $F7 then AND $1C tests for in one go. It starts as $94, so it glows from the beginning, and having it at hand lights every dark place. The torch has the same flags, but only the sword is tested. Tried in the simulator: with the sword lying in the trolls' cave the cave could be seen, and with it moved out it could not; and a player who climbed into the barrel in Bag End and closed it was in the dark, and could not then OPEN it, since OPEN needs light and the barrel is not carried.
+D $95ED Twenty-six of the seventy-nine rooms are dark, and they are the ones the story says are: the trolls' cave, the goblins' dungeon, the large dry cave, the big goblins' cavern, the dark winding passage, inside the goblins' gate, fifteen identical dark stuffy passages, Gollum's lake, the Elvenking's halls, cellar and dungeon, and the passage into the mountain.
 D $95ED What depends on it: MOVE, which in the dark throws the direction away and picks one from 1 to 10 at random; and CLEAR_CANVAS, which blacks the picture out instead of drawing it.
 R $95ED O:F Carry set if the player cannot see
   $95ED,5 Characters can always see: only the player is ever in the dark
-  $95F5,10 The player shut inside something can see
+  $95F5,10 Shut inside something closed? Then the room's light does not count: only the sword
   $95FF,9 So can a player in a lit room (bit 7 of its first byte)
   $9608,15 Otherwise only by the sword, object $0E, if it is within reach...
   $9617,9 ...and glowing: flags bit 2 set, bit 3 clear, bit 4 set, all in one test
@@ -514,7 +514,7 @@ R $95ED O:F Carry set if the player cannot see
 c $72D3 Print a message
 D $72D3 Nearly everything the game says goes through here, as a compact bytecode rather than text. A byte with bit 7 set starts a two-byte word reference, high byte first: twelve bits of offset into the dictionary and a flag nibble, of which 2, 3 and 6 end the message. A byte from $60 to $7F is one of the COMMON_WORDS; from $20 to $5F, a literal character; below $20, a control code, dispatched through CONTROL_CODES -- below $14 as a subroutine that returns to the message, from $14 up as the end of it.
 D $72D3 Checked against the screen, not only read: location 4's description decodes to exactly the words the game printed on arriving there, and so does Bag End's. The v1.0 disassembly credited in build_hobbit.py describes the same bytecode, and pointed at where to look.
-D $72D3 The messages are stored end to end from #R$AD7D, straight after COMMON_WORDS, and a few are entered part-way through another: four at an element boundary, sharing its tail -- the last is the two banks of the black river, one description entered at two places -- and one on the second byte of the word that ends the message before, which it reads as a control code.
+D $72D3 The messages are stored end to end from #R$AD7D, straight after COMMON_WORDS, and a few are entered part-way through another: five at an element boundary, sharing its tail -- the last is the two banks of the black river, one description entered at two places -- and one on the second byte of the word that ends the message before, which it reads as a control code.
 R $72D3 I:HL The message
   $72D3,10 Inside a quotation, clear #R$B6FA first
   $72DD,11 Keep DE, IX and A to put back at the end
@@ -723,7 +723,7 @@ B $70E0,2,2
 c $7585 Parse one command from the tokens
 D $7585 Called by the main loop with #R$B6DC pointing into TOKENS; returns NZ to go back for another line. A line of several commands -- joined by THEN, or by a full stop -- is taken one command at a time, the main loop coming back here while #R$B705 says there is more.
   $7585,8 Start at the first frame, outside any quotation
-  $758D,6 Not yet worked out
+  $758D,6 No ALL or EXCEPT, and no frames yet: CLEAR_ALL_EXCEPT leaves A zero
   $7593,11 Was the last command left unfinished -- after 'which key?', say? Then fit these words into it
   $759E,2 A fresh command
   $75A0,8 E says what may come next: bit 1 a verb, bit 2 an adverb, bit 4 an article, and more
@@ -741,9 +741,9 @@ c $7960 Carry out the parsed command, and let the world take its turn
   $7975,5 No more commands on this line
   $797A,6 Check it; #R$7DF5 when it will not do
   $7980,5 Really do it
-  $7985,3 Not yet worked out
+  $7985,3 Tell the player what was done (NARRATE_ACTION)
   $7988,3 Carry it out -- the player's MOVE was reached from here
-  $798B,3 Not yet worked out
+  $798B,3 The world's turn (END_OF_TURN)
   $798E,6 Asked to go round the same frame again?
   $7994,8 Count the frame off; none left, done
   $799C,13 On to the next frame down, passing over ALL EXCEPT's exception frames
@@ -1050,7 +1050,7 @@ c $90D2 The player is dead: say so and start again
 D $90D2 Prints "you are dead." as a sentence about the player, calls #R$83F5, waits for any key and goes back into the start-up at #R$6C27. Reached, for one, from MOVE when the player falls in the dark once too often.
   $90D2,4 The sentence is about the player
   $90D6,6 "you are dead."
-  $90DC,3 Not yet worked out
+  $90DC,3 The score (SHOW_SCORE)
   $90DF,9 Wait for any key
   $90E8,3 And start again
 
@@ -1233,9 +1233,9 @@ R $6FBA O:F Z if they agree
 
 @ $96B3 label=END_OF_TURN
 c $96B3 Let the other characters act, then count the timers down
-D $96B3 Calls #R$A9D6 and #R$980E -- the rest of the world's turn, not yet worked out -- and then walks TIMERS. A timer whose count is zero is not running. One that is running counts down by one a turn; on reaching zero it runs its routine, and in the turns before that, while the count is no more than its warning span, it runs its warning routine instead.
-D $96B3 Only one timer fires in a turn. A second one to reach zero in the same turn is held at a count of 1 and fires in the next, so two events never land on the player at once.
-  $96BA,6 The characters' turn, not yet worked out
+D $96B3 Calls #R$A9D6(CHECK_WON) and #R$980E(CHARACTERS_ACT) -- has the player won, and every other character's turn -- and then walks TIMERS. A timer whose count is zero is not running. One that is running counts down by one a turn; on reaching zero it runs its routine, and in the turns before that, while the count is no more than its warning span, it runs its warning routine instead.
+D $96B3 Only one timer fires in a turn. A second one to reach zero in the same turn is held at a count of 1 and fires in the next, so two events never land on the player at once -- though a held timer with a warning span runs its warning this turn instead, and BARREL_REACHES_LAKE clears #R$B6F0 as it starts, so it does not use the turn's firing up.
+  $96BA,6 Has the player won? Then every other character's turn
   $96C0,11 Nothing has fired yet this turn; printing on
   $96CB,4 IY = the first timer
   $96CF,7 $FF ends the table
@@ -1382,12 +1382,12 @@ D $AB0B Clears DRUNK, five turns after WINE_DRUNK set it and started this timer.
 
 @ $A5FB label=BARREL_REACHES_LAKE
 c $A5FB Timer 0: the barrel is thrown up on the long lake
-D $A5FB Two turns after it is started, the barrel goes to location 34, the long lake, and anything in it goes with it -- the player too, who is told so and arrives there. Then it is emptied, with printing off, so that what spills is not reported; and the wine is put back into a barrel in location 32, the elvenking's cellar.
-  $A5FB,4 Only one timer fires in a turn
+D $A5FB Two turns after it is started, whatever is in the barrel goes to location 34, the long lake -- the player too, who is told so and arrives there. Then the barrel itself is put back in location 32, the elvenking's cellar, closed and full, emptied with printing off so that what spills is not reported, and given back its wine: it is ready for another ride. Tried in the simulator with the player in the barrel at the forest river and the timer at 2: two WAITs later the player was on the long lake's bank, held by nothing, and the barrel was in the cellar with the wine in it.
+  $A5FB,4 Clear #R$B6F0: this does not count as the turn's firing
   $A5FF,11 In the barrel ($13)? "you are thrown onto the bank of the long lake."
-  $A60A,5 The barrel is at location 34 now
-  $A60F,6 ... and so is everything in it
-  $A615,16 The barrel: at the lake; flag bit 5 (seen into) off, bit 2 on
+  $A60A,5 The barrel at location 34 for the moment...
+  $A60F,6 ...so that everything in it goes there
+  $A615,16 Then the barrel back to location 32, the cellar: closed (flag bit 5 off) and full (bit 2 on)
   $A625,14 Empty it with printing off
   $A633,13 The wine: back in location 32, held by the barrel
 
@@ -1440,7 +1440,7 @@ D $AAE0 WEAR_RING starts this timer at a random 2 to 10 turns, so the ring's inv
 
 @ $AB1F label=EYES_WARNING
 c $AB1F Timer 8's warning: pale eyes in the forest
-D $AB1F "you see some pale bulbous eyes staring at you." Then, unless the player is where #R$B6F3 says or at the other of the forest road and the forest (locations 2 and 3), something drops and stings, fatally, as in EYES_STING. What sets #R$B6F3 is not yet traced.
+D $AB1F "you see some pale bulbous eyes staring at you." Then, unless the player is where #R$B6F3 says or at the other of the forest road and the forest (locations 2 and 3), something drops and stings, fatally, as in EYES_STING. #R$B6F3 is the forest location IN_THE_FOREST noted on arrival, so the player is safe only while still in the forest: stepping out of it during the warning turns is death, and so is staying until the timer runs out. Tried in the simulator: from the other forest road (46), east and straight back west was fatal on arriving; east, east, east to the waterfall was fatal at the waterfall; walking back and forth between 2 and 3 kept the player alive, and waiting there killed on the third WAIT.
   $AB1F,6 "you see some pale bulbous eyes staring at you."
   $AB25,9 At #R$B6F3's location: safe
   $AB2E,10 A = 2, or 3 if #R$B6F3 is 2: safe there too
@@ -1499,11 +1499,11 @@ R $9D53 I:A The object
 
 @ $6C00 label=START
 c $6C00 The game's entry point
-D $6C00 Reached by PRINT USR 27648, and never left: it runs on into MAIN_LOOP at #R$6D13, which is the game. It first copies the whole of the game's changeable state aside -- the objects to #R$F400, the rooms straight after them, the variables at #R$B6EB and the TIMERS block to $5F00 -- and every new game at #R$6C27 copies it back, which is how dying and starting again restores the world as it was loaded.
+D $6C00 Reached by the BASIC loader's PRINT USR, and never left: it runs on into MAIN_LOOP at #R$6D13, which is the game. It first copies the whole of the game's changeable state aside -- the objects to #R$F400, the rooms straight after them, the variables at #R$B6EB and the TIMERS block to $5F00 -- and every new game at #R$6C27 copies it back, which is how dying and starting again restores the world as it was loaded.
   $6C01,19 The objects and the rooms, to #R$F400 onwards
   $6C14,19 The variables and the timers, to $5F00 onwards
   $6C27,4 A new game starts here
-  $6C2B,20 Not yet worked out: zeroes two bytes found through picture 5's entry
+  $6C2B,20 The trolls' clearing's picture back to night: its border and starting attribute, the first two bytes of its stream, to black (TROLLS_TURN_TO_STONE sets the day's)
   $6C3F,38 Copy the saved state back
   $6C65,8 Black border; the ROM told the border is black too
   $6C6D,9 The title screen: wait for a key
@@ -1514,7 +1514,7 @@ D $6C00 Reached by PRINT USR 27648, and never left: it runs on into MAIN_LOOP at
   $6CAC,33 The rest of the variables: sober, no printer, printing on, a capital first, no score
   $6CCD,31 Clear the screen and draw the divider
   $6CEC,5 The first 17 lines of story without a pause
-  $6CF1,6 Come back here with a command to repeat? Straight to it
+  $6CF1,6 Unless COMMAND_FRAMES is $FF, straight to the main loop -- never: it is $FF on the tape and was copied back from there just above
   $6CF7,3 Shut a road and choose a riddle
   $6CFA,25 The first turn: "> LOOK" printed and put in the line
   $6D13,10 The main loop: a new line; nine lines of story before a pause
@@ -1546,7 +1546,7 @@ c $980E Every other character takes its turn
 D $980E Walks CHARACTERS and runs each character's script until it has done something. Each instruction is an action the character tries, as if it had typed a sentence: the action code and its objects go into #R$B6E7 to #R$B6E9 exactly as the parser puts them for the player, and #R$99C6 carries it out through the same ACTION_TABLE. So Thorin opens a door by the same code the player does.
 D $980E A step that is refused moves on to the next, or to a fallback of its own, and the script goes on; a step that succeeds ends the character's turn. Six refusals in a row end it too. What a character does is printed only when the player can see it.
 D $980E An order comes first. Whatever the player has told a character to do (see ORDERS) replaces its script's step for the turn, unless the step has bit 6 set, which makes it one that cannot be interrupted.
-  $980E,3 Not yet worked out
+  $980E,3 Note where the player is and whether it is dark there (NOTE_LIGHT)
   $9811,4 IY = the first character
   $9815,4 No steps refused yet
   $9819,8 $FF ends the table
@@ -1584,13 +1584,13 @@ R $9918 I:IY The character's slot
 @ $9928 label=SCRIPT_DO
 c $9928 A script step: an action with objects, or a routine
 D $9928 Four bytes, then a 2-byte fallback if bit 4 is set. With bit 0 clear they are the action code and its two objects, tried as the character's own sentence. With bit 0 set, bytes 1 and 2 are the address of a routine instead: it is run once with printing off as a test, and only if it reports success by setting #R$B6FB is it run again for real.
-D $9928 A step that succeeds with bit 5 set takes the character out of the story: its slot is emptied and it never acts again.
+D $9928 A step that succeeds with bit 5 set is used up: the LD (IX+$00),$00 near its end writes zero over its own first byte -- IX is the step, not the character's slot -- so it never calls its routine again. The character goes on as before. Only Thorin's remark about the small curious key has the bit. Tried in the simulator: Thorin took the key, said his line the next turn, and went on following the player, his slot unchanged, while the step's first byte went from $23 to $00. The scripts are not among what a new game copies back, so the step stays spent until the game is loaded again.
   $9928,3 Step past it
   $992B,6 A routine?
   $9931,18 The action and its two objects
   $9943,7 Try it: done, or refused
   $994A,29 The routine: run it quietly, and if it succeeded, again for real
-  $9967,13 Done. Bit 5: the character's part is over
+  $9967,13 Done. Bit 5: this step is used up, its first byte zeroed
 
 @ $9974 label=SCRIPT_BARE
 c $9974 A script step: an action with no objects, or a jump
@@ -1648,7 +1648,7 @@ R $9AA0 I:B The action
 
 @ $95DF label=REACT_TO_ACTION
 c $95DF An action has been done to this object: if it is a character, it reacts
-D $95DF Only a character (flag bit 6), and only one without flag bit 3, which is not yet worked out.
+D $95DF Only a character (flag bit 6), and only one without flag bit 3: the dead do not react.
 
 @ $9B16 label=CAPTIVE
 c $9B16 A character held by something tries to get out
@@ -1708,8 +1708,8 @@ R $9F82 O:A Its location; $FF if it is in several, or for $FF
 
 @ $CACB label=CHARACTERS
 b $CACB The characters' scripts: where each has got to
-D $CACB Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a slot not in use -- three are empty at the start, and a character whose part is over (see #R$9928(SCRIPT_DO)) empties its own. Byte 1 is how many of its scripts #R$9A59(SCRIPT_RANDOM) may choose among. Bytes 2 and 3 are the instruction its script has got to; bytes 4 and 5 are its script table, a #R$9DBD(FIND_RECORD) table whose entries keyed 0 are its ordinary scripts and whose others are its reactions (see #R$9AA0(REACT)). Byte 6 is how many of the player's orders it will take at once (see #R$9034(DO_TALK)): Thorin 6, Gandalf and Elrond 5, Gollum 3, the wood elf and the trolls 1, and the warg and the goblins 0, never.
-D $CACB The scripts themselves are from #R$C82D up to TIMERS, each table followed by its scripts, every step decoded and every address in them a label (generated by build_hobbit.py's script_blocks). An instruction's low four bits are its opcode: 0 to 3 as #R$9928(SCRIPT_DO), 4 as #R$9974(SCRIPT_BARE), $0C, $0E and $0F as #R$980E(CHARACTERS_ACT) says, and anything else sends the character back to its first script. Bit 4 means a 2-byte fallback follows, bit 5 that the character leaves the story when the step succeeds, and bit 6 that an order cannot interrupt it.
+D $CACB Seventeen 7-byte slots, ending at $FF. Byte 0 is the character, or 0 for a slot not in use -- three are empty at the start, and a character that is killed gives its slot up (see #R$977F(KILL)). Byte 1 is how many of its scripts #R$9A59(SCRIPT_RANDOM) may choose among. Bytes 2 and 3 are the instruction its script has got to; bytes 4 and 5 are its script table, a #R$9DBD(FIND_RECORD) table whose entries keyed 0 are its ordinary scripts and whose others are its reactions (see #R$9AA0(REACT)). Byte 6 is how many of the player's orders it will take at once (see #R$9034(DO_TALK)): Thorin 6, Gandalf and Elrond 5, Gollum and Bard 3, the wood elf, the butler and the trolls 1, and the warg, the dragon and the goblins 0, never.
+D $CACB The scripts themselves are from #R$C82D up to TIMERS, each table followed by its scripts, every step decoded and every address in them a label (generated by build_hobbit.py's script_blocks). An instruction's low four bits are its opcode: 0 to 3 as #R$9928(SCRIPT_DO), 4 as #R$9974(SCRIPT_BARE), $0C, $0E and $0F as #R$980E(CHARACTERS_ACT) says, and anything else sends the character back to its first script. Bit 4 means a 2-byte fallback follows, bit 5 that the step is used up once it succeeds (#R$9928(SCRIPT_DO) zeroes it), and bit 6 that an order cannot interrupt it.
 B $CB42,1,1 End of the characters
 
 @ $AB53 label=ACTION_PATTERNS
@@ -1801,7 +1801,7 @@ D $950F A handler is followed by any records after it keyed 0, which run too: th
   $957E,8 Does it have a handler of its own for this? If not, the ordinary one
   $9586,21 Run the handler, and every record after it keyed 0
   $959B,7 Done quietly, as a test? Then that is all
-  $95A2,13 Not yet worked out: for the player in the dark, a message at HL
+  $95A2,13 For the player in the dark: "it is dark.", the message TOO_DARK leaves in HL
   $95AF,24 Each object that is a character reacts
   $95CC,14 The ordinary handler, from ACTION_TABLE
   $95DA,5 "i cannot do that."
@@ -1875,7 +1875,7 @@ D $C7C0 Starts timer 9, the hole in the mountain's side, at three turns rather t
 
 @ $C7DD label=IN_THE_FOREST
 c $C7DD Arriving on the forest road or in the forest: the eyes
-D $C7DD Keeps the place the player came into the forest by in #R$B6F3 -- the one EYES_WARNING counts as safe -- and starts timer 8.
+D $C7DD Keeps the forest location just arrived at -- DESTINATION, so 2 or 3 -- in #R$B6F3, and starts timer 8 again at its full four turns. Every step between the forest road and the forest starts it again.
 
 @ $C7EA label=AT_FOREST_RIVER
 c $C7EA Arriving at the forest river
@@ -1906,7 +1906,7 @@ B $C7FC,4,4 NIGHT: "it cannot be seen, cannot be felt, cannot be heard, cannot b
 B $C800,4,4 MAN: "which is the animal that has four feet in the morning, two at midday and three in the evening ?"
 B $C804,4,4 NIGHT again
 B $C808,4,4 MAN again
-B $C80C,2,2 Not yet worked out
+B $C80C,2,2 Two $FF bytes no instruction names: unused
 
 @ $C80E label=HIDDEN_ROADS
 b $C80E The ways one of which is shut at the start of each game
@@ -1923,7 +1923,7 @@ c $A7C4 The curious map's own EXAMINE: Elrond reads it
 D $A7C4 Anyone but Elrond examining the map gets the ordinary EXAMINE. Elrond puts back the road NEW_GAME_CHOICES shut and tells the way along it: "go ... from the ... to get to the ...", with the direction and the two places' names. The entry is found through the operand of the LD IY at #R$A7CF, which NEW_GAME_CHOICES writes.
 D $A7C4 The put-back is skipped if #R$B6F1 is not zero, but nothing ever makes it so: NEW_GAME_CHOICES clears it and no instruction writes it otherwise (the only other F1 B6 in memory is in the picture code, where it is POP AF and then OR (HL)). So the road is put back again, to the same three bytes, every time Elrond reads the map. Watched: the treeless opening's west exit, wiped to zeros by NEW_GAME_CHOICES, came back as $04 $00 $14, written by the LD (HL),A in the loop above, when Elrond examined the map, and #R$B6F1 was still 0 afterwards.
   $A7C4,8 Not Elrond: the ordinary EXAMINE
-  $A7CC,3 Not yet worked out
+  $A7CC,3 The test ends here
   $A7CF,10 IY = the road that was shut; HL = its exit in the room record
   $A7D9,7 Already put back? Just say the way -- never taken: nothing sets #R$B6F1
   $A7E0,11 Put the exit back
@@ -1972,7 +1972,7 @@ D $A4C0 Only from location 16, the big goblins' cavern, where it is opened as an
 c $A5E2 After something is thrown through the trap door
 D $A5E2 The large trap door's record has this under key 0 after its handler for action 44, THROW THROUGH. If what went through was the barrel, and it has landed in location 33, the forest river, timer 0 is set going: two turns later BARREL_REACHES_LAKE takes it, and anyone inside, on to the long lake.
   $A5E2,6 Not the barrel: nothing
-  $A5E8,3 Not yet worked out
+  $A5E8,3 Only if the throw really happened, and worked
   $A5EB,10 Not in the forest river: nothing
   $A5F5,5 Start timer 0 at two turns
 
@@ -2148,7 +2148,7 @@ c $712B Tell the player what was done, as a sentence
 D $712B Built from the action's pattern: who did it, "cannot" if it was refused, the verb -- or GO and the direction, for a move, or GO SOMEWHERE in the dark, when the player cannot see which way -- then the first object after its particle, and the second after its preposition, and a full stop. So what the other characters are seen to do is told by the same code, from the same patterns, as the player's own actions.
 D $712B A pattern with bit 4 of #R$B71D set is not narrated at all: that is LOOK and INVENTORY, the only two, which change nothing anyone could see.
   $712B,5 Narrating
-  $7130,4 Not yet worked out
+  $7130,4 Names in full, not the noun alone
   $7137,13 #R$B701 = 1 if the action was refused
   $7148,9 IX = the action's pattern
   $7151,11 Done, and by the player: a new line first
@@ -2435,7 +2435,7 @@ R $867A I:HL The screen address
 c $86A1 Print a character of the story
 D $86A1 Where most of the game's text goes, in the six-pixel font at #R$8822 (NARROW_CHAR), 42 to a line: HL is the byte and C the pixel within it where the next character starts, kept at #R$869C and #R$869E between calls, and #R$869B counts the columns left.
 D $86A1 A new line starts with the indent at #R$869F -- how LIST_HELD indents what is inside something. Capitals are the game's own: every letter is made lower case, and the first letter after a carriage return or a full stop made upper case again, by the flag at #R$B704.
-D $86A1 At the end of a line the finished line is copied to the ZX Printer if PRINT is on, then the game waits about a third of a second, or less if a key is pressed, before scrolling. #R$B716, when not zero, takes away that wait for as many lines as it counts; what sets it is not yet traced.
+D $86A1 At the end of a line the finished line is copied to the ZX Printer if PRINT is on, then the game waits about 0.58 s -- a 62 T-state loop run up to 32,768 times -- or less if a key is pressed, before scrolling. #R$B716, when not zero, takes away that wait for as many lines as it counts: START sets it to 17 for the opening description, and MAIN_LOOP to 9 before every line, so each turn's first nine lines come at once. Either way a key pressed means waiting for every key to be let go.
   $86A4,34 Starting a line: the indent
   $86C6,6 A carriage return?
   $86CC,5 The next letter is a capital
@@ -2488,7 +2488,7 @@ D $9171 Only something in one place can be a weapon: "you cannot kill with the .
   $91C1,7 No stronger: "but the effort is wasted..."
   $91C8,10 More than 16 stronger?
   $91D2,18 Otherwise a wound: the message for how much stronger...
-  $91E4,23 ...and the target's strength and defence worn down by it
+  $91E4,23 ...and the target's strength and defence worn down by it -- halved with RRCA, which rotates the margin's low bit into bit 7: an odd margin takes 129 or more off a strong target and nothing off a weak one. Tried in four fights with Thorin (104/120): a margin of 8 left him 99/117, 10 98/120, 11 unhurt and 13 104/52
   $91FB,3 Print the wound
   $91FE,21 A kill: "...you cleave his skull.", dead, and it is said
 @ $914A label=SAME_SIDE
@@ -2500,7 +2500,7 @@ D $914A Bits 4 to 6 of byte 4 of each record are the sides; sharing one ends the
 c $9213 A plus a random -10 to +10, kept to 0-255
 @ $9226 label=WOUNDS
 w $9226 What a wound is said to be, by how much stronger the blow was
-D $9226 The messages the fight picks between, from a stagger to a stunning hit; the stronger the blow, the further down the table.
+D $9226 The messages the fight picks between; the stronger the blow, the further down the table. DO_ATTACK indexes it with twice the margin, which runs from 1 to 16, so the table is read one entry late: the first message, a stagger, is never chosen, and a margin of exactly 16 takes the word after the table -- the first two bytes of ONE_PLACE's code, an address in the ROM -- and prints the ROM's bytes as a message (tried: a few garbled words).
 @ $977F label=KILL
 c $977F Kill the character in A
 D $977F The player's death is PLAYER_DIES. Anyone else is marked dead (flag bit 3), drops everything it holds (EMPTY_OUT), and gives up its slot in CHARACTERS, so its script never runs again.
@@ -2508,7 +2508,7 @@ D $977F The player's death is PLAYER_DIES. Anyone else is marked dead (flag bit 
   $9789,7 Dead
   $9790,3 Everything it held drops
   $9793,13 Its script is over
-  $97A0,7 Not yet worked out
+  $97A0,7 Named DEAD (BROKEN_OR_DEAD), and its orders thrown away (CANCEL_ORDERS)
 
 @ $9076 label=DO_SHOOT
 c $9076 SHOOT
@@ -2637,7 +2637,7 @@ D $910E Not if it is locked or open already ("the ... is locked.", "the ... is o
   $9117,4 Open
   $911B,5 Not a container in one place: done
   $9120,8 Nothing in it: done
-  $9128,7 Not yet worked out
+  $9128,7 Introduce what it holds; nothing to show: done
   $912F,9 "you see" and what is in it
 @ $9138 label=DO_CLOSE
 c $9138 CLOSE
@@ -2930,7 +2930,7 @@ c $A94E The trolls, the four turns after: eat the player, if still there
 D $A94E The troll eats the player (EAT, $1B) where they are both, and PLAYER_DIES. Anywhere else it fails, and the script pauses a turn.
 @ $A971 label=TROLLS_TURN_TO_STONE
 c $A971 Dawn: the trolls turn to stone
-D $A971 Both trolls are killed and hidden, drop what they held -- the large key among it -- the clearing gets its daytime description and is marked unvisited, and its picture is patched to show them as stone.
+D $A971 Both trolls are killed and hidden, drop what they held -- the large key among it -- the clearing gets its daytime description and is marked unvisited, and its picture's first two bytes -- the border and the attribute its canvas starts as -- go from night's black to day's cyan; the drawing itself is the same. Every new game puts the night back (#R$6C27(NEW_GAME)). Seen in the simulator: $00 $00 at the start, $05 $28 once day had dawned.
 
 # --------------------------------------------------------------------------
 # Names, articles, and what things hold
@@ -3262,7 +3262,7 @@ B $B6F2,1,1
   $B6F2,1 PRINT is on: the story goes to the ZX Printer too
 @ $B6F3 label=FOREST_ENTRY
 B $B6F3,1,1
-  $B6F3,1 Where the player came into the forest, for the eyes
+  $B6F3,1 The forest location the player last arrived at, 2 or 3, for the eyes
 @ $B6F4 label=ORDER_WAITING
 B $B6F4,1,1
   $B6F4,1 The character acting has an order waiting
