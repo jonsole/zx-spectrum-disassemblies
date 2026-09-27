@@ -23,23 +23,45 @@ LinkOperands=CALL,DEFW,DJNZ,JP,JR,LD
 
 [Index]
 MemoryMaps
+HowItWorks
 Game
+Graphics
 Reference
 
-[Index:Game:The game]
+[Index:HowItWorks:How it works]
 HowItWorks
+Parsing
+CharacterLives
+Fighting
+Messages
+Drawing
+
+[Index:Game:The game]
 Map
 Locations
 Objects
 Characters
 Actions
 
+[Index:Graphics:Pictures, animation and sound]
+Animations
+Sounds
+
 [Index:Reference:Reference]
 Patches
 Bugs
+Facts
+Pokes
 Credits
 
 [Paths]
+Parsing=reference/parsing.html
+CharacterLives=reference/character-lives.html
+Fighting=reference/fighting.html
+Messages=reference/messages.html
+Drawing=reference/drawing.html
+Animations=reference/animations.html
+Sounds=reference/sounds.html
 HowItWorks=reference/how-it-works.html
 Patches=reference/patches.html
 Map=reference/map.html
@@ -51,6 +73,13 @@ Bugs=reference/bugs.html
 Credits=reference/credits.html
 
 [Titles]
+Parsing=How a sentence is understood
+CharacterLives=How the characters live
+Fighting=How a fight is decided
+Messages=How the text is stored and told
+Drawing=How a picture is drawn
+Animations=Animations
+Sounds=Sounds
 HowItWorks=How it works
 Patches=Patches
 Map=Map
@@ -62,6 +91,13 @@ Bugs=Bugs
 Credits=Credits
 
 [PageHeaders]
+Parsing=How a sentence is understood
+CharacterLives=How the characters live
+Fighting=How a fight is decided
+Messages=How the text is stored and told
+Drawing=How a picture is drawn
+Animations=Animations
+Sounds=Sounds
 HowItWorks=How the game works
 Patches=Patches
 Map=The map
@@ -73,6 +109,13 @@ Bugs=Bugs
 Credits=Credits
 
 [Links]
+Parsing=How a sentence is understood
+CharacterLives=How the characters live
+Fighting=How a fight is decided
+Messages=How the text is stored and told
+Drawing=How a picture is drawn
+Animations=Animations
+Sounds=Sounds
 HowItWorks=How it works
 Patches=Patches
 Map=Map
@@ -82,6 +125,27 @@ Characters=Characters
 Actions=Actions
 Bugs=Bugs
 Credits=Credits
+
+[Page:Parsing]
+PageContent=#INCLUDE(Parsing)
+
+[Page:CharacterLives]
+PageContent=#INCLUDE(CharacterLives)
+
+[Page:Fighting]
+PageContent=#INCLUDE(Fighting)
+
+[Page:Messages]
+PageContent=#INCLUDE(Messages)
+
+[Page:Drawing]
+PageContent=#INCLUDE(Drawing)
+
+[Page:Animations]
+PageContent=#INCLUDE(Animations)
+
+[Page:Sounds]
+PageContent=#INCLUDE(Sounds)
 
 [Page:Map]
 PageContent=#INCLUDE(Map)
@@ -224,7 +288,7 @@ Twenty-six rooms are dark: the trolls' cave, the goblins' dungeon and its passag
 In the dark, a move goes in a random direction, and a way that is not there is a fall: each halves the player's strength, and the seventh is fatal. Actions that need light are refused, the picture is blacked out, and the other characters are heard rather than seen.
 
 [How:fighting:Fighting and breaking things]
-Every object and character has a strength and a defence, bytes 5 and 6 of its record. #R$9171(DO_ATTACK) sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each with a random -10 to +10. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright. Anything between picks a message from a table of wounds by how much stronger it was (#R$9226(WOUNDS)) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows. The wearing down is less even than that sounds: see <a href="bugs.html#wear">Bugs</a>.
+Every object and character has a strength and a defence, bytes 5 and 6 of its record. #R$9171(DO_ATTACK) sets the attacker's strength, plus the weapon's -- bare hands are a FIST -- against the target's defence, each jostled by #R$9213(JOSTLE). That was meant to be a random -10 to +10, but in practice it is a random 0 to +10, and about one time in 25 the blow or the guard comes out as 0 instead: see <a href="bugs.html#jostle">Bugs</a>. A blow no stronger than the defence is wasted. One more than 16 stronger kills outright -- so a guard of 0 loses to any blow over 16. Anything between picks a message from a table of wounds by how much stronger it was (#R$9226(WOUNDS)) and wears the target's strength and defence down, so a long fight goes to whoever keeps landing blows. The wearing down is less even than that sounds: see <a href="bugs.html#wear">Bugs</a>.
 
 Characters have sides (byte 4), and no one attacks their own -- except the player, who can turn on a friend, who is an enemy from then on (#R$914A(SAME_SIDE)).
 
@@ -328,7 +392,7 @@ SAVE and LOAD use the ROM's own tape routines, which end by testing BREAK and, i
 #R$6C27(NEW_GAME) copies back the objects, the rooms, the timers, the character slots and the variables, but not the scripts themselves, where the game keeps two things it changes: Bard's order, which #R$A8AB(BARD_TAKES_ORDER) writes into a step of his script, and Thorin's one-time remark about the small curious key, which #R$9928(SCRIPT_DO) zeroes once made. Both carry over into the next game until the tape is loaded again. Seen in the simulator for Thorin: after QUIT and a new game, the key was back in the goblins' cache and the step still zero.
 
 [Bug:score:The score cannot reach 100%]
-#R$83F5(SHOW_SCORE) prints the score at #R$B6F7(SCORE) as a percentage with one decimal place, from tenths of a per cent -- so a full game is 1000 -- and it is written to print a hundreds digit, so 100.0% was meant to be possible. But the only thing that ever adds to the score is MOVE (#R$8D9D), the first time the player reaches a place listed in #R$8D6E(VISIT_SCORES), and those fourteen places are worth 750 between them: the lower halls 20%, the long lake 10%, the goblins' dungeon 7.5%, the trolls' cave, the dark stuffy passage, the dark dungeon and the smooth straight passage 5% each, and the lonelands, the narrow place, Beorn's house, the smothering forest, the levelled elvish clearing, Dale valley and the side door 2.5% each. Nothing else writes to the score -- no action, no character's script, no treasure -- and winning (#R$A9D6(CHECK_WON)) adds nothing and does not even show it. So the best any game can do is 75.0%. Where the missing quarter was meant to come from -- the treasure, perhaps, or the dragon -- the code does not say.
+#R$83F5(SHOW_SCORE) prints the score at #R$B6F7(SCORE) as a percentage with one decimal place, from tenths of a per cent -- so a full game would be 1000. It prints two digits, a point and a third: the tens of per cent, left out when 0, the units and the tenths. There is no hundreds digit. #R$842E(DIGIT) counts how many times the place value goes in and adds the count to the character 0, so a score of 1000 would give ten tens and print the character after 9, a colon: watched in the emulator with the score set to 1000, SCORE said ":0.0%". But the only thing that ever adds to the score is MOVE (#R$8D9D), the first time the player reaches a place listed in #R$8D6E(VISIT_SCORES), and those fourteen places are worth 750 between them: the lower halls 20%, the long lake 10%, the goblins' dungeon 7.5%, the trolls' cave, the dark stuffy passage, the dark dungeon and the smooth straight passage 5% each, and the lonelands, the narrow place, Beorn's house, the smothering forest, the levelled elvish clearing, Dale valley and the side door 2.5% each. Nothing else writes to the score -- no action, no character's script, no treasure -- and winning (#R$A9D6(CHECK_WON)) adds nothing and does not even show it. So the best any game can do is 75.0% -- and the routine could not show a full score even if one were reached. Where the missing quarter was meant to come from -- the treasure, perhaps, or the dragon -- the code does not say.
 
 [Bug:unreached:Code nothing reaches]
 Five sentence shapes -- PUT ON, TAKE FROM, THROW, CUT and CLIMB -- have patterns in #R$AB53(ACTION_PATTERNS) but no handler in #R$C730(ACTION_TABLE) or in any object's record, so they can never be done (tried: "i cannot do that."), and the PUT ON case in #R$924F(DO_PUT_IN) can never be reached. Six stretches of the game read as code but nothing calls them, jumps to them or names them in a table the game uses: an OPEN for the wood elf alone (#R$A536), a routine that would wipe an exit (#R$A70A), one that finds what an object holds (#R$A1AE), and three fragments (#R$78FB, #R$9030, #R$92E8). A seventh was on this list, special word slot 0's handler, until it turned out to be the quote mark's: #R$8315(SPECIAL_QUOTE). They are left as data here, with what they would do said beside them.

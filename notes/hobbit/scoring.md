@@ -16,7 +16,7 @@ chest, winning -- touches the score. The same is true of v1.0.
 | Where | What |
 |---|---|
 | $6CCA, in START's set-up | `LD (SCORE),HL` with HL = 0: a new game scores nothing |
-| $8401, `SHOW_SCORE` | read to print "you have mastered ... %" -- hundreds only if not zero, tens, a point, units |
+| $8401, `SHOW_SCORE` | read to print "you have mastered ... %" -- tens of per cent only if not zero, units, a point, tenths; no hundreds digit, so 1000 would print ":0.0%" (below) |
 | $8E61-$8E65, ARRIVE+40 | `LD HL,(SCORE)` / `ADD HL,DE` / `LD (SCORE),HL`: the **only** increase |
 | START $6C14 / NEW_GAME $6C52 | block copies of the variables $B6EB-$B707, which include it, to $5F00 and back |
 | DO_SAVE $84E8 / DO_LOAD $8457 | the same block to and from tape, so a loaded game keeps its score |
@@ -52,6 +52,15 @@ dungeon, the smooth straight passage and the stuffy passage at 65 are dark,
 so their 275 points come only to a player who arrives with the sword in
 reach -- and since the visited bit is not set in the dark, coming back later
 with it still scores ([`light-and-dark.md`](light-and-dark.md)).
+
+**100% could not even be printed** (*read*, and *watched* 2026-09-27).
+`SHOW_SCORE` prints two digits, a point and a third: `DIGIT` ($842E) with
+100 gives the tens of per cent (skipped when 0), with 10 the units, and what
+is left is the tenths. `DIGIT` counts how many times the place value goes in
+and adds that to the character 0, so a score of 1000 would count ten tens
+and print the character after 9, a colon. Watched on a private zx_server:
+with `SCORE` written to 1000, the SCORE command printed ":0.0%". Nothing in
+the routine was written for 100%.
 
 ## How this was found
 
@@ -90,10 +99,17 @@ is read, watched and searched for independently, in two versions.
   the game's own data by the build: each location a byte, written in the
   source as a constant named after the room (`LOC_LONELANDS`), each score a
   `DEFW`.
+- `SHOW_SCORE`'s description and comments called its first digit
+  "hundreds" and the ref's Bugs page said it "is written to print a
+  hundreds digit, so 100.0% was meant to be possible". The digit is the
+  hundreds of *tenths* -- the tens of per cent -- and 1000 prints ":0.0%".
+  Corrected in the annotations and the ref 2026-09-27.
 
 ## Open questions
 
 - Whether 750 was meant to be 1000 -- a place or two left out of the table,
-  or points meant for actions -- cannot be told from the code. Claims that the
+  or points meant for actions -- cannot be told from the code; that
+  `SHOW_SCORE` cannot print 1000 suggests nobody expected a full score.
+  (Inferred.) Claims that the
   golden key or the treasure score have been tested and are wrong for v1.0 and
   v1.2; other releases (other machines) are untested.

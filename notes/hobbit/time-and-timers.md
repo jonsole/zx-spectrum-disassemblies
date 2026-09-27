@@ -160,6 +160,10 @@ timers reaching zero together was staged.
   the instruction there, `LD (IX+$10),$20`, puts it at location 32, the
   cellar. Only its contents stay at the lake. *Measured*; corrected 2026-09-27.
 
+## Also found for the animations page (2026-09-27)
+
+- The game typed WAIT after 23.40 s at the prompt, and each WAIT turn of the 50 filmed took 24.3 s of game time (*measured*).
+
 ## Open questions
 
 - Whether the forest's every-way-out death was intended.

@@ -16,8 +16,11 @@ every blow in a fight, and a dozen smaller things.
 **`RANDOM` ($9CA8)**, a number from -A to A (*read*):
 
 1. B = 2A (or $FF).
-2. Step `RANDOM_POINTER` ($B712) on by one -- a 16-bit address that starts at
-   $0000 on the tape and walks up through the ROM, the screen and the game.
+2. Step `RANDOM_POINTER` ($B712) on -- a 16-bit address that starts at $0000
+   on the tape. `INC (IX+1)` with IX = $B712 is its *high* byte, so it steps
+   256 bytes a call, and the low byte moves on only when the high one wraps:
+   it sweeps the whole of memory a page at a time -- ROM, screen and game --
+   256 calls to go round once (*read*; corrected 2026-09-27, it said "by one").
 3. A = `RANDOM_LAST` ($B70E) + the byte at the pointer (with whatever carry
    is left), XOR the byte one past pointer + DE -- DE being whatever the
    caller had in it.
@@ -54,7 +57,7 @@ title key at the same instruction every time gets the same game every time
 | RUN | `DO_RUN` | a random start direction, then the first way out round from it |
 | Which script a wanderer switches to | `SCRIPT_RANDOM` | its first n scripts |
 | How many orders a character takes | `DO_TALK` | 0 to its limit (0: "no") |
-| Every blow and every guard | `JOSTLE` | +/-10 |
+| Every blow and every guard | `JOSTLE` | meant +/-10; in practice +0 to +10, and 0 about one time in 25 ([`bugs.md`](bugs.md)) |
 | Breaking a thing | `DO_STRIKE` | 0-21 added to the blow |
 | A shot by anyone but Bard | `DO_SHOOT` | a miss when 0-8 comes up under 3 |
 | The dragon | `DRAGON_HUNTS` | seen under 80 of 0-100, burns otherwise |

@@ -156,8 +156,10 @@ The scripts in outline (*read*, from the build's decode):
   asks where the thief is, and otherwise chats, waits or sings about gold.
 - **The trolls** say their lines at the end of the turn the player enters
   their clearing. On each of the next four turns each troll tries to eat
-  the player if the player is still there (`TROLLS_EAT`: the troll EATs the
-  player, whose own EAT handler is followed by `PLAYER_DIES`); a failed try
+  the player if the player is still there (`TROLLS_EAT` $A94E: the troll's
+  EAT is narrated and done by calling `DO_EAT` itself, and the routine then
+  jumps to `PLAYER_DIES` -- the player's own EAT handlers, `DO_EAT` then
+  `PLAYER_DIES`, are not used; *read*, corrected 2026-09-27); a failed try
   falls through to a pause, so each try is a turn. The fourth failed try
   falls through to `TROLLS_TURN_TO_STONE` in the same turn: "day dawns", and
   both are killed, hidden and drop what they hold (the large key), and the
@@ -235,6 +237,11 @@ were not run.
 - Not corrected: `hobbit-vscode/hobbit_model.js` still labels a bit-5 step
   "then its part in the story is over" (and the Inspector's README says the
   same); that extension was outside what this pass could edit.
+
+## Also found for the animations page (2026-09-27)
+
+- Fifty turns of WAIT from the start (the Animations page's roaming map): on turn 14 the nasty goblin captured Gandalf into the goblins' dungeon (13), where he stayed; on turn 35 the warg attacked the wood elf (57 against 57, wasted); on turn 36 the wood elf captured the warg into the dark dungeon (31) (*measured*, replays stopped at $A41D and $91C1).
+- A troll that eats the player dies of gluttony: 160 + 10 reaches 128, and its dead flag was seen set (*measured*).
 
 ## Open questions
 

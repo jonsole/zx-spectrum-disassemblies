@@ -3,11 +3,12 @@
 **Question this answers:** how a fight is decided, who can kill whom, every
 way the player can die, and what winning is.
 
-**Short answer:** a blow is the attacker's strength plus the weapon's, give
-or take ten, against the target's defence, give or take ten: no stronger is
-wasted, more than 16 stronger kills, anything between wounds and wears the
-target down -- erratically, because the wear is halved with a rotate where a
-shift was meant. There are a dozen ways to die, several of them traps that
+**Short answer:** a blow is the attacker's strength plus the weapon's
+against the target's defence, each jostled -- meant as give or take ten, but
+in practice plus 0 to 10, and about one time in 25 zero instead: no stronger
+is wasted, more than 16 stronger kills (so a guard of 0 loses to any blow over
+16), anything between wounds and wears the target down -- erratically,
+because the wear is halved with a rotate where a shift was meant. There are a dozen ways to die, several of them traps that
 kill on arrival or a few turns later. The game is won at the end of any
 turn in which the treasure is in the wooden chest, and either way it starts
 again without reloading.
@@ -26,7 +27,8 @@ line by line):
 2. The weapon's noun, or FIST, for the messages. A weapon in more than one
    place (a door, a river) cannot kill.
 3. Blow = attacker's strength (byte 5) + weapon's strength, at most 255,
-   then `JOSTLE`: plus `RANDOM` -10 to +10, kept to 0-255.
+   then `JOSTLE`: plus `RANDOM` -10 to +10, meant to be kept to 0-255 --
+   but see **the jostle** below: in practice plus 0 to 10, or 0.
 4. The test ends here (`FOR_REAL`): up to this point a character's attack
    is only being considered.
 5. Guard = target's defence (byte 6), jostled the same way.
@@ -34,6 +36,23 @@ line by line):
 7. Blow > guard + 16: a kill, one well-placed blow, `KILL`.
 8. Otherwise the margin (1-16) picks a message from `WOUNDS` ($9226) and
    wears down the target's strength and defence.
+
+**The jostle is broken** (*read*, *measured* and *watched*, 2026-09-27).
+`JOSTLE` ($9213) adds the random number with `ADD A,B` and takes a carry as
+going past 255 -- 0 if the number was negative, 255 if not. But a negative
+number is a byte of 246-255, which carries whenever the true result is fine,
+so every downward jostle of a value of 10 or more returns **0**; below 10 an
+underflow does not carry and wraps to 246 or more. And `RANDOM` halves its
+byte until it is no more than 20, which leaves every byte from 21 up in the
+top half: only a byte under 10 gives a negative, about one call in 25
+([`chance.md`](chance.md)). So a blow or a guard goes up by 0 to 10, and
+about one time in 25 is 0. A blow of 0 is wasted; a guard of 0 loses to any
+blow over 16, a kill. *Measured* in the simulator: 2000 jostles of 104 gave
+104-114, or 0 (71 times), never 94-103. *Watched* live (private zx_server,
+a logpoint at $91C1 on the blow and guard): the vicious warg (55), kept
+beside the player (64), struck 55-62 against guards of 65-73 -- a true
+jostle could never let it kill -- until its twelfth blow met a guard of 0 and
+killed the player; Thorin's 104 once came out 0. See [`bugs.md`](bugs.md).
 
 **The wear is broken** (*read*, and *measured*). The margin is doubled for
 the table index (`RLCA`), then halved twice with `RRCA` -- which rotates
@@ -62,9 +81,13 @@ player, Gandalf, Thorin, Bard), the goblins' (the goblins, Gollum), the
 elves' (the wood elf, the butler), and Elrond on both the player's and the
 elves'. The dragon, the warg and the trolls are on no side, so everyone may
 fight them and they may fight anyone. With bare hands the player's blow is
-64 +/- 10, which can never beat a goblin's guard (96 +/- 10); with the sword
-(strength 64) it is 128 +/- 10, enough for goblins and Thorin, never for the
-trolls' 160 +/- 10 or the dragon's 192. *Measured*: CAPTURE THORIN (a synonym for ATTACK) was
+64-74, which cannot beat a goblin's guard of 96-106 -- except the one time in
+about 25 that the guard comes out 0, when any blow over 16 kills; with the
+sword (strength 64) it is 128-138, enough for goblins and Thorin, and short
+of the trolls' 160-170 and the dragon's 192-202 by the same exception. The
+guard-0 kill makes even the dragon mortal to a bare-handed player one blow in
+25 (*read* from the code, not tried; the guard-0 kill itself was watched, on
+the player). *Measured*: CAPTURE THORIN (a synonym for ATTACK) was
 wasted on his defence, and Thorin, now an enemy, killed the player in one
 blow in the same turn.
 
@@ -127,7 +150,8 @@ The deaths are as tagged.
 ## Open questions
 
 - Whether the designers knew the wear was erratic: fights against the
-  trolls and the dragon would be decided by one lucky odd margin.
+  trolls and the dragon would be decided by one lucky odd margin -- or, with
+  the jostle bug, by one guard of 0.
 - Whether a margin of exactly 16 happens in play often enough to have been
-  seen: with two jostles of 21 values each, it needs a guard 16 under the
-  blow, which depends on the pair.
+  seen: with two jostles of 0 to +10 each (or 0), it needs a guard 16 under
+  the blow, which depends on the pair.

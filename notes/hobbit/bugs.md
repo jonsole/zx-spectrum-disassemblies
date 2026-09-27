@@ -6,8 +6,9 @@ should, and which of its traps kill or strand a player with no fair warning
 
 **Short answer:** the known bugs are the unreachable 100% score, a fight's
 wear-down that uses a rotate for a shift, a wound table read one entry late,
-a FILL that can never work, a JUMP ONTO that jumps into text, and a hidden
-road that a LOAD can lose. The traps are the forest road (every way out
+a FILL that can never work, a JUMP ONTO that jumps into text, a hidden
+road that a LOAD can lose, and a fight's jostle that turns every downward
+step into zero. The traps are the forest road (every way out
 kills), the deep bog (death on arrival), the closed barrel (dark inside, and
 OPEN needs light), and BREAK held at the end of a tape block (the machine
 restarts). Five of the 59 sentence patterns have no handler anywhere.
@@ -24,6 +25,7 @@ restarts). Five of the 59 sentence patterns have no handler anywhere.
 | 6 | **A LOAD can lose the hidden road.** The shut road's record lives in an instruction operand ($A7D1) that SAVE does not write; after a new game or a reload, Elrond reopens the new game's road, not the loaded one's. | read | [`save-load.md`](save-load.md) |
 | 7 | **The "already put back" flag is never set.** `ROAD_OPEN` ($B6F1) is cleared and tested but never set, so Elrond rewrites the road each time he reads the map. Harmless. | read, watched, searched | [`hidden-roads.md`](hidden-roads.md) |
 | 8 | **Five sentence shapes do nothing.** PUT ON, TAKE FROM, THROW, CUT and CLIMB have patterns but no handler in `ACTION_TABLE` or any object; `DO_PUT_IN`'s PUT ON branch is unreachable. | read; measured for four | [`actions.md`](actions.md) |
+| 9 | **A fight's jostle only goes up -- or to zero.** `JOSTLE` ($9213) adds `RANDOM`'s -10 to +10 with `ADD A,B` and treats a carry as overflow, but a negative number always carries when the result is fine: every downward jostle of 10 or more returns 0 (below 10 an underflow wraps to 246+). `RANDOM` gives a negative only about one call in 25, so blows and guards are +0 to +10, or 0 -- and a guard of 0 loses to any blow over 16. | read; measured (2000 jostles of 104: 104-114 or 0, never below); watched live: the warg killed the player through a guard of 0, and Thorin's 104 came out 0 | [`fighting-and-dying.md`](fighting-and-dying.md) |
 
 ## The traps
 
@@ -38,6 +40,11 @@ restarts). Five of the 59 sentence patterns have no handler anywhere.
 | **State a new game does not reset.** Bard keeps his last order, and Thorin's remark about the key, once made, is never made again, until the game is reloaded. | read; measured for Thorin | [`save-load.md`](save-load.md) |
 
 ## How this was found
+
+9 was found on 2026-09-27 writing the Pokes page: a logpoint on
+`DO_ATTACK`'s blow and guard showed Thorin's blow of 104 come out 0, which
+the code then explained; it was measured in the simulator and watched
+killing the player live. The Pokes page has an eight-byte fix.
 
 1, 5 and the unreached code were on the site's Bugs page already, and 4 as
 "not confirmed in play"; 7 came from the 2026-09-25 playthrough. The rest

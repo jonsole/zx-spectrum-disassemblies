@@ -36,6 +36,7 @@ import build_hobbit as bh
 INPUT_LINE = 0x6FF9         # the line the tokeniser reads, ended by $0D
 READ_LINE_READY = 0x6DF3    # READ_LINE with HL and B just set, before any key
 WAIT_FOR_ANY_KEY = 0x969A
+ENTER_TAKEN = 0x6D20         # READ_LINE has the ENTER: let go here, or $86F8 waits for ever
 LINE_LENGTH = 0x80          # what READ_LINE starts B at
 
 
@@ -126,8 +127,13 @@ class Hobbit:
         # ENTER's, if the game was stopped while it was held -- makes this one
         # look like no change at all, and the line is not taken.
         self.run([], 0.05)
-        self.run(["ENTER"], 0.10)
-        self.run([], 0.10)
+        # Hold ENTER only until the reader takes it, then let go and run to the
+        # next prompt. Running on for a fixed time instead once carried a
+        # command the game answers at once -- an unknown word, a refusal --
+        # past the next prompt unseen, and the game then timed out and typed
+        # WAIT itself: a turn nobody asked for (24.5 s for XYZZY, measured).
+        self.run(["ENTER"], 0.5, stop=ENTER_TAKEN)
+        self.run([], 0.0)
         self.ready()
 
 

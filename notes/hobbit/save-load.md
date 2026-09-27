@@ -94,6 +94,16 @@ The blocks are *read*. The two gaps are *read*; Thorin's side is
 *measured*. The hidden road's loss after a LOAD follows from the code but was
 not played through with a tape.
 
+## Interrupts during SAVE's rewind prompt (2026-09-27)
+
+*Measured* (the sounds page's run of a whole SAVE and its verify): `DO_SAVE` does
+not disable interrupts again until `TAPE_DONE` ($8553), so from the end of the
+fourth SA-BYTES block, through the rewind prompt and its key wait, to the
+verify's LD-BYTES, the ROM's IM 1 handler and keyboard scan run -- with IY at
+$B9C8, not the system variables. Holding a key there for 0.2 s changed nothing
+but the stack (LAST_K and $B9C9 untouched), so no harm was seen; but it is not
+true that the game disables them straight after the ROM's `EI`.
+
 ## Open questions
 
 - Whether a LOAD in the same session and the same game (no new game in

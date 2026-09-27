@@ -126,7 +126,7 @@ four of the five; CLIMB alone asks what to climb before it gets that far.
 
 ## Open questions
 
-- `WOULD_WORK`, `WANTS_TARGET` and `SEARCH_START` have parts still marked
+- `WOULD_WORK`, `WANTS_INSTRUMENT` (renamed from `WANTS_TARGET`: it asks about the instrument, bit 2 of $B71D) and `SEARCH_START` have parts still marked
   "not yet worked out" in the annotations: the order of `MATCH_AND_TRY`'s
   fall-backs is not fully traced.
 - `PATTERN_OPTION` ($B70F), set for TAKE OFF, FOLLOW and JUMP ONTO, changes

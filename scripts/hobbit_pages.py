@@ -380,10 +380,49 @@ def tidy_layout(rooms: dict, placed: dict[int, tuple[int, int]]) -> dict[int, tu
     return placed
 
 
-def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict) -> str:
+# Layers over the map: a marker on each place a layer names, in the layer's own
+# slot along the top of the place's box, each read from the game's tables and
+# shown or hidden by a checkbox before the map (hobbit.css).
+# (key, what, colour, shown at first)
+MAP_LAYERS = [
+    ("score", "Scores the first time you arrive", "#e0b000", True),
+    ("dark", "Dark: nothing seen without the sword", "#111111", True),
+    ("hook", "Something happens on arriving", "#e06000", False),
+    ("road", "One of the roads shut at random", "#8030c0", False),
+    ("objects", "Objects start here", "#2060d0", False),
+    ("characters", "Characters start here", "#c01818", False),
+]
+MARKER_R = 7
+
+
+HIDDEN_ROADS = 0xC80E        # six bytes a road: the place, an exit's address, its three bytes
+HIDDEN_ROADS_END = 0xC82C
+LIT = 0x80                   # bit 7 of a room record's first byte: the room is lit
+
+
+def _entry_labels(skool: Path) -> dict[int, str]:
+    """Each labelled entry's address and label, from the built skool file."""
+    import re
+    labels, pending = {}, None
+    for line in skool.read_text(encoding="utf-8").splitlines():
+        if line.startswith("@label="):
+            pending = line[len("@label="):]
+        else:
+            match = re.match(r"^[bcgistuw]\$([0-9A-F]{4})", line)
+            if match and pending:
+                labels[int(match.group(1), 16)] = pending
+            if not line.startswith("@"):
+                pending = None
+    return labels
+
+
+def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict,
+            layers: dict | None = None) -> str:
     """The map as inline SVG: a thumbnail or a named box per location, linked
     to its entry, and a line per way between two places -- a head at each end
-    it can be taken towards, dashed where it goes through something."""
+    it can be taken towards, dashed where it goes through something. layers
+    maps a MAP_LAYERS key to {location: (label, tooltip)}; each becomes a group
+    of markers the page's checkboxes show or hide."""
     xs = [x for x, _ in placed.values()]
     ys = [y for _, y in placed.values()]
     left, top = min(xs), min(ys)
@@ -445,6 +484,24 @@ def map_svg(rooms: dict, room_name: dict, pictures: set, placed: dict) -> str:
                        f'fill="{HASH}eef" stroke="{HASH}667"/>')
         out.append(f'<text x="{px + THUMB_W / 2:.0f}" y="{py + THUMB_H + 13:.0f}" font-size="11" '
                    f'text-anchor="middle">{location} {name}</text></a>')
+    for slot, (key, _, colour, _) in enumerate(MAP_LAYERS):
+        marks = (layers or {}).get(key, {})
+        if not marks:
+            continue
+        fill = colour.replace("#", HASH)
+        out.append(f'<g class="hb-layer hb-layer-{key}">')
+        for location, (label, tip) in sorted(marks.items()):
+            if location not in placed:
+                continue
+            px, py = box(location)
+            cx, cy = px + 4 + MARKER_R + slot * (2 * MARKER_R + 2), py - MARKER_R + 2
+            out.append(f'<g><title>{esc(tip)}</title><circle cx="{cx:.0f}" cy="{cy:.0f}" '
+                       f'r="{MARKER_R}" fill="{fill}" stroke="{HASH}fff" stroke-width="1.5"/>')
+            if label:
+                out.append(f'<text x="{cx:.0f}" y="{cy + 3.5:.0f}" font-size="9" fill="{HASH}fff" '
+                           f'text-anchor="middle" font-weight="bold">{esc(label)}</text>')
+            out.append("</g>")
+        out.append("</g>")
     out.append("</svg>")
     return "\n".join(out)
 
@@ -736,13 +793,47 @@ def build(html_dir: Path, out_ref: Path) -> None:
     # ------------------------------------------------------------ map
     real_rooms = {k: r for k, r in rooms.items() if k}
     placed = map_layout(real_rooms)
+    # The layers, each from the game's own tables.
+    hook_labels = _entry_labels(bh.OUT_DIR / "hobbit.skool")
+    roads: dict[int, tuple[str, str]] = {}
+    for entry in range(HIDDEN_ROADS, HIDDEN_ROADS_END, 6):
+        here, there = memory[entry], memory[entry + 5]
+        for a, b in ((here, there), (there, here)):
+            roads[a] = ("", f"{room_name.get(a, a)}: the way to or from {room_name.get(b, b)} "
+                            "may be the one shut this game")
+    layers = {
+        "score": {k: ("", f"{room_name.get(k, k)}: {v} points the first time")
+                  for k, v in scores.items()},
+        "dark": {k: ("", f"{room_name[k]}: dark") for k, r in real_rooms.items()
+                 if not memory[r["start"]] & LIT},
+        "hook": {k: ("", f"{room_name.get(k, k)}: arriving runs {hook_labels.get(v, f'${v:04X}')}")
+                 for k, v in hooks.items()},
+        "road": roads,
+        "objects": {k: (str(len(v)), f"{room_name.get(k, k)}: " + ", ".join(names.get(n, "?") for n in v))
+                    for k, v in ((k, [n for n in v if n < 0x3C]) for k, v in starts_in.items()) if v},
+        "characters": {k: (str(len(v)), f"{room_name.get(k, k)}: " + ", ".join(names.get(n, "?") for n in v))
+                       for k, v in ((k, [n for n in v if n >= 0x3C]) for k, v in starts_in.items()) if v},
+    }
+    toggles = "".join(
+        f'<input type="checkbox" class="hb-toggle" id="hb-layer-{key}"{" checked" if shown else ""}>'
+        f'<label for="hb-layer-{key}"><span class="hb-key" style="background:{colour.replace("#", "&#35;")}">'
+        f"</span>{what} ({len(layers[key])})</label>"
+        for key, what, colour, shown in MAP_LAYERS)
     mapped = ['<p>Every location, placed by the compass direction of the exits between them '
               '-- north up, east right, and up and down on the diagonals -- and moved aside '
               "where the game's geography will not fit a grid. A line is a way between two "
               'places, with a head at each end it can be taken towards; dashed, it goes '
               'through something, a door or a river. Click a place for its entry.</p>',
-              '<div style="overflow: auto">',
-              map_svg(real_rooms, room_name, set(pictures), placed), '</div>']
+              "<p>The markers along the top of a place are layers, each read from the game: "
+              "the places that score the first time you reach them (#R$8D6E), the "
+              "dark ones (bit 7 of a room record's first byte clear; see #R$95ED), "
+              "the places where arriving runs code of its own (#R$C78E), the ends of the roads "
+              "one of which is shut at the start of each game (#R$C80E), and where "
+              "each object and character starts, with how many. Tick a box to show a layer; "
+              "hold the pointer over a marker for what it means.</p>",
+              '<div class="hb-layers">' + toggles,
+              '<div class="hb-map" style="overflow: auto">',
+              map_svg(real_rooms, room_name, set(pictures), placed, layers), '</div></div>']
     # The fast-draw recordings for the Patches page, whichever have been made,
     # copied into the site with the pictures; without them the section is empty
     # and the page reads the same less it.

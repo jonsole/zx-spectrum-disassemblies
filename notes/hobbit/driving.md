@@ -89,6 +89,53 @@ sees anything.
   and Bard's last order carry over until the snapshot is reloaded. Reload,
   don't QUIT, between experiments that touch them.
 
+## Over MCP, in detail
+
+*Watched* 2026-09-27 on a private `zx_server` (ports 14711/18000,
+`--no-audio`), `hobbit.z80` loaded and driven by the breakpoints above; the
+scratch driver was `hb_reference_live.py` in that session's scratchpad (not
+kept).
+
+- **Typing the injected line.** After writing the command at $6DF3, set a
+  one-off breakpoint at **$7250** -- in `GET_KEY`, just after `CALL
+  SCAN_KEYBOARD` -- and run to it: that is one scan with no key held. Clear
+  it, press ENTER, run to $6D20 and let go. Every command so injected was
+  taken first time.
+- **The text.** A logpoint on $858F with `{A:d}` logs every character
+  really printed; `get_log` returns them in each line's `text`, 13 for a new
+  line. What `PRINT_CHAR` adds after its gate goes straight to `STORY_CHAR`
+  and is not seen there -- the wine's extra H -- so log at **$86A1** for
+  exactly what reaches the story window. `read_memory` answers `{"hex": ...}`.
+- **An emulated clock.** `get_state`'s `frame_count` keeps counting with the
+  game's interrupts off (50 a second), so a wait can be bounded in emulated
+  time: run with `wait: false`, poll, pause past a limit. It is not reset
+  by `load_snapshot`: take differences. The game typed its WAIT 1171 frames
+  (23.4 s) after the first prompt.
+- **Watching a fight.** A logpoint at **$91C1** (`DO_ATTACK`'s `CP B`) with
+  `blow {B:d} guard {A:d} actor {(0xB70C):w} target {(0xB708):w} doing
+  {(0xB6FA):d}`: B is the blow, A the guard, $B70C the attacker's record,
+  $B708 the target's, and $B6FA 1 for a real blow, 0 for a test. It also
+  logs the fights nobody can see.
+- **Keeping an attacker beside the player.** Characters wander: by the first
+  prompt the warg has left the treeless opening. To stage a long fight,
+  write the attacker's location (record +16) to the player's before every
+  command.
+
+**Traps found this way** (*watched*):
+
+- **Attacking Thorin starts a war out of sight.** He leaves the player's side
+  for good and attacks Gandalf; the two exchanged 23 blows each in the
+  following turns, off-screen, until Gandalf killed him. Every later
+  experiment in that game has no Thorin.
+- **A fight can kill whatever the numbers say.** `JOSTLE` makes a blow or a
+  guard 0 about one time in 25 ([`bugs.md`](bugs.md)), and a guard of 0 is
+  killed by any blow over 16: the warg killed the player on its twelfth
+  blow. Poke the defence and the jostle fix from the Pokes page, or keep
+  fights short.
+- **In the dark, every move is a fall where there is no way out** -- the
+  direction typed does not matter, it is thrown away -- and each halves the
+  strength; three moves in the trolls' cave took it from 64 to 8.
+
 ## Staging a state by poking
 
 Object records are in `OBJECT_INDEX` ($C063); a record's head is 16 bytes:
@@ -145,4 +192,12 @@ trolls) were *watched* live in `zx_server` on 2026-09-25. The additions of
 2026-09-27 -- text capture at $858F, the WAIT after 23 s, the dropped rest of
 a line, the deadly places, the barrel, BREAK, the scripts surviving a new
 game, the sword lighting a room from the floor -- were *measured* in
-SkoolKit's simulator with `hobbit_drive.py`, not yet live.
+SkoolKit's simulator with `hobbit_drive.py`, not yet live. The
+"Over MCP, in detail" section, including the WAIT after 23.4 s now timed
+live, was *watched* on 2026-09-27.
+
+## Also found for the animations page (2026-09-27)
+
+- In `hobbit.z80` the keyboard scan's last-seen table ($8B8B-$8B92) is all zero, which reads as every key held down: the first key typed at the first prompt is lost unless one scan first sees the keyboard empty. `hobbit_drive.say` does that already, though its comment puts it down to a stale ENTER (*measured*).
+- `Hobbit().seconds` reads about 63.6 s at the first prompt because `ready()` spins 60 s in `WAIT_FOR_ANY_KEY` before tapping a key -- harmless, but not game time (*measured*).
+

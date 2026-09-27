@@ -21,8 +21,10 @@ ROM's "Bytes:" messages have no lower screen to print in. The tape is not
 protected: the bytes on it are the bytes the game runs, $6000-$FC3F.
 
 **`START` ($6C00)** (*read*): `DI` -- interrupts stay off for the rest of the
-game (the only `EI`s are the ROM's, at the end of SAVE and LOAD, and the game
-disables them again straight after) -- then two block copies that are the
+game (the only `EI`s are the ROM's, at the end of SAVE and LOAD; after LOAD
+the game disables them again at once, but SAVE leaves them on through its
+rewind prompt -- see [save-load.md](save-load.md)) -- then two block copies
+that are the
 game's restart mechanism:
 
 | From | Bytes | To | What |

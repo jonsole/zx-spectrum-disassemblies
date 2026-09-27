@@ -86,8 +86,10 @@ The trolls turn to stone four turns after the player first meets them.
 
 ## Fighting, and a rotate that should be a shift
 
-A blow is strength plus weapon against defence, each give or take ten: more
-than 16 stronger kills, less than the guard is wasted. Wounds wear the target
+A blow is strength plus weapon against defence, each jostled -- meant as
+give or take ten, but a sign mistake in `JOSTLE` makes it plus 0 to 10, and
+about one time in 25 zero, when any blow over 16 kills: more than 16 stronger
+kills, less than the guard is wasted. Wounds wear the target
 down -- erratically, because the margin is halved with `RRCA`: an odd margin
 takes 129 or more off a strong target and nothing off a weak one (measured
 on Thorin). The wound messages are read one entry late, so a margin of

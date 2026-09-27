@@ -1505,7 +1505,7 @@ D $6C00 Reached by the BASIC loader's PRINT USR, and never left: it runs on into
   $6C27,4 A new game starts here
   $6C2B,20 The trolls' clearing's picture back to night: its border and starting attribute, the first two bytes of its stream, to black (TROLLS_TURN_TO_STONE sets the day's)
   $6C3F,38 Copy the saved state back
-  $6C65,8 Black border; the ROM told the border is black too
+  $6C65,8 Black border for now; but BORDCR is given $38 -- a white border, black ink on white paper -- which is the colour the ROM puts back after each tape block (measured: SA/LD-RET writes 7 after every SAVE block)
   $6C6D,9 The title screen: wait for a key
   $6C76,9 N held down: no pictures (#R$B707)
   $6C7F,32 Both windows' cursors to the start
@@ -1687,12 +1687,13 @@ B $B9B0,24,8
 
 @ $9CA8 label=RANDOM
 c $9CA8 A random number from -A to A
-D $9CA8 Mixes the last result, kept at #R$B70E and seeded from R by START, with the byte the pointer at #R$B712 has got to -- it steps on by one every call -- and one DE bytes past it, and draws again if that repeats the last result. The byte is then halved until it is no more than twice A, and A taken off.
+D $9CA8 Mixes the last result, kept at #R$B70E and seeded from R by START, with the byte the pointer at #R$B712 has got to -- which steps on 256 bytes every call: INC (IX+1) is its high byte, and the low byte moves on only when the high one wraps, so it sweeps the whole of memory a page at a time -- and one DE bytes past it, and draws again if that repeats the last result. The byte is then halved until it is no more than twice A, and A taken off.
+D $9CA8 The halving keeps any byte over twice A in the upper half, A to twice A, so the result is nearly always 0 to A: it is negative only when the byte is under A, about one call in 25 for A = 10 (measured through JOSTLE: 71 in 2000).
 D $9CA8 Measured over 3000 calls each, through RANDOM_POSITIVE: every value from 0 to A comes up, but not evenly -- for A = 4 the ends come up half as often as the middle, and for A = 9 the top three do.
 R $9CA8 I:A The limit, 0 to 127
 R $9CA8 O:A The result, -A to A
   $9CAB,8 B = twice the limit, or $FF if that overflows
-  $9CB3,12 Step the pointer on
+  $9CB3,12 Step the pointer on a page: the high byte, and the low one only when that wraps
   $9CBF,20 Mix two bytes from there into the last result
   $9CD3,6 The same as last time? Draw again; otherwise keep it
   $9CD9,10 Halve it until it is no more than B
@@ -2139,6 +2140,7 @@ R $70E8 O:HL Its 8-byte pattern
 @ $70F3 label=PATTERN_FLAGS
 c $70F3 Gather an action pattern's flags
 D $70F3 The top four bits of each of the pattern's four word references are flags, not part of the word. They are gathered in pairs: #R$B71D from the first two references, #R$B71E from the last two. What is known of them is in PATTERN_OPTIONS, NARRATE_ACTION and WOULD_WORK: bits 2 and 3 of #R$B71D are the second and first objects, bit 4 not narrated, bit 7 an object that is a place, bit 0 #R$B70F; bit 6 of #R$B71E needs light.
+D $70F3 Traced further for the how-it-works pages (2026-09-27): in #R$B71D, bit 5 means the target's phrase carries the particle (read by the phrase assignment); in #R$B71E, bits 2-3 and 0-1 are the find mode for the target and for the instrument, bit 5 is set only by GIVE ... TO, and bit 7 only by CLIMB OUT OF, for its narration.
 R $70F3 I:IX The pattern
   $70F3,19 #R$B71E = the fourth reference's flags, with the third's below them
   $7106,19 #R$B71D = the second reference's flags, with the first's below them
@@ -2356,12 +2358,12 @@ B $83EE,1,1 End of the table
 c $83EF SCORE
 @ $83F5 label=SHOW_SCORE
 c $83F5 "you have mastered ... % of this adventure."
-D $83F5 The score at #R$B6F7 is kept in tenths of a per cent, so a full game is 1000, and it is printed with one decimal place: hundreds only if not zero, then tens, a point, and units. Reaching the lonelands scores 25 (VISIT_SCORES), which is the 2.5% a first death there reports.
+D $83F5 The score at #R$B6F7 is kept in tenths of a per cent, so a full game would be 1000, and it is printed as two digits, a point and a third: the tens of per cent only if not zero, then the units, a point, and the tenths. There is no hundreds digit: DIGIT would count ten tens in 1000 and print the character after 9, so a full score comes out as ":0.0%" (watched in the emulator with the score set to 1000). No game gets there: the places VISIT_SCORES lists are worth 750. Reaching the lonelands scores 25 (VISIT_SCORES), which is the 2.5% a first death there reports.
   $83F7,10 "you have mastered"
-  $8401,12 Hundreds, if any
-  $840D,9 Tens
+  $8401,12 Tens of per cent, if not zero
+  $840D,9 Units of per cent
   $8416,5 A decimal point
-  $841B,6 Units
+  $841B,6 Tenths
   $8421,10 "% of this adventure."
 @ $842E label=DIGIT
 c $842E One decimal digit of HL
@@ -2474,7 +2476,7 @@ D $8B22 Only while PRINT is on. The eight pixel rows of character row 17 go out 
 
 @ $9171 label=DO_ATTACK
 c $9171 ATTACK WITH, and STRIKE WITH through THROW AT
-D $9171 The attacker's strength, byte 5 of its record, plus the weapon's if there is one -- bare hands are a FIST -- against the target's defence, byte 6, each with a random -10 to +10 (JOSTLE). A blow no stronger than the defence is wasted: "but the effort is wasted. his defense is too strong.". One more than 16 stronger kills: "with one well placed blow you cleave his skull." and KILL. Anything between picks a message from WOUNDS by how much stronger it was, and wears the target's strength and defence down by it.
+D $9171 The attacker's strength, byte 5 of its record, plus the weapon's if there is one -- bare hands are a FIST -- against the target's defence, byte 6, each jostled by JOSTLE -- meant as a random -10 to +10, but in practice 0 to +10, and about one time in 25 zero instead (see JOSTLE); a guard of 0 loses to any blow over 16. A blow no stronger than the defence is wasted: "but the effort is wasted. his defense is too strong.". One more than 16 stronger kills: "with one well placed blow you cleave his skull." and KILL. Anything between picks a message from WOUNDS by how much stronger it was, and wears the target's strength and defence down by it.
 D $9171 Only something in one place can be a weapon: "you cannot kill with the ...". And no one attacks their own side (SAME_SIDE).
   $9171,3 Not against its own side
   $9174,23 The weapon's name, or FIST, for the messages
@@ -2497,7 +2499,8 @@ D $914A Bits 4 to 6 of byte 4 of each record are the sides; sharing one ends the
   $914A,20 The player attacking a friend: no longer a friend
   $915E,19 Sharing a side? Then no: out of the caller, would not work
 @ $9213 label=JOSTLE
-c $9213 A plus a random -10 to +10, kept to 0-255
+c $9213 A plus a random -10 to +10, meant to be kept to 0-255
+D $9213 The random number from RANDOM is added with ADD A,B, and a carry is taken as going past 255: then 0 if the number was negative, 255 if not. But a negative number is a byte of 246 to 255, which carries whenever the true result is fine, so every downward jostle of a value of 10 or more returns 0; below 10 a sum that really goes under 0 does not carry, and comes out as 246 or more. And RANDOM gives a negative number only about one time in 25 for a limit of 10 (see its description), so in practice a blow or a guard goes up by 0 to 10, and about one time in 25 is 0 -- and a guard of 0 loses to any blow over 16. Measured in the simulator: 2000 jostles of 104 came out 104 to 114, or 0 (71 times), never 94 to 103. Watched in the emulator: the vicious warg (strength 55) killed the player (defence 64) with one blow when the player's guard came out 0, which a true jostle could never allow.
 @ $9226 label=WOUNDS
 w $9226 What a wound is said to be, by how much stronger the blow was
 D $9226 The messages the fight picks between; the stronger the blow, the further down the table. DO_ATTACK indexes it with twice the margin, which runs from 1 to 16, so the table is read one entry late: the first message, a stagger, is never chosen, and a margin of exactly 16 takes the word after the table -- the first two bytes of ONE_PLACE's code, an address in the ROM -- and prints the ROM's bytes as a message (tried: a few garbled words).
@@ -2927,7 +2930,7 @@ c $A9BD The trolls, once the player comes to their clearing: their lines
 D $A9BD Fails, and so is tried again every turn, until the player is in location 5; then the hideous troll and the vicious troll each say their line and the script moves on.
 @ $A94E label=TROLLS_EAT
 c $A94E The trolls, the four turns after: eat the player, if still there
-D $A94E The troll eats the player (EAT, $1B) where they are both, and PLAYER_DIES. Anywhere else it fails, and the script pauses a turn.
+D $A94E The troll eats the player (EAT, $1B) where they are both -- narrated, and done by calling DO_EAT itself -- and then jumps to PLAYER_DIES; the player's own EAT handlers are not used. Anywhere else it fails, and the script pauses a turn.
 @ $A971 label=TROLLS_TURN_TO_STONE
 c $A971 Dawn: the trolls turn to stone
 D $A971 Both trolls are killed and hidden, drop what they held -- the large key among it -- the clearing gets its daytime description and is marked unvisited, and its picture's first two bytes -- the border and the attribute its canvas starts as -- go from night's black to day's cyan; the drawing itself is the same. Every new game puts the night back (#R$6C27(NEW_GAME)). Seen in the simulator: $00 $00 at the start, $05 $28 once day had dawned.
@@ -3023,13 +3026,13 @@ R $7CCB O:F NZ if one was found and tried
   $7CF1,11 A place: ROOM_BY_NAME
 c $7D17 Try the next object that fits the instrument's name
 D $7D17 The same for the second object, the mode from bits 0-1 of #R$B71E; #R$B70F is set from the pattern on the way out.
-@ $7AD8 label=WANTS_TARGET
+@ $7AD8 label=WANTS_INSTRUMENT
   $7D17,16 Where the search had got to; a place?
   $7D27,17 An object, in the pattern's mode
   $7D38,17 Keep the place; #R$B70F from the pattern
   $7D49,11 A place
-c $7AD8 Does the sentence still want a target found?
-D $7AD8 Only for a pattern with a first object (bit 2 of #R$B71D). Not yet worked out in full.
+c $7AD8 Does the sentence still want an instrument found?
+D $7AD8 Only for a pattern with a second object -- an instrument, bit 2 of #R$B71D, "second object" on the actions page -- and not once #R$793E says one has been settled (bit 0). Returns NZ while one is still wanted: when bit 1 of the pattern flags is clear. #R$7A14 calls it as "wants an instrument? try each with it". (Renamed 2026-09-27 from WANTS_TARGET, reported by the how-it-works agent and checked against the pattern flags.)
 @ $7AED label=TRY_IT
 c $7AED Do the action; Z if it did not work
 

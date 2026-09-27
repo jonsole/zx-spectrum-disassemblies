@@ -97,6 +97,10 @@ for these notes.
   contradicts, though its conclusion about the buffer stands. Both
   corrected 2026-09-27.
 
+## Also found for the animations page (2026-09-27)
+
+- The story is printed one character every 4543 T-states (1.3 ms), up to 15 in one frame, so a line appears in two or three frames; the end-of-line pauses measured 0.58-0.60 s; the input cursor never flashes, and no frame the game draws uses FLASH (*measured*, the Animations page).
+
 ## Open questions
 
 - None about the layout. Whether the printer output was ever seen on real

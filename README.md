@@ -16,8 +16,10 @@ a snapshot you can debug at source level.
 
 The Hobbit's, Atic Atac's, Ant Attack's and Knight Lore's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
-page on how the game works, a map, and pages for its locations (with their
-pictures), objects, characters and actions; Atic Atac with its loader, room
+page on how the game works and deep dives on the parser, the characters,
+fighting, the text and the pictures; a map with its layers, and pages for its
+locations (with their pictures), objects, characters and actions; animations,
+a page on its sound (there is none), and its bugs, tested pokes and trivia; Atic Atac with its loader, room
 types, sprites, graphics and sounds; Ant Attack with how it works (drawing, movement,
 the ants, grenades, rescue), the city map with its layers and drawn whole in
 the game's own projection, its levels, sprites, animations, sounds and

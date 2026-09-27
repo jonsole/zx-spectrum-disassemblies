@@ -2489,6 +2489,23 @@ def build_fast_draw(snapshot: Path) -> None:
          f"wrote hobbit_fast.sna and hobbit_fast.sld")
 
 
+# The generated pages beyond the reference ones, each family in a module of its
+# own beside this script: build(html_dir, log) draws its pictures and records
+# its sounds into html_dir and returns its ref sections, name to body.
+PAGE_MODULES = ["hobbit_howitworks", "hobbit_animations", "hobbit_sounds",
+                "hobbit_reference"]
+
+
+def write_extra_pages(html_dir: Path, path: Path) -> None:
+    import importlib
+
+    sections = {}
+    for name in PAGE_MODULES:
+        sections.update(importlib.import_module(name).build(html_dir, _log))
+    path.write_text("\n".join(f"[{name}]\n{body}\n" for name, body in sections.items()),
+                    encoding="utf-8")
+
+
 def build_html(skool: Path, out: Path) -> None:
     from skoolkit import skool2html
 
@@ -2499,6 +2516,8 @@ def build_html(skool: Path, out: Path) -> None:
     # than kept with the committed ref file (see scripts/hobbit_pages.py).
     pages = OUT_DIR / "hobbit-pages.ref"
     hobbit_pages.build(out, pages)
+    extra = OUT_DIR / "hobbit-extra.ref"
+    write_extra_pages(out / "hobbit", extra)
 
     _log("Building HTML disassembly...")
     # -a: operands and links read GANDALF_A and DRAW_LINE, as the source
@@ -2509,7 +2528,7 @@ def build_html(skool: Path, out: Path) -> None:
     args.append(str(skool))
     if REF.exists():
         args.append(str(REF))
-    args.append(str(pages))
+    args += [str(pages), str(extra)]
     _capture(skool2html.main, args)
 
 

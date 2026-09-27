@@ -172,3 +172,23 @@ after `RIDDLES`), and the three existing "address not converted" warnings
 removed. The build verifies byte for byte with no warnings (three before).
 No label was renamed. `hobbit-vscode/` still calls a bit-5 step the end of a
 character's part.
+
+**Reference pages and corrections** (2026-09-27, later): the Pokes and
+Facts pages (`scripts/hobbit_reference.py`), every poke tried live on a
+private zx_server against the same trial without it, found a new bug:
+`JOSTLE` turns every downward jostle into 0, so fights go "+0 to +10, or 0"
+rather than give or take ten, and a guard of 0 loses to any blow over 16
+(measured, and watched killing the player). They also showed `SHOW_SCORE`
+has no hundreds digit: a score of 1000 prints ":0.0%" (watched). Corrected,
+re-checked against the code first: the ref's [Bug:score] and How:fighting;
+`SHOW_SCORE`'s description and its three digit comments, `DO_ATTACK`'s
+"-10 to +10", `JOSTLE`'s title and a description for it, a paragraph on
+`RANDOM`'s upward bias, and `TROLLS_EAT`'s description in the annotations;
+`scoring.md`, `fighting-and-dying.md` (the jostle, and "can never beat a
+goblin's guard" / never enough for the trolls or the dragon, now with the
+guard-0 case, the dragon's *read* only), `chance.md`, `overview.md`,
+`characters.md` (`TROLLS_EAT` calls `DO_EAT` and jumps to `PLAYER_DIES`
+itself, not through the player's own handlers), `bugs.md` (bug 9) and
+`driving.md` (live driving over MCP).
+- **Corrected (the lead):** `RANDOM`'s pointer at $B712 steps 256 bytes a call, not one -- `INC (IX+1)` is its high byte (reported by the pokes agent, checked in the listing); the annotation and [chance.md](chance.md) now say so. The BORDCR value START writes is $38, a white border, not black; and interrupts stay on through SAVE's rewind prompt ([save-load.md](save-load.md)).
+- **Corrected (the lead):** `hobbit_drive.say()` ran on for fixed times after ENTER, so a command answered at once (an unknown word, a refusal) passed the next prompt unseen and the game typed WAIT itself -- a turn nobody asked for: XYZZY took 24.5 s of game time. It now holds ENTER only to $6D20 and runs to the next prompt: XYZZY takes 0.11 s (measured; reported by the how-it-works agent). `WANTS_TARGET` is renamed `WANTS_INSTRUMENT` -- it tests the second-object bit, and its caller asks for an instrument -- and `PATTERN_FLAGS` gains the bits traced for the Parsing page.
