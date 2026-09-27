@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C785</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51013.html">C745</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51077">Map</a></td>
+<td class="next">
+Next: <a href="51251.html">C833</a>
+</td>
+</tr>
+</table>
+<div class="description">C785: Draw the listed objects, back to front</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>.
+</div>
+<div class="paragraph">
+Called by <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a> every turn. This is where the game decides what is in front of what; the code is Knight Lore's and Pentagram's. Every listed object is a box in the room: centre U and V with half-sizes at +$04 and +$05, a base Z with its whole height at +$06. The far side of anything is towards smaller U, larger V and lower Z (measured in Pentagram, whose code this is).
+</div>
+<div class="paragraph">
+It takes the first object in <a href="51013.html">DRAW_LIST</a> not yet drawn as the candidate (IX) and compares it with every other undrawn one (IY). If some IY has to be drawn before the candidate, IY becomes the candidate and the comparison starts again from the top of the list; a candidate that survives a whole pass is drawn, marked done, and the whole thing starts over. So each object drawn has nothing undrawn behind it.
+</div>
+<div class="paragraph">
+The comparison classifies the two boxes on each axis -- IX clear on one side, overlapping, IY clear on one side -- and adds the three into an index 0-26 into <a href="51251.html">DEPTH_ORDER</a>. The order found need not be consistent (three boxes can each be behind the next), so the chain of candidates is kept in <a href="51439.html">CANDIDATE_CHAIN</a>, and meeting an object already in it breaks the circle by drawing that object at once.
+</div>
+<div class="paragraph">
+DRAW_WORK counts the objects drawn; <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a> adds the rectangles it wiped, and the main loop waits less the more work a turn has done. SORT_FIRST and SORT_SECOND point just past the candidate's entry and the compared object's.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">kept</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">kept</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW</td>
+<td class="address-2"><span id="51077"></span>C785</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">No objects drawn yet; keep IX and IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51078"></span>C786</td>
+<td class="instruction">LD (<a href="23296.html#23326">DRAW_WORK</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51081"></span>C789</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51083"></span>C78B</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51085"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="51311.html">IY_GOES_FIRST</a> and <a href="51413.html">DRAW_CANDIDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_PASS</td>
+<td class="address-2"><span id="51085"></span>C78D</td>
+<td class="instruction">LD DE,<a href="51013.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="1">A pass: from the top of the list</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_0</td>
+<td class="address-2"><span id="51088"></span>C790</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="4">The end of the list: everything is drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51089"></span>C791</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51090"></span>C792</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51092"></span>C794</td>
+<td class="instruction">JP Z,<a href="51434.html">ALL_DRAWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51095"></span>C797</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="2">Bit 7: already drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51097"></span>C799</td>
+<td class="instruction">JR NZ,<a href="51077.html#51088">SORT_AND_DRAW_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51099"></span>C79B</td>
+<td class="instruction">CALL <a href="52374.html">GET_PTR_OBJECT</a></td>
+<td class="comment-1" rowspan="4">IX = the candidate; SORT_FIRST just past its entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51102"></span>C79E</td>
+<td class="instruction">LD (<a href="23296.html#23341">SORT_FIRST</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51106"></span>C7A2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51107"></span>C7A3</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51109"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="51305.html">ORDER_UNCONSTRAINED</a>, <a href="51308.html">CANDIDATE_ALREADY_FIRST</a>, <a href="51311.html">IY_GOES_FIRST</a> and <a href="51371.html">BOXES_INTERSECT</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COMPARE_NEXT_OBJ</td>
+<td class="address-2"><span id="51109"></span>C7A5</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="4">The end of the list: nothing is behind the candidate, so draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51110"></span>C7A6</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51111"></span>C7A7</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51113"></span>C7A9</td>
+<td class="instruction">JP Z,<a href="51413.html">DRAW_CANDIDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51116"></span>C7AC</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="2">Already drawn: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51118"></span>C7AE</td>
+<td class="instruction">JR NZ,<a href="51077.html#51109">COMPARE_NEXT_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51120"></span>C7B0</td>
+<td class="instruction">CALL <a href="52374.html">GET_PTR_OBJECT</a></td>
+<td class="comment-1" rowspan="4">IY = this object; SORT_SECOND just past its entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51123"></span>C7B3</td>
+<td class="instruction">LD (<a href="23296.html#23343">SORT_SECOND</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51127"></span>C7B7</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51128"></span>C7B8</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51130"></span>C7BA</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="5">The candidate itself: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51132"></span>C7BC</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51133"></span>C7BD</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51134"></span>C7BE</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51136"></span>C7C0</td>
+<td class="instruction">JR Z,<a href="51077.html#51109">COMPARE_NEXT_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51138"></span>C7C2</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="7">Z: code 0 if the candidate's base is at or above IY's top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51140"></span>C7C4</td>
+<td class="instruction">LD A,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51143"></span>C7C7</td>
+<td class="instruction">ADD A,(IY+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51146"></span>C7CA</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51147"></span>C7CB</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51150"></span>C7CE</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51151"></span>C7CF</td>
+<td class="instruction">JR NC,<a href="51077.html#51168">COMPARE_ALONG_V</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51153"></span>C7D1</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="8">Code 2 if IY's base is at or above the candidate's top, 1 if they overlap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51156"></span>C7D4</td>
+<td class="instruction">ADD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51159"></span>C7D7</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51160"></span>C7D8</td>
+<td class="instruction">LD A,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51163"></span>C7DB</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51164"></span>C7DC</td>
+<td class="instruction">JR C,<a href="51077.html#51167">SORT_AND_DRAW_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51166"></span>C7DE</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_1</td>
+<td class="address-2"><span id="51167"></span>C7DF</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">COMPARE_ALONG_V</td>
+<td class="address-2"><span id="51168"></span>C7E0</td>
+<td class="instruction">LD A,(IY+$02)</td>
+<td class="comment-1" rowspan="7">V: add 0 if the candidate's low-V edge is at or beyond IY's high-V edge, the candidate lying wholly further back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51171"></span>C7E3</td>
+<td class="instruction">ADD A,(IY+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51174"></span>C7E6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51175"></span>C7E7</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51178"></span>C7EA</td>
+<td class="instruction">SUB (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51181"></span>C7ED</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51182"></span>C7EE</td>
+<td class="instruction">JR NC,<a href="51077.html#51206">COMPARE_ALONG_U</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51184"></span>C7F0</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="11">Add 6 if IY lies wholly further back, 3 if they overlap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51187"></span>C7F3</td>
+<td class="instruction">ADD A,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51190"></span>C7F6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51191"></span>C7F7</td>
+<td class="instruction">LD A,(IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51194"></span>C7FA</td>
+<td class="instruction">SUB (IY+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51197"></span>C7FD</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51198"></span>C7FE</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51199"></span>C7FF</td>
+<td class="instruction">JR C,<a href="51077.html#51203">SORT_AND_DRAW_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51201"></span>C801</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_2</td>
+<td class="address-2"><span id="51203"></span>C803</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51205"></span>C805</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">COMPARE_ALONG_U</td>
+<td class="address-2"><span id="51206"></span>C806</td>
+<td class="instruction">LD A,(IY+$01)</td>
+<td class="comment-1" rowspan="7">U: add 0 if the candidate's low-U edge is at or beyond IY's high-U edge, IY lying wholly further back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51209"></span>C809</td>
+<td class="instruction">ADD A,(IY+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51212"></span>C80C</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51213"></span>C80D</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51216"></span>C810</td>
+<td class="instruction">SUB (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51219"></span>C813</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51220"></span>C814</td>
+<td class="instruction">JR NC,<a href="51077.html#51244">ACT_ON_COMPARISON</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51222"></span>C816</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="11">Add 18 if the candidate lies wholly further back, 9 if they overlap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51225"></span>C819</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51228"></span>C81C</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51229"></span>C81D</td>
+<td class="instruction">LD A,(IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51232"></span>C820</td>
+<td class="instruction">SUB (IY+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51235"></span>C823</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51236"></span>C824</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51237"></span>C825</td>
+<td class="instruction">JR C,<a href="51077.html#51241">SORT_AND_DRAW_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51239"></span>C827</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_3</td>
+<td class="address-2"><span id="51241"></span>C829</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51243"></span>C82B</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">ACT_ON_COMPARISON</td>
+<td class="address-2"><span id="51244"></span>C82C</td>
+<td class="instruction">LD L,C</td>
+<td class="comment-1" rowspan="3">Jump through <a href="51251.html">DEPTH_ORDER</a>, as the main loop jumps through the update table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51245"></span>C82D</td>
+<td class="instruction">LD BC,<a href="51251.html">DEPTH_ORDER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51248"></span>C830</td>
+<td class="instruction">JP <a href="42567.html#42679">JUMP_THROUGH_TABLE</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51013.html">C745</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51077">Map</a></td>
+<td class="next">
+Next: <a href="51251.html">C833</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

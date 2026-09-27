@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AF3F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44805.html">AF05</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44863">Map</a></td>
+<td class="next">
+Next: <a href="44921.html">AF79</a>
+</td>
+</tr>
+</table>
+<div class="description">AF3F: Deal the valves and the extra lives to their places</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42567.html">AFTER_GAME</a>.
+</div>
+<div class="paragraph">
+At every new game (<a href="42567.html">AFTER_GAME</a>). Gives each of the 36 places at <a href="30435.html">PLACES</a> a graphic and puts it where it starts, copying +1 to +4 (U, V, Z, room) to +5 to +8. The kinds of valve go round in order, 96, 97, 98, 99 and again, from a random starting kind -- the seed plus the refresh register -- so there are nine of each or near it -- but see the extra lives below: they fall 16 places apart and the kinds repeat every 4, so every extra life replaces a valve of the same kind, and a deal gives 9, 9, 9 and 7 of the four kinds, or 9, 9, 9 and 6 in a game with three extra lives (one in four). Then one kind has exactly the six its sockets need, and losing one valve (<a href="51371.html">BOXES_INTERSECT</a>) leaves the game unwinnable (the counts measured; the consequence inferred). Every sixteenth place by a second count, started from the random number, gets an extra life (graphic 12) instead, and the kind that would have gone there is skipped: two or three extra lives a game.
+</div>
+<div class="paragraph">
+Knight Lore's init_special_objects, which deals eight kinds in turn, the eighth its extra life; here four kinds, and the extra lives by a count of their own. The chambers want six valves of each kind (<a href="44648.html">SOCKET</a>: six sockets of each).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">INIT_SPECIAL_OBJECTS</td>
+<td class="address-2"><span id="44863"></span>AF3F</td>
+<td class="instruction">LD HL,<a href="30435.html">PLACES</a></td>
+<td class="comment-1" rowspan="1">the first place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44866"></span>AF42</td>
+<td class="instruction">LD A,(<a href="23296.html">SEED</a>)</td>
+<td class="comment-1" rowspan="5">E: the kind to deal next, from the seed and R</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44869"></span>AF45</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44870"></span>AF46</td>
+<td class="instruction">LD A,R</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44872"></span>AF48</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44873"></span>AF49</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44874"></span>AF4A</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+<td class="comment-1" rowspan="2">D: the count for the extra lives, from the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44877"></span>AF4D</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label">INIT_SPECIAL_OBJECTS_0</td>
+<td class="address-2"><span id="44878"></span>AF4E</td>
+<td class="instruction">DEC D</td>
+<td class="comment-1" rowspan="4">every sixteenth: an extra life</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44879"></span>AF4F</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44880"></span>AF50</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44882"></span>AF52</td>
+<td class="instruction">JR Z,<a href="44863.html#44917">INIT_SPECIAL_OBJECTS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44884"></span>AF54</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="3">a valve of the next kind, 96-99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44885"></span>AF55</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44887"></span>AF57</td>
+<td class="instruction">OR $60</td>
+</tr>
+<tr>
+<td class="asm-label">INIT_SPECIAL_OBJECTS_1</td>
+<td class="address-2"><span id="44889"></span>AF59</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="3">its graphic; the next kind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44890"></span>AF5A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44891"></span>AF5B</td>
+<td class="instruction">INC E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44892"></span>AF5C</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="7">+1 to +4, where it starts, to +5 to +8, where it is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44893"></span>AF5D</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44894"></span>AF5E</td>
+<td class="instruction">LD HL,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44897"></span>AF61</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44898"></span>AF62</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44899"></span>AF63</td>
+<td class="instruction">LD BC,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44902"></span>AF66</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44904"></span>AF68</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="8">until the graphic table at <a href="30759.html">GRAPHICS</a>, after the last place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44905"></span>AF69</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44906"></span>AF6A</td>
+<td class="instruction">LD BC,<a href="30759.html">GRAPHICS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44909"></span>AF6D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44910"></span>AF6E</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44912"></span>AF70</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44913"></span>AF71</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44914"></span>AF72</td>
+<td class="instruction">JR C,<a href="44863.html#44878">INIT_SPECIAL_OBJECTS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44916"></span>AF74</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">INIT_SPECIAL_OBJECTS_2</td>
+<td class="address-2"><span id="44917"></span>AF75</td>
+<td class="instruction">LD A,$0C</td>
+<td class="comment-1" rowspan="2">an extra life</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44919"></span>AF77</td>
+<td class="instruction">JR <a href="44863.html#44889">INIT_SPECIAL_OBJECTS_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44805.html">AF05</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44863">Map</a></td>
+<td class="next">
+Next: <a href="44921.html">AF79</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

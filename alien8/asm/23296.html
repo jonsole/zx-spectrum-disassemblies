@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Game status buffer entry at 5B00</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-g">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Game status buffer</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+</td>
+<td class="up">Up: <a href="../maps/all.html#23296">Map</a></td>
+<td class="next">
+Next: <a href="23432.html">5B88</a>
+</td>
+</tr>
+</table>
+<div class="description">5B00: Game variables</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Below the game block, where the BASIC loader's CLEAR left the printer buffer, the system variables and the loader itself: the bytes the snapshot holds here are those, not the game's. The first thing the game does (<a href="42545.html">START</a>) is read the ROM's frame counter into SEED and clear everything from here to the end of the object records; after every game it clears again from WIPE_COUNT on (<a href="42567.html">AFTER_GAME</a>), so the first eight bytes -- the seed, the turn counter, the control method and the random number -- carry over from one game to the next.
+</div>
+<div class="paragraph">
+Up to NO_HEADROOM this is Knight Lore's layout, 160 bytes lower, and where Alien 8 does the same job it keeps the same byte. The bytes nothing refers to are Knight Lore's variables for things Alien 8 does not have: the three after FLOOR the portcullises and the werewolf's change, the one after DRAW_WORK one spiked ball falling (Alien 8 keeps its own at DROPPING), the one after PLAYER_DZ the bouncing ball's step, the one after LIFT_TOP the rooms visited, the two after FONT_BASE the percentage. From CLOCK on the variables are Alien 8's own, and the rooms seen and the carried things sit at other places than Knight Lore's.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SEED</td>
+<td class="address-1"><span id="23296"></span>5B00</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The seed. The ROM's frame counter when the game is first run (<a href="42545.html">START</a>), plus the turn counter's low byte at every new game (<a href="42567.html">AFTER_GAME</a>), plus one each time round the menu (<a href="47742.html">MENU</a>). Bits 0-1 pick the start room (<a href="51821.html">NEW_GAME_START</a>); with the refresh register it picks the first kind of valve dealt (<a href="44863.html">INIT_SPECIAL_OBJECTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23297"></span>5B01</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte (searched): as in Knight Lore, the byte after the seed is spare</td>
+</tr>
+<tr>
+<td class="asm-label">TURNS</td>
+<td class="address-1"><span id="23298"></span>5B02</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The turn counter, a word, counted up at the end of every turn (<a href="42688.html">OBJECT_DONE</a>) and never cleared after the first game. Its low bits time things: the sparks of the scene after a game (<a href="44021.html">SCENE_SPARKS</a>), the clockwork mice's speed (<a href="43681.html">CLOCKWORK_MOUSE</a>), the sounds (<a href="46736.html">WARBLE_SOUND</a>, <a href="46710.html">CRASH_SOUND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TURNS_HIGH</td>
+<td class="address-1"><span id="23299"></span>5B03</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its high byte; the clockwork mice mix it with the random number for how far to walk (<a href="43681.html">CLOCKWORK_MOUSE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROL</td>
+<td class="address-1"><span id="23300"></span>5B04</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Control method, set on the menu (<a href="47742.html">MENU</a>): bits 1-2 are 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II; bit 3 directional control, toggled by key 5</td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM</td>
+<td class="address-1"><span id="23301"></span>5B05</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The random number: R is added in after every object's update, and the turn counter and a byte of memory it points at at the end of every turn (<a href="42688.html">OBJECT_DONE</a>). Read wherever the game wants chance: a thing dropping (<a href="44307.html">CEILING_DROP</a>), a leaper starting (<a href="43257.html">LEAPER</a>), a mouse's turn (<a href="43681.html">CLOCKWORK_MOUSE</a>), a tool's swing (<a href="43873.html">SCENE_TOOL</a>), the dealing of the valves (<a href="44863.html">INIT_SPECIAL_OBJECTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROL_BEFORE</td>
+<td class="address-1"><span id="23302"></span>5B06</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The control method as it was before the menu read the keys this time round (<a href="47742.html">MENU</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23303"></span>5B07</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte (searched); spare in Knight Lore too</td>
+</tr>
+<tr>
+<td class="asm-label">WIPE_COUNT</td>
+<td class="address-1"><span id="23304"></span>5B08</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">How many areas the drawing of a turn (<a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>) has wiped and left on the stack to be copied to the screen; added to DRAW_WORK. The first byte cleared after a game (<a href="42567.html">AFTER_GAME</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SAVED_SP</td>
+<td class="address-1"><span id="23305"></span>5B09</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The stack pointer, while the sprite drawing borrows it (<a href="53267.html">CALC_PIXEL_XY_AND_RENDER</a>, <a href="53437.html">SPRITE_SHIFTED_RUN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_HALF_U</td>
+<td class="address-1"><span id="23307"></span>5B0B</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The room's half-size in U, from <a href="25696.html">ROOM_SIZES</a> (<a href="52391.html">BUILD_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_HALF_V</td>
+<td class="address-1"><span id="23308"></span>5B0C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The room's half-size in V</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_INK</td>
+<td class="address-1"><span id="23309"></span>5B0D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The room's ink, bits 0-2 of its record's third byte (<a href="52391.html">BUILD_ROOM</a>); white once its chamber is activated (<a href="44921.html">LOOSE_VALVE</a>). <a href="42825.html">COLOUR_PANEL</a> fills the screen's attributes with it, and colours the panel's label and chamber icon from it</td>
+</tr>
+<tr>
+<td class="asm-label">FLOOR</td>
+<td class="address-1"><span id="23310"></span>5B0E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The floor's height, from <a href="25696.html">ROOM_SIZES</a> (<a href="52391.html">BUILD_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23311"></span>5B0F</td>
+<td class="instruction">DEFB $00,$00,$00</td>
+<td class="comment-1" rowspan="1">Nothing refers to these bytes (searched): Knight Lore's portcullis and werewolf variables</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYED</td>
+<td class="address-1"><span id="23314"></span>5B12</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Bit 0 set at the end of every turn (<a href="42688.html">OBJECT_DONE</a>), cleared at a new game (<a href="42567.html">AFTER_GAME</a>); while it is set, entering a room first writes what lies in the one being left back to its places (<a href="51874.html">ENTER_ROOM</a>, <a href="44805.html">UPDATE_SPECIAL_OBJS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_HELD</td>
+<td class="address-1"><span id="23315"></span>5B13</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while the pick-up key is held, so one press does one thing (<a href="48491.html">TAKE_OR_LEAVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PANEL_DUE</td>
+<td class="address-1"><span id="23316"></span>5B14</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set on every press of the pick-up key that gets past <a href="48491.html">TAKE_OR_LEAVE</a>'s first checks, whether or not anything changes hands; <a href="48285.html">SHOW_CARRIED</a> then redraws the carried things on the panel and clears it</td>
+</tr>
+<tr>
+<td class="asm-label">INPUT</td>
+<td class="address-1"><span id="23317"></span>5B15</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">This turn's controls (<a href="51455.html">READ_CONTROLS</a>): bits 0 and 1 turn, 2 walk, 3 jump, 4 pick up or put down; bit 5 any letter key, ENTER or SYMBOL SHIFT, which is the pick-up when a joystick is used with directional control (<a href="48472.html">CHK_PICKUP_DROP</a>). None are read while the game is won or over</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_ATTR</td>
+<td class="address-1"><span id="23318"></span>5B16</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The colour byte a text list gives each line (<a href="48165.html">DISPLAY_MENU</a>), read by the printer (<a href="48029.html">PRINT_TEXT_SINGLE_COLOUR</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">NEW_ROOM</td>
+<td class="address-1"><span id="23319"></span>5B17</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set when a room has been built (<a href="51874.html">ENTER_ROOM</a>) and when the scene after a game is set up (<a href="46945.html">GAME_ENDED</a>). The turn's drawing (<a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>) then wipes nothing, and the main loop (<a href="42688.html">OBJECT_DONE</a>) draws the panel, colours the screen, copies the whole buffer out and clears it</td>
+</tr>
+<tr>
+<td class="asm-label">TEXT_SHOWN</td>
+<td class="address-1"><span id="23320"></span>5B18</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">0 until a text list has been printed and the screen copied once (<a href="48165.html">DISPLAY_MENU</a>); the menu and the arrival screen clear it</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_NUDGE</td>
+<td class="address-1"><span id="23321"></span>5B19</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Added to the objects' positions by the builder (<a href="52391.html">BUILD_ROOM</a>); set by a template-0 header in a room's record</td>
+</tr>
+<tr>
+<td class="asm-label">LIVES</td>
+<td class="address-1"><span id="23322"></span>5B1A</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Lives, counted in binary but printed on the panel as though BCD (<a href="47703.html">PRINT_LIVES</a>): five at a new game (<a href="42567.html">AFTER_GAME</a>), one taken at the start of every life (<a href="51719.html">NEW_LIFE</a>), so the one in play and four more; the game is over when there is none to take. An extra life adds one (<a href="48864.html">EXTRA_LIFE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SAVED_UVZ</td>
+<td class="address-1"><span id="23323"></span>5B1B</td>
+<td class="instruction">DEFB $00,$00,$00</td>
+<td class="comment-1" rowspan="1">An object's U, V and Z before its move, saved by <a href="45785.html">SAVE_UVZ</a> and compared after it by <a href="45803.html">SAME_UVZ</a>, so <a href="45823.html">PUSHABLE</a> can tell whether it was moved</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WORK</td>
+<td class="address-1"><span id="23326"></span>5B1E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The turn's drawing work: <a href="51077.html">SORT_AND_DRAW</a> zeroes it and counts every object it draws, <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a> adds the areas it wiped, and the main loop (<a href="42688.html">OBJECT_DONE</a>) waits six units less this</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23327"></span>5B1F</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte (searched): Knight Lore's "a spiked ball is falling"</td>
+</tr>
+<tr>
+<td class="asm-label">TEMPLATES_AT</td>
+<td class="address-1"><span id="23328"></span>5B20</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The object template table the builder reads, a word with the next byte (<a href="29640.html">OBJECT_TABLE</a>, <a href="52391.html">BUILD_ROOM</a>): a template-31 header moves it on to the second page</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_DZ</td>
+<td class="address-1"><span id="23329"></span>5B21</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The player's step in Z this turn (<a href="49814.html">MOVE_PLAYER</a>) -- and the high byte of TEMPLATES_AT while a room is being built</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23330"></span>5B22</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte (searched): Knight Lore's bouncing ball's step</td>
+</tr>
+<tr>
+<td class="asm-label">WON</td>
+<td class="address-1"><span id="23331"></span>5B23</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Set when the twenty-fourth chamber is activated (<a href="44921.html">LOOSE_VALVE</a>). The game then ends with the arrival screen (<a href="46945.html">GAME_ENDED</a>, <a href="47273.html">ARRIVAL_SCREEN</a>) and the robot's oiling (<a href="43377.html">OILED_ROBOT</a>) instead of the re-programming; while it is set the panel's carried things are not redrawn (<a href="48285.html">SHOW_CARRIED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER</td>
+<td class="address-1"><span id="23332"></span>5B24</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while the scene after a game runs in the main loop (<a href="46945.html">GAME_ENDED</a>): objects are then placed in pixels rather than projected (<a href="53202.html">CALC_PIXEL_XY</a>), the main loop neither waits nor runs the clock (<a href="42688.html">OBJECT_DONE</a>), and no controls are read (<a href="51455.html">READ_CONTROLS</a>). Cleared with the rest when the scene ends (<a href="42567.html">AFTER_GAME</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_TOP</td>
+<td class="address-1"><span id="23333"></span>5B25</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The height the room's lifts rise to, one for them all: zero when a room is built (<a href="52391.html">BUILD_ROOM</a>), then set by the first lift or bobbing block to run (<a href="45855.html">LIFT</a>) -- a lift (graphic 47) its own Z plus 48, a bobbing block (graphic 31) its own Z. Measured: 112 in room $23, 100 in room $1D. Knight Lore keeps its bouncing balls' turning height the same way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23334"></span>5B26</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Nothing refers to this byte (searched): Knight Lore's count of rooms visited</td>
+</tr>
+<tr>
+<td class="asm-label">FONT_BASE</td>
+<td class="address-1"><span id="23335"></span>5B27</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The base the printer adds eight times a character's code to (<a href="47703.html">PRINT_LIVES</a>, <a href="48029.html">PRINT_TEXT_SINGLE_COLOUR</a>): <a href="25352.html">FONT</a> less 384 for text, <a href="25352.html">FONT</a> itself for numbers (<a href="44390.html">RUN_CLOCK</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23337"></span>5B29</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Nothing refers to these bytes (searched): Knight Lore's percentage</td>
+</tr>
+<tr>
+<td class="asm-label">SEQUENCE_AT</td>
+<td class="address-1"><span id="23339"></span>5B2B</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Where the turn's drawing (<a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>) is in the list of records to draw at <a href="51013.html">DRAW_LIST</a>, which <a href="50972.html">LIST_DRAWN</a> makes and ends with $FF</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_FIRST</td>
+<td class="address-1"><span id="23341"></span>5B2D</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">A place in the depth sort's list (<a href="51077.html">SORT_AND_DRAW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_SECOND</td>
+<td class="address-1"><span id="23343"></span>5B2F</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">Another (<a href="51077.html">SORT_AND_DRAW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_HEARD</td>
+<td class="address-1"><span id="23345"></span>5B31</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Bit 0 set once the menu's tune has played (<a href="46241.html">PLAY_TUNE_ONCE</a>), so it plays once each time the menu is shown, not at every pass of the menu's loop; the clear after a game (<a href="42567.html">AFTER_GAME</a>) lets it play again</td>
+</tr>
+<tr>
+<td class="asm-label">KEY5_HELD</td>
+<td class="address-1"><span id="23346"></span>5B32</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while key 5 is held on the menu, so one press toggles directional control once (<a href="47742.html">MENU</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">NO_HEADROOM</td>
+<td class="address-1"><span id="23347"></span>5B33</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 when there is no room above him to stand on what he puts down (<a href="48491.html">TAKE_OR_LEAVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_COLOUR_AT</td>
+<td class="address-1"><span id="23348"></span>5B34</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The address of the room record's third byte, its size and colours (<a href="52391.html">BUILD_ROOM</a>); an activated chamber's white ink is written there (<a href="44921.html">LOOSE_VALVE</a>), so the room stays white until the next game</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCK</td>
+<td class="address-1"><span id="23350"></span>5B36</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The light years left, four bytes, the highest digit first: each a digit in bits 4-7 and, in bits 0-2, how far it still has to roll into place. 6000 at a new game (<a href="42567.html">AFTER_GAME</a>); counted down by <a href="44390.html">RUN_CLOCK</a> every turn, a light year every seven turns; the game is over when all four are zero</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCK_LOW</td>
+<td class="address-1"><span id="23352"></span>5B38</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The third digit</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCK_LAST</td>
+<td class="address-1"><span id="23353"></span>5B39</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The last digit: <a href="44489.html">CLOCK_BORROW</a> takes a light year off when it has finished rolling</td>
+</tr>
+<tr>
+<td class="asm-label">DROPPING</td>
+<td class="address-1"><span id="23354"></span>5B3A</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while one of the things that drop from the ceiling is falling, so only one falls at a time (<a href="44307.html">CEILING_DROP</a>); cleared on entering a room (<a href="51874.html">ENTER_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_LATCH</td>
+<td class="address-1"><span id="23355"></span>5B3B</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">While it is set nothing drops from the ceiling (<a href="44307.html">CEILING_DROP</a>): set on entering an even-numbered room (<a href="51874.html">ENTER_ROOM</a>), cleared by a pick-up (<a href="48491.html">TAKE_OR_LEAVE</a>) or an extra life (<a href="48864.html">EXTRA_LIFE</a>). As Knight Lore's spiked balls</td>
+</tr>
+<tr>
+<td class="asm-label">SUMMARY_LOST</td>
+<td class="address-1"><span id="23356"></span>5B3C</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The summary after a game (<a href="44139.html">SUMMARISE_CHAMBERS</a>), worked out from the room directory and the places. The cryonauts lost -- the frozen crew, object templates 21 and 22 (graphic 74), in the chambers not activated -- a BCD word, high byte first; 132 when none is activated. <a href="47670.html">PRINT_SUMMARY_COUNTS</a> prints three digits</td>
+</tr>
+<tr>
+<td class="asm-label">SUMMARY_LOST_LOW</td>
+<td class="address-1"><span id="23357"></span>5B3D</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Its low byte</td>
+</tr>
+<tr>
+<td class="asm-label">SUMMARY_ACTIVE</td>
+<td class="address-1"><span id="23358"></span>5B3E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Chambers activated, BCD: the crew rooms where a seated valve (graphics 100-103) lies (<a href="44139.html">SUMMARISE_CHAMBERS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SUMMARY_IDLE</td>
+<td class="address-1"><span id="23359"></span>5B3F</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Chambers not activated, BCD (<a href="44139.html">SUMMARISE_CHAMBERS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CHAMBERS</td>
+<td class="address-1"><span id="23360"></span>5B40</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Chambers activated in this game, BCD (<a href="44921.html">LOOSE_VALVE</a>), printed on the panel (<a href="42915.html">PRINT_CHAMBERS</a>); the twenty-fourth wins</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_STATE</td>
+<td class="address-1"><span id="23361"></span>5B41</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The re-programming after a lost game. 0 while the sparks over the robot flash; 1 when they stop (<a href="44021.html">SCENE_SPARKS</a>); then bit 7 is set while one of the three tools swings (<a href="43873.html">SCENE_TOOL</a>) and bits 0-6 count the swings, the scene ending at 16</td>
+</tr>
+<tr>
+<td class="asm-label">REMOTE_ORDERS</td>
+<td class="address-1"><span id="23362"></span>5B42</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The remote-controlled robots' orders. Bit 7: one robot has taken control (<a href="43463.html">REMOTE_ROBOT</a>). Bits 0-6: what he stands on this turn -- 1 the pad (<a href="43597.html">REMOTE_PAD</a>), 2-5 a button (<a href="43619.html">REMOTE_BUTTON</a>), each a step in U or V (<a href="43587.html">REMOTE_STEPS</a>) -- taken by the robot in control as it moves; cleared on entering a room (<a href="51874.html">ENTER_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">LEAPING</td>
+<td class="address-1"><span id="23363"></span>5B43</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">1 while one of the room's leapers (graphic 130) is in the air, so they leap one at a time (<a href="43257.html">LEAPER</a>): set when one starts, cleared when it lands and on entering a room (<a href="51874.html">ENTER_ROOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23364"></span>5B44</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Nothing refers to these bytes (searched)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23372"></span>5B4C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23380"></span>5B54</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMS_SEEN</td>
+<td class="address-1"><span id="23384"></span>5B58</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">A bit per room number, set on entering the room (<a href="47203.html">MARK_ROOM_SEEN</a>): 256 bits, byte room/8, bit room AND 7. Counted for the rating after a game (<a href="47233.html">COUNT_ROOMS_SEEN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23392"></span>5B60</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23400"></span>5B68</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23408"></span>5B70</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_NEW</td>
+<td class="address-1"><span id="23416"></span>5B78</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="1">What he carries -- only valves can be picked up -- in entries of four bytes: the graphic, the flags and the address of its place. This one is where a thing being picked up is put (<a href="48491.html">TAKE_OR_LEAVE</a>) before the list moves on one; empty between presses</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED</td>
+<td class="address-1"><span id="23420"></span>5B7C</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="2">The things he carries, newest first (drawn on the panel by <a href="48285.html">SHOW_CARRIED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23424"></span>5B80</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_LAST</td>
+<td class="address-1"><span id="23428"></span>5B84</td>
+<td class="instruction">DEFB $00,$00,$00,$00</td>
+<td class="comment-1" rowspan="1">The oldest, which the next press puts down (<a href="48491.html">TAKE_OR_LEAVE</a>)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+</td>
+<td class="up">Up: <a href="../maps/all.html#23296">Map</a></td>
+<td class="next">
+Next: <a href="23432.html">5B88</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

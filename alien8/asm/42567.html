@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at A647</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42545.html">A631</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42567">Map</a></td>
+<td class="next">
+Next: <a href="42688.html">A6C0</a>
+</td>
+</tr>
+</table>
+<div class="description">A647: Back to the menu after a game, set up a game, and run it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="43377.html">OILED_ROBOT</a> and <a href="43873.html">SCENE_TOOL</a>.
+</div>
+<div class="paragraph">
+Reached when the scene after a game ends (<a href="43873.html">SCENE_TOOL</a>, <a href="43377.html">OILED_ROBOT</a>). Clears from WIPE_COUNT to the end of the object records, so the seed, the turn counter, the control method and the random number carry over, and falls into the setting up of a game at MAIN_NEW_GAME, where <a href="42545.html">START</a> joins.
+</div>
+<div class="paragraph">
+A new game builds the drawing tables, has five lives, 6000 light years, and no room played yet; stirs the last game's turn count into the seed; clears the screen and shows the menu (<a href="47742.html">MENU</a>); plays the start tune; puts the robot in one of four start rooms (<a href="51821.html">NEW_GAME_START</a>); deals the valves and extra lives to their places (<a href="44863.html">INIT_SPECIAL_OBJECTS</a>); and gives every room back its colour (<a href="51922.html">RESET_ROOM_COLOURS</a>), undoing the white of the chambers activated last game.
+</div>
+<div class="paragraph">
+Then three loops, one inside the other, each with its own entry: MAIN_NEW_LIFE starts a life (<a href="51719.html">NEW_LIFE</a>) and falls into MAIN_NEW_ROOM, which builds the room he is in (<a href="51874.html">ENTER_ROOM</a>) -- leaving a room comes back here from <a href="50071.html">EXIT_LOW_U</a> -- and falls into MAIN_NEXT_TURN, the start of a turn. MAIN_NEXT_OBJECT runs one record's update routine: the stack is reset to <a href="61696.html">MIRROR_TABLE</a> for every object, the address of <a href="42688.html">OBJECT_DONE</a> is pushed for the routine's RET to go to, and the record's last drawn size and place are kept (+18 to +1B into +1C to +1F) so that its old picture can be wiped. MAIN_DISPATCH jumps through <a href="42986.html">UPDATES</a> by the graphic; JUMP_THROUGH_TABLE jumps through any table of words by the index in L and the table in BC, and <a href="49910.html">CALC_PLYR_DUV</a> and <a href="51077.html">SORT_AND_DRAW</a> use it too.
+</div>
+<div class="paragraph">
+Knight Lore's main and its object walk, with the clock where the sun and moon were and nothing for the cauldron; the stack is Alien 8's own, above the screen buffer, where Knight Lore's is below its variables.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">AFTER_GAME</td>
+<td class="address-2"><span id="42567"></span>A647</td>
+<td class="instruction">LD HL,<a href="23296.html#23304">WIPE_COUNT</a></td>
+<td class="comment-1" rowspan="3">from WIPE_COUNT up to <a href="25224.html">BELOW_BLOCK</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42570"></span>A64A</td>
+<td class="instruction">LD BC,$0780</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42573"></span>A64D</td>
+<td class="instruction">CALL <a href="52814.html#52822">CLR_MEM</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42576"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42545.html">START</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_NEW_GAME</td>
+<td class="address-2"><span id="42576"></span>A650</td>
+<td class="instruction">CALL <a href="53159.html">BUILD_LOOKUP_TBLS</a></td>
+<td class="comment-1" rowspan="1">the tables at <a href="61696.html">MIRROR_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42579"></span>A653</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">no room played yet, so the first room built has nothing to write back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42580"></span>A654</td>
+<td class="instruction">LD (<a href="23296.html#23314">PLAYED</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42583"></span>A657</td>
+<td class="instruction">LD ($CA29),A</td>
+<td class="comment-1" rowspan="1">clear the start legs' +C: not jumping, not standing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42586"></span>A65A</td>
+<td class="instruction">LD A,$05</td>
+<td class="comment-1" rowspan="2">five lives: the first life takes one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42588"></span>A65C</td>
+<td class="instruction">LD (<a href="23296.html#23322">LIVES</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42591"></span>A65F</td>
+<td class="instruction">LD HL,$0060</td>
+<td class="comment-1" rowspan="4">6000 light years: the first digit 6, the rest 0, none rolling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42594"></span>A662</td>
+<td class="instruction">LD (<a href="23296.html#23350">CLOCK</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42597"></span>A665</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42600"></span>A668</td>
+<td class="instruction">LD (<a href="23296.html#23352">CLOCK_LOW</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42603"></span>A66B</td>
+<td class="instruction">LD HL,<a href="23296.html">SEED</a></td>
+<td class="comment-1" rowspan="4">stir the turn counter into the seed; it is zero on the first game after loading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42606"></span>A66E</td>
+<td class="instruction">LD A,(<a href="23296.html#23298">TURNS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42609"></span>A671</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42610"></span>A672</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42611"></span>A673</td>
+<td class="instruction">CALL <a href="52851.html">CLEAR_SCRN</a></td>
+<td class="comment-1" rowspan="1">clear the screen, border black</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42614"></span>A676</td>
+<td class="instruction">CALL <a href="47742.html">MENU</a></td>
+<td class="comment-1" rowspan="1">the menu, until 0 is pressed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42617"></span>A679</td>
+<td class="instruction">LD DE,<a href="46021.html">TUNE_START</a></td>
+<td class="comment-1" rowspan="2">the tune that plays as a game starts</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42620"></span>A67C</td>
+<td class="instruction">CALL <a href="46266.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42623"></span>A67F</td>
+<td class="instruction">CALL <a href="51821.html">NEW_GAME_START</a></td>
+<td class="comment-1" rowspan="1">the start records and the start room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42626"></span>A682</td>
+<td class="instruction">CALL <a href="44863.html">INIT_SPECIAL_OBJECTS</a></td>
+<td class="comment-1" rowspan="1">deal the valves and the extra lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42629"></span>A685</td>
+<td class="instruction">CALL <a href="51922.html">RESET_ROOM_COLOURS</a></td>
+<td class="comment-1" rowspan="1">every room's colour from its record</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42632"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_NEW_LIFE</td>
+<td class="address-2"><span id="42632"></span>A688</td>
+<td class="instruction">CALL <a href="51719.html">NEW_LIFE</a></td>
+<td class="comment-1" rowspan="1">a life: the robot from the start records, a life fewer</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42635"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="50071.html">EXIT_LOW_U</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_NEW_ROOM</td>
+<td class="address-2"><span id="42635"></span>A68B</td>
+<td class="instruction">CALL <a href="51874.html">ENTER_ROOM</a></td>
+<td class="comment-1" rowspan="1">build the room he is in</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42638"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="42688.html">OBJECT_DONE</a> and <a href="46945.html">GAME_ENDED</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_NEXT_TURN</td>
+<td class="address-2"><span id="42638"></span>A68E</td>
+<td class="instruction">LD IX,<a href="23432.html">OBJECTS</a></td>
+<td class="comment-1" rowspan="1">the first record</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42642"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_NEXT_OBJECT</td>
+<td class="address-2"><span id="42642"></span>A692</td>
+<td class="instruction">LD SP,<a href="61696.html">MIRROR_TABLE</a></td>
+<td class="comment-1" rowspan="1">a fresh stack for every object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42645"></span>A695</td>
+<td class="instruction">LD HL,<a href="42688.html">OBJECT_DONE</a></td>
+<td class="comment-1" rowspan="2">its update routine returns to <a href="42688.html">OBJECT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42648"></span>A698</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42649"></span>A699</td>
+<td class="instruction">LD A,(IX+$18)</td>
+<td class="comment-1" rowspan="8">keep last turn's size and place on the screen, to wipe</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42652"></span>A69C</td>
+<td class="instruction">LD (IX+$1C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42655"></span>A69F</td>
+<td class="instruction">LD A,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42658"></span>A6A2</td>
+<td class="instruction">LD (IX+$1D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42661"></span>A6A5</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42664"></span>A6A8</td>
+<td class="instruction">LD (IX+$1E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42667"></span>A6AB</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42670"></span>A6AE</td>
+<td class="instruction">LD (IX+$1F),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42673"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="48259.html">PLAYER_APPEARED</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_DISPATCH</td>
+<td class="address-2"><span id="42673"></span>A6B1</td>
+<td class="instruction">LD L,(IX+$00)</td>
+<td class="comment-1" rowspan="2">the graphic indexes <a href="42986.html">UPDATES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42676"></span>A6B4</td>
+<td class="instruction">LD BC,<a href="42986.html">UPDATES</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42679"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="49910.html">CALC_PLYR_DUV</a> and <a href="51077.html">SORT_AND_DRAW</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">JUMP_THROUGH_TABLE</td>
+<td class="address-2"><span id="42679"></span>A6B7</td>
+<td class="instruction">LD H,$00</td>
+<td class="comment-1" rowspan="8">HL = BC + 2 * L; jump to the word there</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42681"></span>A6B9</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42682"></span>A6BA</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42683"></span>A6BB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42684"></span>A6BC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42685"></span>A6BD</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42686"></span>A6BE</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42687"></span>A6BF</td>
+<td class="instruction">JP (HL)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42545.html">A631</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42567">Map</a></td>
+<td class="next">
+Next: <a href="42688.html">A6C0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at BA7E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47703.html">BA57</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47742">Map</a></td>
+<td class="next">
+Next: <a href="47867.html">BAFB</a>
+</td>
+</tr>
+</table>
+<div class="description">BA7E: The menu</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42567.html">AFTER_GAME</a>.
+</div>
+<div class="paragraph">
+Called by <a href="42567.html">AFTER_GAME</a> before every game. It clears TEXT_SHOWN, so that the first list printed draws the border and shows the buffer, stops every line's flash, clears the buffer, draws the menu (<a href="48165.html">DISPLAY_MENU</a>) and flashes the lines chosen (<a href="47867.html">FLASH_MENU</a>). Then round a loop: print the text again (only its attributes, with the flashing, reach the screen), play the tune if it has not been heard (<a href="46241.html">PLAY_TUNE_ONCE</a>, which a key cuts short), and read the keys.
+</div>
+<div class="paragraph">
+Keys 1 to 4 set bits 1 and 2 of CONTROL to 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II; if several are held the highest wins, since each is applied in turn. Key 5 toggles bit 3, directional control, once a press (KEY5_HELD). A change to CONTROL beeps (<a href="46769.html">PLAIN_BEEP</a>). Key 0 starts the game. Every pass counts SEED up by one, so the time spent on the menu goes into the choice of start room (<a href="51821.html">NEW_GAME_START</a>).
+</div>
+<div class="paragraph">
+As Knight Lore's menu, key 5 and all; Pentagram's is this code without key 5 and without the beep.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MENU</td>
+<td class="address-2"><span id="47742"></span>BA7E</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">no list shown yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47743"></span>BA7F</td>
+<td class="instruction">LD (<a href="23296.html#23320">TEXT_SHOWN</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47746"></span>BA82</td>
+<td class="instruction">LD HL,<a href="47892.html">MENU_COLOURS</a></td>
+<td class="comment-1" rowspan="5">no line flashing: all eight colours in <a href="47892.html">MENU_COLOURS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47749"></span>BA85</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_0</td>
+<td class="address-2"><span id="47751"></span>BA87</td>
+<td class="instruction">RES 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47753"></span>BA89</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47754"></span>BA8A</td>
+<td class="instruction">DJNZ <a href="47742.html#47751">MENU_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47756"></span>BA8C</td>
+<td class="instruction">CALL <a href="52859.html">CLEAR_SCRN_BUFFER</a></td>
+<td class="comment-1" rowspan="3">a clear buffer; the text, the border and the whole screen; the lines chosen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47759"></span>BA8F</td>
+<td class="instruction">CALL <a href="48165.html">DISPLAY_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47762"></span>BA92</td>
+<td class="instruction">CALL <a href="47867.html">FLASH_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label">MENU_LOOP</td>
+<td class="address-2"><span id="47765"></span>BA95</td>
+<td class="instruction">CALL <a href="48165.html">DISPLAY_MENU</a></td>
+<td class="comment-1" rowspan="3">the text again; the tune, once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47768"></span>BA98</td>
+<td class="instruction">LD DE,<a href="46134.html#46161">TUNE_MENU</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47771"></span>BA9B</td>
+<td class="instruction">CALL <a href="46241.html">PLAY_TUNE_ONCE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47774"></span>BA9E</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="3">E = keys 1-5, key 1 in bit 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47776"></span>BAA0</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47779"></span>BAA3</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47780"></span>BAA4</td>
+<td class="instruction">LD A,(<a href="23296.html#23300">CONTROL</a>)</td>
+<td class="comment-1" rowspan="2">A = CONTROL, and as it was into CONTROL_BEFORE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47783"></span>BAA7</td>
+<td class="instruction">LD (<a href="23296.html#23302">CONTROL_BEFORE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47786"></span>BAAA</td>
+<td class="instruction">BIT 0,E</td>
+<td class="comment-1" rowspan="3">1: keyboard</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47788"></span>BAAC</td>
+<td class="instruction">JR Z,<a href="47742.html#47792">MENU_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47790"></span>BAAE</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_1</td>
+<td class="address-2"><span id="47792"></span>BAB0</td>
+<td class="instruction">BIT 1,E</td>
+<td class="comment-1" rowspan="4">2: Kempston</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47794"></span>BAB2</td>
+<td class="instruction">JR Z,<a href="47742.html#47800">MENU_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47796"></span>BAB4</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47798"></span>BAB6</td>
+<td class="instruction">OR $02</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_2</td>
+<td class="address-2"><span id="47800"></span>BAB8</td>
+<td class="instruction">BIT 2,E</td>
+<td class="comment-1" rowspan="4">3: cursor keys</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47802"></span>BABA</td>
+<td class="instruction">JR Z,<a href="47742.html#47808">MENU_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47804"></span>BABC</td>
+<td class="instruction">AND $F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47806"></span>BABE</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_3</td>
+<td class="address-2"><span id="47808"></span>BAC0</td>
+<td class="instruction">BIT 3,E</td>
+<td class="comment-1" rowspan="3">4: Interface II</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47810"></span>BAC2</td>
+<td class="instruction">JR Z,<a href="47742.html#47814">MENU_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47812"></span>BAC4</td>
+<td class="instruction">OR $06</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_4</td>
+<td class="address-2"><span id="47814"></span>BAC6</td>
+<td class="instruction">LD (<a href="23296.html#23300">CONTROL</a>),A</td>
+<td class="comment-1" rowspan="1">the new method</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47817"></span>BAC9</td>
+<td class="instruction">LD HL,<a href="23296.html#23346">KEY5_HELD</a></td>
+<td class="comment-1" rowspan="3">key 5 not held: clear its latch (at the end)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47820"></span>BACC</td>
+<td class="instruction">BIT 4,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47822"></span>BACE</td>
+<td class="instruction">JR Z,<a href="47742.html#47863">MENU_KEY5_RELEASED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47824"></span>BAD0</td>
+<td class="instruction">BIT 0,(HL)</td>
+<td class="comment-1" rowspan="2">still held since the last pass: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47826"></span>BAD2</td>
+<td class="instruction">JR NZ,<a href="47742.html#47838">MENU_BEEP_IF_CHANGED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47828"></span>BAD4</td>
+<td class="instruction">SET 0,(HL)</td>
+<td class="comment-1" rowspan="4">a new press: latch it, and toggle directional control</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47830"></span>BAD6</td>
+<td class="instruction">LD A,(<a href="23296.html#23300">CONTROL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47833"></span>BAD9</td>
+<td class="instruction">XOR $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47835"></span>BADB</td>
+<td class="instruction">LD (<a href="23296.html#23300">CONTROL</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_BEEP_IF_CHANGED</td>
+<td class="address-2"><span id="47838"></span>BADE</td>
+<td class="instruction">LD HL,<a href="23296.html#23302">CONTROL_BEFORE</a></td>
+<td class="comment-1" rowspan="3">A is the new CONTROL whichever way this is reached: beep if it has changed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47841"></span>BAE1</td>
+<td class="instruction">CP (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47842"></span>BAE2</td>
+<td class="instruction">CALL NZ,<a href="46769.html">PLAIN_BEEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47845"></span>BAE5</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="4">key 0 (bit 0 of the 6-0 half-row): start the game</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47847"></span>BAE7</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47850"></span>BAEA</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47852"></span>BAEC</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47853"></span>BAED</td>
+<td class="instruction">LD HL,<a href="23296.html">SEED</a></td>
+<td class="comment-1" rowspan="2">one more to the seed each pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47856"></span>BAF0</td>
+<td class="instruction">INC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47857"></span>BAF1</td>
+<td class="instruction">CALL <a href="47867.html">FLASH_MENU</a></td>
+<td class="comment-1" rowspan="2">flash the choice; round again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47860"></span>BAF4</td>
+<td class="instruction">JP <a href="47742.html#47765">MENU_LOOP</a></td>
+</tr>
+<tr>
+<td class="asm-label">MENU_KEY5_RELEASED</td>
+<td class="address-2"><span id="47863"></span>BAF7</td>
+<td class="instruction">RES 0,(HL)</td>
+<td class="comment-1" rowspan="2">key 5 is up: clear the latch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47865"></span>BAF9</td>
+<td class="instruction">JR <a href="47742.html#47838">MENU_BEEP_IF_CHANGED</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47703.html">BA57</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47742">Map</a></td>
+<td class="next">
+Next: <a href="47867.html">BAFB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

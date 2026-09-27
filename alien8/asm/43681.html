@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AAA1</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43657.html">AA89</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43681">Map</a></td>
+<td class="next">
+Next: <a href="43807.html">AB1F</a>
+</td>
+</tr>
+</table>
+<div class="description">AAA1: A clockwork mouse (graphics 116 to 119)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>. Deadly both ways. It runs straight along U or V at two to five units a turn, flipping between two graphics as it goes, for a random number of turns up to 15 (none left counts as 256); when it is stopped, is blocked, or has run its turns it beeps and turns a quarter, left or right at random, with a new speed and a new count.
+</div>
+<div class="paragraph">
+The way it faces is its mirror flag (bit 6 of +7: clear along U, set along V) and bit 1 of its graphic (which way along it); a turn always flips the mirror flag, so always changes the axis, and flips bit 1 or not by the random number. The speed is the turn counter's low two bits plus two. +10 counts the turns left. Rooms $3F, $42, $45, $4D, $72, $A9 and $D8 have them (object template 28).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE</td>
+<td class="address-2"><span id="43681"></span>AAA1</td>
+<td class="instruction">CALL <a href="48987.html">DRAW_AT_L12_D6</a></td>
+<td class="comment-1" rowspan="1">draw 12 left and 6 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43684"></span>AAA4</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+<td class="comment-1" rowspan="1">fall, and move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43687"></span>AAA7</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">not moving: turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43690"></span>AAAA</td>
+<td class="instruction">OR (IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43693"></span>AAAD</td>
+<td class="instruction">JR Z,<a href="43681.html#43713">CLOCKWORK_MOUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43695"></span>AAAF</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">blocked in U or V: turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43698"></span>AAB2</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43700"></span>AAB4</td>
+<td class="instruction">JR NZ,<a href="43681.html#43713">CLOCKWORK_MOUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43702"></span>AAB6</td>
+<td class="instruction">DEC (IX+$10)</td>
+<td class="comment-1" rowspan="2">its turns run out: turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43705"></span>AAB9</td>
+<td class="instruction">JR Z,<a href="43681.html#43713">CLOCKWORK_MOUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_0</td>
+<td class="address-2"><span id="43707"></span>AABB</td>
+<td class="instruction">CALL <a href="45445.html">TOGGLE_FRAME</a></td>
+<td class="comment-1" rowspan="1">the other of its two graphics</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43710"></span>AABE</td>
+<td class="instruction">JP <a href="45744.html">DEADLY_AND_DRAW</a></td>
+<td class="comment-1" rowspan="1">deadly both ways; redraw</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_1</td>
+<td class="address-2"><span id="43713"></span>AAC1</td>
+<td class="instruction">CALL <a href="46779.html">HIGH_BEEP</a></td>
+<td class="comment-1" rowspan="1">a beep</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43716"></span>AAC4</td>
+<td class="instruction">LD A,(<a href="23296.html#23299">TURNS_HIGH</a>)</td>
+<td class="comment-1" rowspan="6">a new count of turns, 0 to 15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43719"></span>AAC7</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43720"></span>AAC8</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43723"></span>AACB</td>
+<td class="instruction">XOR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43724"></span>AACC</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43726"></span>AACE</td>
+<td class="instruction">LD (IX+$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43729"></span>AAD1</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="3">always the other axis</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43732"></span>AAD4</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43734"></span>AAD6</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43737"></span>AAD9</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+<td class="comment-1" rowspan="5">by the random number, flip its way along the axis or not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43740"></span>AADC</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43742"></span>AADE</td>
+<td class="instruction">JR Z,<a href="43681.html#43788">CLOCKWORK_MOUSE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43744"></span>AAE0</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43748"></span>AAE4</td>
+<td class="instruction">JR Z,<a href="43681.html#43758">CLOCKWORK_MOUSE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_2</td>
+<td class="address-2"><span id="43750"></span>AAE6</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">flip bit 1: the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43753"></span>AAE9</td>
+<td class="instruction">XOR $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43755"></span>AAEB</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_3</td>
+<td class="address-2"><span id="43758"></span>AAEE</td>
+<td class="instruction">LD A,(<a href="23296.html#23298">TURNS</a>)</td>
+<td class="comment-1" rowspan="6">two to five units, the way bit 1 says</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43761"></span>AAF1</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43763"></span>AAF3</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43765"></span>AAF5</td>
+<td class="instruction">BIT 1,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43769"></span>AAF9</td>
+<td class="instruction">JR NZ,<a href="43681.html#43773">CLOCKWORK_MOUSE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43771"></span>AAFB</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_4</td>
+<td class="address-2"><span id="43773"></span>AAFD</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+<td class="comment-1" rowspan="5">along U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43777"></span>AB01</td>
+<td class="instruction">JR NZ,<a href="43681.html#43796">CLOCKWORK_MOUSE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43779"></span>AB03</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43782"></span>AB06</td>
+<td class="instruction">LD (IX+$0A),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43786"></span>AB0A</td>
+<td class="instruction">JR <a href="43681.html#43707">CLOCKWORK_MOUSE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_5</td>
+<td class="address-2"><span id="43788"></span>AB0C</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+<td class="comment-1" rowspan="3">the other half of the random choice</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43792"></span>AB10</td>
+<td class="instruction">JR Z,<a href="43681.html#43750">CLOCKWORK_MOUSE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43794"></span>AB12</td>
+<td class="instruction">JR <a href="43681.html#43758">CLOCKWORK_MOUSE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLOCKWORK_MOUSE_6</td>
+<td class="address-2"><span id="43796"></span>AB14</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="4">along V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43798"></span>AB16</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43801"></span>AB19</td>
+<td class="instruction">LD (IX+$09),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43805"></span>AB1D</td>
+<td class="instruction">JR <a href="43681.html#43707">CLOCKWORK_MOUSE_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43657.html">AA89</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43681">Map</a></td>
+<td class="next">
+Next: <a href="43807.html">AB1F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

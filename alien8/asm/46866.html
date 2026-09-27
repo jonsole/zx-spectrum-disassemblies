@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B712</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46850.html">B702</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46866">Map</a></td>
+<td class="next">
+Next: <a href="46925.html">B74D</a>
+</td>
+</tr>
+</table>
+<div class="description">B712: Does this object overlap any other?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48491.html">TAKE_OR_LEAVE</a>.
+</div>
+<div class="paragraph">
+Tests IX against all 56 records with the tests on each axis at <a href="50601.html">DO_OBJS_INTERSECT_ON_U</a>, <a href="50622.html">DO_OBJS_INTERSECT_ON_V</a> and <a href="50643.html">DO_OBJS_INTERSECT_ON_Z</a>, with no offset on any axis. Empty records are skipped, and so is any with bit 1 of its flags set (<a href="46925.html">IS_OBJECT_NOT_IGNORED</a>) -- which is how IX avoids finding itself: it sets its own bit 1 for the duration. Used by <a href="48491.html">TAKE_OR_LEAVE</a>, to see whether what he puts down has room. Knight Lore's do_any_objs_intersect and Pentagram's DO_ANY_OBJS_INTERSECT.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">carry set if another object's box overlaps IX's where it stands</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the one it overlaps, when carry is set</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DO_ANY_OBJS_INTERSECT</td>
+<td class="address-2"><span id="46866"></span>B712</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="6">save the registers; IY walks all 56 records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46867"></span>B713</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46868"></span>B714</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46869"></span>B715</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46871"></span>B717</td>
+<td class="instruction">LD IY,<a href="23432.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46875"></span>B71B</td>
+<td class="instruction">LD B,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46877"></span>B71D</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="4">no offset on U, V or Z; and IX out of its own way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46879"></span>B71F</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46880"></span>B720</td>
+<td class="instruction">LD H,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46881"></span>B721</td>
+<td class="instruction">SET 1,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label">DO_ANY_OBJS_INTERSECT_0</td>
+<td class="address-2"><span id="46885"></span>B725</td>
+<td class="instruction">CALL <a href="46925.html">IS_OBJECT_NOT_IGNORED</a></td>
+<td class="comment-1" rowspan="2">empty, or out of collisions: next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46888"></span>B728</td>
+<td class="instruction">JR Z,<a href="46866.html#46915">DO_ANY_OBJS_INTERSECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46890"></span>B72A</td>
+<td class="instruction">CALL <a href="50601.html">DO_OBJS_INTERSECT_ON_U</a></td>
+<td class="comment-1" rowspan="6">overlapping in U, V and Z: found, with carry set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46893"></span>B72D</td>
+<td class="instruction">JR NC,<a href="46866.html#46915">DO_ANY_OBJS_INTERSECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46895"></span>B72F</td>
+<td class="instruction">CALL <a href="50622.html">DO_OBJS_INTERSECT_ON_V</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46898"></span>B732</td>
+<td class="instruction">JR NC,<a href="46866.html#46915">DO_ANY_OBJS_INTERSECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46900"></span>B734</td>
+<td class="instruction">CALL <a href="50643.html">DO_OBJS_INTERSECT_ON_Z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46903"></span>B737</td>
+<td class="instruction">JR NC,<a href="46866.html#46915">DO_ANY_OBJS_INTERSECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">DO_ANY_OBJS_INTERSECT_1</td>
+<td class="address-2"><span id="46905"></span>B739</td>
+<td class="instruction">POP IY</td>
+<td class="comment-1" rowspan="6">put the registers back and IX's bit 1 clear; the carry is kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46907"></span>B73B</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46908"></span>B73C</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46909"></span>B73D</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46910"></span>B73E</td>
+<td class="instruction">RES 1,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46914"></span>B742</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">DO_ANY_OBJS_INTERSECT_2</td>
+<td class="address-2"><span id="46915"></span>B743</td>
+<td class="instruction">LD DE,$0020</td>
+<td class="comment-1" rowspan="5">next record; none: clear carry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46918"></span>B746</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46920"></span>B748</td>
+<td class="instruction">DJNZ <a href="46866.html#46885">DO_ANY_OBJS_INTERSECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46922"></span>B74A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46923"></span>B74B</td>
+<td class="instruction">JR <a href="46866.html#46905">DO_ANY_OBJS_INTERSECT_1</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The exit clears IX's bit 1 whatever it was before.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46850.html">B702</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46866">Map</a></td>
+<td class="next">
+Next: <a href="46925.html">B74D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

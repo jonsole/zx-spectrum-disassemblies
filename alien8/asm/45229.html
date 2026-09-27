@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B0AD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45163.html">B06B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45229">Map</a></td>
+<td class="next">
+Next: <a href="45277.html">B0DD</a>
+</td>
+</tr>
+</table>
+<div class="description">B0AD: Turn a creature a quarter</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="45163.html">WANDERER</a> and <a href="45277.html">TURN_QUARTER_BACK</a>.
+</div>
+<div class="paragraph">
+The four directions are the four combinations of bit 0 of the graphic and bit 6 of the flags (the mirror bit): taking them as a pair, this steps (0,0) to (1,1) to (1,0) to (0,1) and back to (0,0), which by <a href="45287.html">STEP_FROM_FACING</a>'s table is minus U, minus V, plus U, plus V -- always the same way round. <a href="45277.html">TURN_QUARTER_BACK</a> toggles bit 0 first, which makes the same step the other way round.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the creature</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER</td>
+<td class="address-2"><span id="45229"></span>B0AD</td>
+<td class="instruction">BIT 0,(IX+$00)</td>
+<td class="comment-1" rowspan="4">which of the four is it?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45233"></span>B0B1</td>
+<td class="instruction">JR NZ,<a href="45229.html#45250">TURN_QUARTER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45235"></span>B0B3</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45239"></span>B0B7</td>
+<td class="instruction">JR NZ,<a href="45229.html#45262">TURN_QUARTER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45241"></span>B0B9</td>
+<td class="instruction">SET 0,(IX+$00)</td>
+<td class="comment-1" rowspan="3">(0,0): to (1,1)</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER_0</td>
+<td class="address-2"><span id="45245"></span>B0BD</td>
+<td class="instruction">SET 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45249"></span>B0C1</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER_1</td>
+<td class="address-2"><span id="45250"></span>B0C2</td>
+<td class="instruction">BIT 6,(IX+$07)</td>
+<td class="comment-1" rowspan="4">(1,0): to (0,1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45254"></span>B0C6</td>
+<td class="instruction">JR NZ,<a href="45229.html#45271">TURN_QUARTER_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45256"></span>B0C8</td>
+<td class="instruction">RES 0,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45260"></span>B0CC</td>
+<td class="instruction">JR <a href="45229.html#45245">TURN_QUARTER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER_2</td>
+<td class="address-2"><span id="45262"></span>B0CE</td>
+<td class="instruction">RES 0,(IX+$00)</td>
+<td class="comment-1" rowspan="3">(0,1): to (0,0)</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER_3</td>
+<td class="address-2"><span id="45266"></span>B0D2</td>
+<td class="instruction">RES 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45270"></span>B0D6</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_QUARTER_4</td>
+<td class="address-2"><span id="45271"></span>B0D7</td>
+<td class="instruction">SET 0,(IX+$00)</td>
+<td class="comment-1" rowspan="2">(1,1): to (1,0)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45275"></span>B0DB</td>
+<td class="instruction">JR <a href="45229.html#45266">TURN_QUARTER_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45163.html">B06B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45229">Map</a></td>
+<td class="next">
+Next: <a href="45277.html">B0DD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

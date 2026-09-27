@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at A749</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42688.html">A6C0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42825">Map</a></td>
+<td class="next">
+Next: <a href="42903.html">A797</a>
+</td>
+</tr>
+</table>
+<div class="description">A749: Colour the screen and the panel for the room</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="42688.html">OBJECT_DONE</a> and <a href="44921.html">LOOSE_VALVE</a>.
+</div>
+<div class="paragraph">
+On the first turn in a room (<a href="42688.html">OBJECT_DONE</a>) and when a chamber is activated (<a href="44921.html">LOOSE_VALVE</a>). The whole attribute file gets the room's ink, bright on black, and then the panel its colours: the lives bright white, the light-years box red round white digits (<a href="42926.html">COLOUR_CLOCK_BOX</a>), the carried things (<a href="48285.html">SHOW_CARRIED</a>, part way in), the LIGHT YEARS label and the chamber icon in a colour chosen from the room's ink, and the count of chambers and of lives.
+</div>
+<div class="paragraph">
+The label's colour is 2 plus 7 less the room's ink, bright on black: never the room's own colour for the inks the rooms use (3 to 6 on the tape, and 7 once a chamber is activated), and red in an activated chamber. It is written into the first byte of the label's text (<a href="42903.html">LIGHT_YEARS_TEXT</a>), where the printer takes a line's colour from, and read back from there for the icon.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COLOUR_PANEL</td>
+<td class="address-2"><span id="42825"></span>A749</td>
+<td class="instruction">LD A,(<a href="23296.html#23309">ROOM_INK</a>)</td>
+<td class="comment-1" rowspan="3">the whole screen in the room's ink, bright on black</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42828"></span>A74C</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42830"></span>A74E</td>
+<td class="instruction">CALL <a href="52840.html#52842">FILL_ATTR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42833"></span>A751</td>
+<td class="instruction">LD A,$47</td>
+<td class="comment-1" rowspan="7">the lives, bright white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42835"></span>A753</td>
+<td class="instruction">LD DE,$5ACE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42838"></span>A756</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42840"></span>A758</td>
+<td class="instruction">CALL <a href="52764.html#52765">FILL_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42843"></span>A75B</td>
+<td class="instruction">LD DE,$5AEE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42846"></span>A75E</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42848"></span>A760</td>
+<td class="instruction">CALL <a href="52764.html#52765">FILL_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42851"></span>A763</td>
+<td class="instruction">CALL <a href="42926.html">COLOUR_CLOCK_BOX</a></td>
+<td class="comment-1" rowspan="1">the light-years box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42854"></span>A766</td>
+<td class="instruction">CALL <a href="48285.html#48299">SHOW_CARRIED_NOW</a></td>
+<td class="comment-1" rowspan="1">the carried things</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42857"></span>A769</td>
+<td class="instruction">LD A,(<a href="23296.html#23309">ROOM_INK</a>)</td>
+<td class="comment-1" rowspan="5">2 + (7 - ink), bright: the label's colour, into its text</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42860"></span>A76C</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42861"></span>A76D</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42863"></span>A76F</td>
+<td class="instruction">ADD A,$42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42865"></span>A771</td>
+<td class="instruction">LD (<a href="42903.html">LIGHT_YEARS_TEXT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42868"></span>A774</td>
+<td class="instruction">LD DE,<a href="42903.html">LIGHT_YEARS_TEXT</a></td>
+<td class="comment-1" rowspan="3">print LIGHT YEARS at the foot of the screen, right of centre</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42871"></span>A777</td>
+<td class="instruction">LD HL,$07A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42874"></span>A77A</td>
+<td class="instruction">CALL <a href="48049.html">PRINT_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42877"></span>A77D</td>
+<td class="instruction">CALL <a href="42915.html">PRINT_CHAMBERS</a></td>
+<td class="comment-1" rowspan="1">the count of chambers</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42880"></span>A780</td>
+<td class="instruction">LD HL,$5A84</td>
+<td class="comment-1" rowspan="4">its two digits bright white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42883"></span>A783</td>
+<td class="instruction">LD (HL),$47</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42885"></span>A785</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42886"></span>A786</td>
+<td class="instruction">LD (HL),$47</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42888"></span>A788</td>
+<td class="instruction">LD HL,$5A41</td>
+<td class="comment-1" rowspan="4">the chamber icon, three by three cells at the left, in the label's colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42891"></span>A78B</td>
+<td class="instruction">LD BC,$0303</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42894"></span>A78E</td>
+<td class="instruction">LD A,(<a href="42903.html">LIGHT_YEARS_TEXT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42897"></span>A791</td>
+<td class="instruction">CALL <a href="49027.html">FILL_BOX</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42900"></span>A794</td>
+<td class="instruction">JP <a href="47703.html">PRINT_LIVES</a></td>
+<td class="comment-1" rowspan="1">and the lives</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42688.html">A6C0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42825">Map</a></td>
+<td class="next">
+Next: <a href="42903.html">A797</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

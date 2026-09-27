@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CE22</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52764.html">CE1C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52770">Map</a></td>
+<td class="next">
+Next: <a href="52814.html">CE4E</a>
+</td>
+</tr>
+</table>
+<div class="description">CE22: Pause, when SPACE is pressed on its own</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called once a turn by the main loop (<a href="42688.html">OBJECT_DONE</a>). <a href="46937.html">READ_KEYS</a> is given $7E, which selects two half-rows at once -- SPACE to B, and CAPS SHIFT to V -- read with a key pressed as a set bit; SPACE and CAPS SHIFT share bit 0, so either on its own pauses. A beep (<a href="46774.html">PAUSE_BEEP</a>), a wait for the key to be let go, then for a press and a release, and a beep again.
+</div>
+<div class="paragraph">
+The pause is a busy wait with interrupts off: the game has no EI anywhere, so nothing runs while it waits. Pentagram's pause turns interrupts on while it waits; Knight Lore's and this one do not.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_PAUSE</td>
+<td class="address-2"><span id="52770"></span>CE22</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">SPACE not pressed: no pause</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52772"></span>CE24</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52775"></span>CE27</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52777"></span>CE29</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52778"></span>CE2A</td>
+<td class="instruction">AND $1E</td>
+<td class="comment-1" rowspan="2">Another key of the half-row with it: no pause</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52780"></span>CE2C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_PAUSE_0</td>
+<td class="address-2"><span id="52781"></span>CE2D</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">Wait for it to be let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52783"></span>CE2F</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52786"></span>CE32</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52788"></span>CE34</td>
+<td class="instruction">JR NZ,<a href="52770.html#52781">HANDLE_PAUSE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52790"></span>CE36</td>
+<td class="instruction">CALL <a href="46774.html">PAUSE_BEEP</a></td>
+<td class="comment-1" rowspan="1">A beep</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_PAUSE_1</td>
+<td class="address-2"><span id="52793"></span>CE39</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">Wait for a press</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52795"></span>CE3B</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52798"></span>CE3E</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52800"></span>CE40</td>
+<td class="instruction">JR Z,<a href="52770.html#52793">HANDLE_PAUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_PAUSE_2</td>
+<td class="address-2"><span id="52802"></span>CE42</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">And for it to be let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52804"></span>CE44</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52807"></span>CE47</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52809"></span>CE49</td>
+<td class="instruction">JR NZ,<a href="52770.html#52802">HANDLE_PAUSE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52811"></span>CE4B</td>
+<td class="instruction">JP <a href="46774.html">PAUSE_BEEP</a></td>
+<td class="comment-1" rowspan="1">A beep, and back to the game</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52764.html">CE1C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52770">Map</a></td>
+<td class="next">
+Next: <a href="52814.html">CE4E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

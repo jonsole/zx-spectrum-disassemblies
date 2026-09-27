@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C23D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49717.html">C235</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49725">Map</a></td>
+<td class="next">
+Next: <a href="49758.html">C25E</a>
+</td>
+</tr>
+</table>
+<div class="description">C23D: Start a jump</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49342.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Called by the legs (<a href="49342.html">PLAYER_LEGS</a>) every turn. A jump needs the jump control held, the walk into a room over (the count in bits 4-7 of +$0C), no jump already under way (bit 3 of +$0C, cleared on landing by <a href="49814.html">MOVE_PLAYER</a>), and the robot not falling: a Z step of -2 or less says he is. That is Knight Lore's test, on the speed; Pentagram tests bit 2 of +$0C, standing, instead. The jump starts at 8 units up a turn, with a rising sound (<a href="46636.html">JUMP_SOUND</a>); gravity in <a href="49814.html">MOVE_PLAYER</a> takes it away again.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_JUMP</td>
+<td class="address-2"><span id="49725"></span>C23D</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="2">Jump not held</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49727"></span>C23F</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49728"></span>C240</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Not during the walk into a room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49731"></span>C243</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49733"></span>C245</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49734"></span>C246</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Already jumping</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49738"></span>C24A</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49739"></span>C24B</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="3">A Z step of -2 or less: falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49742"></span>C24E</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49743"></span>C24F</td>
+<td class="instruction">RET M</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49744"></span>C250</td>
+<td class="instruction">SET 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Jumping, 8 up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49748"></span>C254</td>
+<td class="instruction">LD (IX+$0B),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49752"></span>C258</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="4">The jump's sound, the controls kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49753"></span>C259</td>
+<td class="instruction">CALL <a href="46636.html">JUMP_SOUND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49756"></span>C25C</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49757"></span>C25D</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49717.html">C235</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49725">Map</a></td>
+<td class="next">
+Next: <a href="49758.html">C25E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

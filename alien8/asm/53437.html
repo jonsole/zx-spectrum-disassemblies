@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at D0BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53433.html">D0B9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53437">Map</a></td>
+<td class="next">
+Next: <a href="53536.html">D120</a>
+</td>
+</tr>
+</table>
+<div class="description">D0BD: The unrolled row of a shifted sprite</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Entered by the JR in <a href="53433.html">SPRITE_ROW</a>, as many 16-byte units from the end as the sprite is wide. H is the first of the two pages <a href="53159.html">BUILD_LOOKUP_TBLS</a> built for this shift. The tables hold complements, so each byte is ANDed with the complement of the mask shifted, and XORed with the complement of the image shifted and complemented again -- which comes to the buffer byte cleared under the shifted mask with the shifted image put in. Page H gives the part of a mask or image byte that stays in the current buffer byte, which is finished and stored; page H + 1 the part that falls into the next, which is begun and left in A for the next unit. The byte the last unit begins is stored after the fifth.
+</div>
+<div class="paragraph">
+Then, for both runs, BC steps up to the next row by the amount patched into the ADD below, and the loop goes round until A' runs out. The real stack pointer comes back from SAVED_SP, and the RET is the return from <a href="53267.html">CALC_PIXEL_XY_AND_RENDER</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the buffer byte the row starts with</td>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">its address</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">the shift's first table page</td>
+</tr>
+<tr>
+<td class="register">SP</td>
+<td class="register-desc">the sprite's next mask and image bytes</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPRITE_SHIFTED_RUN</td>
+<td class="address-2"><span id="53437"></span>D0BD</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="8">The first unit: the buffer byte cleared under the mask and with the image put in, shifted right, and stored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53438"></span>D0BE</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53439"></span>D0BF</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53440"></span>D0C0</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53441"></span>D0C1</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53442"></span>D0C2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53443"></span>D0C3</td>
+<td class="instruction">LD (BC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53444"></span>D0C4</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53445"></span>D0C5</td>
+<td class="instruction">INC H</td>
+<td class="comment-1" rowspan="8">The bits that fall out, into the next buffer byte, left in A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53446"></span>D0C6</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53447"></span>D0C7</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53448"></span>D0C8</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53449"></span>D0C9</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53450"></span>D0CA</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53451"></span>D0CB</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53452"></span>D0CC</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53453"></span>D0CD</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="64">Four more units the same</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53454"></span>D0CE</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53455"></span>D0CF</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53456"></span>D0D0</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53457"></span>D0D1</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53458"></span>D0D2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53459"></span>D0D3</td>
+<td class="instruction">LD (BC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53460"></span>D0D4</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53461"></span>D0D5</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53462"></span>D0D6</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53463"></span>D0D7</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53464"></span>D0D8</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53465"></span>D0D9</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53466"></span>D0DA</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53467"></span>D0DB</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53468"></span>D0DC</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53469"></span>D0DD</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53470"></span>D0DE</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53471"></span>D0DF</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53472"></span>D0E0</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53473"></span>D0E1</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53474"></span>D0E2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53475"></span>D0E3</td>
+<td class="instruction">LD (BC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53476"></span>D0E4</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53477"></span>D0E5</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53478"></span>D0E6</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53479"></span>D0E7</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53480"></span>D0E8</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53481"></span>D0E9</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53482"></span>D0EA</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53483"></span>D0EB</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53484"></span>D0EC</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53485"></span>D0ED</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53486"></span>D0EE</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53487"></span>D0EF</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53488"></span>D0F0</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53489"></span>D0F1</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53490"></span>D0F2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53491"></span>D0F3</td>
+<td class="instruction">LD (BC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53492"></span>D0F4</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53493"></span>D0F5</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53494"></span>D0F6</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53495"></span>D0F7</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53496"></span>D0F8</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53497"></span>D0F9</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53498"></span>D0FA</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53499"></span>D0FB</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53500"></span>D0FC</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53501"></span>D0FD</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53502"></span>D0FE</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53503"></span>D0FF</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53504"></span>D100</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53505"></span>D101</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53506"></span>D102</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53507"></span>D103</td>
+<td class="instruction">LD (BC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53508"></span>D104</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53509"></span>D105</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53510"></span>D106</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53511"></span>D107</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53512"></span>D108</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53513"></span>D109</td>
+<td class="instruction">LD L,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53514"></span>D10A</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53515"></span>D10B</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53516"></span>D10C</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53517"></span>D10D</td>
+<td class="instruction">LD (BC),A</td>
+<td class="comment-1" rowspan="1">Store the last spilled byte</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="53518"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="53391.html">SPRITE_ALIGNED_RUN</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPRITE_NEXT_ROW</td>
+<td class="address-2"><span id="53518"></span>D10E</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="6">BC up a row: the ADD's operand patched by <a href="53267.html">CALC_PIXEL_XY_AND_RENDER</a> to 33 less the bytes a row touches</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53519"></span>D10F</td>
+<td class="instruction">ADD A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53521"></span>D111</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53522"></span>D112</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53523"></span>D113</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53525"></span>D115</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53526"></span>D116</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="3">The next row, until the height runs out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53527"></span>D117</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53528"></span>D118</td>
+<td class="instruction">JP NZ,<a href="53433.html">SPRITE_ROW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53531"></span>D11B</td>
+<td class="instruction">LD SP,(<a href="23296.html#23305">SAVED_SP</a>)</td>
+<td class="comment-1" rowspan="2">The real stack pointer back; return from <a href="53267.html">CALC_PIXEL_XY_AND_RENDER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53535"></span>D11F</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53433.html">D0B9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53437">Map</a></td>
+<td class="next">
+Next: <a href="53536.html">D120</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

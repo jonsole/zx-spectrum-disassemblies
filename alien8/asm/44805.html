@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AF05</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44697.html">AE99</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44805">Map</a></td>
+<td class="next">
+Next: <a href="44863.html">AF3F</a>
+</td>
+</tr>
+</table>
+<div class="description">AF05: Write the valves in the room back to their places</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="46945.html">GAME_ENDED</a> and <a href="51874.html">ENTER_ROOM</a>.
+</div>
+<div class="paragraph">
+Called before a new room is built, once a turn has been played (PLAYED: <a href="51874.html">ENTER_ROOM</a>), and at the end of a game (<a href="46945.html">GAME_ENDED</a>), so that the summary sees where the valves are. For each of records 2 and 3 holding a valve, loose or seated (graphics 96 to 103), writes its graphic, its U, V and Z and its room back to its place through the address at +10: that is how a valve moved, carried in or seated stays where it was left.
+</div>
+<div class="paragraph">
+Knight Lore's update_special_objs writes back whatever the records hold; this writes back only the valves. An extra life (graphic 12) never moves, and taking one empties its place (<a href="48864.html">EXTRA_LIFE</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">UPDATE_SPECIAL_OBJS</td>
+<td class="address-2"><span id="44805"></span>AF05</td>
+<td class="instruction">LD IY,<a href="23432.html#23496">VALVES</a></td>
+<td class="comment-1" rowspan="1">record 2</td>
+</tr>
+<tr>
+<td class="asm-label">UPDATE_SPECIAL_OBJS_0</td>
+<td class="address-2"><span id="44809"></span>AF09</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="4">not a valve: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44812"></span>AF0C</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44814"></span>AF0E</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44816"></span>AF10</td>
+<td class="instruction">JR NC,<a href="44805.html#44846">UPDATE_SPECIAL_OBJS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44818"></span>AF12</td>
+<td class="instruction">LD E,(IY+$10)</td>
+<td class="comment-1" rowspan="2">the place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44821"></span>AF15</td>
+<td class="instruction">LD D,(IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44824"></span>AF18</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="2">the graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44827"></span>AF1B</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44828"></span>AF1C</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="5">on to +5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44829"></span>AF1D</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44830"></span>AF1E</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44831"></span>AF1F</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44832"></span>AF20</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44833"></span>AF21</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="5">U, V and Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44835"></span>AF23</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44836"></span>AF24</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44837"></span>AF25</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44840"></span>AF28</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44842"></span>AF2A</td>
+<td class="instruction">LD A,(IY+$08)</td>
+<td class="comment-1" rowspan="2">the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44845"></span>AF2D</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label">UPDATE_SPECIAL_OBJS_1</td>
+<td class="address-2"><span id="44846"></span>AF2E</td>
+<td class="instruction">LD BC,$0020</td>
+<td class="comment-1" rowspan="8">record 3, then stop at record 4, ROOM_OBJECTS</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44849"></span>AF31</td>
+<td class="instruction">ADD IY,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44851"></span>AF33</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44853"></span>AF35</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44854"></span>AF36</td>
+<td class="instruction">LD BC,<a href="23432.html#23560">ROOM_OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44857"></span>AF39</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44858"></span>AF3A</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44860"></span>AF3C</td>
+<td class="instruction">JR C,<a href="44805.html#44809">UPDATE_SPECIAL_OBJS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44862"></span>AF3E</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44697.html">AE99</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44805">Map</a></td>
+<td class="next">
+Next: <a href="44863.html">AF3F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

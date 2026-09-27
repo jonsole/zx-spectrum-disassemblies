@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C25E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49725.html">C23D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49758">Map</a></td>
+<td class="next">
+Next: <a href="49814.html">C296</a>
+</td>
+</tr>
+</table>
+<div class="description">C25E: Step the legs</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49342.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+The legs' graphics 16-23 are two views (bit 2) of four frames (bits 0-1): a stride, legs together, the other stride, together again -- frames 1 and 3 share a drawing (<a href="30759.html">GRAPHICS</a>). While the robot walks, jumps or walks into a room the legs step on through the four, with a sound (<a href="46798.html">FOOTSTEP</a>) on leaving a stride, frames 0 and 2. Otherwise they carry on, silently, to frame 1 and stop there. Nothing happens on the turn a turn starts: <a href="49468.html">HANDLE_LEFT_RIGHT</a>, called just before, has given the legs an in-between view, 24-27.
+</div>
+<div class="paragraph">
+Pentagram's is the same with frame 2 the standing pose and a footstep every fourth frame; Knight Lore's walk has six frames.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_FORWARD</td>
+<td class="address-2"><span id="49758"></span>C25E</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">Graphics 24-27: a turn has just started</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49761"></span>C261</td>
+<td class="instruction">SUB $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49763"></span>C263</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49765"></span>C265</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49766"></span>C266</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Walking into a room: step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49769"></span>C269</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49771"></span>C26B</td>
+<td class="instruction">JR NZ,<a href="49758.html#49783">HANDLE_FORWARD_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49773"></span>C26D</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Jumping: step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49777"></span>C271</td>
+<td class="instruction">JR NZ,<a href="49758.html#49783">HANDLE_FORWARD_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49779"></span>C273</td>
+<td class="instruction">BIT 2,C</td>
+<td class="comment-1" rowspan="2">Walk not held: on to the standing frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49781"></span>C275</td>
+<td class="instruction">JR Z,<a href="49758.html#49804">HANDLE_FORWARD_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_FORWARD_0</td>
+<td class="address-2"><span id="49783"></span>C277</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">The step's sound, on frames 0 and 2 only; the controls kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49784"></span>C278</td>
+<td class="instruction">CALL <a href="46798.html">FOOTSTEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49787"></span>C27B</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_FORWARD_1</td>
+<td class="address-2"><span id="49788"></span>C27C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="10">The next frame of four, in the graphic's low two bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49791"></span>C27F</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49792"></span>C280</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49793"></span>C281</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49795"></span>C283</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49796"></span>C284</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49797"></span>C285</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49799"></span>C287</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49800"></span>C288</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49803"></span>C28B</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_FORWARD_2</td>
+<td class="address-2"><span id="49804"></span>C28C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">Frame 1, legs together: stand</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49807"></span>C28F</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49809"></span>C291</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49811"></span>C293</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49812"></span>C294</td>
+<td class="instruction">JR <a href="49758.html#49788">HANDLE_FORWARD_1</a></td>
+<td class="comment-1" rowspan="1">Otherwise step on towards it, silently</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49725.html">C23D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49758">Map</a></td>
+<td class="next">
+Next: <a href="49814.html">C296</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

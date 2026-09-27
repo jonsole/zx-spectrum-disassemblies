@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B1AE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45468.html">B19C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45486">Map</a></td>
+<td class="next">
+Next: <a href="45541.html">B1E5</a>
+</td>
+</tr>
+</table>
+<div class="description">B1AE: Turn a creature to face the way it is stepping</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45328.html">PACER</a>.
+</div>
+<div class="paragraph">
+Sets bit 0 of the graphic and bit 6 of the flags (the mirror bit) to the pair <a href="45287.html">STEP_FROM_FACING</a> would turn back into this step. The comparison of the two steps is unsigned, which works because one of them is always zero. With no step it leaves them alone. Knight Lore's set_guard_wizard_sprite does the same for its guards.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the creature</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP</td>
+<td class="address-2"><span id="45486"></span>B1AE</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">not stepping: leave it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45489"></span>B1B1</td>
+<td class="instruction">OR (IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45492"></span>B1B4</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45493"></span>B1B5</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">stepping in V (the U step is the smaller)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45496"></span>B1B8</td>
+<td class="instruction">CP (IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45499"></span>B1BB</td>
+<td class="instruction">JR C,<a href="45486.html#45520">FACE_ALONG_STEP_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45501"></span>B1BD</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="5">in U, and plus: (1,0)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45503"></span>B1BF</td>
+<td class="instruction">JR NZ,<a href="45486.html#45514">FACE_ALONG_STEP_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45505"></span>B1C1</td>
+<td class="instruction">SET 0,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP_0</td>
+<td class="address-2"><span id="45509"></span>B1C5</td>
+<td class="instruction">RES 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45513"></span>B1C9</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP_1</td>
+<td class="address-2"><span id="45514"></span>B1CA</td>
+<td class="instruction">RES 0,(IX+$00)</td>
+<td class="comment-1" rowspan="2">minus: (0,0)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45518"></span>B1CE</td>
+<td class="instruction">JR <a href="45486.html#45509">FACE_ALONG_STEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP_2</td>
+<td class="address-2"><span id="45520"></span>B1D0</td>
+<td class="instruction">BIT 7,(IX+$0A)</td>
+<td class="comment-1" rowspan="5">in V, and minus: (1,1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45524"></span>B1D4</td>
+<td class="instruction">JR Z,<a href="45486.html#45535">FACE_ALONG_STEP_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45526"></span>B1D6</td>
+<td class="instruction">SET 0,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP_3</td>
+<td class="address-2"><span id="45530"></span>B1DA</td>
+<td class="instruction">SET 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45534"></span>B1DE</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">FACE_ALONG_STEP_4</td>
+<td class="address-2"><span id="45535"></span>B1DF</td>
+<td class="instruction">RES 0,(IX+$00)</td>
+<td class="comment-1" rowspan="2">plus: (0,1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45539"></span>B1E3</td>
+<td class="instruction">JR <a href="45486.html#45530">FACE_ALONG_STEP_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45468.html">B19C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45486">Map</a></td>
+<td class="next">
+Next: <a href="45541.html">B1E5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

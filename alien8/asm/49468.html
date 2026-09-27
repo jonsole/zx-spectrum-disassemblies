@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C13C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49431.html">C117</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49468">Map</a></td>
+<td class="next">
+Next: <a href="49618.html">C1D2</a>
+</td>
+</tr>
+</table>
+<div class="description">C13C: Turn the robot</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49342.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Two ways of steering. Rotational control -- the keyboard's always, and a joystick's unless directional control is chosen -- turns a quarter at a time on the two turn controls: bit 0 of C left, bit 1 right. Directional control, a joystick with bit 3 of CONTROL set (key 5 on the menu), treats the controls as four points of the compass instead: pushing one turns the robot towards it and, once he faces it, walks him that way.
+</div>
+<div class="paragraph">
+Facings, as <a href="49945.html">GET_SPRITE_DIR</a> gives them: bit 2 of the graphic and bit 6 of the flags, the mirror bit, make a number 0 to 3 (the mirror bit the high bit); a left turn goes 0, 3, 1, 2 and round, a right turn the other way. Directional control reads up (bit 2) -- which faces 2 -- unless left is also held, then right (1), down (bit 4; 3) and left (0), and goes the short way round, or two turns for an about-face.
+</div>
+<div class="paragraph">
+A turn is not made at once, as in Knight Lore and Pentagram. The legs become one of four part-way graphics, 24 to 27, from <a href="49618.html">TURN_RIGHT_VIEWS</a> for a right turn or <a href="49626.html">TURN_LEFT_VIEWS</a> for a left one, by the facing; bit 0 of +$0D records which way, and bits 1-2 a count of one. Their update routine (<a href="49634.html">TURNING_LEGS</a>) holds that frame for two turns and then puts in the new facing's standing graphic (17 or 21, with its mirror bit), so a quarter turn takes three turns (measured: holding a turn key, the legs' graphic at the end of each turn went 26, 26, then 17 mirrored, and so on round). The top follows the legs' graphic, 16 higher (<a href="50916.html">TOP_FOLLOWS_LEGS</a>). No turn is started during the walk into a room, or in a jump; directional control also waits until he stands on something.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the robot's legs</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls (INPUT): bits 0 and 1 turn, 2 walk, 3 jump, 4 pick up</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">bit 2 set if he is to walk</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT</td>
+<td class="address-2"><span id="49468"></span>C13C</td>
+<td class="instruction">LD HL,<a href="23296.html#23300">CONTROL</a></td>
+<td class="comment-1" rowspan="4">bits 1-2 of CONTROL: 0, the keyboard, always turns rotationally</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49471"></span>C13F</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49472"></span>C140</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49474"></span>C142</td>
+<td class="instruction">JR Z,<a href="49468.html#49551">ROTATIONAL_TURN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49476"></span>C144</td>
+<td class="instruction">BIT 3,(HL)</td>
+<td class="comment-1" rowspan="2">directional control not chosen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49478"></span>C146</td>
+<td class="instruction">JR Z,<a href="49468.html#49551">ROTATIONAL_TURN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49480"></span>C148</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">directional: nothing during the walk into a room (the count in bits 4-7 of +$0C)...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49483"></span>C14B</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49485"></span>C14D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49486"></span>C14E</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">...nor in the air: bit 2 of +$0C, standing on something</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49490"></span>C152</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49491"></span>C153</td>
+<td class="instruction">BIT 0,C</td>
+<td class="comment-1" rowspan="4">left held: skip up; up held: face 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49493"></span>C155</td>
+<td class="instruction">JR NZ,<a href="49468.html#49499">DIRECTIONAL_NOT_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49495"></span>C157</td>
+<td class="instruction">BIT 2,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49497"></span>C159</td>
+<td class="instruction">JR NZ,<a href="49468.html#49514">DIRECTIONAL_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label">DIRECTIONAL_NOT_UP</td>
+<td class="address-2"><span id="49499"></span>C15B</td>
+<td class="instruction">BIT 1,C</td>
+<td class="comment-1" rowspan="6">right: face 1; down: face 3; left: face 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49501"></span>C15D</td>
+<td class="instruction">JR NZ,<a href="49468.html#49526">DIRECTIONAL_RIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49503"></span>C15F</td>
+<td class="instruction">BIT 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49505"></span>C161</td>
+<td class="instruction">JR NZ,<a href="49468.html#49533">DIRECTIONAL_DOWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49507"></span>C163</td>
+<td class="instruction">BIT 0,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49509"></span>C165</td>
+<td class="instruction">JR NZ,<a href="49468.html#49542">DIRECTIONAL_LEFT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49511"></span>C167</td>
+<td class="instruction">RES 2,C</td>
+<td class="comment-1" rowspan="2">nothing pushed: no walking</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49513"></span>C169</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">DIRECTIONAL_UP</td>
+<td class="address-2"><span id="49514"></span>C16A</td>
+<td class="instruction">CALL <a href="49945.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="2">up: facing 2 already?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49517"></span>C16D</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_0</td>
+<td class="address-2"><span id="49519"></span>C16F</td>
+<td class="instruction">JR Z,<a href="49468.html#49548">FACING_THAT_WAY</a></td>
+<td class="comment-1" rowspan="2">yes: walk; otherwise invert the facing, so that its bit 0 set means a right turn is the short way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49521"></span>C171</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_BY_PARITY</td>
+<td class="address-2"><span id="49522"></span>C172</td>
+<td class="instruction">AND $01</td>
+<td class="comment-1" rowspan="2">the facing's bit 0 picks the turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49524"></span>C174</td>
+<td class="instruction">JR <a href="49468.html#49568">HANDLE_LEFT_RIGHT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">DIRECTIONAL_RIGHT</td>
+<td class="address-2"><span id="49526"></span>C176</td>
+<td class="instruction">CALL <a href="49945.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">right: facing 1 already? The same test as up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49529"></span>C179</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49531"></span>C17B</td>
+<td class="instruction">JR <a href="49468.html#49519">HANDLE_LEFT_RIGHT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">DIRECTIONAL_DOWN</td>
+<td class="address-2"><span id="49533"></span>C17D</td>
+<td class="instruction">CALL <a href="49945.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="4">down: facing 3 already? Walk if so; otherwise the facing's own bit 0 picks the turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49536"></span>C180</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_1</td>
+<td class="address-2"><span id="49538"></span>C182</td>
+<td class="instruction">JR Z,<a href="49468.html#49548">FACING_THAT_WAY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49540"></span>C184</td>
+<td class="instruction">JR <a href="49468.html#49522">TURN_BY_PARITY</a></td>
+</tr>
+<tr>
+<td class="asm-label">DIRECTIONAL_LEFT</td>
+<td class="address-2"><span id="49542"></span>C186</td>
+<td class="instruction">CALL <a href="49945.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="3">left: facing 0 already? The same test as down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49545"></span>C189</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49546"></span>C18A</td>
+<td class="instruction">JR <a href="49468.html#49538">HANDLE_LEFT_RIGHT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">FACING_THAT_WAY</td>
+<td class="address-2"><span id="49548"></span>C18C</td>
+<td class="instruction">SET 2,C</td>
+<td class="comment-1" rowspan="2">facing the way pushed: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49550"></span>C18E</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ROTATIONAL_TURN</td>
+<td class="address-2"><span id="49551"></span>C18F</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">rotational: neither turn control held</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49552"></span>C190</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49554"></span>C192</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49555"></span>C193</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">not during the walk into a room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49558"></span>C196</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49560"></span>C198</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49561"></span>C199</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">not in the middle of a jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49565"></span>C19D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49566"></span>C19E</td>
+<td class="instruction">BIT 1,C</td>
+<td class="comment-1" rowspan="1">bit 1: right</td>
+</tr>
+<tr>
+<td class="asm-label">HANDLE_LEFT_RIGHT_2</td>
+<td class="address-2"><span id="49568"></span>C1A0</td>
+<td class="instruction">JR NZ,<a href="49468.html#49579">START_TURN_RIGHT</a></td>
+<td class="comment-1" rowspan="1">NZ for a right turn, Z for a left</td>
+</tr>
+<tr>
+<td class="asm-label">START_TURN_LEFT</td>
+<td class="address-1"><span id="49570"></span>C1A2</td>
+<td class="instruction">RES 0,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">left: bit 0 of +$0D clear, and the left turn's part-way graphics</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49574"></span>C1A6</td>
+<td class="instruction">LD HL,<a href="49626.html">TURN_LEFT_VIEWS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49577"></span>C1A9</td>
+<td class="instruction">JR <a href="49468.html#49586">START_TURN</a></td>
+</tr>
+<tr>
+<td class="asm-label">START_TURN_RIGHT</td>
+<td class="address-2"><span id="49579"></span>C1AB</td>
+<td class="instruction">SET 0,(IX+$0D)</td>
+<td class="comment-1" rowspan="2">right: bit 0 of +$0D set, and the right turn's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49583"></span>C1AF</td>
+<td class="instruction">LD HL,<a href="49618.html">TURN_RIGHT_VIEWS</a></td>
+</tr>
+<tr>
+<td class="asm-label">START_TURN</td>
+<td class="address-2"><span id="49586"></span>C1B2</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">a count of one in bits 1-2 of +$0D, for <a href="49634.html">TURNING_LEGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49589"></span>C1B5</td>
+<td class="instruction">OR $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49591"></span>C1B7</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49594"></span>C1BA</td>
+<td class="instruction">CALL <a href="49945.html">GET_SPRITE_DIR</a></td>
+<td class="comment-1" rowspan="1">A = the facing</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49597"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49634.html">TURNING_LEGS</a>.
+</div>
+<div class="paragraph">
+Set the graphic and the mirror bit from the pair A selects in the table at HL, A taken modulo 4. Also used by <a href="49634.html">TURNING_LEGS</a>, with the part-way graphic as A.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SET_TURN_GRAPHIC</td>
+<td class="address-2"><span id="49597"></span>C1BD</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="3">HL = the pair: A times 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49598"></span>C1BE</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49600"></span>C1C0</td>
+<td class="instruction">CALL <a href="52742.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49603"></span>C1C3</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">the graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49604"></span>C1C4</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49605"></span>C1C5</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49608"></span>C1C8</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="5">the mirror bit (bit 6 of +7) from the pair's second byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49611"></span>C1CB</td>
+<td class="instruction">AND $BF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49613"></span>C1CD</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49614"></span>C1CE</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49617"></span>C1D1</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49431.html">C117</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49468">Map</a></td>
+<td class="next">
+Next: <a href="49618.html">C1D2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

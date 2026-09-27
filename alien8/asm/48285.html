@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at BC9D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48259.html">BC83</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48285">Map</a></td>
+<td class="next">
+Next: <a href="48436.html">BD34</a>
+</td>
+</tr>
+</table>
+<div class="description">BC9D: Show the carried things on the panel, if they have changed</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>.
+</div>
+<div class="paragraph">
+Called every turn by <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a>; it acts only when PANEL_DUE is set, as <a href="48491.html">TAKE_OR_LEAVE</a> sets it when what he carries changes, and not once the game is won. The panel's drawing (<a href="42825.html">COLOUR_PANEL</a>) comes in at SHOW_CARRIED_NOW to draw them regardless.
+</div>
+<div class="paragraph">
+The panel shows the three slots CARRIED, the one after it, and CARRIED_LAST (four bytes each: the graphic first), in three boxes 24 pixels square at the bottom left of the screen, at pixel x 8, 32 and 56, y 0. For each, the box is cleared in the buffer (<a href="49027.html">FILL_BOX</a>), the thing's sprite drawn there through the spare record at <a href="48440.html">PANEL_RECORD</a> (by the entry into <a href="53267.html">CALC_PIXEL_XY_AND_RENDER</a> past the projection, with the mirror bit clear), and the box copied to the screen (<a href="53125.html">BLIT_TO_SCREEN</a>); then its three by three attribute cells are coloured by the graphic's low four bits, from <a href="48436.html">CARRIED_COLOURS</a>, which gives each of the four kinds of valve its own colour. An empty slot is cleared, and coloured as if graphic 0. As Pentagram's SHOW_CARRIED; Knight Lore's does the same with more routines.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_CARRIED</td>
+<td class="address-2"><span id="48285"></span>BC9D</td>
+<td class="instruction">LD A,(<a href="23296.html#23331">WON</a>)</td>
+<td class="comment-1" rowspan="3">not once the game is won</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48288"></span>BCA0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48289"></span>BCA1</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48290"></span>BCA2</td>
+<td class="instruction">LD A,(<a href="23296.html#23316">PANEL_DUE</a>)</td>
+<td class="comment-1" rowspan="5">nothing has changed; or clear the flag</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48293"></span>BCA5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48294"></span>BCA6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48295"></span>BCA7</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48296"></span>BCA8</td>
+<td class="instruction">LD (<a href="23296.html#23316">PANEL_DUE</a>),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48299"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42825.html">COLOUR_PANEL</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_CARRIED_NOW</td>
+<td class="address-2"><span id="48299"></span>BCAB</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="4">IX = the spare record; three boxes; HL = the first slot shown</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48301"></span>BCAD</td>
+<td class="instruction">LD IX,<a href="48440.html">PANEL_RECORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48305"></span>BCB1</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48307"></span>BCB3</td>
+<td class="instruction">LD HL,<a href="23296.html#23420">CARRIED</a></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_CARRIED_BOX</td>
+<td class="address-2"><span id="48310"></span>BCB6</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="14">the box's pixel x: 8 + 24 times its number; pixel y 0, the bottom of the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48311"></span>BCB7</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48312"></span>BCB8</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48313"></span>BCB9</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48315"></span>BCBB</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48317"></span>BCBD</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48319"></span>BCBF</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48321"></span>BCC1</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48323"></span>BCC3</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48324"></span>BCC4</td>
+<td class="instruction">SLA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48326"></span>BCC6</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48327"></span>BCC7</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48329"></span>BCC9</td>
+<td class="instruction">LD (IX+$1A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48332"></span>BCCC</td>
+<td class="instruction">LD (IX+$1B),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48336"></span>BCD0</td>
+<td class="instruction">LD C,(IX+$1A)</td>
+<td class="comment-1" rowspan="9">clear three bytes by 24 rows of the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48339"></span>BCD3</td>
+<td class="instruction">LD B,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48342"></span>BCD6</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48343"></span>BCD7</td>
+<td class="instruction">CALL <a href="53536.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48346"></span>BCDA</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48347"></span>BCDB</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48348"></span>BCDC</td>
+<td class="instruction">LD BC,$0318</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48351"></span>BCDF</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48352"></span>BCE0</td>
+<td class="instruction">CALL <a href="49027.html">FILL_BOX</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48355"></span>BCE3</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="7">something there: its sprite into the buffer, not mirrored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48356"></span>BCE4</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48357"></span>BCE5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48358"></span>BCE6</td>
+<td class="instruction">JR Z,<a href="48285.html#48370">SHOW_CARRIED_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48360"></span>BCE8</td>
+<td class="instruction">RES 6,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48364"></span>BCEC</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48367"></span>BCEF</td>
+<td class="instruction">CALL <a href="53267.html#53287">PRINT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_CARRIED_0</td>
+<td class="address-2"><span id="48370"></span>BCF2</td>
+<td class="instruction">LD C,(IX+$1A)</td>
+<td class="comment-1" rowspan="8">copy the box from the buffer to the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48373"></span>BCF5</td>
+<td class="instruction">LD B,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48376"></span>BCF8</td>
+<td class="instruction">CALL <a href="53557.html">CALC_VRAM_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48379"></span>BCFB</td>
+<td class="instruction">CALL <a href="53536.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48382"></span>BCFE</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48383"></span>BCFF</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48384"></span>BD00</td>
+<td class="instruction">LD BC,$1803</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48387"></span>BD03</td>
+<td class="instruction">CALL <a href="53125.html">BLIT_TO_SCREEN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48390"></span>BD06</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="11">C = the colour for the slot's graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48391"></span>BD07</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48392"></span>BD08</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48393"></span>BD09</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48394"></span>BD0A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48395"></span>BD0B</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48397"></span>BD0D</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48398"></span>BD0E</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48400"></span>BD10</td>
+<td class="instruction">LD HL,<a href="48436.html">CARRIED_COLOURS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48403"></span>BD13</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48404"></span>BD14</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48405"></span>BD15</td>
+<td class="instruction">LD L,(IX+$1A)</td>
+<td class="comment-1" rowspan="6">DE = the attribute address of the box's top row, 23 pixels up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48408"></span>BD18</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48411"></span>BD1B</td>
+<td class="instruction">ADD A,$17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48413"></span>BD1D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48414"></span>BD1E</td>
+<td class="instruction">CALL <a href="53591.html">CALC_ATTRIB_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48417"></span>BD21</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48418"></span>BD22</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">colour three cells by three</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48419"></span>BD23</td>
+<td class="instruction">LD BC,$0303</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48422"></span>BD26</td>
+<td class="instruction">CALL <a href="49027.html">FILL_BOX</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48425"></span>BD29</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="7">the next slot, four bytes on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48426"></span>BD2A</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48427"></span>BD2B</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48428"></span>BD2C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48429"></span>BD2D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48430"></span>BD2E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48431"></span>BD2F</td>
+<td class="instruction">DJNZ <a href="48285.html#48310">SHOW_CARRIED_BOX</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48433"></span>BD31</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="2">IX back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48435"></span>BD33</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48259.html">BC83</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48285">Map</a></td>
+<td class="next">
+Next: <a href="48436.html">BD34</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

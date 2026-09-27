@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at A971</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43354.html">A95A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43377">Map</a></td>
+<td class="next">
+Next: <a href="43441.html">A9B1</a>
+</td>
+</tr>
+</table>
+<div class="description">A971: The robot being oiled, in the ending (graphic 92)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>: the scene after the twenty-fourth chamber, set up by <a href="46945.html">GAME_ENDED</a> in pixels (the scene is not projected). The robot waits 64 turns, is lowered three pixels a turn into the can of oil (graphic 85) until it is below 40, stays there while its count runs on to 128, then rises three pixels a turn, now bright white, to 128, with a sound pitched by its height as it moves. Then a tune, and back to the menu (<a href="42567.html">AFTER_GAME</a>).
+</div>
+<div class="paragraph">
++11 counts: 0 to 63 waiting; 64 going down and then counting at the bottom; 128 and over going up. +10 is its colour (COLOUR_SCENE_OBJECT, in <a href="44021.html">SCENE_SPARKS</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT</td>
+<td class="address-2"><span id="43377"></span>A971</td>
+<td class="instruction">LD A,(IX+$11)</td>
+<td class="comment-1" rowspan="3">the first 64 turns: wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43380"></span>A974</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43382"></span>A976</td>
+<td class="instruction">JR C,<a href="43377.html#43409">OILED_ROBOT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43384"></span>A978</td>
+<td class="instruction">CP $80</td>
+<td class="comment-1" rowspan="2">128 on: going up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43386"></span>A97A</td>
+<td class="instruction">JR NC,<a href="43377.html#43414">OILED_ROBOT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43388"></span>A97C</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="3">at the bottom: count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43391"></span>A97F</td>
+<td class="instruction">CP $28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43393"></span>A981</td>
+<td class="instruction">JR C,<a href="43377.html#43409">OILED_ROBOT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43395"></span>A983</td>
+<td class="instruction">SUB $03</td>
+<td class="comment-1" rowspan="2">three pixels down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43397"></span>A985</td>
+<td class="instruction">LD (IX+$1B),A</td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT_0</td>
+<td class="address-2"><span id="43400"></span>A988</td>
+<td class="instruction">CALL <a href="46652.html#46655">BEEP_BY_A</a></td>
+<td class="comment-1" rowspan="2">a sound pitched by its height; redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43403"></span>A98B</td>
+<td class="instruction">CALL <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT_1</td>
+<td class="address-2"><span id="43406"></span>A98E</td>
+<td class="instruction">JP <a href="44021.html#44065">COLOUR_SCENE_OBJECT</a></td>
+<td class="comment-1" rowspan="1">colour its cells</td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT_2</td>
+<td class="address-2"><span id="43409"></span>A991</td>
+<td class="instruction">INC (IX+$11)</td>
+<td class="comment-1" rowspan="2">count on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43412"></span>A994</td>
+<td class="instruction">JR <a href="43377.html#43406">OILED_ROBOT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT_3</td>
+<td class="address-2"><span id="43414"></span>A996</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="3">at the top: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43417"></span>A999</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43419"></span>A99B</td>
+<td class="instruction">JR NC,<a href="43377.html#43432">OILED_ROBOT_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43421"></span>A99D</td>
+<td class="instruction">ADD A,$03</td>
+<td class="comment-1" rowspan="3">three pixels up, now bright white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43423"></span>A99F</td>
+<td class="instruction">LD (IX+$1B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43426"></span>A9A2</td>
+<td class="instruction">LD (IX+$10),$47</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43430"></span>A9A6</td>
+<td class="instruction">JR <a href="43377.html#43400">OILED_ROBOT_0</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">OILED_ROBOT_4</td>
+<td class="address-2"><span id="43432"></span>A9A8</td>
+<td class="instruction">LD DE,<a href="46039.html">TUNE_WON</a></td>
+<td class="comment-1" rowspan="3">a tune, and back to the menu</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43435"></span>A9AB</td>
+<td class="instruction">CALL <a href="46266.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43438"></span>A9AE</td>
+<td class="instruction">JP <a href="42567.html">AFTER_GAME</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43354.html">A95A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43377">Map</a></td>
+<td class="next">
+Next: <a href="43441.html">A9B1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

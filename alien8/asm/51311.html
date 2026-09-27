@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C86F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51308.html">C86C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51311">Map</a></td>
+<td class="next">
+Next: <a href="51371.html">C8AB</a>
+</td>
+</tr>
+</table>
+<div class="description">C86F: The other object must be drawn first</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="51251.html">DEPTH_ORDER</a>. IY is behind the candidate, so it becomes the candidate instead -- unless it is already in the chain of objects that have been candidates since the last draw (<a href="51439.html">CANDIDATE_CHAIN</a>), in which case the order has gone round in a circle and IY is drawn straight away.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST</td>
+<td class="address-2"><span id="51311"></span>C86F</td>
+<td class="instruction">LD HL,(<a href="23296.html#23343">SORT_SECOND</a>)</td>
+<td class="comment-1" rowspan="3">C = IY's number, from its entry in the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51314"></span>C872</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51315"></span>C873</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51316"></span>C874</td>
+<td class="instruction">LD DE,<a href="51439.html">CANDIDATE_CHAIN</a></td>
+<td class="comment-1" rowspan="8">Search the chain for it</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST_0</td>
+<td class="address-2"><span id="51319"></span>C877</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51320"></span>C878</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51322"></span>C87A</td>
+<td class="instruction">JR Z,<a href="51311.html#51330">IY_BECOMES_CANDIDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51324"></span>C87C</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51325"></span>C87D</td>
+<td class="instruction">JR Z,<a href="51311.html#51352">BREAK_ORDER_CYCLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51327"></span>C87F</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51328"></span>C880</td>
+<td class="instruction">JR <a href="51311.html#51319">IY_GOES_FIRST_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">IY_BECOMES_CANDIDATE</td>
+<td class="address-2"><span id="51330"></span>C882</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">Not there: add it, with a new $FF after it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51331"></span>C883</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51332"></span>C884</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51333"></span>C885</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51335"></span>C887</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51336"></span>C888</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">IX = IY, and SORT_FIRST = SORT_SECOND</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51338"></span>C88A</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51340"></span>C88C</td>
+<td class="instruction">LD HL,(<a href="23296.html#23343">SORT_SECOND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51343"></span>C88F</td>
+<td class="instruction">LD (<a href="23296.html#23341">SORT_FIRST</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51346"></span>C892</td>
+<td class="instruction">LD DE,<a href="51013.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="2">Compare it with the whole list from the top, since it need not be the first undrawn entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51349"></span>C895</td>
+<td class="instruction">JP <a href="51077.html#51109">COMPARE_NEXT_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label">BREAK_ORDER_CYCLE</td>
+<td class="address-2"><span id="51352"></span>C898</td>
+<td class="instruction">LD HL,<a href="51013.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="7">A circle: find IY's entry in the list (its number is certain to be there, so the exit to a new pass is never taken)</td>
+</tr>
+<tr>
+<td class="asm-label">IY_GOES_FIRST_1</td>
+<td class="address-2"><span id="51355"></span>C89B</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51356"></span>C89C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51357"></span>C89D</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51359"></span>C89F</td>
+<td class="instruction">JP Z,<a href="51077.html#51085">SORT_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51362"></span>C8A2</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51363"></span>C8A3</td>
+<td class="instruction">JR NZ,<a href="51311.html#51355">IY_GOES_FIRST_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51365"></span>C8A5</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="3">IX = IY; draw it, HL just past its entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51367"></span>C8A7</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51369"></span>C8A9</td>
+<td class="instruction">JR <a href="51413.html#51416">DRAW_AND_NEXT_PASS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51308.html">C86C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51311">Map</a></td>
+<td class="next">
+Next: <a href="51371.html">C8AB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

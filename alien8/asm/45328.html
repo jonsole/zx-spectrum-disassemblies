@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B110</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45320.html">B108</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45328">Map</a></td>
+<td class="next">
+Next: <a href="45413.html">B165</a>
+</td>
+</tr>
+</table>
+<div class="description">B110: The update routine for a creature that paces to and fro (graphics 86 and 87)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The upper half of object templates 18 and 19 (the lower half is <a href="45141.html">LOWER_HALF</a>'s). It walks two units a turn along one axis, and when it is stopped it turns round, with a thud, and walks back the other way. It keeps its step in U or V in +10 while it moves, since a blocked move leaves the step zero. With no step at all, as when the room has just been built, it takes the way it faces (<a href="45287.html">STEP_FROM_FACING</a>). It is deadly both ways.
+</div>
+<div class="paragraph">
+Measured in the simulator in room $A6: from U 180 down two units a turn to 168, then back up to 184 and down again, the picture turning with it, and the lower half following.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the upper half's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PACER</td>
+<td class="address-2"><span id="45328"></span>B110</td>
+<td class="instruction">CALL <a href="48987.html">DRAW_AT_L12_D6</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45331"></span>B113</td>
+<td class="instruction">CALL <a href="45562.html">JOIN_HALVES</a></td>
+<td class="comment-1" rowspan="1">the two halves as one box</td>
+</tr>
+<tr>
+<td class="asm-label">PACER_0</td>
+<td class="address-2"><span id="45334"></span>B116</td>
+<td class="instruction">LD A,(IX+$09)</td>
+<td class="comment-1" rowspan="3">a step in U?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45337"></span>B119</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45338"></span>B11A</td>
+<td class="instruction">JR Z,<a href="45328.html#45372">PACER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45340"></span>B11C</td>
+<td class="instruction">LD (IX+$10),A</td>
+<td class="comment-1" rowspan="2">yes: keep it, and move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45343"></span>B11F</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45346"></span>B122</td>
+<td class="instruction">BIT 0,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">not stopped in U: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45350"></span>B126</td>
+<td class="instruction">JR Z,<a href="45328.html#45366">PACER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45352"></span>B128</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="3">stopped: walk back the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45355"></span>B12B</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45357"></span>B12D</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label">PACER_1</td>
+<td class="address-2"><span id="45360"></span>B130</td>
+<td class="instruction">CALL <a href="46617.html">THUD_SOUND</a></td>
+<td class="comment-1" rowspan="2">a thud, and face the new way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45363"></span>B133</td>
+<td class="instruction">CALL <a href="45486.html">FACE_ALONG_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label">PACER_2</td>
+<td class="address-2"><span id="45366"></span>B136</td>
+<td class="instruction">CALL <a href="45579.html">PART_HALVES</a></td>
+<td class="comment-1" rowspan="2">part the halves; deadly both ways, and redraw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45369"></span>B139</td>
+<td class="instruction">JP <a href="45744.html">DEADLY_AND_DRAW</a></td>
+</tr>
+<tr>
+<td class="asm-label">PACER_3</td>
+<td class="address-2"><span id="45372"></span>B13C</td>
+<td class="instruction">LD A,(IX+$0A)</td>
+<td class="comment-1" rowspan="3">a step in V?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45375"></span>B13F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45376"></span>B140</td>
+<td class="instruction">JR Z,<a href="45328.html#45400">PACER_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45378"></span>B142</td>
+<td class="instruction">LD (IX+$10),A</td>
+<td class="comment-1" rowspan="2">yes: keep it, and move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45381"></span>B145</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45384"></span>B148</td>
+<td class="instruction">BIT 1,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">not stopped in V: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45388"></span>B14C</td>
+<td class="instruction">JR Z,<a href="45328.html#45366">PACER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45390"></span>B14E</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="4">stopped: walk back the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45393"></span>B151</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45395"></span>B153</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45398"></span>B156</td>
+<td class="instruction">JR <a href="45328.html#45360">PACER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">PACER_4</td>
+<td class="address-2"><span id="45400"></span>B158</td>
+<td class="instruction">CALL <a href="45287.html">STEP_FROM_FACING</a></td>
+<td class="comment-1" rowspan="4">no step: take the way it faces, two units a turn, and go again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45403"></span>B15B</td>
+<td class="instruction">SLA (IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45407"></span>B15F</td>
+<td class="instruction">SLA (IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45411"></span>B163</td>
+<td class="instruction">JR <a href="45328.html#45334">PACER_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45320.html">B108</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45328">Map</a></td>
+<td class="next">
+Next: <a href="45413.html">B165</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

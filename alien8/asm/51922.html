@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CAD2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51874.html">CAA2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51922">Map</a></td>
+<td class="next">
+Next: <a href="51953.html">CAF1</a>
+</td>
+</tr>
+</table>
+<div class="description">CAD2: Give every room back its own colour</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42567.html">AFTER_GAME</a>.
+</div>
+<div class="paragraph">
+Called at every new game (<a href="42567.html">AFTER_GAME</a>). A room's third byte holds its colour twice: bits 3-5 as the tape has it, and bits 0-2, the ink in use, which an activated chamber turns white (<a href="44921.html">LOOSE_VALVE</a>). This copies bits 3-5 into bits 0-2 in every record of the room directory (<a href="25705.html">ROOM02</a>), stepping from one to the next by the count at +1, so a new game starts with no chamber activated.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RESET_ROOM_COLOURS</td>
+<td class="address-2"><span id="51922"></span>CAD2</td>
+<td class="instruction">LD HL,<a href="25705.html">ROOM02</a></td>
+<td class="comment-1" rowspan="3">The room directory and its end; HL on the first record's count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51925"></span>CAD5</td>
+<td class="instruction">LD BC,<a href="29640.html">OBJECT_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51928"></span>CAD8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">RESET_ROOM_COLOURS_0</td>
+<td class="address-2"><span id="51929"></span>CAD9</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="2">E = the count; HL on the third byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51930"></span>CADA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51931"></span>CADB</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="10">Bits 3-5 into bits 0-2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51932"></span>CADC</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51933"></span>CADD</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51934"></span>CADE</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51935"></span>CADF</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51937"></span>CAE1</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51938"></span>CAE2</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51939"></span>CAE3</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51941"></span>CAE5</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51942"></span>CAE6</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51943"></span>CAE7</td>
+<td class="instruction">LD D,$00</td>
+<td class="comment-1" rowspan="2">On to the next record's count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51945"></span>CAE9</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51946"></span>CAEA</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="5">Until the end of the directory</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51947"></span>CAEB</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51949"></span>CAED</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51950"></span>CAEE</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51951"></span>CAEF</td>
+<td class="instruction">JR <a href="51922.html#51929">RESET_ROOM_COLOURS_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51874.html">CAA2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51922">Map</a></td>
+<td class="next">
+Next: <a href="51953.html">CAF1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

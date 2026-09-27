@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B31F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45850.html">B31A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45855">Map</a></td>
+<td class="next">
+Next: <a href="45978.html">B39A</a>
+</td>
+</tr>
+</table>
+<div class="description">B31F: The update routines for the lift (graphic 47) and the bobbing block (graphic 31)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The lift is object template 12 and the bobbing block template 4. Both keep their state in bit 2 of +D, which the kill bits leave free: clear while it goes down, one unit a turn, and set while it goes up, two a turn. Going down, it turns round when it is stopped (bit 2 of +C, set by the collision code whenever a move in Z is stopped, down or up); going up, it turns round when its Z passes the top, LIFT_TOP, the variable stage 1 called UNKNOWN_5B25, which the first of them updated after the room is built sets and every lift and block in the room then shares.
+</div>
+<div class="paragraph">
+The lift (entry here) waits on the floor: LIFT_TOP is its first Z plus 48, and it moves only in a turn the robot or another mover of graphics 16 to 47 lands on it (bit 3 of +D, set by <a href="50485.html">ADJ_DZ_FOR_OBJ_INTERSECT</a> and cleared here), or while its last move was stopped in Z -- as it is each turn it pushes a rider up. Left alone in mid-air it would stay where it is (by the reading; not tried). The bobbing block (entry at BOBBER) moves every turn, and LIFT_TOP is its first Z: it starts at the top.
+</div>
+<div class="paragraph">
+Going up, a stopped move is tried again at a step of 4: the collision code passes the lift's Z step to what it pushes into (<a href="50485.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>), so the rider is lifted.
+</div>
+<div class="paragraph">
+Measured in the simulator. Room $23: two lifts at Z 64 stayed put; dropped on one, he rode it up one unit a turn to Z 113 (LIFT_TOP 112), and it came down with him one unit a turn to the floor, and up again. Room $36: two bobbing blocks, LIFT_TOP 100, each falling one unit a turn to what is under it at Z 76 and rising two a turn to 102, half a cycle apart.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the lift or the block</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT</td>
+<td class="address-2"><span id="45855"></span>B31F</td>
+<td class="instruction">CALL <a href="48957.html">DRAW_AT_L16_D9</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45858"></span>B322</td>
+<td class="instruction">LD A,(<a href="23296.html#23333">LIFT_TOP</a>)</td>
+<td class="comment-1" rowspan="6">the first lift in the room sets the top: its Z plus 48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45861"></span>B325</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45862"></span>B326</td>
+<td class="instruction">JR NZ,<a href="45855.html#45872">LIFT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45864"></span>B328</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45867"></span>B32B</td>
+<td class="instruction">ADD A,$30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45869"></span>B32D</td>
+<td class="instruction">LD (<a href="23296.html#23333">LIFT_TOP</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_0</td>
+<td class="address-2"><span id="45872"></span>B330</td>
+<td class="instruction">BIT 3,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">landed on this turn? (cleared for the next)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45876"></span>B334</td>
+<td class="instruction">RES 3,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45880"></span>B338</td>
+<td class="instruction">JR NZ,<a href="45855.html#45902">LIFT_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45882"></span>B33A</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">no: only move if the last move was stopped in Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45886"></span>B33E</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">BOBBER</td>
+<td class="address-1"><span id="45887"></span>B33F</td>
+<td class="instruction">CALL <a href="48957.html">DRAW_AT_L16_D9</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge (the bobbing block's entry)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45890"></span>B342</td>
+<td class="instruction">LD A,(<a href="23296.html#23333">LIFT_TOP</a>)</td>
+<td class="comment-1" rowspan="5">the first bobbing block in the room sets the top: its Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45893"></span>B345</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45894"></span>B346</td>
+<td class="instruction">JR NZ,<a href="45855.html#45902">LIFT_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45896"></span>B348</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45899"></span>B34B</td>
+<td class="instruction">LD (<a href="23296.html#23333">LIFT_TOP</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_MOVE</td>
+<td class="address-2"><span id="45902"></span>B34E</td>
+<td class="instruction">CALL <a href="46652.html">BEEP_BY_Z</a></td>
+<td class="comment-1" rowspan="1">a note pitched by Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45905"></span>B351</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">no step in U or V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45906"></span>B352</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45909"></span>B355</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45912"></span>B358</td>
+<td class="instruction">BIT 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="2">going up?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45916"></span>B35C</td>
+<td class="instruction">JR NZ,<a href="45855.html#45937">LIFT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45918"></span>B35E</td>
+<td class="instruction">LD (IX+$0B),A</td>
+<td class="comment-1" rowspan="2">down: a Z step of 0, which the fall makes -1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45921"></span>B361</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45924"></span>B364</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">stopped: go up from the next turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45928"></span>B368</td>
+<td class="instruction">JR Z,<a href="45855.html#45934">LIFT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45930"></span>B36A</td>
+<td class="instruction">SET 2,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_1</td>
+<td class="address-2"><span id="45934"></span>B36E</td>
+<td class="instruction">JP <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">redraw it</td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_2</td>
+<td class="address-2"><span id="45937"></span>B371</td>
+<td class="instruction">LD (IX+$0B),$03</td>
+<td class="comment-1" rowspan="2">up: a Z step of 3, which the fall makes 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45941"></span>B375</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45944"></span>B378</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">not stopped: see if it is past the top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45948"></span>B37C</td>
+<td class="instruction">JR Z,<a href="45855.html#45964">LIFT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45950"></span>B37E</td>
+<td class="instruction">LD (IX+$0B),$04</td>
+<td class="comment-1" rowspan="5">stopped by what is on it: try again at 4, which lifts the rider</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45954"></span>B382</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45955"></span>B383</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45958"></span>B386</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45961"></span>B389</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label">LIFT_3</td>
+<td class="address-2"><span id="45964"></span>B38C</td>
+<td class="instruction">LD A,(<a href="23296.html#23333">LIFT_TOP</a>)</td>
+<td class="comment-1" rowspan="3">not past the top: redraw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45967"></span>B38F</td>
+<td class="instruction">CP (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45970"></span>B392</td>
+<td class="instruction">JR NC,<a href="45855.html#45934">LIFT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45972"></span>B394</td>
+<td class="instruction">RES 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="2">past it: go down from the next turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45976"></span>B398</td>
+<td class="instruction">JR <a href="45855.html#45934">LIFT_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45850.html">B31A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45855">Map</a></td>
+<td class="next">
+Next: <a href="45978.html">B39A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

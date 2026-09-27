@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C0BE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49305.html">C099</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49342">Map</a></td>
+<td class="next">
+Next: <a href="49431.html">C117</a>
+</td>
+</tr>
+</table>
+<div class="description">C0BE: The update routine for the robot's legs (graphics 16 to 23)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>. The robot's turn, in order: read the controls (<a href="51455.html">READ_CONTROLS</a>), pick up or put down (<a href="48491.html">TAKE_OR_LEAVE</a>), turn (<a href="49468.html">HANDLE_LEFT_RIGHT</a>), start a jump (<a href="49725.html">HANDLE_JUMP</a>), step the legs' frame (<a href="49758.html">HANDLE_FORWARD</a>). Then, if he stands in a doorway -- past the line of the room's walls (<a href="49431.html">CHK_PLYR_OOB</a>) -- he may not rise, only fall. The move is resolved and made (<a href="49814.html">MOVE_PLAYER</a>) with the top out of the collision tests; the count of turns he walks on by himself after coming through a doorway goes down, and he is marked to be redrawn.
+</div>
+<div class="paragraph">
+While this runs the legs' height is 23, the whole robot's, and the top's is 0, so that the legs stand for the robot in the headroom test and in the move; at the end they are put back to 12 and 11, the top standing on the legs. The top's height of 0 is what keeps the headroom test from finding the top itself: <a href="46866.html">DO_ANY_OBJS_INTERSECT</a> takes only the legs out of its own way, and its test in Z (<a href="50643.html">DO_OBJS_INTERSECT_ON_Z</a>) never finds an overlap with a thing of no height whose base is at or below the legs'. For the move the top is taken out of the collision tests as well (bit 1 of its +7).
+</div>
+<div class="paragraph">
+If he has been killed (bit 6 of +$0D), the top is killed too and the legs become the sparkle (<a href="45978.html">START_SPARKLE</a>). Graphics 24 to 27, the legs part way through a turn, have their own update routine (<a href="49634.html">TURNING_LEGS</a>), which comes back in at PLAYER_LEGS_DONE.
+</div>
+<div class="paragraph">
+As Pentagram's PLAYER_LEGS and Knight Lore's player_controls, in a different order: pick-up comes before the turn here.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record, <a href="23432.html">OBJECTS</a></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS</td>
+<td class="address-2"><span id="49342"></span>C0BE</td>
+<td class="instruction">CALL <a href="48972.html">DRAW_AT_L16_D7</a></td>
+<td class="comment-1" rowspan="1">the legs' drawing nudge: X -16, Y -7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49345"></span>C0C1</td>
+<td class="instruction">BIT 6,(IX+$0D)</td>
+<td class="comment-1" rowspan="4">killed: the top too (+$0D of the next record), and the sparkle</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49349"></span>C0C5</td>
+<td class="instruction">JR Z,<a href="49342.html#49358">PLAYER_LEGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49351"></span>C0C7</td>
+<td class="instruction">SET 6,(IX+$2D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49355"></span>C0CB</td>
+<td class="instruction">JP <a href="45978.html">START_SPARKLE</a></td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_0</td>
+<td class="address-2"><span id="49358"></span>C0CE</td>
+<td class="instruction">LD (IX+$06),$17</td>
+<td class="comment-1" rowspan="2">the legs as high as the whole robot, the top of no height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49362"></span>C0D2</td>
+<td class="instruction">LD (IX+$26),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49366"></span>C0D6</td>
+<td class="instruction">CALL <a href="51455.html">READ_CONTROLS</a></td>
+<td class="comment-1" rowspan="5">the controls into C; pick up or put down, turn, jump, step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49369"></span>C0D9</td>
+<td class="instruction">CALL <a href="48491.html">TAKE_OR_LEAVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49372"></span>C0DC</td>
+<td class="instruction">CALL <a href="49468.html">HANDLE_LEFT_RIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49375"></span>C0DF</td>
+<td class="instruction">CALL <a href="49725.html">HANDLE_JUMP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49378"></span>C0E2</td>
+<td class="instruction">CALL <a href="49758.html">HANDLE_FORWARD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49381"></span>C0E5</td>
+<td class="instruction">CALL <a href="49431.html">CHK_PLYR_OOB</a></td>
+<td class="comment-1" rowspan="2">in a doorway, beyond the walls?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49384"></span>C0E8</td>
+<td class="instruction">JR NC,<a href="49342.html#49418">PLAYER_LEGS_IN_DOORWAY</a></td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_MOVE</td>
+<td class="address-2"><span id="49386"></span>C0EA</td>
+<td class="instruction">SET 1,(IX+$27)</td>
+<td class="comment-1" rowspan="3">the top (+7 of the next record) out of the collision tests while the legs move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49390"></span>C0EE</td>
+<td class="instruction">CALL <a href="49814.html">MOVE_PLAYER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49393"></span>C0F1</td>
+<td class="instruction">RES 1,(IX+$27)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49397"></span>C0F5</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">count down the top four bits of +$0C: the turns he walks on by himself after coming through a doorway</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49400"></span>C0F8</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49402"></span>C0FA</td>
+<td class="instruction">JR C,<a href="49342.html#49407">PLAYER_LEGS_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49404"></span>C0FC</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49407"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49634.html">TURNING_LEGS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_DONE</td>
+<td class="address-2"><span id="49407"></span>C0FF</td>
+<td class="instruction">LD (IX+$06),$0C</td>
+<td class="comment-1" rowspan="2">the heights back: legs 12, top 11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49411"></span>C103</td>
+<td class="instruction">LD (IX+$26),$0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49415"></span>C107</td>
+<td class="instruction">JP <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">mark him to be redrawn</td>
+</tr>
+<tr>
+<td class="asm-label">PLAYER_LEGS_IN_DOORWAY</td>
+<td class="address-2"><span id="49418"></span>C10A</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="3">in a doorway: falling is allowed...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49421"></span>C10D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49422"></span>C10E</td>
+<td class="instruction">JP M,<a href="49342.html#49386">PLAYER_LEGS_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49425"></span>C111</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">...rising is not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49426"></span>C112</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49429"></span>C115</td>
+<td class="instruction">JR <a href="49342.html#49386">PLAYER_LEGS_MOVE</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49305.html">C099</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49342">Map</a></td>
+<td class="next">
+Next: <a href="49431.html">C117</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

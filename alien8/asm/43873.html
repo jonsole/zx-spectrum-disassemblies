@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AB61</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43807.html">AB1F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43873">Map</a></td>
+<td class="next">
+Next: <a href="44021.html">ABF5</a>
+</td>
+</tr>
+</table>
+<div class="description">AB61: A tool in the re-programming (graphics 81 to 83)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>: the scene after a lost game (<a href="46945.html">GAME_ENDED</a>), with the robot (graphics 88 to 91) on its stand in the middle, sparks over its head (<a href="44021.html">SCENE_SPARKS</a>), and three tools round it -- a glove at the right (81), a hammer above (82) and a hook at the left (83). Once the sparks have stopped (SCENE_STATE not zero) the tools take turns: when none is swinging, each on its turn has a chance of one in four to start, with a thud. A swing is six steps towards the robot -- eight pixels across for the glove and the hook, four down for the hammer -- a crash, and six steps back. Fifteen swings end the scene and go back to the menu (<a href="42567.html">AFTER_GAME</a>); so does any of the keys 1 to 0.
+</div>
+<div class="paragraph">
++11: bit 0 swinging, bit 7 on the way back. +F the steps left. +10 the colour, which every turn paints the cells it covers (COLOUR_SCENE_OBJECT, in <a href="44021.html">SCENE_SPARKS</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL</td>
+<td class="address-2"><span id="43873"></span>AB61</td>
+<td class="instruction">LD HL,<a href="23296.html#23361">SCENE_STATE</a></td>
+<td class="comment-1" rowspan="4">the sparks still flashing: only colour its cells</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43876"></span>AB64</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43877"></span>AB65</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43878"></span>AB66</td>
+<td class="instruction">JR Z,<a href="43873.html#43994">SCENE_TOOL_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43880"></span>AB68</td>
+<td class="instruction">LD A,$E7</td>
+<td class="comment-1" rowspan="3">keys 1 to 0: back to the menu</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43882"></span>AB6A</td>
+<td class="instruction">CALL <a href="46937.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43885"></span>AB6D</td>
+<td class="instruction">JP NZ,<a href="42567.html">AFTER_GAME</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43888"></span>AB70</td>
+<td class="instruction">BIT 0,(IX+$11)</td>
+<td class="comment-1" rowspan="2">swinging</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43892"></span>AB74</td>
+<td class="instruction">JR NZ,<a href="43873.html#43921">SCENE_TOOL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43894"></span>AB76</td>
+<td class="instruction">BIT 7,(HL)</td>
+<td class="comment-1" rowspan="2">another is swinging</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43896"></span>AB78</td>
+<td class="instruction">JR NZ,<a href="43873.html#43994">SCENE_TOOL_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43898"></span>AB7A</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">one turn in four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43901"></span>AB7D</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43902"></span>AB7E</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43904"></span>AB80</td>
+<td class="instruction">JR NZ,<a href="43873.html#43994">SCENE_TOOL_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43906"></span>AB82</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">a thud</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43907"></span>AB83</td>
+<td class="instruction">CALL <a href="46617.html">THUD_SOUND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43910"></span>AB86</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43911"></span>AB87</td>
+<td class="instruction">SET 0,(IX+$11)</td>
+<td class="comment-1" rowspan="3">swing: this one, one at a time, six steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43915"></span>AB8B</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43917"></span>AB8D</td>
+<td class="instruction">LD (IX+$0F),$06</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_0</td>
+<td class="address-2"><span id="43921"></span>AB91</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">the hammer (even) swings down; the glove and hook across</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43924"></span>AB94</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43926"></span>AB96</td>
+<td class="instruction">JR Z,<a href="43873.html#43997">SCENE_TOOL_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43928"></span>AB98</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="8">eight pixels towards the middle of the screen, or back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43931"></span>AB9B</td>
+<td class="instruction">XOR (IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43934"></span>AB9E</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43936"></span>ABA0</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43938"></span>ABA2</td>
+<td class="instruction">JR Z,<a href="43873.html#43942">SCENE_TOOL_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43940"></span>ABA4</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_1</td>
+<td class="address-2"><span id="43942"></span>ABA6</td>
+<td class="instruction">ADD A,(IX+$1A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43945"></span>ABA9</td>
+<td class="instruction">LD (IX+$1A),A</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_2</td>
+<td class="address-2"><span id="43948"></span>ABAC</td>
+<td class="instruction">DEC (IX+$0F)</td>
+<td class="comment-1" rowspan="2">steps left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43951"></span>ABAF</td>
+<td class="instruction">JR NZ,<a href="43873.html#43991">SCENE_TOOL_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43953"></span>ABB1</td>
+<td class="instruction">LD (IX+$0F),$06</td>
+<td class="comment-1" rowspan="6">six more, the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43957"></span>ABB5</td>
+<td class="instruction">LD A,(IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43960"></span>ABB8</td>
+<td class="instruction">XOR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43962"></span>ABBA</td>
+<td class="instruction">LD (IX+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43965"></span>ABBD</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43967"></span>ABBF</td>
+<td class="instruction">JR Z,<a href="43873.html#43974">SCENE_TOOL_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43969"></span>ABC1</td>
+<td class="instruction">CALL <a href="46710.html">CRASH_SOUND</a></td>
+<td class="comment-1" rowspan="2">at the robot: a crash</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43972"></span>ABC4</td>
+<td class="instruction">JR <a href="43873.html#43991">SCENE_TOOL_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_3</td>
+<td class="address-2"><span id="43974"></span>ABC6</td>
+<td class="instruction">RES 0,(IX+$11)</td>
+<td class="comment-1" rowspan="2">back where it started: the swing is over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43978"></span>ABCA</td>
+<td class="instruction">RES 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43980"></span>ABCC</td>
+<td class="instruction">INC (HL)</td>
+<td class="comment-1" rowspan="5">count it: fifteen swings</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43981"></span>ABCD</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43982"></span>ABCE</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43984"></span>ABD0</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43986"></span>ABD2</td>
+<td class="instruction">JR NZ,<a href="43873.html#43991">SCENE_TOOL_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43988"></span>ABD4</td>
+<td class="instruction">JP <a href="42567.html">AFTER_GAME</a></td>
+<td class="comment-1" rowspan="1">and back to the menu</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_4</td>
+<td class="address-2"><span id="43991"></span>ABD7</td>
+<td class="instruction">CALL <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">redraw</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_5</td>
+<td class="address-2"><span id="43994"></span>ABDA</td>
+<td class="instruction">JP <a href="44021.html#44065">COLOUR_SCENE_OBJECT</a></td>
+<td class="comment-1" rowspan="1">colour its cells</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_6</td>
+<td class="address-2"><span id="43997"></span>ABDD</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="10">the hammer: four pixels towards the middle, or back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44000"></span>ABE0</td>
+<td class="instruction">ADD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44002"></span>ABE2</td>
+<td class="instruction">XOR (IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44005"></span>ABE5</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44007"></span>ABE7</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44009"></span>ABE9</td>
+<td class="instruction">JR Z,<a href="43873.html#44013">SCENE_TOOL_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44011"></span>ABEB</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_TOOL_7</td>
+<td class="address-2"><span id="44013"></span>ABED</td>
+<td class="instruction">ADD A,(IX+$1B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44016"></span>ABF0</td>
+<td class="instruction">LD (IX+$1B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44019"></span>ABF3</td>
+<td class="instruction">JR <a href="43873.html#43948">SCENE_TOOL_2</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43807.html">AB1F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43873">Map</a></td>
+<td class="next">
+Next: <a href="44021.html">ABF5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

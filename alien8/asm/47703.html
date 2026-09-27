@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at BA57</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47670.html">BA36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47703">Map</a></td>
+<td class="next">
+Next: <a href="47742.html">BA7E</a>
+</td>
+</tr>
+</table>
+<div class="description">BA57: Print the number of lives</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="42825.html">COLOUR_PANEL</a> and <a href="48864.html">EXTRA_LIFE</a>.
+</div>
+<div class="paragraph">
+LIVES as two BCD digits into the buffer at pixel x 128, y 7, on the panel. Called when the panel is drawn (<a href="42825.html">COLOUR_PANEL</a>) and when an extra life is taken (<a href="48864.html">EXTRA_LIFE</a>), which then copies the two characters to the screen (<a href="48943.html">BLIT_2X8</a>).
+</div>
+<div class="paragraph">
+LIVES counts in binary (<a href="42545.html">START</a> sets 5, <a href="51719.html">NEW_LIFE</a> takes one, <a href="48864.html">EXTRA_LIFE</a> adds one), so the display is right only while he has fewer than ten -- as in Knight Lore.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_LIVES</td>
+<td class="address-2"><span id="47703"></span>BA57</td>
+<td class="instruction">LD DE,<a href="23296.html#23322">LIVES</a></td>
+<td class="comment-1" rowspan="4">one byte, LIVES, into the buffer at pixel row 7, byte column 16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47706"></span>BA5A</td>
+<td class="instruction">LD B,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47708"></span>BA5C</td>
+<td class="instruction">LD HL,<a href="53760.html#54000">$D2F0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47711"></span>BA5F</td>
+<td class="instruction">JP <a href="47703.html#47714">PRINT_BCD_NUMBER</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47714"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42915.html">PRINT_CHAMBERS</a>.
+</div>
+<div class="paragraph">
+Print B bytes of BCD from DE into the buffer at HL, two digits each, the high digit first. Also used by <a href="42915.html">PRINT_CHAMBERS</a> for the chambers activated.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_BCD_NUMBER</td>
+<td class="address-2"><span id="47714"></span>BA62</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="4">the font itself as FONT_BASE: digits are codes 0 to 9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47715"></span>BA63</td>
+<td class="instruction">LD HL,<a href="25352.html">FONT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47718"></span>BA66</td>
+<td class="instruction">LD (<a href="23296.html#23335">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47721"></span>BA69</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47722"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="47670.html">PRINT_SUMMARY_COUNTS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_BCD_BYTE</td>
+<td class="address-2"><span id="47722"></span>BA6A</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="7">the high digit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47723"></span>BA6B</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47724"></span>BA6C</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47725"></span>BA6D</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47726"></span>BA6E</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47727"></span>BA6F</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47729"></span>BA71</td>
+<td class="instruction">CALL <a href="48107.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="47732"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="47670.html">PRINT_SUMMARY_COUNTS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_BCD_LSD</td>
+<td class="address-2"><span id="47732"></span>BA74</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">the low digit; coming in here prints only the low digit of the first byte (<a href="47670.html">PRINT_SUMMARY_COUNTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47733"></span>BA75</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47735"></span>BA77</td>
+<td class="instruction">CALL <a href="48107.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47738"></span>BA7A</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="3">the next byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47739"></span>BA7B</td>
+<td class="instruction">DJNZ <a href="47703.html#47722">PRINT_BCD_BYTE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47741"></span>BA7D</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47670.html">BA36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#47703">Map</a></td>
+<td class="next">
+Next: <a href="47742.html">BA7E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

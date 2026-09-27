@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AE99</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44694.html">AE96</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44697">Map</a></td>
+<td class="next">
+Next: <a href="44805.html">AF05</a>
+</td>
+</tr>
+</table>
+<div class="description">AE99: Bring in what lies in the room from the places</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51874.html">ENTER_ROOM</a>.
+</div>
+<div class="paragraph">
+Called while a room is built (<a href="51874.html">ENTER_ROOM</a>), after the builder. Looks through the 36 places at <a href="30435.html">PLACES</a> for any in use (a graphic) whose current room (+8) is the one he is in, and builds an object record for each in records 2 and 3 (VALVES and VALVE_SECOND) -- the two kept for them: the graphic; U, V and Z from where it is now; the half-sizes 5 by 5 and the height 12; flags $14 (drawn, can be pushed); the room; nothing moving; and at +10 the address of the place, so that the record can be written back (<a href="44805.html">UPDATE_SPECIAL_OBJS</a>). Whatever is left of the two records is cleared.
+</div>
+<div class="paragraph">
+Knight Lore's find_special_objs_here, instruction for instruction; only the addresses differ. As there, nothing here stops at two: a third place in one room would be built over record 4, the room's first, and the clearing after the loop would then never meet record 4 again and would run on through memory. The 36 places start in 36 different rooms, and a thing is put down only into an empty one of the two records (<a href="48491.html">TAKE_OR_LEAVE</a>), so it does not happen (read; inferred for every way a valve can travel).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record, whose +8 is the room being entered</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_SPECIAL_OBJS_HERE</td>
+<td class="address-2"><span id="44697"></span>AE99</td>
+<td class="instruction">LD DE,<a href="23432.html#23496">VALVES</a></td>
+<td class="comment-1" rowspan="2">DE', the record being built, in the alternate set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44700"></span>AE9C</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44701"></span>AE9D</td>
+<td class="instruction">LD IY,<a href="30435.html">PLACES</a></td>
+<td class="comment-1" rowspan="2">the first place; the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44705"></span>AEA1</td>
+<td class="instruction">LD B,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_SPECIAL_OBJS_HERE_0</td>
+<td class="address-2"><span id="44708"></span>AEA4</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">not in use: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44711"></span>AEA7</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44712"></span>AEA8</td>
+<td class="instruction">JR Z,<a href="44697.html#44774">FIND_SPECIAL_OBJS_HERE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44714"></span>AEAA</td>
+<td class="instruction">LD A,(IY+$08)</td>
+<td class="comment-1" rowspan="3">in another room: skip</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44717"></span>AEAD</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44718"></span>AEAE</td>
+<td class="instruction">JR NZ,<a href="44697.html#44774">FIND_SPECIAL_OBJS_HERE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44720"></span>AEB0</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">HL = the place; its address is kept on the stack</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44722"></span>AEB2</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44723"></span>AEB3</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44724"></span>AEB4</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44725"></span>AEB5</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">the graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44726"></span>AEB6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44727"></span>AEB7</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44728"></span>AEB8</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44729"></span>AEB9</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="6">U, V and Z from +5 to +7, where it is now</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44730"></span>AEBA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44731"></span>AEBB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44732"></span>AEBC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44733"></span>AEBD</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44736"></span>AEC0</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44738"></span>AEC2</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="10">5 by 5 by 12, flags $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44739"></span>AEC3</td>
+<td class="instruction">LD (HL),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44741"></span>AEC5</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44742"></span>AEC6</td>
+<td class="instruction">LD (HL),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44744"></span>AEC8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44745"></span>AEC9</td>
+<td class="instruction">LD (HL),$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44747"></span>AECB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44748"></span>AECC</td>
+<td class="instruction">LD (HL),$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44750"></span>AECE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44751"></span>AECF</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44752"></span>AED0</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44753"></span>AED1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44754"></span>AED2</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44755"></span>AED3</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44756"></span>AED4</td>
+<td class="instruction">LD B,$07</td>
+<td class="comment-1" rowspan="2">+9 to +F: no step, nothing met</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44758"></span>AED6</td>
+<td class="instruction">CALL <a href="52764.html">ZERO_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44761"></span>AED9</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="7">+10 and +11: the place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44762"></span>AEDA</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44763"></span>AEDB</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44764"></span>AEDC</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44765"></span>AEDD</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44766"></span>AEDE</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44767"></span>AEDF</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44768"></span>AEE0</td>
+<td class="instruction">LD B,$0E</td>
+<td class="comment-1" rowspan="2">+12 to +1F cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44770"></span>AEE2</td>
+<td class="instruction">CALL <a href="52764.html">ZERO_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44773"></span>AEE5</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">back to the scan's registers</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_SPECIAL_OBJS_HERE_1</td>
+<td class="address-2"><span id="44774"></span>AEE6</td>
+<td class="instruction">LD DE,$0009</td>
+<td class="comment-1" rowspan="8">nine bytes on, until the graphic table at <a href="30759.html">GRAPHICS</a> that follows the last place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44777"></span>AEE9</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44779"></span>AEEB</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44781"></span>AEED</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44782"></span>AEEE</td>
+<td class="instruction">LD DE,<a href="30759.html">GRAPHICS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44785"></span>AEF1</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44786"></span>AEF2</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44788"></span>AEF4</td>
+<td class="instruction">JR C,<a href="44697.html#44708">FIND_SPECIAL_OBJS_HERE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44790"></span>AEF6</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">DE = the next record to build</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_SPECIAL_OBJS_HERE_2</td>
+<td class="address-2"><span id="44791"></span>AEF7</td>
+<td class="instruction">LD HL,<a href="23432.html#23560">ROOM_OBJECTS</a></td>
+<td class="comment-1" rowspan="4">up to record 4, ROOM_OBJECTS</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44794"></span>AEFA</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44795"></span>AEFB</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44797"></span>AEFD</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44798"></span>AEFE</td>
+<td class="instruction">LD B,$20</td>
+<td class="comment-1" rowspan="3">clear the rest of the two</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44800"></span>AF00</td>
+<td class="instruction">CALL <a href="52764.html">ZERO_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44803"></span>AF03</td>
+<td class="instruction">JR <a href="44697.html#44791">FIND_SPECIAL_OBJS_HERE_2</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44694.html">AE96</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44697">Map</a></td>
+<td class="next">
+Next: <a href="44805.html">AF05</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

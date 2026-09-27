@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B759</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46925.html">B74D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46937">Map</a></td>
+<td class="next">
+Next: <a href="46945.html">B761</a>
+</td>
+</tr>
+</table>
+<div class="description">B759: Read a half-row of the keyboard</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="43873.html">SCENE_TOOL</a>, <a href="46241.html">PLAY_TUNE_ONCE</a>, <a href="46945.html">GAME_ENDED</a>, <a href="47257.html">WAIT_KEY_OR_TIME</a>, <a href="47742.html">MENU</a>, <a href="51455.html">READ_CONTROLS</a> and <a href="52770.html">HANDLE_PAUSE</a>.
+</div>
+<div class="paragraph">
+Knight Lore's routine, byte for byte. The IN does the selecting on its own: IN A,($FE) puts A on the top half of the address bus, so each 0 bit in A selects a half-row, and A = 0 reads all eight at once. The CPL turns the keys' active-low bits the right way up.
+</div>
+<div class="paragraph">
+The OUT before it is not needed for the read. It writes A to port A*256+$FD, which nothing on a 48K Spectrum answers; a 128K machine's paging port would decode it whenever A has bit 7 clear (see Pentagram's READ_KEYS, where that was tried). Not tried with Alien 8.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the half-rows to read, as the port's high byte</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the keys pressed, bits 0-4, a set bit for a key down</td>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z set if none is</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_KEYS</td>
+<td class="address-2"><span id="46937"></span>B759</td>
+<td class="instruction">OUT ($FD),A</td>
+<td class="comment-1" rowspan="1">not what selects the row: see above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46939"></span>B75B</td>
+<td class="instruction">IN A,($FE)</td>
+<td class="comment-1" rowspan="1">reads port A*256+$FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46941"></span>B75D</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="3">set bits now mean pressed keys; keep the five</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46942"></span>B75E</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46944"></span>B760</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46925.html">B74D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46937">Map</a></td>
+<td class="next">
+Next: <a href="46945.html">B761</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

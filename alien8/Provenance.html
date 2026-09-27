@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Where this disassembly comes from</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="alien8.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Provenance">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Alien 8</a></td>
+<td class="page-header">Where this disassembly comes from</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#tape">The tape</a></li>
+<li><a href="#code">Code and data</a></li>
+<li><a href="#extent">What is disassembled</a></li>
+<li><a href="#names">Names, and how things were checked</a></li>
+</ul>
+<div><span id="tape"></span></div>
+<div class="box box-1">
+<div class="box-title">The tape</div>
+<div class="paragraph">
+The disassembly is of the original tape, loaded the way a Spectrum loads it: SkoolKit's <code>tap2sna</code> runs the ROM's own LOAD on a simulated machine and stops at <a href="asm/25344.html">ENTRY</a>, where the BASIC loader's <code>RANDOMIZE USR 25344</code> enters the game, before the game has run a single instruction. That matters here: the game turns sprites round in place as objects face about, rewriting their bytes and the flags in their headers, and at the start of every game it rewrites the rooms' colour bits and the places the valves lie, so an image taken once it has run is no longer the tape.
+The tape holds a BASIC loader, the loading screen and one block of code and data, from 25341 ($62FD, one past the loader's CLEAR) to the very top of memory. Nothing is encrypted and there is no protection.
+</div>
+</div>
+<div><span id="code"></span></div>
+<div class="box box-2">
+<div class="box-title">Code and data</div>
+<div class="paragraph">
+Which bytes are code was found by running the game, not by reading it. The build plays it in SkoolKit's simulator -- with each control method and directional control, walking, turning, jumping, picking up and putting down, pausing, in every room, and through staged scenes for game over, the chambers, the ending, the clock running out, an extra life, the remote-controlled robots and the things that drop from the ceiling -- and records every address the processor fetches an instruction from. Recursive descent then follows the branches out of what ran, and the jump table of update routines (<a href="asm/42986.html">UPDATES</a>), inventing nothing. Everything else is data.
+The level data -- the room directory (<a href="asm/25705.html">ROOM02</a>), the object templates and backgrounds, the places the valves lie (<a href="asm/30435.html">PLACES</a>), the graphic table (<a href="asm/30759.html">GRAPHICS</a>), the sprites and the font -- is laid out a record per entry from the game's own bytes each time the disassembly is built, so the game's design is never written into the repository's files. Each sprite's picture is drawn from its bytes the way the game's drawing code reads them.
+The listing reassembles byte for byte with sjasmplus, and the snapshot rebuilt from it is the one the tape made, byte for byte.
+</div>
+</div>
+<div><span id="extent"></span></div>
+<div class="box box-1">
+<div class="box-title">What is disassembled</div>
+<div class="paragraph">
+Everything from <a href="asm/23296.html">SEED</a> to the top of memory. Below the block are the game's variables and its 56 object records, which it clears before it uses them; the listing shows what the snapshot holds there, which is the ROM's system variables and the BASIC loader. Above the code the block carries bytes that are not the game's -- a copyright line from 1984, the Spectrum ROM's letters, what looks like Interface 1 ROM code and its error messages, another font and stack debris -- saved with it because the block runs on to the top of memory. They lie where the game keeps its screen buffer (<a href="asm/53760.html">BUFFER</a>), its stack and its lookup tables (<a href="asm/61696.html">MIRROR_TABLE</a>), and every one is overwritten before it is read.
+</div>
+</div>
+<div><span id="names"></span></div>
+<div class="box box-2">
+<div class="box-title">Names, and how things were checked</div>
+<div class="paragraph">
+No one else's disassembly of Alien 8 was used. Alien 8 is built on Knight Lore's engine, and where its code is Knight Lore's the names follow this project's own Knight Lore and Pentagram annotations, which in turn credit the reference map of Knight Lore by tcdev and Michael R. Cook; Alien 8's own routines are named from reading and running them. The pictures on these pages are drawn by the build from the game's own bytes.
+The bugs, pokes and facts marked watched were checked on a private zx_server loaded with the pristine snapshot. Each wait was a breakpoint at the end of a turn with a time limit, rooms were entered by the game's own restart, and staged states are named in each entry. The 128K trials used a snapshot made from the loaded game, paged as the 128's Tape Loader leaves the machine. The Knight Lore comparisons are byte comparisons against Knight Lore's loaded snapshot.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C296</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49758.html">C25E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49814">Map</a></td>
+<td class="next">
+Next: <a href="49910.html">C2F6</a>
+</td>
+</tr>
+</table>
+<div class="description">C296: Move the robot</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49342.html">PLAYER_LEGS</a>.
+</div>
+<div class="paragraph">
+Called by the legs (<a href="49342.html">PLAYER_LEGS</a>) every turn, with the top kept out of the collision scans. He steps forward -- 3 units the way he faces, plus any nudge a doorway has left (<a href="49910.html">CALC_PLYR_DUV</a>) -- while jumping, during the walk into a room, or when walk is held; but not on the turn a turn starts, when the legs have an in-between graphic (bit 3 set: 24-27). Then gravity: 2 off the Z step every turn, or 1 while he is still rising (or level) with jump held, so that holding jump jumps higher. The Z step is copied to PLAYER_DZ, a fall faster than 2 a turn makes a sound pitched by the height (<a href="46652.html">BEEP_BY_Z</a>), and <a href="50242.html">ADJ_FOR_OUT_OF_BOUNDS</a> cuts the move short against the floor, the walls and the other objects. <a href="50029.html">HANDLE_EXIT_SCREEN</a> takes him out of the room if the move carries him through a doorway, and does not come back; otherwise the move is made (the second half of <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a>). A move down that was stopped (bit 2 of +$0C) is a landing, and ends the jump. The U and V steps are then cleared; the Z step carries over as his speed.
+</div>
+<div class="paragraph">
+While the scene after a game runs (GAME_OVER) the Z step is set to 2 every turn, which gravity brings back to 0: the robot hangs where he is. Knight Lore does the same while something floats into its cauldron.
+</div>
+<div class="paragraph">
+This is Knight Lore's routine, the falling sound and the exit check included; Pentagram keeps neither. The turning legs (<a href="49634.html">TURNING_LEGS</a>) come in at MOVE_IF_WALKING and APPLY_GRAVITY, and <a href="44921.html">LOOSE_VALVE</a>, <a href="45823.html">PUSHABLE</a> and <a href="48864.html">EXTRA_LIFE</a> end their own updates at CLEAR_DUV.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the controls</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_PLAYER</td>
+<td class="address-2"><span id="49814"></span>C296</td>
+<td class="instruction">LD A,(<a href="23296.html#23332">GAME_OVER</a>)</td>
+<td class="comment-1" rowspan="4">The scene after a game: a Z step of 2, to hang still</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49817"></span>C299</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49818"></span>C29A</td>
+<td class="instruction">JR Z,<a href="49814.html#49824">MOVE_PLAYER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49820"></span>C29C</td>
+<td class="instruction">LD (IX+$0B),$02</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_PLAYER_0</td>
+<td class="address-2"><span id="49824"></span>C2A0</td>
+<td class="instruction">BIT 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Jumping: forward</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49828"></span>C2A4</td>
+<td class="instruction">JR NZ,<a href="49814.html#49847">MOVE_PLAYER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49830"></span>C2A6</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Walking into a room: forward</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49833"></span>C2A9</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49835"></span>C2AB</td>
+<td class="instruction">JR NZ,<a href="49814.html#49847">MOVE_PLAYER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49837"></span>C2AD</td>
+<td class="instruction">BIT 3,(IX+$00)</td>
+<td class="comment-1" rowspan="2">An in-between graphic: a turn has just started, so no step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49841"></span>C2B1</td>
+<td class="instruction">JR NZ,<a href="49814.html#49852">APPLY_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49843"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49634.html">TURNING_LEGS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_IF_WALKING</td>
+<td class="address-2"><span id="49843"></span>C2B3</td>
+<td class="instruction">BIT 2,C</td>
+<td class="comment-1" rowspan="2">Walk not held: no step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49845"></span>C2B5</td>
+<td class="instruction">JR Z,<a href="49814.html#49852">APPLY_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_PLAYER_1</td>
+<td class="address-2"><span id="49847"></span>C2B7</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">A step forward, the controls kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49848"></span>C2B8</td>
+<td class="instruction">CALL <a href="49910.html">CALC_PLYR_DUV</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49851"></span>C2BB</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49852"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49634.html">TURNING_LEGS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">APPLY_GRAVITY</td>
+<td class="address-2"><span id="49852"></span>C2BC</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="3">The Z step negative: falling, two off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49855"></span>C2BF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49856"></span>C2C0</td>
+<td class="instruction">JP M,<a href="49814.html#49863">MOVE_PLAYER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49859"></span>C2C3</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="2">Rising or level with jump held: one off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49861"></span>C2C5</td>
+<td class="instruction">JR NZ,<a href="49814.html#49864">MOVE_PLAYER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_PLAYER_2</td>
+<td class="address-2"><span id="49863"></span>C2C7</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="2">Gravity: two off, or one</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_PLAYER_3</td>
+<td class="address-2"><span id="49864"></span>C2C8</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49865"></span>C2C9</td>
+<td class="instruction">LD (IX+$0B),A</td>
+<td class="comment-1" rowspan="2">The new Z step, and a copy that says afterwards which way he was going</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49868"></span>C2CC</td>
+<td class="instruction">LD (<a href="23296.html#23329">PLAYER_DZ</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49871"></span>C2CF</td>
+<td class="instruction">ADD A,$02</td>
+<td class="comment-1" rowspan="2">Falling faster than 2: the falling sound, pitched by Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49873"></span>C2D1</td>
+<td class="instruction">CALL M,<a href="46652.html">BEEP_BY_Z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49876"></span>C2D4</td>
+<td class="instruction">CALL <a href="50242.html">ADJ_FOR_OUT_OF_BOUNDS</a></td>
+<td class="comment-1" rowspan="1">Cut the move short where it must be</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49879"></span>C2D7</td>
+<td class="instruction">CALL <a href="50029.html">HANDLE_EXIT_SCREEN</a></td>
+<td class="comment-1" rowspan="1">Through a doorway: into the next room, and no return</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49882"></span>C2DA</td>
+<td class="instruction">CALL <a href="49078.html#49084">ADD_DUVZ</a></td>
+<td class="comment-1" rowspan="1">U, V and Z plus the steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49885"></span>C2DD</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="5">Stopped while moving down?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49889"></span>C2E1</td>
+<td class="instruction">JR Z,<a href="49814.html#49902">CLEAR_DUV</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49891"></span>C2E3</td>
+<td class="instruction">LD A,(<a href="23296.html#23329">PLAYER_DZ</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49894"></span>C2E6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49895"></span>C2E7</td>
+<td class="instruction">JP P,<a href="49814.html#49902">CLEAR_DUV</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49898"></span>C2EA</td>
+<td class="instruction">RES 3,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">Then landed: the jump is over</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49902"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="44921.html">LOOSE_VALVE</a>, <a href="45823.html">PUSHABLE</a> and <a href="48864.html">EXTRA_LIFE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_DUV</td>
+<td class="address-2"><span id="49902"></span>C2EE</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">The U and V steps are one turn's; the Z step carries over as the speed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49903"></span>C2EF</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49906"></span>C2F2</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49909"></span>C2F5</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49758.html">C25E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49814">Map</a></td>
+<td class="next">
+Next: <a href="49910.html">C2F6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

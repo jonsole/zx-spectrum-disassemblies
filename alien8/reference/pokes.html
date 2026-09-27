@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#immunity">Nothing can kill him</a></li>
+<li><a href="#clock">The light years never run out</a></li>
+<li><a href="#anykind">Any valve will do</a></li>
+<li><a href="#firstwins">The first chamber wins</a></li>
+<li><a href="#nodrops">Nothing drops from the ceiling</a></li>
+<li><a href="#turning">Keep walking through a turn</a></li>
+<li><a href="#128k">Play on a 128K in 128 mode</a></li>
+</ul>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/51719.html">NEW_LIFE</a> starts every life, the first of a game included: it copies
+the two start records over the robot's and takes a life with DEC (HL) at
+$CA18, going to the game over (<a href="../asm/46945.html">GAME_ENDED</a>) when that leaves less than
+none. Make the DEC a NOP and LIVES never moves. The JP M after it still tests
+the sign flag, which both ways in leave clear (read: <a href="../asm/51922.html">RESET_ROOM_COLOURS</a> ends on a
+subtraction that leaves a small positive number, and the main loop's check
+on the robot's records ends on a zero). Put in before a game starts, the panel
+should show 05 instead of 04 (read).
+Tested: standing still in room $5E at U 96, V 160, where the chaser homes in
+(the room entered by the game's own restart), he was killed every 37 turns,
+and from 4 lives the fifth death, 170 turns in, was the game over. With the
+poke he died 33 times in 1200 turns and LIVES never moved.
+</div>
+<div class="paragraph">
+POKE 51736,0
+</div>
+</div>
+<div><span id="immunity"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing can kill him</div>
+<div class="paragraph">
+Whatever kills the robot does it the same way: the collision code sets bit 6
+of the +$0D of the record it meets -- from the mover's bit 7, or the
+obstacle's bit 5 (<a href="../asm/50327.html">ADJ_DU_FOR_OBJ_INTERSECT</a>, <a href="../asm/50406.html">ADJ_DV_FOR_OBJ_INTERSECT</a>, <a href="../asm/50485.html">ADJ_DZ_FOR_OBJ_INTERSECT</a>) -- and the next time the legs'
+update routine (<a href="../asm/49342.html">PLAYER_LEGS</a>) or the top's (<a href="../asm/50916.html">TOP_FOLLOWS_LEGS</a>) runs, it tests that bit and
+starts the dying sparkle, marking the other half killed too. Make each BIT 6 a
+RES 6 -- one byte, the fourth of the instruction -- and each JR Z after it a
+JR, and the mark is wiped and ignored every turn, on both halves. (The legs' routine
+while he turns, <a href="../asm/49634.html">TURNING_LEGS</a>, never looks at the bit; the top's catches it then.)
+Tested: the same trial as the lives poke -- room $5E, standing still in the
+chaser's way -- five deaths in 170 turns and the game over without it; with
+it, 1200 turns, no death, and 4 lives.
+</div>
+<div class="paragraph">
+POKE 49348,182: POKE 49349,24: POKE 50922,182: POKE 50923,24
+</div>
+</div>
+<div><span id="clock"></span></div>
+<div class="box box-1">
+<div class="box-title">The light years never run out</div>
+<div class="paragraph">
+<a href="../asm/44390.html">RUN_CLOCK</a> counts the light years down once a turn: <a href="../asm/44489.html">CLOCK_BORROW</a> takes one
+off the last digit (borrowing up the others) whenever the last digit has
+finished rolling into place, and all four at nought ends the game. A RET as
+<a href="../asm/44489.html">CLOCK_BORROW</a>'s first instruction and nothing is ever taken off; the digits that
+are rolling finish their roll and stop.
+Tested: from the first turns of a game, 700 turns took the clock from 5997 to
+5897 -- a light year every seven turns -- and with the poke it stayed at
+5997. With the clock staged at 0001 at the start of a turn, the game was over
+6 turns later; with the poke, 300 turns later it still said 0001.
+</div>
+<div class="paragraph">
+POKE 44489,201
+</div>
+</div>
+<div><span id="anykind"></span></div>
+<div class="box box-2">
+<div class="box-title">Any valve will do</div>
+<div class="paragraph">
+A valve (<a href="../asm/44921.html">LOOSE_VALVE</a>) steers itself to a chamber's socket, and activates the
+chamber when it sits on it, only when the socket is of its own kind: the JR NZ
+at $AF90 skips everything if the kinds differ, and the JR Z at
+$AFEF checks them again before the valve is seated (otherwise it
+would be destroyed, which never happens as the game is). Give the first JR a
+displacement of 0, so that it goes on whichever way the test comes out, and
+make the second a JR, and any valve does for any chamber. It becomes the
+seated valve of its own kind, which the summary counts all the same
+(<a href="../asm/44139.html">SUMMARISE_CHAMBERS</a> looks only for a seated valve in the chamber's room).
+Tested: in chamber $0C, whose socket takes kind 0, a valve of kind 1 put in
+the room's middle, high up, before the room was entered: without the poke it
+fell onto the things hanging in the middle of the room and lay there for 200
+turns, and held over
+the socket and dropped onto it, it sat there another 200 turns with the count
+at 00. With the poke it steered itself onto the socket while the robot was
+still appearing, the room turned white and the count went to 01.
+</div>
+<div class="paragraph">
+POKE 44945,0: POKE 45039,24
+</div>
+</div>
+<div><span id="firstwins"></span></div>
+<div class="box box-1">
+<div class="box-title">The first chamber wins</div>
+<div class="paragraph">
+When a chamber is activated <a href="../asm/44921.html">LOOSE_VALVE</a> adds one to CHAMBERS in BCD and compares
+it with $24 at $B040: the twenty-fourth sets WON and ends the
+game. Make the CP $24 a CP 1 and the first chamber ends it -- a quick way to
+see the arrival screen, the rating for a finished game and the scene of the
+robot being oiled.
+Tested: a valve of kind 0 put in chamber $0C's room: without the poke it
+steered itself onto the socket, the count went to 01 and the game went on for
+another 100 turns; with it, WON was set and the game went straight to its
+end (<a href="../asm/46945.html">GAME_ENDED</a>).
+</div>
+<div class="paragraph">
+POKE 45121,1
+</div>
+</div>
+<div><span id="nodrops"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing drops from the ceiling</div>
+<div class="paragraph">
+The things hanging from the ceiling (graphic 73, <a href="../asm/44307.html">CEILING_DROP</a>) fall one at a time
+on a turn when the random number is under 16 -- but only when DROP_LATCH is
+clear, and <a href="../asm/51874.html">ENTER_ROOM</a> sets it on entering an even-numbered room, where all four
+rooms that have them are ($0C, $1C, $58, $84); picking something up or taking
+an extra life there clears it. Make the RET NZ that obeys the latch a RET and
+they never fall. They are still deadly to walk into (read).
+Tested: in room $58, with its sixteen hanging over a floor of blocks, the
+robot stood on the block under one, and the latch was cleared as a pick-up
+clears it (the immunity poke in both trials, so that nothing restarted the
+room): without this poke all sixteen had fallen within 300 turns, one at a
+time, the last the one over him, which came to rest on his head; with it,
+none fell in 600 turns.
+</div>
+<div class="paragraph">
+POKE 44317,201
+</div>
+</div>
+<div><span id="turning"></span></div>
+<div class="box box-1">
+<div class="box-title">Keep walking through a turn</div>
+<div class="paragraph">
+A quarter turn costs a walking robot three turns standing still where two
+were meant (see <a href="bugs.html#turning">the bugs</a>): the sound
+<a href="../asm/49634.html">TURNING_LEGS</a> makes as a turn ends leaves C at nought, and C was the controls. These
+pokes put a four-instruction routine -- PUSH BC, CALL the sound, POP BC, RET
+-- into the first bytes of <a href="../asm/43807.html">FACE_BY_STEP_UNUSED</a>, code that nothing reaches, and call it in
+place of the sound, so the step meant for the last turn of a turn is taken.
+Tested: walking with A held and turning with Z (or X) for one turn in room
+$2B, U and V stood still for three turns without the pokes, and for two with
+them, after which the robot walked on 3 units a turn either way.
+</div>
+<div class="paragraph">
+POKE 43807,197: POKE 43808,205: POKE 43809,212: POKE 43810,182: POKE 43811,193: POKE 43812,201: POKE 49688,31: POKE 49689,171
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-2">
+<div class="box-title">Play on a 128K in 128 mode</div>
+<div class="paragraph">
+<a href="../asm/46937.html">READ_KEYS</a> sends the half-row it is about to read to port $FD before
+reading port $FE, an OUT that does nothing on a 48K Spectrum and pages memory
+on a 128K (see the bugs). The IN after it selects the half-rows by itself, so
+the OUT can simply go: two NOPs.
+Tested on the emulator's 128K machine, from the loaded game put into a 128K
+snapshot with the 48 BASIC ROM and bank 0 paged in and paging unlocked, as
+the 128's Tape Loader leaves it: without the poke the game crashed on its
+first turn of play; with it, 300 turns of play, walking out of start room $13
+into room $14, and the paging was as it started. On the 48K the same 300
+turns went exactly as without the poke, to the same room and the same spot.
+</div>
+<div class="paragraph">
+POKE 46937,0: POKE 46938,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

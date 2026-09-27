@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AD13</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44139.html">AC6B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44307">Map</a></td>
+<td class="next">
+Next: <a href="44372.html">AD54</a>
+</td>
+</tr>
+</table>
+<div class="description">AD13: A thing that drops from the ceiling (graphic 73)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>. Knight Lore's spiked ball: deadly both ways, it hangs until a turn when the random number is under 16 (one in sixteen), no other is falling (DROPPING), and the drop latch (DROP_LATCH) is clear -- which in an even-numbered room it is not until something has been picked up. Then it falls, with a sound pitched by its height, lands with a thud (<a href="44372.html">THUD_ON_LANDING</a>), and lets the next one go.
+</div>
+<div class="paragraph">
+Bit 2 of +D: falling. Once on the floor it can be let go again, but it has nowhere to fall and makes no second thud. Rooms $0C, $1C, $58 and $84 have them (object template 20).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CEILING_DROP</td>
+<td class="address-2"><span id="44307"></span>AD13</td>
+<td class="instruction">CALL <a href="45732.html#45735">MAKE_DEADLY</a></td>
+<td class="comment-1" rowspan="1">deadly both ways</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44310"></span>AD16</td>
+<td class="instruction">CALL <a href="48967.html">DRAW_AT_L12_D8</a></td>
+<td class="comment-1" rowspan="1">draw 12 left and 8 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44313"></span>AD19</td>
+<td class="instruction">LD A,(<a href="23296.html#23355">DROP_LATCH</a>)</td>
+<td class="comment-1" rowspan="3">latched: nothing drops</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44316"></span>AD1C</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44317"></span>AD1D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44318"></span>AD1E</td>
+<td class="instruction">BIT 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="2">falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44322"></span>AD22</td>
+<td class="instruction">JR NZ,<a href="44307.html#44343">CEILING_DROP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44324"></span>AD24</td>
+<td class="instruction">LD HL,<a href="23296.html#23354">DROPPING</a></td>
+<td class="comment-1" rowspan="4">another is falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44327"></span>AD27</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44328"></span>AD28</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44329"></span>AD29</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44330"></span>AD2A</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+<td class="comment-1" rowspan="3">one turn in sixteen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44333"></span>AD2D</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44335"></span>AD2F</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44336"></span>AD30</td>
+<td class="instruction">SET 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44340"></span>AD34</td>
+<td class="instruction">LD (HL),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44342"></span>AD36</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">CEILING_DROP_0</td>
+<td class="address-2"><span id="44343"></span>AD37</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+<td class="comment-1" rowspan="1">fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44346"></span>AD3A</td>
+<td class="instruction">CALL <a href="44372.html">THUD_ON_LANDING</a></td>
+<td class="comment-1" rowspan="1">a thud if it has just landed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44349"></span>AD3D</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">landed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44353"></span>AD41</td>
+<td class="instruction">JR NZ,<a href="44307.html#44361">CEILING_DROP_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44355"></span>AD43</td>
+<td class="instruction">CALL <a href="46652.html">BEEP_BY_Z</a></td>
+<td class="comment-1" rowspan="1">a sound pitched by its height</td>
+</tr>
+<tr>
+<td class="asm-label">CEILING_DROP_1</td>
+<td class="address-2"><span id="44358"></span>AD46</td>
+<td class="instruction">JP <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+<td class="comment-1" rowspan="1">redraw</td>
+</tr>
+<tr>
+<td class="asm-label">CEILING_DROP_2</td>
+<td class="address-2"><span id="44361"></span>AD49</td>
+<td class="instruction">RES 2,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">landed: another may fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44365"></span>AD4D</td>
+<td class="instruction">LD HL,<a href="23296.html#23354">DROPPING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44368"></span>AD50</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44370"></span>AD52</td>
+<td class="instruction">JR <a href="44307.html#44358">CEILING_DROP_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44139.html">AC6B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44307">Map</a></td>
+<td class="next">
+Next: <a href="44372.html">AD54</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

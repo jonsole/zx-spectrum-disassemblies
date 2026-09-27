@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at BBB1</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48029.html">BB9D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48049">Map</a></td>
+<td class="next">
+Next: <a href="48107.html">BBEB</a>
+</td>
+</tr>
+</table>
+<div class="description">BBB1: Print a string whose first byte is its colour</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="42825.html">COLOUR_PANEL</a> and <a href="46945.html">GAME_ENDED</a>.
+</div>
+<div class="paragraph">
+As <a href="48029.html">PRINT_TEXT_SINGLE_COLOUR</a>, but the colour is the string's own first byte. The panel's "LIGHT YEARS" (<a href="42825.html">COLOUR_PANEL</a>, which writes that byte first) and the summary's rating (<a href="46945.html">GAME_ENDED</a>, <a href="47597.html">RATING_POOR</a>) are printed with it. Knight Lore's print_text; Pentagram has these bytes too, but nothing reaches them there.
+</div>
+<div class="paragraph">
+TEXT_ATTR_ADDR, the entry after the colour is in A', takes the position off the stack: in the alternate registers HL' becomes the attribute address of the first cell, while DE' is kept, since the list printer (<a href="48165.html">DISPLAY_MENU</a>) walks its colours with it. Then each character is drawn into the buffer by <a href="48107.html">PRINT_CHAR</a>, which leaves HL one cell to the right, and its cell in the attribute file is given the colour.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the position: L = x, H = y, in pixels, y counting up from the bottom</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the colour byte, then the string, bit 7 set on its last character</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the byte after the string</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_TEXT</td>
+<td class="address-2"><span id="48049"></span>BBB1</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">the text font</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48050"></span>BBB2</td>
+<td class="instruction">LD HL,$6188</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48053"></span>BBB5</td>
+<td class="instruction">LD (<a href="23296.html#23335">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48056"></span>BBB8</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="5">BC = the position, left on the stack; HL = its address in the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48057"></span>BBB9</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48058"></span>BBBA</td>
+<td class="instruction">CALL <a href="53536.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48061"></span>BBBD</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48062"></span>BBBE</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48063"></span>BBBF</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">the colour, from the string's first byte, into A'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48064"></span>BBC0</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48065"></span>BBC1</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48066"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="48029.html">PRINT_TEXT_SINGLE_COLOUR</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TEXT_ATTR_ADDR</td>
+<td class="address-2"><span id="48066"></span>BBC2</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">take the position off the stack into HL'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48067"></span>BBC3</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48068"></span>BBC4</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="5">HL' = the attribute address of the position (<a href="53591.html">CALC_ATTRIB_ADDR</a>); DE' kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48069"></span>BBC5</td>
+<td class="instruction">CALL <a href="53591.html">CALC_ATTRIB_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48072"></span>BBC8</td>
+<td class="instruction">LD L,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48073"></span>BBC9</td>
+<td class="instruction">LD H,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48074"></span>BBCA</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_TEXT_CHAR</td>
+<td class="address-2"><span id="48075"></span>BBCB</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">bit 7 marks the last character</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48076"></span>BBCC</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48077"></span>BBCD</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48079"></span>BBCF</td>
+<td class="instruction">JR NZ,<a href="48049.html#48094">PRINT_TEXT_LAST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48081"></span>BBD1</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="4">draw it, and move on in the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48082"></span>BBD2</td>
+<td class="instruction">CALL <a href="48107.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48085"></span>BBD5</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48086"></span>BBD6</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48087"></span>BBD7</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="6">colour its cell, one cell right, and loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48088"></span>BBD8</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48089"></span>BBD9</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48090"></span>BBDA</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48091"></span>BBDB</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48092"></span>BBDC</td>
+<td class="instruction">JR <a href="48049.html#48075">PRINT_TEXT_CHAR</a></td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_TEXT_LAST</td>
+<td class="address-2"><span id="48094"></span>BBDE</td>
+<td class="instruction">AND $7F</td>
+<td class="comment-1" rowspan="5">the last character, without its end marker; DE ends past the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48096"></span>BBE0</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48097"></span>BBE1</td>
+<td class="instruction">CALL <a href="48107.html">PRINT_CHAR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48100"></span>BBE4</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48101"></span>BBE5</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48102"></span>BBE6</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">colour its cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48103"></span>BBE7</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48104"></span>BBE8</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48105"></span>BBE9</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48106"></span>BBEA</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The PUSH DE and POP DE round each call of <a href="48107.html">PRINT_CHAR</a> are not needed: it keeps DE itself.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48029.html">BB9D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48049">Map</a></td>
+<td class="next">
+Next: <a href="48107.html">BBEB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

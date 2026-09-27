@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C71C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50916.html">C6E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50972">Map</a></td>
+<td class="next">
+Next: <a href="51013.html">C745</a>
+</td>
+</tr>
+</table>
+<div class="description">C71C: List the objects to be drawn</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called by the main loop (<a href="42688.html">OBJECT_DONE</a>) at the end of every turn, once every record has been updated. Writes into <a href="51013.html">DRAW_LIST</a> the number (0-55) of every record in use whose draw flag, bit 4 of +$07, is set, in record order, and an $FF after the last. <a href="52907.html">RENDER_DYNAMIC_OBJECTS</a> wipes the objects' old places from this list and <a href="51077.html">SORT_AND_DRAW</a> draws from it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN</td>
+<td class="address-2"><span id="50972"></span>C71C</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">56 records from the first; HL = the list; C = the number; IX kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50974"></span>C71E</td>
+<td class="instruction">LD B,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50976"></span>C720</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50979"></span>C723</td>
+<td class="instruction">LD IX,<a href="23432.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50983"></span>C727</td>
+<td class="instruction">LD HL,<a href="51013.html">DRAW_LIST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50986"></span>C72A</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN_0</td>
+<td class="address-2"><span id="50988"></span>C72C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">An empty record: not listed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50991"></span>C72F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50992"></span>C730</td>
+<td class="instruction">JR Z,<a href="50972.html#51002">LIST_DRAWN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50994"></span>C732</td>
+<td class="instruction">BIT 4,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Not to be drawn this turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50998"></span>C736</td>
+<td class="instruction">JR Z,<a href="50972.html#51002">LIST_DRAWN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51000"></span>C738</td>
+<td class="instruction">LD (HL),C</td>
+<td class="comment-1" rowspan="2">List its number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51001"></span>C739</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">LIST_DRAWN_1</td>
+<td class="address-2"><span id="51002"></span>C73A</td>
+<td class="instruction">INC C</td>
+<td class="comment-1" rowspan="3">The next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51003"></span>C73B</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51005"></span>C73D</td>
+<td class="instruction">DJNZ <a href="50972.html#50988">LIST_DRAWN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51007"></span>C73F</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="4">End the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51009"></span>C741</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51010"></span>C742</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51012"></span>C744</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50916.html">C6E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50972">Map</a></td>
+<td class="next">
+Next: <a href="51013.html">C745</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

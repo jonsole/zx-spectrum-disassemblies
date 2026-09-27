@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C63D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50707.html">C613</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50749">Map</a></td>
+<td class="next">
+Next: <a href="50775.html">C657</a>
+</td>
+</tr>
+</table>
+<div class="description">C63D: Work out an object's screen rectangle</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50775.html">SET_DRAW_OBJS_OVERLAPPED</a>.
+</div>
+<div class="paragraph">
+Fills in where an object's sprite lands in the screen buffer: the pixel position at +$1A and +$1B (<a href="53202.html">CALC_PIXEL_XY</a>), and the size -- +$18 the width in bytes, one more when the pixel x is not a multiple of 8, and +$19 the height in rows. <a href="53246.html">FLIP_SPRITE</a> also turns the sprite the way the object faces.
+</div>
+<div class="paragraph">
+Two cases leave things as they were. While the scene after a game runs (GAME_OVER), <a href="53202.html">CALC_PIXEL_XY</a> does not move the position. And when the object's sprite is the empty one (graphics 0 and 1 use it), <a href="53246.html">FLIP_SPRITE</a> returns straight to this routine's caller, so +$18 and +$19 keep what they held: the area the object last covered is still the area to clear.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CALC_2D_INFO</td>
+<td class="address-2"><span id="50749"></span>C63D</td>
+<td class="instruction">CALL <a href="53202.html">CALC_PIXEL_XY</a></td>
+<td class="comment-1" rowspan="1">The pixel position</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50752"></span>C640</td>
+<td class="instruction">CALL <a href="53246.html">FLIP_SPRITE</a></td>
+<td class="comment-1" rowspan="1">DE = the sprite, turned the way the object faces</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50755"></span>C643</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="7">The width, bits 0-3 of the sprite's first byte, and one more for a shifted sprite</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50758"></span>C646</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50760"></span>C648</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50761"></span>C649</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50762"></span>C64A</td>
+<td class="instruction">JR Z,<a href="50749.html#50765">CALC_2D_INFO_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50764"></span>C64C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label">CALC_2D_INFO_0</td>
+<td class="address-2"><span id="50765"></span>C64D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50767"></span>C64F</td>
+<td class="instruction">LD (IX+$18),A</td>
+<td class="comment-1" rowspan="1">+$18: the width in bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50770"></span>C652</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">+$19: the height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50771"></span>C653</td>
+<td class="instruction">LD (IX+$19),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50774"></span>C656</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50707.html">C613</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50749">Map</a></td>
+<td class="next">
+Next: <a href="50775.html">C657</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

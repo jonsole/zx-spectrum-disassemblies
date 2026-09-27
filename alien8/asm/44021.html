@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at ABF5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43873.html">AB61</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44021">Map</a></td>
+<td class="next">
+Next: <a href="44139.html">AC6B</a>
+</td>
+</tr>
+</table>
+<div class="description">ABF5: The sparks over the robot (graphic 80)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>: the first part of the re-programming (<a href="43873.html">SCENE_TOOL</a>). Every eighth turn the sparks change colour, bright yellow or black by bit 3 of the turn counter, with a beep; after sixteen changes they go (graphic 1: rubbed out and emptied) and set SCENE_STATE to 1, which lets the tools swing.
+</div>
+<div class="paragraph">
+COLOUR_SCENE_OBJECT is the update routine of the scene's pieces that do not move (graphics 85, 88 to 91: the can of oil, the robot's stand, its legs and top) and the last step of the others'. The scene's screen is bright red on black (<a href="46945.html">GAME_ENDED</a>), the colour of its frame, and each piece has its own colour: this paints the attribute cells a piece's picture covers (its width and height as last drawn, at its pixel place) with its colour at +10, bottom row first -- except any cell already bright green ($44), the hammer's colour, so the hammer stays green where it is over the robot. Nothing puts those cells back, so the robot's head is left green after the hammer's blows (seen in the simulator). It does nothing for a piece not drawn yet.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS</td>
+<td class="address-2"><span id="44021"></span>ABF5</td>
+<td class="instruction">LD A,(<a href="23296.html#23298">TURNS</a>)</td>
+<td class="comment-1" rowspan="4">not an eighth turn: only colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44024"></span>ABF8</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44025"></span>ABF9</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44027"></span>ABFB</td>
+<td class="instruction">JR NZ,<a href="44021.html#44065">COLOUR_SCENE_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44029"></span>ABFD</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="4">bright yellow, or black</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44031"></span>ABFF</td>
+<td class="instruction">JR Z,<a href="44021.html#44035">SCENE_SPARKS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44033"></span>AC01</td>
+<td class="instruction">ADD A,$46</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS_0</td>
+<td class="address-2"><span id="44035"></span>AC03</td>
+<td class="instruction">LD (IX+$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44038"></span>AC06</td>
+<td class="instruction">CALL <a href="46769.html">PLAIN_BEEP</a></td>
+<td class="comment-1" rowspan="1">a beep</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44041"></span>AC09</td>
+<td class="instruction">INC (IX+$11)</td>
+<td class="comment-1" rowspan="4">sixteen changes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44044"></span>AC0C</td>
+<td class="instruction">LD A,(IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44047"></span>AC0F</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44049"></span>AC11</td>
+<td class="instruction">JR NZ,<a href="44021.html#44065">COLOUR_SCENE_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44051"></span>AC13</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="3">the tools may start; the sparks go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44053"></span>AC15</td>
+<td class="instruction">LD (<a href="23296.html#23361">SCENE_STATE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44056"></span>AC18</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44059"></span>AC1B</td>
+<td class="instruction">CALL <a href="44021.html#44065">COLOUR_SCENE_OBJECT</a></td>
+<td class="comment-1" rowspan="2">colour its cells; redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44062"></span>AC1E</td>
+<td class="instruction">JP <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="44065"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="43354.html">SCENE_ROBOT_TOP</a>, <a href="43377.html">OILED_ROBOT</a> and <a href="43873.html">SCENE_TOOL</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COLOUR_SCENE_OBJECT</td>
+<td class="address-2"><span id="44065"></span>AC21</td>
+<td class="instruction">LD A,(IX+$18)</td>
+<td class="comment-1" rowspan="3">not drawn yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44068"></span>AC24</td>
+<td class="instruction">OR (IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44071"></span>AC27</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44072"></span>AC28</td>
+<td class="instruction">LD L,(IX+$1A)</td>
+<td class="comment-1" rowspan="6">the cells across: its width, one more if it starts inside a cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44075"></span>AC2B</td>
+<td class="instruction">LD B,(IX+$18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44078"></span>AC2E</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44079"></span>AC2F</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44081"></span>AC31</td>
+<td class="instruction">JR Z,<a href="44021.html#44084">SCENE_SPARKS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44083"></span>AC33</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS_1</td>
+<td class="address-2"><span id="44084"></span>AC34</td>
+<td class="instruction">LD H,(IX+$1B)</td>
+<td class="comment-1" rowspan="17">the rows of cells from its bottom to its top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44087"></span>AC37</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44088"></span>AC38</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44089"></span>AC39</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44090"></span>AC3A</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44091"></span>AC3B</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44093"></span>AC3D</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44094"></span>AC3E</td>
+<td class="instruction">LD A,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44097"></span>AC41</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44098"></span>AC42</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44099"></span>AC43</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44100"></span>AC44</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44101"></span>AC45</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44102"></span>AC46</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44104"></span>AC48</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44105"></span>AC49</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44106"></span>AC4A</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44107"></span>AC4B</td>
+<td class="instruction">CALL <a href="53591.html">CALC_ATTRIB_ADDR</a></td>
+<td class="comment-1" rowspan="4">the bottom-left cell's attribute; the colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44110"></span>AC4E</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44111"></span>AC4F</td>
+<td class="instruction">LD A,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44114"></span>AC52</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS_2</td>
+<td class="address-2"><span id="44117"></span>AC55</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44118"></span>AC56</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44119"></span>AC57</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS_3</td>
+<td class="address-2"><span id="44120"></span>AC58</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">each cell but a bright green one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44121"></span>AC59</td>
+<td class="instruction">CP $44</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44123"></span>AC5B</td>
+<td class="instruction">JR Z,<a href="44021.html#44126">SCENE_SPARKS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44125"></span>AC5D</td>
+<td class="instruction">LD (HL),C</td>
+</tr>
+<tr>
+<td class="asm-label">SCENE_SPARKS_4</td>
+<td class="address-2"><span id="44126"></span>AC5E</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44127"></span>AC5F</td>
+<td class="instruction">DJNZ <a href="44021.html#44120">SCENE_SPARKS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44129"></span>AC61</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="8">up a row, for each row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44130"></span>AC62</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44131"></span>AC63</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44132"></span>AC64</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44133"></span>AC65</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44135"></span>AC67</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44136"></span>AC68</td>
+<td class="instruction">JR NZ,<a href="44021.html#44117">SCENE_SPARKS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44138"></span>AC6A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43873.html">AB61</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44021">Map</a></td>
+<td class="next">
+Next: <a href="44139.html">AC6B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

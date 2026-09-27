@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at B6CE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46784.html">B6C0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46798">Map</a></td>
+<td class="next">
+Next: <a href="46850.html">B702</a>
+</td>
+</tr>
+</table>
+<div class="description">B6CE: The robot's footstep</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49758.html">HANDLE_FORWARD</a>.
+</div>
+<div class="paragraph">
+For the legs (<a href="49758.html">HANDLE_FORWARD</a>), on every other frame of the walk: those with bit 0 of the graphic clear. FOOTSTEP_NOW skips that test (<a href="49634.html">TURNING_LEGS</a>). The pitch alternates by bit 1 of the turn counter between a fixed half-wave count of 96 and one from the height, the tick-tock of two feet; the number of waves is (U/2 + (256-V)/2)/16, which comes out longer towards plus U and shorter towards plus V. Knight Lore's sound_footstep.
+</div>
+<div class="paragraph">
+BEEP, its end, is the common tail of the sound effects: C waves at a half-wave count of B. A C of 0 would mean 256 waves.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FOOTSTEP</td>
+<td class="address-2"><span id="46798"></span>B6CE</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">only on even walking frames</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46801"></span>B6D1</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46803"></span>B6D3</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="46804"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49634.html">TURNING_LEGS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FOOTSTEP_NOW</td>
+<td class="address-2"><span id="46804"></span>B6D4</td>
+<td class="instruction">LD B,$60</td>
+<td class="comment-1" rowspan="2">a pitch of 96, and the turn counter</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46806"></span>B6D6</td>
+<td class="instruction">LD A,(<a href="23296.html#23298">TURNS</a>)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="46809"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="46784.html">LOWER_HALF_STEP</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FOOTSTEP_PITCH</td>
+<td class="address-2"><span id="46809"></span>B6D9</td>
+<td class="instruction">BIT 1,A</td>
+<td class="comment-1" rowspan="7">on alternate pairs of turns, a pitch from the height instead</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46811"></span>B6DB</td>
+<td class="instruction">JR Z,<a href="46798.html#46822">FOOTSTEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46813"></span>B6DD</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46816"></span>B6E0</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46818"></span>B6E2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46819"></span>B6E3</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46821"></span>B6E5</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">FOOTSTEP_0</td>
+<td class="address-2"><span id="46822"></span>B6E6</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="13">C = the number of waves, from U and V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46825"></span>B6E9</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46827"></span>B6EB</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46828"></span>B6EC</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46831"></span>B6EF</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46833"></span>B6F1</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46835"></span>B6F3</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46836"></span>B6F4</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46837"></span>B6F5</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46838"></span>B6F6</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46839"></span>B6F7</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46840"></span>B6F8</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46842"></span>B6FA</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="46843"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="46574.html">SPARKLE_SOUND</a>, <a href="46617.html">THUD_SOUND</a>, <a href="46652.html">BEEP_BY_Z</a>, <a href="46710.html">CRASH_SOUND</a>, <a href="46769.html">PLAIN_BEEP</a>, <a href="46774.html">PAUSE_BEEP</a> and <a href="46779.html">HIGH_BEEP</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BEEP</td>
+<td class="address-2"><span id="46843"></span>B6FB</td>
+<td class="instruction">CALL <a href="46850.html">CLICK</a></td>
+<td class="comment-1" rowspan="4">C waves of half-wave count B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46846"></span>B6FE</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46847"></span>B6FF</td>
+<td class="instruction">JR NZ,<a href="46798.html#46843">BEEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46849"></span>B701</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46784.html">B6C0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46798">Map</a></td>
+<td class="next">
+Next: <a href="46850.html">B702</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

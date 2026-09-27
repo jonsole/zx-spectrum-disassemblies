@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CEAB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52869.html">CE85</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52907">Map</a></td>
+<td class="next">
+Next: <a href="53125.html">CF85</a>
+</td>
+</tr>
+</table>
+<div class="description">CEAB: Redraw what changed and copy it to the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Called at the end of every turn (<a href="42688.html">OBJECT_DONE</a>). The draw list (<a href="51013.html">DRAW_LIST</a>) holds the number of every record to be drawn this turn, up to an $FF, and SEQUENCE_AT steps through it. First, for each one that moved -- bit 5 of its flags, cleared here -- the area covering both where it was drawn last turn (+1C to +1F) and where it is now (+18 to +1B) is cleared in the buffer and remembered on the stack, WIPE_COUNT counting them. Then every listed object is drawn into the buffer in depth order (<a href="51077.html">SORT_AND_DRAW</a>), and the carried things on the panel if they changed (<a href="48285.html">SHOW_CARRIED</a>); and last the remembered areas -- and only those -- are copied to the screen.
+</div>
+<div class="paragraph">
+Nothing is ever rubbed out on the screen itself, so nothing flickers: the scenery is made of objects too, so what stood behind a moving thing is simply drawn again. On the first turn in a room (NEW_ROOM set) nothing is wiped: the buffer is freshly built and the main loop shows all of it. The areas count towards the turn's drawing work (DRAW_WORK), which sets how long the main loop waits. Pentagram's routine, instruction for instruction; Knight Lore's does the same in more pieces.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS</td>
+<td class="address-2"><span id="52907"></span>CEAB</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">No areas yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52908"></span>CEAC</td>
+<td class="instruction">LD (<a href="23296.html#23304">WIPE_COUNT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52911"></span>CEAF</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1">Kept for the caller</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52913"></span>CEB1</td>
+<td class="instruction">LD A,(<a href="23296.html#23319">NEW_ROOM</a>)</td>
+<td class="comment-1" rowspan="3">The first turn in a room: nothing to wipe</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52916"></span>CEB4</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52917"></span>CEB5</td>
+<td class="instruction">JP NZ,<a href="52907.html#53087">RENDER_DYNAMIC_OBJECTS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52920"></span>CEB8</td>
+<td class="instruction">LD HL,<a href="51013.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="2">From the start of the draw list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52923"></span>CEBB</td>
+<td class="instruction">LD (<a href="23296.html#23339">SEQUENCE_AT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_0</td>
+<td class="address-2"><span id="52926"></span>CEBE</td>
+<td class="instruction">LD HL,(<a href="23296.html#23339">SEQUENCE_AT</a>)</td>
+<td class="comment-1" rowspan="6">The next record's number; $FF ends the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52929"></span>CEC1</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52930"></span>CEC2</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52931"></span>CEC3</td>
+<td class="instruction">LD (<a href="23296.html#23339">SEQUENCE_AT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52934"></span>CEC6</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52936"></span>CEC8</td>
+<td class="instruction">JP Z,<a href="52907.html#53087">RENDER_DYNAMIC_OBJECTS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52939"></span>CECB</td>
+<td class="instruction">CALL <a href="52374.html">GET_PTR_OBJECT</a></td>
+<td class="comment-1" rowspan="3">IX = the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52942"></span>CECE</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52943"></span>CECF</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52945"></span>CED1</td>
+<td class="instruction">BIT 5,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Bit 5 of the flags: it moved; the others in the list are only being drawn again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52949"></span>CED5</td>
+<td class="instruction">JR Z,<a href="52907.html#52926">RENDER_DYNAMIC_OBJECTS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52951"></span>CED7</td>
+<td class="instruction">RES 5,(IX+$07)</td>
+<td class="comment-1" rowspan="1">Only once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52955"></span>CEDB</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="4">C = the further left of the new pixel x (+1A) and the old (+1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52958"></span>CEDE</td>
+<td class="instruction">SUB (IX+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52961"></span>CEE1</td>
+<td class="instruction">JP C,<a href="52907.html#53077">RENDER_DYNAMIC_OBJECTS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52964"></span>CEE4</td>
+<td class="instruction">LD C,(IX+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_1</td>
+<td class="address-2"><span id="52967"></span>CEE7</td>
+<td class="instruction">LD A,(IX+$1E)</td>
+<td class="comment-1" rowspan="7">The old right edge in bytes: old x / 8 + old width (+1C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52970"></span>CEEA</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52971"></span>CEEB</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52972"></span>CEEC</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52973"></span>CEED</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52975"></span>CEEF</td>
+<td class="instruction">ADD A,(IX+$1C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52978"></span>CEF2</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52979"></span>CEF3</td>
+<td class="instruction">LD A,(IX+$1A)</td>
+<td class="comment-1" rowspan="9">The new one: new x / 8 + new width (+18); E = the further right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52982"></span>CEF6</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52983"></span>CEF7</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52984"></span>CEF8</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52985"></span>CEF9</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52987"></span>CEFB</td>
+<td class="instruction">ADD A,(IX+$18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52990"></span>CEFE</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52991"></span>CEFF</td>
+<td class="instruction">JR C,<a href="52907.html#52994">RENDER_DYNAMIC_OBJECTS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52993"></span>CF01</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_2</td>
+<td class="address-2"><span id="52994"></span>CF02</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="9">H = the width in bytes, from the left edge's byte to the right edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52995"></span>CF03</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52996"></span>CF04</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52997"></span>CF05</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52998"></span>CF06</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53000"></span>CF08</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53001"></span>CF09</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53002"></span>CF0A</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53003"></span>CF0B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53004"></span>CF0C</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="4">B = the lower of the new pixel y (+1B) and the old (+1F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53007"></span>CF0F</td>
+<td class="instruction">SUB (IX+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53010"></span>CF12</td>
+<td class="instruction">JR C,<a href="52907.html#53082">RENDER_DYNAMIC_OBJECTS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53012"></span>CF14</td>
+<td class="instruction">LD B,(IX+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_3</td>
+<td class="address-2"><span id="53015"></span>CF17</td>
+<td class="instruction">LD A,(IX+$1F)</td>
+<td class="comment-1" rowspan="3">The old top: old y + old height (+1D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53018"></span>CF1A</td>
+<td class="instruction">ADD A,(IX+$1D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53021"></span>CF1D</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53022"></span>CF1E</td>
+<td class="instruction">LD A,(IX+$1B)</td>
+<td class="comment-1" rowspan="5">The new top: new y + new height (+19); A = the higher</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53025"></span>CF21</td>
+<td class="instruction">ADD A,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53028"></span>CF24</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53029"></span>CF25</td>
+<td class="instruction">JR NC,<a href="52907.html#53032">RENDER_DYNAMIC_OBJECTS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53031"></span>CF27</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_4</td>
+<td class="address-2"><span id="53032"></span>CF28</td>
+<td class="instruction">SUB B</td>
+<td class="comment-1" rowspan="2">L = the height in rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53033"></span>CF29</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53034"></span>CF2A</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="3">An area that starts above the top of the screen has nothing to wipe</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53035"></span>CF2B</td>
+<td class="instruction">CP $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53037"></span>CF2D</td>
+<td class="instruction">JR NC,<a href="52907.html#52926">RENDER_DYNAMIC_OBJECTS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53039"></span>CF2F</td>
+<td class="instruction">ADD A,L</td>
+<td class="comment-1" rowspan="6">If it runs past line 192, keep only the part below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53040"></span>CF30</td>
+<td class="instruction">SUB $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53042"></span>CF32</td>
+<td class="instruction">JR C,<a href="52907.html#53048">RENDER_DYNAMIC_OBJECTS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53044"></span>CF34</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53046"></span>CF36</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53047"></span>CF37</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_5</td>
+<td class="address-2"><span id="53048"></span>CF38</td>
+<td class="instruction">CALL <a href="53557.html">CALC_VRAM_ADDR</a></td>
+<td class="comment-1" rowspan="2">DE = its display address, BC = its buffer address</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53051"></span>CF3B</td>
+<td class="instruction">CALL <a href="53536.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53054"></span>CF3E</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">Rearranged: HL = the buffer address, B = the width, C = the height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53055"></span>CF3F</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53056"></span>CF40</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53057"></span>CF41</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53058"></span>CF42</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53059"></span>CF43</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53060"></span>CF44</td>
+<td class="instruction">LD A,(<a href="23296.html#23304">WIPE_COUNT</a>)</td>
+<td class="comment-1" rowspan="3">One more area</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53063"></span>CF47</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53064"></span>CF48</td>
+<td class="instruction">LD (<a href="23296.html#23304">WIPE_COUNT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53067"></span>CF4B</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">On the stack until the objects have been drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53068"></span>CF4C</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53069"></span>CF4D</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53070"></span>CF4E</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Cleared in the buffer: <a href="49027.html">FILL_BOX</a> fills B bytes by C rows with A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53071"></span>CF4F</td>
+<td class="instruction">CALL <a href="49027.html">FILL_BOX</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53074"></span>CF52</td>
+<td class="instruction">JP <a href="52907.html#52926">RENDER_DYNAMIC_OBJECTS_0</a></td>
+<td class="comment-1" rowspan="1">The next record</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_6</td>
+<td class="address-2"><span id="53077"></span>CF55</td>
+<td class="instruction">LD C,(IX+$1A)</td>
+<td class="comment-1" rowspan="2">The new x is the further left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53080"></span>CF58</td>
+<td class="instruction">JR <a href="52907.html#52967">RENDER_DYNAMIC_OBJECTS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_7</td>
+<td class="address-2"><span id="53082"></span>CF5A</td>
+<td class="instruction">LD B,(IX+$1B)</td>
+<td class="comment-1" rowspan="2">The new y is the lower</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53085"></span>CF5D</td>
+<td class="instruction">JR <a href="52907.html#53015">RENDER_DYNAMIC_OBJECTS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_8</td>
+<td class="address-2"><span id="53087"></span>CF5F</td>
+<td class="instruction">CALL <a href="51077.html">SORT_AND_DRAW</a></td>
+<td class="comment-1" rowspan="1">Every listed object into the buffer, in depth order</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53090"></span>CF62</td>
+<td class="instruction">CALL <a href="48285.html">SHOW_CARRIED</a></td>
+<td class="comment-1" rowspan="1">The carried things on the panel, if they changed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53093"></span>CF65</td>
+<td class="instruction">LD HL,<a href="23296.html#23304">WIPE_COUNT</a></td>
+<td class="comment-1" rowspan="4">The areas count towards the turn's drawing work</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53096"></span>CF68</td>
+<td class="instruction">LD A,(<a href="23296.html#23326">DRAW_WORK</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53099"></span>CF6B</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53100"></span>CF6C</td>
+<td class="instruction">LD (<a href="23296.html#23326">DRAW_WORK</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_9</td>
+<td class="address-2"><span id="53103"></span>CF6F</td>
+<td class="instruction">LD HL,<a href="23296.html#23304">WIPE_COUNT</a></td>
+<td class="comment-1" rowspan="4">None left to copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53106"></span>CF72</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53107"></span>CF73</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53108"></span>CF74</td>
+<td class="instruction">JR Z,<a href="52907.html#53122">RENDER_DYNAMIC_OBJECTS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53110"></span>CF76</td>
+<td class="instruction">DEC (HL)</td>
+<td class="comment-1" rowspan="7">Take one off the stack, with the width and height swapped into the order <a href="53125.html">BLIT_TO_SCREEN</a> takes them</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53111"></span>CF77</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53112"></span>CF78</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53113"></span>CF79</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53114"></span>CF7A</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53115"></span>CF7B</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53116"></span>CF7C</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53117"></span>CF7D</td>
+<td class="instruction">CALL <a href="53125.html">BLIT_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="2">Copy it to the screen; the next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53120"></span>CF80</td>
+<td class="instruction">JR <a href="52907.html#53103">RENDER_DYNAMIC_OBJECTS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">RENDER_DYNAMIC_OBJECTS_10</td>
+<td class="address-2"><span id="53122"></span>CF82</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="2">Done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53124"></span>CF84</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52869.html">CE85</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52907">Map</a></td>
+<td class="next">
+Next: <a href="53125.html">CF85</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

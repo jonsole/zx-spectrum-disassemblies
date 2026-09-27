@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C397</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50063.html">C38F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50071">Map</a></td>
+<td class="next">
+Next: <a href="50160.html">C3F0</a>
+</td>
+</tr>
+</table>
+<div class="description">C397: Out through the wall at low U?</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Out if the robot's far edge after this turn's move -- U plus the step plus his half-size -- is below the wall at 128 less the room's U half-size. U is then set to 0: not a position but a marker, which <a href="52225.html">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE</a> sees when the next room is built and puts him in the doorway of its wall at high U. The other exits use $FF and 0 the same way. The new room is the one before in the same row: room numbers are a row in the high four bits and a column in the low four, and the column is changed on its own so that it wraps within the row.
+</div>
+<div class="paragraph">
+EXIT_SCREEN is the way on for all four. It gives the legs the new room and starts the walk into it: 4 in bits 4-7 of +$0C, four turns of walking straight on with the controls and the walls ignored (Knight Lore's is three). For anything but the robot -- graphics 16 to 79 -- it returns, but only he gets here. For him the rest of the turn is abandoned: the returns into <a href="49814.html">MOVE_PLAYER</a> and to the legs' update are dropped, and both his records are copied to the start records (<a href="51741.html">START_LEGS</a>), so that a life lost in the new room starts again at this doorway. In the copies the graphic is moved to +$10 and replaced by 56, the first of the appearing robot's (<a href="48240.html">PLAYER_APPEARING</a>). Then the new room is built and the main loop starts over (<a href="42567.html">AFTER_GAME</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the room's half-sizes (pushed by <a href="50029.html">HANDLE_EXIT_SCREEN</a>)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EXIT_LOW_U</td>
+<td class="address-2"><span id="50071"></span>C397</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">L = the wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50072"></span>C398</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50074"></span>C39A</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50075"></span>C39B</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50076"></span>C39C</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="5">U + dU + half-size still at or beyond it: stay</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50079"></span>C39F</td>
+<td class="instruction">ADD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50082"></span>C3A2</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50085"></span>C3A5</td>
+<td class="instruction">CP L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50086"></span>C3A6</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50087"></span>C3A7</td>
+<td class="instruction">LD (IX+$01),$00</td>
+<td class="comment-1" rowspan="1">Arrive at the wall at high U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50091"></span>C3AB</td>
+<td class="instruction">LD A,(IX+$08)</td>
+<td class="comment-1" rowspan="3">Room - 1...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50094"></span>C3AE</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50095"></span>C3AF</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="50096"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="50160.html">EXIT_HIGH_U</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EXIT_WITHIN_ROW</td>
+<td class="address-2"><span id="50096"></span>C3B0</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="5">...the new column with the old row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50098"></span>C3B2</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50099"></span>C3B3</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50100"></span>C3B4</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50102"></span>C3B6</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="50103"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="50187.html">EXIT_HIGH_V</a> and <a href="50214.html">EXIT_LOW_V</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EXIT_SCREEN</td>
+<td class="address-2"><span id="50103"></span>C3B7</td>
+<td class="instruction">LD (IX+$08),A</td>
+<td class="comment-1" rowspan="1">The new room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50106"></span>C3BA</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">The walk into the room: four turns</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50109"></span>C3BD</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50111"></span>C3BF</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50114"></span>C3C2</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">Anything but the robot: carry on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50117"></span>C3C5</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50119"></span>C3C7</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50121"></span>C3C9</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50122"></span>C3CA</td>
+<td class="instruction">INC SP</td>
+<td class="comment-1" rowspan="4">Drop the returns into <a href="49814.html">MOVE_PLAYER</a> and to the legs' update</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50123"></span>C3CB</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50124"></span>C3CC</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50125"></span>C3CD</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50126"></span>C3CE</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="5">Both his records to the start records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50128"></span>C3D0</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50129"></span>C3D1</td>
+<td class="instruction">LD DE,<a href="51741.html">START_LEGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50132"></span>C3D4</td>
+<td class="instruction">LD BC,$0040</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50135"></span>C3D7</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50137"></span>C3D9</td>
+<td class="instruction">LD A,(<a href="51741.html">START_LEGS</a>)</td>
+<td class="comment-1" rowspan="4">Each copy's graphic kept in its +$10...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50140"></span>C3DC</td>
+<td class="instruction">LD (<a href="51741.html#51757">START_LEGS_NEXT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50143"></span>C3DF</td>
+<td class="instruction">LD A,(<a href="51741.html#51773">START_TOP</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50146"></span>C3E2</td>
+<td class="instruction">LD (<a href="51741.html#51789">START_TOP_NEXT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50149"></span>C3E5</td>
+<td class="instruction">LD A,$38</td>
+<td class="comment-1" rowspan="3">...and replaced by the appearing robot's first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50151"></span>C3E7</td>
+<td class="instruction">LD (<a href="51741.html">START_LEGS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50154"></span>C3EA</td>
+<td class="instruction">LD (<a href="51741.html#51773">START_TOP</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50157"></span>C3ED</td>
+<td class="instruction">JP <a href="42567.html#42635">MAIN_NEW_ROOM</a></td>
+<td class="comment-1" rowspan="1">Build the new room and start its turns</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50063.html">C38F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50071">Map</a></td>
+<td class="next">
+Next: <a href="50160.html">C3F0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

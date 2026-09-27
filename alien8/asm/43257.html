@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at A8F9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43256.html">A8F8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43257">Map</a></td>
+<td class="next">
+Next: <a href="43354.html">A95A</a>
+</td>
+</tr>
+</table>
+<div class="description">A8F9: A leaper (graphic 130)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>. A deadly thing that now and then leaps 48 units straight up and falls back. Only one in a room is in the air at a time (LEAPING); when none is, each on its turn has a chance of one in four of going. It rises two units a turn until it is 48 above where it started or meets something above it, then falls under gravity, with a sound pitched by its height all the while, and lands.
+</div>
+<div class="paragraph">
++10: bit 0 in the air, bit 1 falling. +11: the height to leap to. Rooms $97, $A9 and $B7 have them (object template 39).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LEAPER</td>
+<td class="address-2"><span id="43257"></span>A8F9</td>
+<td class="instruction">CALL <a href="48957.html">DRAW_AT_L16_D9</a></td>
+<td class="comment-1" rowspan="1">draw 16 left and 9 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43260"></span>A8FC</td>
+<td class="instruction">CALL <a href="45732.html#45735">MAKE_DEADLY</a></td>
+<td class="comment-1" rowspan="1">deadly both ways</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43263"></span>A8FF</td>
+<td class="instruction">BIT 0,(IX+$10)</td>
+<td class="comment-1" rowspan="2">in the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43267"></span>A903</td>
+<td class="instruction">JR NZ,<a href="43257.html#43297">LEAPER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43269"></span>A905</td>
+<td class="instruction">LD A,(<a href="23296.html#23363">LEAPING</a>)</td>
+<td class="comment-1" rowspan="3">another is in the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43272"></span>A908</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43273"></span>A909</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43274"></span>A90A</td>
+<td class="instruction">LD A,(<a href="23296.html#23301">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">one turn in four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43277"></span>A90D</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43278"></span>A90E</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43280"></span>A910</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43281"></span>A911</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="6">leap: the flag, and the height to reach, 48 up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43283"></span>A913</td>
+<td class="instruction">LD (<a href="23296.html#23363">LEAPING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43286"></span>A916</td>
+<td class="instruction">LD (IX+$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43289"></span>A919</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43292"></span>A91C</td>
+<td class="instruction">ADD A,$30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43294"></span>A91E</td>
+<td class="instruction">LD (IX+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label">LEAPER_0</td>
+<td class="address-2"><span id="43297"></span>A921</td>
+<td class="instruction">BIT 1,(IX+$10)</td>
+<td class="comment-1" rowspan="2">not falling yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43301"></span>A925</td>
+<td class="instruction">JR Z,<a href="43257.html#43325">LEAPER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43303"></span>A927</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+<td class="comment-1" rowspan="1">fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43306"></span>A92A</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+<td class="comment-1" rowspan="5">landed: on the floor again, and another may leap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43310"></span>A92E</td>
+<td class="instruction">JR Z,<a href="43257.html#43319">LEAPER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43312"></span>A930</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43313"></span>A931</td>
+<td class="instruction">LD (IX+$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43316"></span>A934</td>
+<td class="instruction">LD (<a href="23296.html#23363">LEAPING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">LEAPER_1</td>
+<td class="address-2"><span id="43319"></span>A937</td>
+<td class="instruction">CALL <a href="46652.html">BEEP_BY_Z</a></td>
+<td class="comment-1" rowspan="2">a sound pitched by its height; redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43322"></span>A93A</td>
+<td class="instruction">JP <a href="49067.html">SET_WIPE_AND_DRAW_FLAGS</a></td>
+</tr>
+<tr>
+<td class="asm-label">LEAPER_2</td>
+<td class="address-2"><span id="43325"></span>A93D</td>
+<td class="instruction">LD (IX+$0B),$03</td>
+<td class="comment-1" rowspan="2">rising: two units a turn (3, less one for gravity)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43329"></span>A941</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43332"></span>A944</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="6">not yet at the top, and nothing above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43335"></span>A947</td>
+<td class="instruction">CP (IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43338"></span>A94A</td>
+<td class="instruction">JR NC,<a href="43257.html#43348">LEAPER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43340"></span>A94C</td>
+<td class="instruction">BIT 2,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43344"></span>A950</td>
+<td class="instruction">JR NZ,<a href="43257.html#43348">LEAPER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43346"></span>A952</td>
+<td class="instruction">JR <a href="43257.html#43319">LEAPER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">LEAPER_3</td>
+<td class="address-2"><span id="43348"></span>A954</td>
+<td class="instruction">SET 1,(IX+$10)</td>
+<td class="comment-1" rowspan="2">now fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43352"></span>A958</td>
+<td class="instruction">JR <a href="43257.html#43319">LEAPER_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43256.html">A8F8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43257">Map</a></td>
+<td class="next">
+Next: <a href="43354.html">A95A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

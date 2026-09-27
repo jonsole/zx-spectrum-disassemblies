@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CAA2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51870.html">CA9E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51874">Map</a></td>
+<td class="next">
+Next: <a href="51922.html">CAD2</a>
+</td>
+</tr>
+</table>
+<div class="description">CAA2: Build the room he is in</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42567.html">AFTER_GAME</a>.
+</div>
+<div class="paragraph">
+Called from the main loop (<a href="42567.html">AFTER_GAME</a>) at the start of every life and after every walk through a doorway (<a href="50071.html">EXIT_LOW_U</a>), with IX on the legs. Puts the valves of the room being left back into their places (<a href="44805.html">UPDATE_SPECIAL_OBJS</a>) -- unless no turn has been played since the game began (PLAYED) -- builds the room's records (<a href="52391.html">BUILD_ROOM</a>), clears the screen buffer (<a href="52859.html">CLEAR_SCRN_BUFFER</a>), fills the two valve records from the places (<a href="44697.html">FIND_SPECIAL_OBJS_HERE</a>), and puts the robot in the doorway he came in by if he came through one (<a href="52225.html">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE</a>).
+</div>
+<div class="paragraph">
+Then the room's state: nothing dropping from the ceiling (DROPPING), no orders for the remote-controlled robots (REMOTE_ORDERS), LEAPING cleared, and DROP_LATCH set in an even-numbered room, so that nothing drops there until something is picked up. NEW_ROOM tells the main loop to redraw the whole screen, and the room is marked seen (<a href="47203.html">MARK_ROOM_SEEN</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ENTER_ROOM</td>
+<td class="address-2"><span id="51874"></span>CAA2</td>
+<td class="instruction">LD A,(<a href="23296.html#23314">PLAYED</a>)</td>
+<td class="comment-1" rowspan="4">A turn has been played: the valves in the room being left back into their places</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51877"></span>CAA5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51878"></span>CAA6</td>
+<td class="instruction">JR Z,<a href="51874.html#51883">ENTER_ROOM_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51880"></span>CAA8</td>
+<td class="instruction">CALL <a href="44805.html">UPDATE_SPECIAL_OBJS</a></td>
+</tr>
+<tr>
+<td class="asm-label">ENTER_ROOM_0</td>
+<td class="address-2"><span id="51883"></span>CAAB</td>
+<td class="instruction">CALL <a href="52391.html">BUILD_ROOM</a></td>
+<td class="comment-1" rowspan="1">Build the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51886"></span>CAAE</td>
+<td class="instruction">CALL <a href="52859.html">CLEAR_SCRN_BUFFER</a></td>
+<td class="comment-1" rowspan="1">Clear the screen buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51889"></span>CAB1</td>
+<td class="instruction">CALL <a href="44697.html">FIND_SPECIAL_OBJS_HERE</a></td>
+<td class="comment-1" rowspan="1">The valves in this room into their records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51892"></span>CAB4</td>
+<td class="instruction">CALL <a href="52225.html">ADJUST_PLYR_UVZ_FOR_ROOM_SIZE</a></td>
+<td class="comment-1" rowspan="1">In by a doorway: stand him in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51895"></span>CAB7</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">Nothing dropping, no orders for the remote-controlled robots, LEAPING cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51896"></span>CAB8</td>
+<td class="instruction">LD (<a href="23296.html#23354">DROPPING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51899"></span>CABB</td>
+<td class="instruction">LD (<a href="23296.html#23362">REMOTE_ORDERS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51902"></span>CABE</td>
+<td class="instruction">LD (<a href="23296.html#23363">LEAPING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51905"></span>CAC1</td>
+<td class="instruction">LD A,(<a href="23432.html#23440">PLAYER_ROOM</a>)</td>
+<td class="comment-1" rowspan="4">DROP_LATCH: 1 in an even-numbered room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51908"></span>CAC4</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51909"></span>CAC5</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51911"></span>CAC7</td>
+<td class="instruction">LD (<a href="23296.html#23355">DROP_LATCH</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51914"></span>CACA</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="2">NEW_ROOM</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51916"></span>CACC</td>
+<td class="instruction">LD (<a href="23296.html#23319">NEW_ROOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51919"></span>CACF</td>
+<td class="instruction">JP <a href="47203.html">MARK_ROOM_SEEN</a></td>
+<td class="comment-1" rowspan="1">Mark the room seen</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51870.html">CA9E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51874">Map</a></td>
+<td class="next">
+Next: <a href="51922.html">CAD2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

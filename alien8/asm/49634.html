@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C1E2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49626.html">C1DA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49634">Map</a></td>
+<td class="next">
+Next: <a href="49709.html">C22D</a>
+</td>
+</tr>
+</table>
+<div class="description">C1E2: The robot's legs while he turns (graphics 24 to 27)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The update routine (<a href="42986.html">UPDATES</a>) of the in-between views a quarter turn passes through. <a href="49468.html">HANDLE_LEFT_RIGHT</a> starts a turn by giving the legs one of them (<a href="49618.html">TURN_RIGHT_VIEWS</a>, <a href="49626.html">TURN_LEFT_VIEWS</a>) and a count of one in bits 1-2 of +$0D, with bit 0 set for a right turn. While the count runs this routine only lets the robot fall; once it has run out it gives the legs the standing graphic of the new facing (<a href="49709.html">TURN_RIGHT_ENDS</a>, <a href="49717.html">TURN_LEFT_ENDS</a>), with a sound. So the in-between view is on the screen for two turns, and a walking robot stands still for three: the turn a turn starts (<a href="49814.html">MOVE_PLAYER</a> takes no step with an in-between graphic), and these two (measured in the simulator: a left turn from facing 1 showed graphic 26 for two turns and then 17 mirrored, facing 2; with walk held through a right turn U did not change until the turn after the new facing).
+</div>
+<div class="paragraph">
+Like the legs' own routine (<a href="49342.html">PLAYER_LEGS</a>) it reads the controls, gives the legs the whole robot's height, 23, and the top none while he moves, keeps the top out of the collision scans meanwhile, and ends in that routine's tail: heights 12 and 11, and a redraw. Unlike it, it does not look at the killed bit of +$0D, nor count down the walk into a room.
+</div>
+<div class="paragraph">
+The finishing branch means to take a step if walk is held: it comes into <a href="49814.html">MOVE_PLAYER</a> at MOVE_IF_WALKING, which tests bit 2 of C. But the sound it makes first (<a href="46798.html">FOOTSTEP</a>, at the entry that skips the frame test) counts C down to zero, so the step is never taken and gravity takes its full two units whatever is held. <a href="49758.html">HANDLE_FORWARD</a> keeps BC around the same sound.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the legs' record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TURNING_LEGS</td>
+<td class="address-2"><span id="49634"></span>C1E2</td>
+<td class="instruction">CALL <a href="48972.html">DRAW_AT_L16_D7</a></td>
+<td class="comment-1" rowspan="1">Drawn 16 left and 7 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49637"></span>C1E5</td>
+<td class="instruction">LD (IX+$06),$17</td>
+<td class="comment-1" rowspan="2">While he moves, the legs' box is the whole robot's, 23 high, and the top has no height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49641"></span>C1E9</td>
+<td class="instruction">LD (IX+$26),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49645"></span>C1ED</td>
+<td class="instruction">CALL <a href="51455.html">READ_CONTROLS</a></td>
+<td class="comment-1" rowspan="1">C = the controls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49648"></span>C1F0</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">The turn's count, bits 1-2 of +$0D, still running?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49651"></span>C1F3</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49653"></span>C1F5</td>
+<td class="instruction">JR Z,<a href="49634.html#49672">TURNING_LEGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49655"></span>C1F7</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">Count it down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49658"></span>C1FA</td>
+<td class="instruction">SUB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49660"></span>C1FC</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49663"></span>C1FF</td>
+<td class="instruction">SET 1,(IX+$27)</td>
+<td class="comment-1" rowspan="3">The top out of the scans; fall, without a step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49667"></span>C203</td>
+<td class="instruction">CALL <a href="49814.html#49852">APPLY_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49670"></span>C206</td>
+<td class="instruction">JR <a href="49634.html#49697">TURNING_LEGS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURNING_LEGS_0</td>
+<td class="address-2"><span id="49672"></span>C208</td>
+<td class="instruction">BIT 0,(IX+$0D)</td>
+<td class="comment-1" rowspan="3">Bit 0: a right turn ends from <a href="49709.html">TURN_RIGHT_ENDS</a>...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49676"></span>C20C</td>
+<td class="instruction">JR Z,<a href="49634.html#49704">TURNING_LEGS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49678"></span>C20E</td>
+<td class="instruction">LD HL,<a href="49709.html">TURN_RIGHT_ENDS</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURNING_LEGS_1</td>
+<td class="address-2"><span id="49681"></span>C211</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="2">...the standing graphic and mirror bit of the new facing, by the in-between graphic's low two bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49684"></span>C214</td>
+<td class="instruction">CALL <a href="49468.html#49597">SET_TURN_GRAPHIC</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49687"></span>C217</td>
+<td class="instruction">CALL <a href="46798.html#46804">FOOTSTEP_NOW</a></td>
+<td class="comment-1" rowspan="1">The turn's sound; it leaves C at zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49690"></span>C21A</td>
+<td class="instruction">SET 1,(IX+$27)</td>
+<td class="comment-1" rowspan="2">The top out of the scans; a step if walk is held (never, C being zero), then fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49694"></span>C21E</td>
+<td class="instruction">CALL <a href="49814.html#49843">MOVE_IF_WALKING</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURNING_LEGS_2</td>
+<td class="address-2"><span id="49697"></span>C221</td>
+<td class="instruction">RES 1,(IX+$27)</td>
+<td class="comment-1" rowspan="2">The top back in the scans; heights 12 and 11 and the redraw, in the tail of <a href="49342.html">PLAYER_LEGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49701"></span>C225</td>
+<td class="instruction">JP <a href="49342.html#49407">PLAYER_LEGS_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURNING_LEGS_3</td>
+<td class="address-2"><span id="49704"></span>C228</td>
+<td class="instruction">LD HL,<a href="49717.html">TURN_LEFT_ENDS</a></td>
+<td class="comment-1" rowspan="2">A left turn ends from <a href="49717.html">TURN_LEFT_ENDS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49707"></span>C22B</td>
+<td class="instruction">JR <a href="49634.html#49681">TURNING_LEGS_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49626.html">C1DA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49634">Map</a></td>
+<td class="next">
+Next: <a href="49709.html">C22D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

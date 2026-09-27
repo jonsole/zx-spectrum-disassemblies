@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C8AB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51311.html">C86F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51371">Map</a></td>
+<td class="next">
+Next: <a href="51413.html">C8D5</a>
+</td>
+</tr>
+</table>
+<div class="description">C8AB: Two boxes occupy the same space</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Index 13 of <a href="51251.html">DEPTH_ORDER</a>: the boxes overlap on all three axes, and order does not come into it. As in Knight Lore, this is where a valve that shares its space with something else is destroyed. Unless either is out of the collision tests (bit 1 of the flags), a loose valve -- graphics 96 to 99 -- is turned into graphic 64, whose update (<a href="45988.html">SPARKLE_STEP</a>) steps it to 65, whose update (<a href="46000.html">SPARKLE_END_PLACE</a>) empties its place in <a href="30435.html">PLACES</a> and then the record: the valve is gone for the rest of the game. The candidate is checked first; only one of the pair is changed. Knight Lore does this to its collectables (types 96-102); Pentagram does nothing here.
+</div>
+<div class="paragraph">
+Measured in the simulator: a valve put in the start room where the robot appears, inside his box, was gone -- record and place emptied -- once he had appeared, with this routine's IY branch run; the same valve put above him came to rest on his top.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BOXES_INTERSECT</td>
+<td class="address-2"><span id="51371"></span>C8AB</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="4">Either out of the collision tests: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51374"></span>C8AE</td>
+<td class="instruction">OR (IY+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51377"></span>C8B1</td>
+<td class="instruction">AND $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51379"></span>C8B3</td>
+<td class="instruction">JP NZ,<a href="51077.html#51109">COMPARE_NEXT_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51382"></span>C8B6</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">The candidate a loose valve?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51385"></span>C8B9</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51387"></span>C8BB</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51389"></span>C8BD</td>
+<td class="instruction">JR NC,<a href="51371.html#51397">BOXES_INTERSECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51391"></span>C8BF</td>
+<td class="instruction">LD (IX+$00),$40</td>
+<td class="comment-1" rowspan="2">Yes: destroy it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51395"></span>C8C3</td>
+<td class="instruction">JR <a href="51371.html#51410">BOXES_INTERSECT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">BOXES_INTERSECT_0</td>
+<td class="address-2"><span id="51397"></span>C8C5</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="4">The other a loose valve?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51400"></span>C8C8</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51402"></span>C8CA</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51404"></span>C8CC</td>
+<td class="instruction">JR NC,<a href="51371.html#51410">BOXES_INTERSECT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51406"></span>C8CE</td>
+<td class="instruction">LD (IY+$00),$40</td>
+<td class="comment-1" rowspan="1">Yes: destroy it</td>
+</tr>
+<tr>
+<td class="asm-label">BOXES_INTERSECT_1</td>
+<td class="address-2"><span id="51410"></span>C8D2</td>
+<td class="instruction">JP <a href="51077.html#51109">COMPARE_NEXT_OBJ</a></td>
+<td class="comment-1" rowspan="1">Next comparison</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51311.html">C86F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51371">Map</a></td>
+<td class="next">
+Next: <a href="51413.html">C8D5</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

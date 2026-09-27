@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CE85</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52859.html">CE7B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52869">Map</a></td>
+<td class="next">
+Next: <a href="52907.html">CEAB</a>
+</td>
+</tr>
+</table>
+<div class="description">CE85: Copy the screen buffer to the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="42688.html">OBJECT_DONE</a>, <a href="46945.html">GAME_ENDED</a> and <a href="48165.html">DISPLAY_MENU</a>.
+</div>
+<div class="paragraph">
+All 192 rows of 32 bytes from <a href="53760.html">BUFFER</a>. The buffer runs the other way up from the display -- its first row is the bottom line of the screen -- because the game's pixel y counts up from the bottom; so the copy starts at the display's bottom-left byte and works up a line at a time. Used on the first turn in a room (<a href="42688.html">OBJECT_DONE</a>) and for the text screens (<a href="48165.html">DISPLAY_MENU</a>, <a href="46945.html">GAME_ENDED</a>). Knight Lore's update_screen clears the buffer as it copies; this one, like Pentagram's, leaves it as it is.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER</td>
+<td class="address-2"><span id="52869"></span>CE85</td>
+<td class="instruction">LD HL,<a href="53760.html">BUFFER</a></td>
+<td class="comment-1" rowspan="3">From the buffer's first row to the display's bottom line; 192 rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52872"></span>CE88</td>
+<td class="instruction">LD DE,$57E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52875"></span>CE8B</td>
+<td class="instruction">LD BC,$C020</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER_0</td>
+<td class="address-2"><span id="52878"></span>CE8E</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">A row of 32 bytes; HL runs on to the next row by itself</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52879"></span>CE8F</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52880"></span>CE90</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52882"></span>CE92</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52884"></span>CE94</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52885"></span>CE95</td>
+<td class="instruction">DEC D</td>
+<td class="comment-1" rowspan="5">Up a display line, unless that crossed a character row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52886"></span>CE96</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52887"></span>CE97</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52888"></span>CE98</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52890"></span>CE9A</td>
+<td class="instruction">JR NZ,<a href="52869.html#52902">SHOW_BUFFER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52892"></span>CE9C</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="7">Crossing a character row: back 32 in E, and back into this third unless that borrowed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52893"></span>CE9D</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52895"></span>CE9F</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52896"></span>CEA0</td>
+<td class="instruction">JR C,<a href="52869.html#52902">SHOW_BUFFER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52898"></span>CEA2</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52899"></span>CEA3</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52901"></span>CEA5</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_BUFFER_1</td>
+<td class="address-2"><span id="52902"></span>CEA6</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">The next row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52903"></span>CEA7</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52904"></span>CEA8</td>
+<td class="instruction">JR NZ,<a href="52869.html#52878">SHOW_BUFFER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52906"></span>CEAA</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52859.html">CE7B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52869">Map</a></td>
+<td class="next">
+Next: <a href="52907.html">CEAB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

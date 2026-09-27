@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at C5E9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50643.html">C5D3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50665">Map</a></td>
+<td class="next">
+Next: <a href="50707.html">C613</a>
+</td>
+</tr>
+</table>
+<div class="description">C5E9: Shorten dU at the walls</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50242.html">ADJ_FOR_OUT_OF_BOUNDS</a>.
+</div>
+<div class="paragraph">
+Keeps the object's whole footprint within the room: its U after the move no further from 128 than the room's U half-size (ROOM_HALF_U, 64 or 32) less its own half-size. dU is shortened a unit at a time, and bit 0 of +$0C set if it had to be.
+</div>
+<div class="paragraph">
+Two things switch the walls off, as in Knight Lore: the count in bits 4-7 of +$0C, the walk into a room, which the legs' update runs down a turn at a time (<a href="49342.html">PLAYER_LEGS</a>); and bit 0 of the flags, which a doorway sets on the robot while he is in it (<a href="49282.html">CHK_PLYR_NEAR_ARCH</a>). That is how he walks through one at all.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the object</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">dU</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">dU, shortened</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADJ_DU_FOR_OUT_OF_BOUNDS</td>
+<td class="address-2"><span id="50665"></span>C5E9</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">Not while the count in +$0C runs</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50668"></span>C5EC</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50670"></span>C5EE</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50671"></span>C5EF</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Not in a doorway</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50675"></span>C5F3</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50676"></span>C5F4</td>
+<td class="instruction">LD A,(<a href="23296.html#23307">ROOM_HALF_U</a>)</td>
+<td class="comment-1" rowspan="2">B = the room's U half-size</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50679"></span>C5F7</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">CLIP_DU_TO_WALLS</td>
+<td class="address-2"><span id="50680"></span>C5F8</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="5">A = |U + dU - 128|</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50683"></span>C5FB</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50684"></span>C5FC</td>
+<td class="instruction">SUB $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50686"></span>C5FE</td>
+<td class="instruction">JR NC,<a href="50665.html#50690">ADJ_DU_FOR_OUT_OF_BOUNDS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50688"></span>C600</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">ADJ_DU_FOR_OUT_OF_BOUNDS_0</td>
+<td class="address-2"><span id="50690"></span>C602</td>
+<td class="instruction">ADD A,(IX+$04)</td>
+<td class="comment-1" rowspan="3">Inside if that plus the half-size is less than the room's: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50693"></span>C605</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50694"></span>C606</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50695"></span>C607</td>
+<td class="instruction">SET 0,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">Stopped in U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50699"></span>C60B</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">A unit shorter, and again unless nothing is left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50700"></span>C60C</td>
+<td class="instruction">CALL <a href="50054.html">SHORTEN_DELTA</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50703"></span>C60F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50704"></span>C610</td>
+<td class="instruction">JR NZ,<a href="50665.html#50680">CLIP_DU_TO_WALLS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50706"></span>C612</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50643.html">C5D3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50665">Map</a></td>
+<td class="next">
+Next: <a href="50707.html">C613</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

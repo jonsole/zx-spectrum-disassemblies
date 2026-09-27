@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Templates: what a room can place</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="alien8.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Templates">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Alien 8</a></td>
+<td class="page-header">Templates: what a room can place</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>The 37 kinds of thing a room record can place: the templates the builder (<a href="asm/52391.html">BUILD_ROOM</a>) makes object records from, after the backgrounds and the $FF that ends them. A room gives a group header -- bits 3-7 a template number, an index into <a href="asm/29640.html">OBJECT_TABLE</a>, and bits 0-2 how many copies less one -- then a position byte for each copy: U = 72 + 16 times bits 0-2, V = 72 + 16 times bits 3-5, and Z the floor plus 12 times bits 6-7, so a room is an 8 by 8 grid of cells, four levels high. The count at +1 of the record, not the data, ends the build: a group can be cut short by it.</p>
+<p>A template is a list of five-byte parts ended by a zero: the graphic, the half-sizes in U and V, the height (Z is an object's base, not its middle) and the flags, which go to +0 and +4 to +7 of a record, the position to +1 to +3 and the room to +8. Most have one part; 7 have two at the same place: the creatures that walk on a separate lower half, and the chambers' sockets with the sparkle over them. The graphic decides everything else, its update routine and its sprite (see <a href="Objects.html">every graphic</a>).</p>
+<h3 id="pages">Two pages of templates</h3>
+<p>A header can name 32 templates, and the game has more. The table at <a href="asm/29640.html">OBJECT_TABLE</a> is 40 words: header number 31 is not a template but moves the builder's TEMPLATES_AT on 64 bytes, to the words from number 32 on, for the rest of the room, and the byte after it is skipped. So templates 33 to 39 are header numbers 1 to 7 after a 31; they are listed here by their place in the table. Words 0, 31 and 32 are zero: a header number of 0 is the placement nudge, below, on either page, so neither page's word 0 is ever read, and 31 is the switch. The rooms switch pages 12 times; the second page holds the remote-control buttons and pad, the things that break and the leapers.</p>
+<h3 id="nudge">The placement nudge</h3>
+<img class="kl-piece" src="images/graphics/nudge.png" alt="Eight blocks in a column" width="92" height="240">
+<p>Header number 0 is not a template either: the byte after it becomes PLACE_NUDGE for the groups that follow (<a href="asm/52391.html">BUILD_ROOM</a>): its bit 0 adds 8 to U, bit 1 adds 8 to V, and the rest of it is added to Z. The rooms set it 42 times, always to $00 or $30: 41 times $30, which lifts what follows by 48, four levels, so that a room can stack things eight levels high; the bits that move a thing half a cell are never used. Pentagram's builder has the same code with no jump to it (see <a href="../pentagram/Templates.html">Pentagram's templates</a>); here it is live. The picture is the game's: a one-off room with four of template 1 at levels 0 to 3 of one cell, the nudge of $30, and the same four again, which land on top of the first.</p>
+<h3 id="templates">The templates</h3>
+<p>Each is drawn here by the game, on its own near the middle of an empty room (cell 3, 3, on the floor), from a one-off room record the game builds and draws its first turn of, in SkoolKit's simulator; a thing that moves has had one turn, and one that the rooms always raise with the nudge is drawn on the floor all the same. Knight Lore's templates are the same idea with a sixth byte, an offset (see <a href="../knightlore/Templates.html">Knight Lore's templates</a>).</p>
+<div class="kl-item" id="template1">
+<img class="kl-piece" src="images/graphics/template01.png" alt="Object template 1" width="92" height="86">
+<p><b>1: A plain block</b> -- <a href="asm/29720.html">OBJECT1</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic30">30</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/48957.html">DRAW_AT_L16_D9</a></td></tr></table>
+<p>812 copies in 91 rooms, 36 of them raised by the nudge: <a href="RoomStructure.html#room02">$02</a>, <a href="RoomStructure.html#room04">$04</a>, <a href="RoomStructure.html#room05">$05</a>, <a href="RoomStructure.html#room0a">$0A</a>, <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room12">$12</a>, <a href="RoomStructure.html#room14">$14</a>, <a href="RoomStructure.html#room1c">$1C</a>, <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room20">$20</a>, <a href="RoomStructure.html#room23">$23</a>, <a href="RoomStructure.html#room27">$27</a>, <a href="RoomStructure.html#room28">$28</a>, <a href="RoomStructure.html#room2f">$2F</a>, <a href="RoomStructure.html#room30">$30</a>, <a href="RoomStructure.html#room31">$31</a>, <a href="RoomStructure.html#room33">$33</a>, <a href="RoomStructure.html#room34">$34</a>, <a href="RoomStructure.html#room36">$36</a>, <a href="RoomStructure.html#room37">$37</a>, <a href="RoomStructure.html#room38">$38</a>, <a href="RoomStructure.html#room39">$39</a>, <a href="RoomStructure.html#room3b">$3B</a>, <a href="RoomStructure.html#room3f">$3F</a>, <a href="RoomStructure.html#room40">$40</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room42">$42</a>, <a href="RoomStructure.html#room43">$43</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room45">$45</a>, <a href="RoomStructure.html#room46">$46</a>, <a href="RoomStructure.html#room48">$48</a>, <a href="RoomStructure.html#room49">$49</a>, <a href="RoomStructure.html#room4a">$4A</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room4c">$4C</a>, <a href="RoomStructure.html#room4e">$4E</a>, <a href="RoomStructure.html#room4f">$4F</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room57">$57</a>, <a href="RoomStructure.html#room58">$58</a>, <a href="RoomStructure.html#room59">$59</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room64">$64</a>, <a href="RoomStructure.html#room65">$65</a>, <a href="RoomStructure.html#room67">$67</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room6e">$6E</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room75">$75</a>, <a href="RoomStructure.html#room77">$77</a>, <a href="RoomStructure.html#room78">$78</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room7b">$7B</a>, <a href="RoomStructure.html#room82">$82</a>, <a href="RoomStructure.html#room84">$84</a>, <a href="RoomStructure.html#room86">$86</a>, <a href="RoomStructure.html#room87">$87</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#room8d">$8D</a>, <a href="RoomStructure.html#room93">$93</a>, <a href="RoomStructure.html#room94">$94</a>, <a href="RoomStructure.html#room95">$95</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#room98">$98</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#room9a">$9A</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#rooma4">$A4</a>, <a href="RoomStructure.html#rooma5">$A5</a>, <a href="RoomStructure.html#rooma6">$A6</a>, <a href="RoomStructure.html#rooma7">$A7</a>, <a href="RoomStructure.html#roomaa">$AA</a>, <a href="RoomStructure.html#roomab">$AB</a>, <a href="RoomStructure.html#roomb5">$B5</a>, <a href="RoomStructure.html#roomb7">$B7</a>, <a href="RoomStructure.html#roomb9">$B9</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomc6">$C6</a>, <a href="RoomStructure.html#roomc7">$C7</a>, <a href="RoomStructure.html#roomc8">$C8</a>, <a href="RoomStructure.html#roomc9">$C9</a>, <a href="RoomStructure.html#roomd6">$D6</a>, <a href="RoomStructure.html#roomd8">$D8</a>, <a href="RoomStructure.html#roome7">$E7</a>, <a href="RoomStructure.html#roomf7">$F7</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template2">
+<img class="kl-piece" src="images/graphics/template02.png" alt="Object template 2" width="92" height="78">
+<p><b>2: A block with a raised round top that can be pushed</b> -- <a href="asm/29726.html">OBJECT2</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic28">28</a></td><td>7, 7; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/45823.html">PUSHABLE</a></td></tr></table>
+<p>32 copies in 19 rooms, 5 of them raised by the nudge: <a href="RoomStructure.html#room0a">$0A</a>, <a href="RoomStructure.html#room1c">$1C</a>, <a href="RoomStructure.html#room28">$28</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room49">$49</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#roomaa">$AA</a>, <a href="RoomStructure.html#roomb6">$B6</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomc8">$C8</a>.</p>
+</div>
+<div class="kl-item" id="template3">
+<img class="kl-piece" src="images/graphics/template03.png" alt="Object template 3" width="92" height="82">
+<p><b>3: A block tapering to the bottom that can be pushed</b> -- <a href="asm/29732.html">OBJECT3</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic29">29</a></td><td>7, 7; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/45850.html">PUSHABLE_INVERTED</a></td></tr></table>
+<p>20 copies in 13 rooms, 4 of them raised by the nudge: <a href="RoomStructure.html#room0a">$0A</a>, <a href="RoomStructure.html#room1c">$1C</a>, <a href="RoomStructure.html#room37">$37</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room82">$82</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomc8">$C8</a>.</p>
+</div>
+<div class="kl-item" id="template4">
+<img class="kl-piece" src="images/graphics/template04.png" alt="Object template 4" width="92" height="86">
+<p><b>4: A plain block that bobs up and down</b> -- <a href="asm/29738.html">OBJECT4</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic31">31</a></td><td>8, 8; 12</td><td>$14 (pushable, to be drawn)</td><td>BOBBER, in <a href="asm/45855.html">LIFT</a></td></tr></table>
+<p>15 copies in 9 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room36">$36</a>, <a href="RoomStructure.html#room39">$39</a>, <a href="RoomStructure.html#room4a">$4A</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room86">$86</a>, <a href="RoomStructure.html#roomb9">$B9</a>, <a href="RoomStructure.html#roomc6">$C6</a>, <a href="RoomStructure.html#roome7">$E7</a>.</p>
+</div>
+<div class="kl-item" id="template5">
+<img class="kl-piece" src="images/graphics/template05.png" alt="Object template 5" width="92" height="86">
+<p><b>5: A plain block that sinks while stood on</b> -- <a href="asm/29744.html">OBJECT5</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic44">44</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45750.html">DROPPING_BLOCK</a></td></tr></table>
+<p>19 copies in 9 rooms, 2 of them raised by the nudge: <a href="RoomStructure.html#room12">$12</a>, <a href="RoomStructure.html#room82">$82</a>, <a href="RoomStructure.html#room95">$95</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#rooma4">$A4</a>, <a href="RoomStructure.html#roomab">$AB</a>, <a href="RoomStructure.html#roomb5">$B5</a>, <a href="RoomStructure.html#roomb9">$B9</a>, <a href="RoomStructure.html#roomf7">$F7</a>.</p>
+</div>
+<div class="kl-item" id="template6">
+<img class="kl-piece" src="images/graphics/template06.png" alt="Object template 6" width="92" height="86">
+<p><b>6: A plain block that collapses when landed on</b> -- <a href="asm/29750.html">OBJECT6</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic45">45</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45708.html">COLLAPSING_BLOCK</a></td></tr></table>
+<p>203 copies in 38 rooms, 32 of them raised by the nudge: <a href="RoomStructure.html#room02">$02</a>, <a href="RoomStructure.html#room12">$12</a>, <a href="RoomStructure.html#room15">$15</a>, <a href="RoomStructure.html#room1b">$1B</a>, <a href="RoomStructure.html#room20">$20</a>, <a href="RoomStructure.html#room27">$27</a>, <a href="RoomStructure.html#room2f">$2F</a>, <a href="RoomStructure.html#room31">$31</a>, <a href="RoomStructure.html#room3b">$3B</a>, <a href="RoomStructure.html#room3e">$3E</a>, <a href="RoomStructure.html#room3f">$3F</a>, <a href="RoomStructure.html#room40">$40</a>, <a href="RoomStructure.html#room43">$43</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room45">$45</a>, <a href="RoomStructure.html#room46">$46</a>, <a href="RoomStructure.html#room48">$48</a>, <a href="RoomStructure.html#room4c">$4C</a>, <a href="RoomStructure.html#room59">$59</a>, <a href="RoomStructure.html#room64">$64</a>, <a href="RoomStructure.html#room6e">$6E</a>, <a href="RoomStructure.html#room75">$75</a>, <a href="RoomStructure.html#room7b">$7B</a>, <a href="RoomStructure.html#room82">$82</a>, <a href="RoomStructure.html#room87">$87</a>, <a href="RoomStructure.html#room94">$94</a>, <a href="RoomStructure.html#room95">$95</a>, <a href="RoomStructure.html#room9a">$9A</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#rooma4">$A4</a>, <a href="RoomStructure.html#rooma7">$A7</a>, <a href="RoomStructure.html#roomaa">$AA</a>, <a href="RoomStructure.html#roomb5">$B5</a>, <a href="RoomStructure.html#roomb6">$B6</a>, <a href="RoomStructure.html#roomb8">$B8</a>, <a href="RoomStructure.html#roomc7">$C7</a>, <a href="RoomStructure.html#roomf7">$F7</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template7">
+<img class="kl-piece" src="images/graphics/template07.png" alt="Object template 7" width="76" height="76">
+<p><b>7: A crown of spikes on a base, deadly</b> -- <a href="asm/29756.html">OBJECT7</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic46">46</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45732.html">SPIKES</a></td></tr></table>
+<p>175 copies in 36 rooms, 2 of them raised by the nudge: <a href="RoomStructure.html#room03">$03</a>, <a href="RoomStructure.html#room04">$04</a>, <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room12">$12</a>, <a href="RoomStructure.html#room15">$15</a>, <a href="RoomStructure.html#room1a">$1A</a>, <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room20">$20</a>, <a href="RoomStructure.html#room27">$27</a>, <a href="RoomStructure.html#room39">$39</a>, <a href="RoomStructure.html#room3e">$3E</a>, <a href="RoomStructure.html#room40">$40</a>, <a href="RoomStructure.html#room4a">$4A</a>, <a href="RoomStructure.html#room4c">$4C</a>, <a href="RoomStructure.html#room4f">$4F</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room57">$57</a>, <a href="RoomStructure.html#room59">$59</a>, <a href="RoomStructure.html#room5b">$5B</a>, <a href="RoomStructure.html#room64">$64</a>, <a href="RoomStructure.html#room75">$75</a>, <a href="RoomStructure.html#room76">$76</a>, <a href="RoomStructure.html#room77">$77</a>, <a href="RoomStructure.html#room86">$86</a>, <a href="RoomStructure.html#room87">$87</a>, <a href="RoomStructure.html#room88">$88</a>, <a href="RoomStructure.html#room8a">$8A</a>, <a href="RoomStructure.html#room93">$93</a>, <a href="RoomStructure.html#room95">$95</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#rooma7">$A7</a>, <a href="RoomStructure.html#roomb6">$B6</a>, <a href="RoomStructure.html#roomb9">$B9</a>, <a href="RoomStructure.html#roomc7">$C7</a>, <a href="RoomStructure.html#roomc8">$C8</a>, <a href="RoomStructure.html#roome7">$E7</a>.</p>
+</div>
+<div class="kl-item" id="template8">
+<img class="kl-piece" src="images/graphics/template08.png" alt="Object template 8" width="92" height="86">
+<p><b>8: A plain block that carries things forwards in V</b> -- <a href="asm/29762.html">OBJECT8</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic68">68</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45671.html">CONVEYOR_PLUS_V</a></td></tr></table>
+<p>47 copies in 8 rooms: <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room1a">$1A</a>, <a href="RoomStructure.html#room23">$23</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room5b">$5B</a>, <a href="RoomStructure.html#room76">$76</a>, <a href="RoomStructure.html#roomc9">$C9</a>, <a href="RoomStructure.html#roomf7">$F7</a>.</p>
+</div>
+<div class="kl-item" id="template9">
+<img class="kl-piece" src="images/graphics/template09.png" alt="Object template 9" width="92" height="86">
+<p><b>9: A plain block that carries things forwards in U</b> -- <a href="asm/29768.html">OBJECT9</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic69">69</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45690.html">CONVEYOR_PLUS_U</a></td></tr></table>
+<p>26 copies in 8 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room3b">$3B</a>, <a href="RoomStructure.html#room40">$40</a>, <a href="RoomStructure.html#room43">$43</a>, <a href="RoomStructure.html#room48">$48</a>, <a href="RoomStructure.html#room4a">$4A</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#roomf7">$F7</a>.</p>
+</div>
+<div class="kl-item" id="template10">
+<img class="kl-piece" src="images/graphics/template10.png" alt="Object template 10" width="92" height="86">
+<p><b>10: A plain block that carries things back in V</b> -- <a href="asm/29774.html">OBJECT10</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic70">70</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45696.html">CONVEYOR_MINUS_V</a></td></tr></table>
+<p>30 copies in 7 rooms: <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room12">$12</a>, <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room23">$23</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room5b">$5B</a>, <a href="RoomStructure.html#room76">$76</a>.</p>
+</div>
+<div class="kl-item" id="template11">
+<img class="kl-piece" src="images/graphics/template11.png" alt="Object template 11" width="92" height="86">
+<p><b>11: A plain block that carries things back in U</b> -- <a href="asm/29780.html">OBJECT11</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic71">71</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45702.html">CONVEYOR_MINUS_U</a></td></tr></table>
+<p>22 copies in 5 rooms: <a href="RoomStructure.html#room03">$03</a>, <a href="RoomStructure.html#room0d">$0D</a>, <a href="RoomStructure.html#room1a">$1A</a>, <a href="RoomStructure.html#room3b">$3B</a>, <a href="RoomStructure.html#room43">$43</a>.</p>
+</div>
+<div class="kl-item" id="template12">
+<img class="kl-piece" src="images/graphics/template12.png" alt="Object template 12" width="92" height="86">
+<p><b>12: A plain block that lifts</b> -- <a href="asm/29786.html">OBJECT12</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic47">47</a></td><td>8, 8; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/45855.html">LIFT</a></td></tr></table>
+<p>13 copies in 6 rooms: <a href="RoomStructure.html#room23">$23</a>, <a href="RoomStructure.html#room34">$34</a>, <a href="RoomStructure.html#room43">$43</a>, <a href="RoomStructure.html#room93">$93</a>, <a href="RoomStructure.html#rooma6">$A6</a>, <a href="RoomStructure.html#roomd6">$D6</a>.</p>
+</div>
+<div class="kl-item" id="template13">
+<img class="kl-piece" src="images/graphics/template13.png" alt="Object template 13" width="92" height="86">
+<p><b>13: A plain block that shuttles in U</b> -- <a href="asm/29792.html">OBJECT13</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic66">66</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45604.html">SHUTTLE_U</a></td></tr></table>
+<p>3 copies in 2 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room3c">$3C</a>, <a href="RoomStructure.html#room61">$61</a>.</p>
+</div>
+<div class="kl-item" id="template14">
+<img class="kl-piece" src="images/graphics/template14.png" alt="Object template 14" width="92" height="86">
+<p><b>14: A plain block that shuttles in V</b> -- <a href="asm/29798.html">OBJECT14</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic67">67</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45596.html">SHUTTLE_V</a></td></tr></table>
+<p>6 copies in 4 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room30">$30</a>, <a href="RoomStructure.html#room4f">$4F</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#roomf7">$F7</a>.</p>
+</div>
+<div class="kl-item" id="template15">
+<img class="kl-piece" src="images/graphics/template15.png" alt="Object template 15" width="92" height="76">
+<p><b>15: A pyramid, deadly</b> -- <a href="asm/29804.html">OBJECT15</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic72">72</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45727.html">STILL_DEADLY</a></td></tr></table>
+<p>232 copies in 30 rooms, 7 of them raised by the nudge: <a href="RoomStructure.html#room04">$04</a>, <a href="RoomStructure.html#room14">$14</a>, <a href="RoomStructure.html#room23">$23</a>, <a href="RoomStructure.html#room24">$24</a>, <a href="RoomStructure.html#room2f">$2F</a>, <a href="RoomStructure.html#room30">$30</a>, <a href="RoomStructure.html#room33">$33</a>, <a href="RoomStructure.html#room34">$34</a>, <a href="RoomStructure.html#room36">$36</a>, <a href="RoomStructure.html#room38">$38</a>, <a href="RoomStructure.html#room3b">$3B</a>, <a href="RoomStructure.html#room43">$43</a>, <a href="RoomStructure.html#room45">$45</a>, <a href="RoomStructure.html#room46">$46</a>, <a href="RoomStructure.html#room48">$48</a>, <a href="RoomStructure.html#room54">$54</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room77">$77</a>, <a href="RoomStructure.html#room78">$78</a>, <a href="RoomStructure.html#room7d">$7D</a>, <a href="RoomStructure.html#room86">$86</a>, <a href="RoomStructure.html#room98">$98</a>, <a href="RoomStructure.html#rooma4">$A4</a>, <a href="RoomStructure.html#roomab">$AB</a>, <a href="RoomStructure.html#roomb8">$B8</a>, <a href="RoomStructure.html#roomd6">$D6</a>, <a href="RoomStructure.html#roomd7">$D7</a>, <a href="RoomStructure.html#roome7">$E7</a>.</p>
+</div>
+<div class="kl-item" id="template16">
+<img class="kl-piece" src="images/graphics/template16.png" alt="Object template 16" width="74" height="80">
+<p><b>16: A crackle of sparks that chases him (the sparkle's sprites)</b> -- <a href="asm/29810.html">OBJECT16</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic76">76</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45468.html">SPARK_CHASER</a></td></tr></table>
+<p>6 copies in 6 rooms: <a href="RoomStructure.html#room20">$20</a>, <a href="RoomStructure.html#room3c">$3C</a>, <a href="RoomStructure.html#room57">$57</a>, <a href="RoomStructure.html#room78">$78</a>, <a href="RoomStructure.html#room9c">$9C</a>, <a href="RoomStructure.html#rooma7">$A7</a>.</p>
+</div>
+<div class="kl-item" id="template17">
+<img class="kl-piece" src="images/graphics/template17.png" alt="Object template 17" width="74" height="102">
+<p><b>17: A bug-eyed creature that wanders, on a lower half</b> -- <a href="asm/29838.html">OBJECT17</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic94">94</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45163.html">WANDERER</a></td></tr><tr><td><a href="Objects.html#graphic11">11</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45141.html">LOWER_HALF</a></td></tr></table>
+<p>6 copies in 6 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room2f">$2F</a>, <a href="RoomStructure.html#room67">$67</a>, <a href="RoomStructure.html#room89">$89</a>, <a href="RoomStructure.html#room8a">$8A</a>, <a href="RoomStructure.html#roomab">$AB</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template18">
+<img class="kl-piece" src="images/graphics/template18.png" alt="Object template 18" width="72" height="102">
+<p><b>18: A bug-eyed creature that paces to and fro, on a lower half</b> -- <a href="asm/29816.html">OBJECT18</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic86">86</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45328.html">PACER</a></td></tr><tr><td><a href="Objects.html#graphic11">11</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/45141.html">LOWER_HALF</a></td></tr></table>
+<p>1 copy in 1 room: <a href="RoomStructure.html#rooma6">$A6</a>.</p>
+</div>
+<div class="kl-item" id="template19">
+<img class="kl-piece" src="images/graphics/template19.png" alt="Object template 19" width="74" height="102">
+<p><b>19: A bug-eyed creature, the other view, that paces to and fro, on a lower half; mirrored</b> -- <a href="asm/29827.html">OBJECT19</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic87">87</a></td><td>7, 7; 12</td><td>$50 (to be drawn, mirrored)</td><td><a href="asm/45328.html">PACER</a></td></tr><tr><td><a href="Objects.html#graphic11">11</a></td><td>7, 7; 12</td><td>$50 (to be drawn, mirrored)</td><td><a href="asm/45141.html">LOWER_HALF</a></td></tr></table>
+<p>2 copies in 2 rooms: <a href="RoomStructure.html#room7b">$7B</a>, <a href="RoomStructure.html#room82">$82</a>.</p>
+</div>
+<div class="kl-item" id="template20">
+<img class="kl-piece" src="images/graphics/template20.png" alt="Object template 20" width="72" height="66">
+<p><b>20: A spiked dome that drops from the ceiling</b> -- <a href="asm/29849.html">OBJECT20</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic73">73</a></td><td>8, 8; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/44307.html">CEILING_DROP</a></td></tr></table>
+<p>25 copies in 4 rooms, 24 of them raised by the nudge: <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room1c">$1C</a>, <a href="RoomStructure.html#room58">$58</a>, <a href="RoomStructure.html#room84">$84</a>.</p>
+</div>
+<div class="kl-item" id="template21">
+<img class="kl-piece" src="images/graphics/template21.png" alt="Object template 21" width="68" height="92">
+<p><b>21: A frozen spaceman: a cryonaut</b> -- <a href="asm/29855.html">OBJECT21</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic74">74</a></td><td>8, 8; 24</td><td>$10 (to be drawn)</td><td><a href="asm/44694.html">CRYONAUT</a></td></tr></table>
+<p>81 copies in 20 rooms: <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room28">$28</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room4f">$4F</a>, <a href="RoomStructure.html#room65">$65</a>, <a href="RoomStructure.html#room6e">$6E</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room84">$84</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#room8d">$8D</a>, <a href="RoomStructure.html#room94">$94</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#rooma5">$A5</a>, <a href="RoomStructure.html#roomb6">$B6</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomd6">$D6</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template22">
+<img class="kl-piece" src="images/graphics/template22.png" alt="Object template 22" width="68" height="92">
+<p><b>22: A frozen spaceman: a cryonaut; mirrored</b> -- <a href="asm/29861.html">OBJECT22</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic74">74</a></td><td>8, 8; 24</td><td>$50 (to be drawn, mirrored)</td><td><a href="asm/44694.html">CRYONAUT</a></td></tr></table>
+<p>51 copies in 13 rooms: <a href="RoomStructure.html#room0a">$0A</a>, <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room31">$31</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room65">$65</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#rooma5">$A5</a>, <a href="RoomStructure.html#roomaa">$AA</a>, <a href="RoomStructure.html#roomb6">$B6</a>, <a href="RoomStructure.html#roomd6">$D6</a>.</p>
+</div>
+<div class="kl-item" id="template23">
+<img class="kl-piece" src="images/graphics/template23.png" alt="Object template 23" width="92" height="78">
+<p><b>23: Three cylinders on a plate, deadly</b> -- <a href="asm/29867.html">OBJECT23</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic75">75</a></td><td>8, 8; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/45727.html">STILL_DEADLY</a></td></tr></table>
+<p>168 copies in 27 rooms, 4 of them raised by the nudge: <a href="RoomStructure.html#room04">$04</a>, <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room13">$13</a>, <a href="RoomStructure.html#room1b">$1B</a>, <a href="RoomStructure.html#room31">$31</a>, <a href="RoomStructure.html#room36">$36</a>, <a href="RoomStructure.html#room37">$37</a>, <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room42">$42</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room61">$61</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room67">$67</a>, <a href="RoomStructure.html#room6e">$6E</a>, <a href="RoomStructure.html#room7b">$7B</a>, <a href="RoomStructure.html#room8d">$8D</a>, <a href="RoomStructure.html#room94">$94</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#room9a">$9A</a>, <a href="RoomStructure.html#rooma5">$A5</a>, <a href="RoomStructure.html#roomb5">$B5</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomc6">$C6</a>, <a href="RoomStructure.html#roomc8">$C8</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template24">
+<img class="kl-piece" src="images/graphics/template24.png" alt="Object template 24" width="84" height="108">
+<p><b>24: A domed socket on a plinth, for the valve of graphic 96 (a drum)</b> -- <a href="asm/29873.html">OBJECT24</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic112">112</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/44648.html">SOCKET</a></td></tr><tr><td><a href="Objects.html#graphic108">108</a></td><td>8, 8; 12</td><td>$12 (out of collisions, to be drawn)</td><td><a href="asm/44595.html">SOCKET_SPARKLE</a></td></tr></table>
+<p>6 copies in 6 rooms, 3 of them raised by the nudge: <a href="RoomStructure.html#room0c">$0C</a>, <a href="RoomStructure.html#room28">$28</a>, <a href="RoomStructure.html#room7a">$7A</a>, <a href="RoomStructure.html#room99">$99</a>, <a href="RoomStructure.html#rooma5">$A5</a>, <a href="RoomStructure.html#roomb6">$B6</a>.</p>
+</div>
+<div class="kl-item" id="template25">
+<img class="kl-piece" src="images/graphics/template25.png" alt="Object template 25" width="84" height="108">
+<p><b>25: A domed socket on a plinth, for the valve of graphic 97 (a cube)</b> -- <a href="asm/29884.html">OBJECT25</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic113">113</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/44648.html">SOCKET</a></td></tr><tr><td><a href="Objects.html#graphic109">109</a></td><td>8, 8; 12</td><td>$12 (out of collisions, to be drawn)</td><td><a href="asm/44595.html">SOCKET_SPARKLE</a></td></tr></table>
+<p>6 copies in 6 rooms, 3 of them raised by the nudge: <a href="RoomStructure.html#room41">$41</a>, <a href="RoomStructure.html#room62">$62</a>, <a href="RoomStructure.html#room6e">$6E</a>, <a href="RoomStructure.html#room96">$96</a>, <a href="RoomStructure.html#roomaa">$AA</a>, <a href="RoomStructure.html#roomd6">$D6</a>.</p>
+</div>
+<div class="kl-item" id="template26">
+<img class="kl-piece" src="images/graphics/template26.png" alt="Object template 26" width="84" height="108">
+<p><b>26: A domed socket on a plinth, for the valve of graphic 98 (a point)</b> -- <a href="asm/29895.html">OBJECT26</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic114">114</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/44648.html">SOCKET</a></td></tr><tr><td><a href="Objects.html#graphic110">110</a></td><td>8, 8; 12</td><td>$12 (out of collisions, to be drawn)</td><td><a href="asm/44595.html">SOCKET_SPARKLE</a></td></tr></table>
+<p>6 copies in 6 rooms, 2 of them raised by the nudge: <a href="RoomStructure.html#room1d">$1D</a>, <a href="RoomStructure.html#room31">$31</a>, <a href="RoomStructure.html#room4b">$4B</a>, <a href="RoomStructure.html#room84">$84</a>, <a href="RoomStructure.html#room8d">$8D</a>, <a href="RoomStructure.html#room94">$94</a>.</p>
+</div>
+<div class="kl-item" id="template27">
+<img class="kl-piece" src="images/graphics/template27.png" alt="Object template 27" width="84" height="106">
+<p><b>27: A domed socket on a plinth, for the valve of graphic 99 (a ball)</b> -- <a href="asm/29906.html">OBJECT27</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic115">115</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/44648.html">SOCKET</a></td></tr><tr><td><a href="Objects.html#graphic111">111</a></td><td>8, 8; 12</td><td>$12 (out of collisions, to be drawn)</td><td><a href="asm/44595.html">SOCKET_SPARKLE</a></td></tr></table>
+<p>6 copies in 6 rooms, 4 of them raised by the nudge: <a href="RoomStructure.html#room0a">$0A</a>, <a href="RoomStructure.html#room4f">$4F</a>, <a href="RoomStructure.html#room65">$65</a>, <a href="RoomStructure.html#room8c">$8C</a>, <a href="RoomStructure.html#roomba">$BA</a>, <a href="RoomStructure.html#roomf8">$F8</a>.</p>
+</div>
+<div class="kl-item" id="template28">
+<img class="kl-piece" src="images/graphics/template28.png" alt="Object template 28" width="76" height="80">
+<p><b>28: A clockwork mouse</b> -- <a href="asm/29917.html">OBJECT28</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic116">116</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43681.html">CLOCKWORK_MOUSE</a></td></tr></table>
+<p>9 copies in 7 rooms, 1 of them raised by the nudge: <a href="RoomStructure.html#room3f">$3F</a>, <a href="RoomStructure.html#room42">$42</a>, <a href="RoomStructure.html#room45">$45</a>, <a href="RoomStructure.html#room4d">$4D</a>, <a href="RoomStructure.html#room72">$72</a>, <a href="RoomStructure.html#rooma9">$A9</a>, <a href="RoomStructure.html#roomd8">$D8</a>.</p>
+</div>
+<div class="kl-item" id="template29">
+<img class="kl-piece" src="images/graphics/template29.png" alt="Object template 29" width="76" height="88">
+<p><b>29: A domed column of rings that homes in on him</b> -- <a href="asm/29923.html">OBJECT29</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic120">120</a></td><td>6, 6; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43657.html">SLOW_CHASER</a></td></tr></table>
+<p>2 copies in 2 rooms: <a href="RoomStructure.html#room5e">$5E</a>, <a href="RoomStructure.html#roomd8">$D8</a>.</p>
+</div>
+<div class="kl-item" id="template30">
+<img class="kl-piece" src="images/graphics/template30.png" alt="Object template 30" width="76" height="74">
+<p><b>30: A little domed robot with feelers: a remote-controlled robot</b> -- <a href="asm/29929.html">OBJECT30</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic124">124</a></td><td>7, 7; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43463.html">REMOTE_ROBOT</a></td></tr></table>
+<p>9 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template33">
+<img class="kl-piece" src="images/graphics/template33.png" alt="Object template 33" width="92" height="86">
+<p><b>33 (page 2, number 1): A box with an arrow on its lid: a remote-control button</b> -- <a href="asm/29935.html">OBJECT33</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic122">122</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43619.html">REMOTE_BUTTON</a></td></tr></table>
+<p>8 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template34">
+<img class="kl-piece" src="images/graphics/template34.png" alt="Object template 34" width="92" height="86">
+<p><b>34 (page 2, number 2): A box with an arrow on its lid: a remote-control button; mirrored</b> -- <a href="asm/29941.html">OBJECT34</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic122">122</a></td><td>8, 8; 12</td><td>$50 (to be drawn, mirrored)</td><td><a href="asm/43619.html">REMOTE_BUTTON</a></td></tr></table>
+<p>8 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template35">
+<img class="kl-piece" src="images/graphics/template35.png" alt="Object template 35" width="92" height="86">
+<p><b>35 (page 2, number 3): A box with an arrow on its lid, the other way: a remote-control button</b> -- <a href="asm/29947.html">OBJECT35</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic123">123</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43619.html">REMOTE_BUTTON</a></td></tr></table>
+<p>8 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template36">
+<img class="kl-piece" src="images/graphics/template36.png" alt="Object template 36" width="92" height="86">
+<p><b>36 (page 2, number 4): A box with an arrow on its lid, the other way: a remote-control button; mirrored</b> -- <a href="asm/29953.html">OBJECT36</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic123">123</a></td><td>8, 8; 12</td><td>$50 (to be drawn, mirrored)</td><td><a href="asm/43619.html">REMOTE_BUTTON</a></td></tr></table>
+<p>8 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template37">
+<img class="kl-piece" src="images/graphics/template37.png" alt="Object template 37" width="92" height="86">
+<p><b>37 (page 2, number 5): A plain block: the remote-control pad</b> -- <a href="asm/29959.html">OBJECT37</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic128">128</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43597.html">REMOTE_PAD</a></td></tr></table>
+<p>8 copies in 8 rooms: <a href="RoomStructure.html#room0b">$0B</a>, <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room6b">$6B</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template38">
+<img class="kl-piece" src="images/graphics/template38.png" alt="Object template 38" width="76" height="78">
+<p><b>38 (page 2, number 6): A round thing with prongs that breaks when moved</b> -- <a href="asm/29965.html">OBJECT38</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic129">129</a></td><td>7, 7; 12</td><td>$14 (pushable, to be drawn)</td><td><a href="asm/43441.html">FRAGILE</a></td></tr></table>
+<p>102 copies in 7 rooms: <a href="RoomStructure.html#room44">$44</a>, <a href="RoomStructure.html#room56">$56</a>, <a href="RoomStructure.html#room6a">$6A</a>, <a href="RoomStructure.html#room72">$72</a>, <a href="RoomStructure.html#room74">$74</a>, <a href="RoomStructure.html#room8b">$8B</a>, <a href="RoomStructure.html#roomd9">$D9</a>.</p>
+</div>
+<div class="kl-item" id="template39">
+<img class="kl-piece" src="images/graphics/template39.png" alt="Object template 39" width="88" height="74">
+<p><b>39 (page 2, number 7): A spiky ball that leaps</b> -- <a href="asm/29971.html">OBJECT39</a></p>
+<table class="kl-table"><tr><th>Graphic</th><th>Half U, V; height</th><th>Flags</th><th>Update routine</th></tr><tr><td><a href="Objects.html#graphic130">130</a></td><td>8, 8; 12</td><td>$10 (to be drawn)</td><td><a href="asm/43257.html">LEAPER</a></td></tr></table>
+<p>26 copies in 3 rooms: <a href="RoomStructure.html#room97">$97</a>, <a href="RoomStructure.html#rooma9">$A9</a>, <a href="RoomStructure.html#roomb7">$B7</a>.</p>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

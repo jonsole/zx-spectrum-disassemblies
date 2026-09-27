@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at AD66</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44372.html">AD54</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44390">Map</a></td>
+<td class="next">
+Next: <a href="44464.html">ADB0</a>
+</td>
+</tr>
+</table>
+<div class="description">AD66: Count down the light years, and show them</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Once a turn from the main loop (<a href="42688.html">OBJECT_DONE</a>). CLOCK is four digits, a byte each, the highest first; each byte is the digit in bits 4-7 and, in bits 0-2, how far it still has to roll. A digit that changes is drawn rows out of line: the eight rows from its count down its character, so that it shows mostly the next digit up with a count of 7 and rolls down into place as the count runs out, like a mechanical counter's wheel (<a href="44464.html">PRINT_ROLLING_DIGIT</a>). Every turn the rolling digits roll one row (<a href="44517.html">ROLL_CLOCK</a>); when the last has finished, a light year is taken off (<a href="44489.html">CLOCK_BORROW</a>) and the digits it changes start rolling. So a light year takes seven turns.
+</div>
+<div class="paragraph">
+The four digits are printed into the buffer at the right of the panel, the last one inverted, and copied to the screen; when all four bytes are zero the game is over (<a href="46945.html">GAME_ENDED</a>).
+</div>
+<div class="paragraph">
+The font's character after 9 (code $3A, 11th of <a href="25352.html">FONT</a>) is a second nought, so a 9 that follows a 0 rolls in from a nought.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_CLOCK</td>
+<td class="address-2"><span id="44390"></span>AD66</td>
+<td class="instruction">CALL <a href="44489.html">CLOCK_BORROW</a></td>
+<td class="comment-1" rowspan="1">a light year off, if the last digit has rolled into place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44393"></span>AD69</td>
+<td class="instruction">CALL <a href="44517.html">ROLL_CLOCK</a></td>
+<td class="comment-1" rowspan="1">roll the rolling digits a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44396"></span>AD6C</td>
+<td class="instruction">LD HL,$D4FA</td>
+<td class="comment-1" rowspan="7">the four digits, at the right of the panel, with the font's digits as characters 0 to 9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44399"></span>AD6F</td>
+<td class="instruction">LD DE,<a href="23296.html#23350">CLOCK</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44402"></span>AD72</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44404"></span>AD74</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44405"></span>AD75</td>
+<td class="instruction">LD HL,<a href="25352.html">FONT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44408"></span>AD78</td>
+<td class="instruction">LD (<a href="23296.html#23335">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44411"></span>AD7B</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_CLOCK_0</td>
+<td class="address-2"><span id="44412"></span>AD7C</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="4">each digit, rolled</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44413"></span>AD7D</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44414"></span>AD7E</td>
+<td class="instruction">CALL <a href="44464.html">PRINT_ROLLING_DIGIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44417"></span>AD81</td>
+<td class="instruction">DJNZ <a href="44390.html#44412">RUN_CLOCK_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44419"></span>AD83</td>
+<td class="instruction">LD HL,$D41D</td>
+<td class="comment-1" rowspan="8">invert the last digit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44422"></span>AD86</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44424"></span>AD88</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_CLOCK_1</td>
+<td class="address-2"><span id="44427"></span>AD8B</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44428"></span>AD8C</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44429"></span>AD8D</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44430"></span>AD8E</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44431"></span>AD8F</td>
+<td class="instruction">DJNZ <a href="44390.html#44427">RUN_CLOCK_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44433"></span>AD91</td>
+<td class="instruction">LD BC,$10D0</td>
+<td class="comment-1" rowspan="7">copy the four digits' 32 by 8 pixels to the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44436"></span>AD94</td>
+<td class="instruction">CALL <a href="53557.html">CALC_VRAM_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44439"></span>AD97</td>
+<td class="instruction">CALL <a href="53536.html">CALC_VIDBUF_ADDR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44442"></span>AD9A</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44443"></span>AD9B</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44444"></span>AD9C</td>
+<td class="instruction">LD BC,$0804</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44447"></span>AD9F</td>
+<td class="instruction">CALL <a href="53125.html">BLIT_TO_SCREEN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44450"></span>ADA2</td>
+<td class="instruction">LD HL,<a href="23296.html#23350">CLOCK</a></td>
+<td class="comment-1" rowspan="6">all four bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44453"></span>ADA5</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44455"></span>ADA7</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_CLOCK_2</td>
+<td class="address-2"><span id="44456"></span>ADA8</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44457"></span>ADA9</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44458"></span>ADAA</td>
+<td class="instruction">DJNZ <a href="44390.html#44456">RUN_CLOCK_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44460"></span>ADAC</td>
+<td class="instruction">JP Z,<a href="46945.html">GAME_ENDED</a></td>
+<td class="comment-1" rowspan="1">zero: the game is over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44463"></span>ADAF</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44372.html">AD54</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44390">Map</a></td>
+<td class="next">
+Next: <a href="44464.html">ADB0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

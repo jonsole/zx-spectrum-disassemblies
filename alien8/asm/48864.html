@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at BEE0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48854.html">BED6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48864">Map</a></td>
+<td class="next">
+Next: <a href="48943.html">BF2F</a>
+</td>
+</tr>
+</table>
+<div class="description">BEE0: The update routine for an extra life (graphic 12)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Reached through <a href="42986.html">UPDATES</a>. A place given graphic 12 at a new game (<a href="44863.html">INIT_SPECIAL_OBJECTS</a>) is an extra life, put in one of the two place records as its room is built (<a href="44697.html">FIND_SPECIAL_OBJS_HERE</a>). If the robot's legs touch it -- their box widened by 1 in U and V -- it becomes graphic 64, the first of a two-frame vanish (<a href="45988.html">SPARKLE_STEP</a>, <a href="46000.html">SPARKLE_END_PLACE</a>), its place is emptied so it never comes back, the drop latch is cleared, and LIVES goes up by one, is reprinted on the panel and copied to the screen. Either way it then falls and settles like other things. As Knight Lore's upd_103, the extra life, but through the table of places rather than Knight Lore's special-object table.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the extra life's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">EXTRA_LIFE</td>
+<td class="address-2"><span id="48864"></span>BEE0</td>
+<td class="instruction">CALL <a href="49022.html">DRAW_AT_L8_D2</a></td>
+<td class="comment-1" rowspan="1">the drawing nudge: X -8, Y -2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48867"></span>BEE3</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="3">IY = the extra life; IX = the robot's legs</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48869"></span>BEE5</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48871"></span>BEE7</td>
+<td class="instruction">LD IX,<a href="23432.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48875"></span>BEEB</td>
+<td class="instruction">INC (IX+$04)</td>
+<td class="comment-1" rowspan="8">touching, with the legs 1 wider in U and V? The legs back as they were, and IX back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48878"></span>BEEE</td>
+<td class="instruction">INC (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48881"></span>BEF1</td>
+<td class="instruction">CALL <a href="48807.html#48815">IS_ON_OR_NEAR_OBJ</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48884"></span>BEF4</td>
+<td class="instruction">DEC (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48887"></span>BEF7</td>
+<td class="instruction">DEC (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48890"></span>BEFA</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48892"></span>BEFC</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48894"></span>BEFE</td>
+<td class="instruction">JR NC,<a href="48864.html#48930">EXTRA_LIFE_FALL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48896"></span>BF00</td>
+<td class="instruction">LD (IX+$00),$40</td>
+<td class="comment-1" rowspan="2">graphic 64, the vanish, with its drawing nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48900"></span>BF04</td>
+<td class="instruction">CALL <a href="49002.html">DRAW_AT_L12_D4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48903"></span>BF07</td>
+<td class="instruction">LD L,(IX+$10)</td>
+<td class="comment-1" rowspan="4">its place emptied for good</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48906"></span>BF0A</td>
+<td class="instruction">LD H,(IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48909"></span>BF0D</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48910"></span>BF0E</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48911"></span>BF0F</td>
+<td class="instruction">LD (<a href="23296.html#23355">DROP_LATCH</a>),A</td>
+<td class="comment-1" rowspan="1">the things on the ceiling may drop again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48914"></span>BF12</td>
+<td class="instruction">LD HL,<a href="23296.html#23322">LIVES</a></td>
+<td class="comment-1" rowspan="2">one more life</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48917"></span>BF15</td>
+<td class="instruction">INC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48918"></span>BF16</td>
+<td class="instruction">CALL <a href="46769.html">PLAIN_BEEP</a></td>
+<td class="comment-1" rowspan="4">beep, print the lives into the buffer and copy them to the screen, at pixel x 128, y 0 (<a href="48943.html">BLIT_2X8</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48921"></span>BF19</td>
+<td class="instruction">CALL <a href="47703.html">PRINT_LIVES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48924"></span>BF1C</td>
+<td class="instruction">LD BC,$0080</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48927"></span>BF1F</td>
+<td class="instruction">CALL <a href="48943.html">BLIT_2X8</a></td>
+</tr>
+<tr>
+<td class="asm-label">EXTRA_LIFE_FALL</td>
+<td class="address-2"><span id="48930"></span>BF22</td>
+<td class="instruction">CALL <a href="49078.html">DEC_DZ_AND_UPDATE_UVZ</a></td>
+<td class="comment-1" rowspan="3">fall and move; not moving: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48933"></span>BF25</td>
+<td class="instruction">CALL <a href="48854.html">IS_OBJ_MOVING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48936"></span>BF28</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48937"></span>BF29</td>
+<td class="instruction">CALL <a href="49814.html#49902">CLEAR_DUV</a></td>
+<td class="comment-1" rowspan="2">moving: no step in U or V next turn; a sound and a redraw (<a href="46000.html">SPARKLE_END_PLACE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48940"></span>BF2C</td>
+<td class="instruction">JP <a href="46000.html#46015">SOUND_AND_DRAW</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48854.html">BED6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48864">Map</a></td>
+<td class="next">
+Next: <a href="48943.html">BF2F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

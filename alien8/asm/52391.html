@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CCA7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52374.html">CC96</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52391">Map</a></td>
+<td class="next">
+Next: <a href="52742.html">CE06</a>
+</td>
+</tr>
+</table>
+<div class="description">CCA7: Build a room's object records from the room directory</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51874.html">ENTER_ROOM</a>.
+</div>
+<div class="paragraph">
+Finds the robot's room in <a href="25705.html">ROOM02</a>, stepping from record to record by the count at +1, and takes its ink (ROOM_INK), the address of its colour byte (ROOM_COLOUR_AT), and its half-sizes and floor from <a href="25696.html">ROOM_SIZES</a>. Then it fills the records from record 4 (ROOM_OBJECTS) up, backgrounds first, then objects, and clears every record after the last it filled. A room that is not in the directory gets no records at all. Called by <a href="51874.html">ENTER_ROOM</a> on entering a room; the first four records -- the robot's two and the two for the places -- are not touched.
+</div>
+<div class="paragraph">
+Backgrounds: a byte each, up to an $FF. A background (<a href="29977.html">BACKGROUND_TABLE</a>) is a list of eight-byte pieces -- graphic, U, V, Z, the half-sizes, the height, flags -- ended by a zero, each piece its own record, with this room as its +8.
+</div>
+<div class="paragraph">
+Objects: groups, each a header byte (bits 0-2 how many less one, bits 3-7 the template) and a position byte for each. A template (<a href="29640.html">OBJECT_TABLE</a>) is a list of five-byte pieces -- graphic, the half-sizes, the height, flags -- ended by a zero, each piece its own record at the same place: U = 72 + 16 times bits 0-2 of the position, V = 72 + 16 times bits 3-5, and Z = the floor + 12 times bits 6-7.
+</div>
+<div class="paragraph">
+Two templates are not templates. Template 31 moves TEMPLATES_AT on 64 bytes, to the second page, and the byte after it is skipped (twelve times in the rooms). Template 0 makes the byte after it the placement nudge (PLACE_NUDGE) for the groups that follow: its bit 0 adds 8 to U, bit 1 adds 8 to V, and the rest is added to Z. The rooms use it 42 times, 41 of them with $30, which raises the objects that follow by 48 -- four levels -- and once with 0. Pentagram's builder has the same code for the nudge but no jump reaches it; in Alien 8 it is live.
+</div>
+<div class="paragraph">
+The count at +1 of the room's record, of the bytes from there to the end, is what stops the build, not the data: the backgrounds can use it up, or a group be cut short. Nothing checks that the 52 records are enough; if a room overran them the clearing loop, which stops only when it reaches the end of the records exactly, would not stop. None does: every room was built in the build's sessions.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the robot's legs, whose +8 is the room</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_ROOM</td>
+<td class="address-2"><span id="52391"></span>CCA7</td>
+<td class="instruction">LD HL,<a href="29640.html">OBJECT_TABLE</a></td>
+<td class="comment-1" rowspan="5">The first page of object templates, no nudge; LIFT_TOP cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52394"></span>CCAA</td>
+<td class="instruction">LD (<a href="23296.html#23328">TEMPLATES_AT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52397"></span>CCAD</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52398"></span>CCAE</td>
+<td class="instruction">LD (<a href="23296.html#23321">PLACE_NUDGE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52401"></span>CCB1</td>
+<td class="instruction">LD (<a href="23296.html#23333">LIFT_TOP</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52404"></span>CCB4</td>
+<td class="instruction">LD DE,<a href="23432.html#23560">ROOM_OBJECTS</a></td>
+<td class="comment-1" rowspan="3">DE = the first record to fill; BC = the end of the directory; HL = its first room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52407"></span>CCB7</td>
+<td class="instruction">LD BC,<a href="29640.html">OBJECT_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52410"></span>CCBA</td>
+<td class="instruction">LD HL,<a href="25705.html">ROOM02</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_ROOM_0</td>
+<td class="address-2"><span id="52413"></span>CCBD</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">This room?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52414"></span>CCBE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52415"></span>CCBF</td>
+<td class="instruction">CP (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52418"></span>CCC2</td>
+<td class="instruction">JR Z,<a href="52391.html#52446">BUILD_ROOM_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52420"></span>CCC4</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="7">No: on by the count, until the end of the directory</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52421"></span>CCC5</td>
+<td class="instruction">CALL <a href="52742.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52424"></span>CCC8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52425"></span>CCC9</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52427"></span>CCCB</td>
+<td class="instruction">JR NC,<a href="52391.html#52432">BUILD_CLEAR_REST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52429"></span>CCCD</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52430"></span>CCCE</td>
+<td class="instruction">JR <a href="52391.html#52413">BUILD_ROOM_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_CLEAR_REST</td>
+<td class="address-2"><span id="52432"></span>CCD0</td>
+<td class="instruction">LD HL,<a href="25224.html">BELOW_BLOCK</a></td>
+<td class="comment-1" rowspan="7">Clear the records from DE to the last; every way out of the builder ends here</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52435"></span>CCD3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52436"></span>CCD4</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52438"></span>CCD6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52439"></span>CCD7</td>
+<td class="instruction">LD B,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52441"></span>CCD9</td>
+<td class="instruction">CALL <a href="52764.html">ZERO_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52444"></span>CCDC</td>
+<td class="instruction">JR <a href="52391.html#52432">BUILD_CLEAR_REST</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_ROOM_1</td>
+<td class="address-2"><span id="52446"></span>CCDE</td>
+<td class="instruction">LD B,(HL)</td>
+<td class="comment-1" rowspan="2">B = the count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52447"></span>CCDF</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52448"></span>CCE0</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">The room's ink, and where its colour byte is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52449"></span>CCE1</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52451"></span>CCE3</td>
+<td class="instruction">LD (<a href="23296.html#23309">ROOM_INK</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52454"></span>CCE6</td>
+<td class="instruction">LD (<a href="23296.html#23348">ROOM_COLOUR_AT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52457"></span>CCE9</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="10">Bits 6-7 of the colour byte: which of the three sizes, times three</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52458"></span>CCEA</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52459"></span>CCEB</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52460"></span>CCEC</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52461"></span>CCED</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52462"></span>CCEE</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52463"></span>CCEF</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52465"></span>CCF1</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52466"></span>CCF2</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52467"></span>CCF3</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52468"></span>CCF4</td>
+<td class="instruction">LD HL,<a href="25696.html">ROOM_SIZES</a></td>
+<td class="comment-1" rowspan="10">The half-sizes in U and V, and the floor</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52471"></span>CCF7</td>
+<td class="instruction">CALL <a href="52742.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52474"></span>CCFA</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52475"></span>CCFB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52476"></span>CCFC</td>
+<td class="instruction">LD (<a href="23296.html#23307">ROOM_HALF_U</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52479"></span>CCFF</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52480"></span>CD00</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52481"></span>CD01</td>
+<td class="instruction">LD (<a href="23296.html#23308">ROOM_HALF_V</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52484"></span>CD04</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52485"></span>CD05</td>
+<td class="instruction">LD (<a href="23296.html#23310">FLOOR</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52488"></span>CD08</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="4">Two of the count used; HL on the backgrounds, DE the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52489"></span>CD09</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52490"></span>CD0A</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52491"></span>CD0B</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_NEXT_BACKGROUND</td>
+<td class="address-2"><span id="52492"></span>CD0C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">The backgrounds end at an $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52493"></span>CD0D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52494"></span>CD0E</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52496"></span>CD10</td>
+<td class="instruction">JR Z,<a href="52391.html#52538">BUILD_OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52498"></span>CD12</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="11">HL = the background, the place in the room's record kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52499"></span>CD13</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52500"></span>CD14</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52501"></span>CD15</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52503"></span>CD17</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52504"></span>CD18</td>
+<td class="instruction">LD BC,<a href="29977.html">BACKGROUND_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52507"></span>CD1B</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52508"></span>CD1C</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52509"></span>CD1D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52510"></span>CD1E</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52511"></span>CD1F</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_BACKGROUND_PIECE</td>
+<td class="address-2"><span id="52512"></span>CD20</td>
+<td class="instruction">LD BC,$0008</td>
+<td class="comment-1" rowspan="2">A piece: graphic, U, V, Z, half-sizes, height, flags into +0 to +7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52515"></span>CD23</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52517"></span>CD25</td>
+<td class="instruction">LD A,(IX+$08)</td>
+<td class="comment-1" rowspan="3">+8: this room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52520"></span>CD28</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52521"></span>CD29</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52522"></span>CD2A</td>
+<td class="instruction">LD B,$17</td>
+<td class="comment-1" rowspan="2">+9 to +31 cleared; DE on the next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52524"></span>CD2C</td>
+<td class="instruction">CALL <a href="52764.html">ZERO_DE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52527"></span>CD2F</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">Another piece?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52528"></span>CD30</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52529"></span>CD31</td>
+<td class="instruction">JR NZ,<a href="52391.html#52512">BUILD_BACKGROUND_PIECE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52531"></span>CD33</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">The next background, while the count lasts</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52532"></span>CD34</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52533"></span>CD35</td>
+<td class="instruction">DJNZ <a href="52391.html#52492">BUILD_NEXT_BACKGROUND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52535"></span>CD37</td>
+<td class="instruction">JP <a href="52391.html#52432">BUILD_CLEAR_REST</a></td>
+<td class="comment-1" rowspan="1">The count ran out</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_OBJECTS</td>
+<td class="address-2"><span id="52538"></span>CD3A</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="1">The $FF counted</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52539"></span>CD3B</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="3">IY = the next record; the caller's IY kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52541"></span>CD3D</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52542"></span>CD3E</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_NEXT_GROUP</td>
+<td class="address-2"><span id="52544"></span>CD40</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">C = how many in this group</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52545"></span>CD41</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52547"></span>CD43</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52548"></span>CD44</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52549"></span>CD45</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">The header counted; D = the first position; the place kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52550"></span>CD46</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52551"></span>CD47</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52552"></span>CD48</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52553"></span>CD49</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52554"></span>CD4A</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52555"></span>CD4B</td>
+<td class="instruction">RRCA</td>
+<td class="comment-1" rowspan="4">The template number doubled; template 0 sets the nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52556"></span>CD4C</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52557"></span>CD4D</td>
+<td class="instruction">AND $3E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52559"></span>CD4F</td>
+<td class="instruction">JP Z,<a href="52391.html#52736">BUILD_SET_NUDGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52562"></span>CD52</td>
+<td class="instruction">CP $3E</td>
+<td class="comment-1" rowspan="2">Template 31 moves to the second page</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52564"></span>CD54</td>
+<td class="instruction">JP Z,<a href="52391.html#52720">BUILD_TEMPLATE_PAGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52567"></span>CD57</td>
+<td class="instruction">LD HL,(<a href="23296.html#23328">TEMPLATES_AT</a>)</td>
+<td class="comment-1" rowspan="6">HL = the template, from the page in TEMPLATES_AT</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52570"></span>CD5A</td>
+<td class="instruction">CALL <a href="52742.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52573"></span>CD5D</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52574"></span>CD5E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52575"></span>CD5F</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52576"></span>CD60</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_NEXT_OBJECT</td>
+<td class="address-2"><span id="52577"></span>CD61</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">Kept for the next object of the group</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_OBJECT_PIECE</td>
+<td class="address-2"><span id="52578"></span>CD62</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="15">A piece: graphic into +0, half-sizes and height into +4 to +6, flags into +7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52579"></span>CD63</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52580"></span>CD64</td>
+<td class="instruction">LD (IY+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52583"></span>CD67</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52584"></span>CD68</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52585"></span>CD69</td>
+<td class="instruction">LD (IY+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52588"></span>CD6C</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52589"></span>CD6D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52590"></span>CD6E</td>
+<td class="instruction">LD (IY+$05),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52593"></span>CD71</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52594"></span>CD72</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52595"></span>CD73</td>
+<td class="instruction">LD (IY+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52598"></span>CD76</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52599"></span>CD77</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52600"></span>CD78</td>
+<td class="instruction">LD (IY+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52603"></span>CD7B</td>
+<td class="instruction">LD A,(IX+$08)</td>
+<td class="comment-1" rowspan="2">+8: this room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52606"></span>CD7E</td>
+<td class="instruction">LD (IY+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52609"></span>CD81</td>
+<td class="instruction">LD A,(<a href="23296.html#23321">PLACE_NUDGE</a>)</td>
+<td class="comment-1" rowspan="15">U from bits 0-2 of the position, and 8 more for bit 0 of the nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52612"></span>CD84</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52613"></span>CD85</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52614"></span>CD86</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52615"></span>CD87</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52617"></span>CD89</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52618"></span>CD8A</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52619"></span>CD8B</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52620"></span>CD8C</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52621"></span>CD8D</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52622"></span>CD8E</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52623"></span>CD8F</td>
+<td class="instruction">AND $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52625"></span>CD91</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52626"></span>CD92</td>
+<td class="instruction">ADD A,$48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52628"></span>CD94</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52631"></span>CD97</td>
+<td class="instruction">LD A,(<a href="23296.html#23321">PLACE_NUDGE</a>)</td>
+<td class="comment-1" rowspan="11">V from bits 3-5, and 8 more for bit 1 of the nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52634"></span>CD9A</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52635"></span>CD9B</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52636"></span>CD9C</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52638"></span>CD9E</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52639"></span>CD9F</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52640"></span>CDA0</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52641"></span>CDA1</td>
+<td class="instruction">AND $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52643"></span>CDA3</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52644"></span>CDA4</td>
+<td class="instruction">ADD A,$48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52646"></span>CDA6</td>
+<td class="instruction">LD (IY+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52649"></span>CDA9</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="17">Z from bits 6-7, 12 a level, plus the nudge less its bits 0-1, on the floor</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52650"></span>CDAA</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52651"></span>CDAB</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52652"></span>CDAC</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52654"></span>CDAE</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52655"></span>CDAF</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52656"></span>CDB0</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52657"></span>CDB1</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52658"></span>CDB2</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52659"></span>CDB3</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52660"></span>CDB4</td>
+<td class="instruction">LD A,(<a href="23296.html#23321">PLACE_NUDGE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52663"></span>CDB7</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52664"></span>CDB8</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52666"></span>CDBA</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52667"></span>CDBB</td>
+<td class="instruction">LD A,(<a href="23296.html#23310">FLOOR</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52670"></span>CDBE</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52671"></span>CDBF</td>
+<td class="instruction">LD (IY+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52674"></span>CDC2</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="8">+9 to +31 cleared; IY on the next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52675"></span>CDC3</td>
+<td class="instruction">LD BC,$0009</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52678"></span>CDC6</td>
+<td class="instruction">ADD IY,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52680"></span>CDC8</td>
+<td class="instruction">LD B,$17</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_ROOM_2</td>
+<td class="address-2"><span id="52682"></span>CDCA</td>
+<td class="instruction">LD (IY+$00),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52686"></span>CDCE</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52688"></span>CDD0</td>
+<td class="instruction">DJNZ <a href="52391.html#52682">BUILD_ROOM_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52690"></span>CDD2</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52691"></span>CDD3</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">Another piece?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52692"></span>CDD4</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52693"></span>CDD5</td>
+<td class="instruction">JR NZ,<a href="52391.html#52578">BUILD_OBJECT_PIECE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52695"></span>CDD7</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="2">DE = the template, HL = the place in the room's record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52696"></span>CDD8</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52697"></span>CDD9</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="2">The position counted; the end of the count ends the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52698"></span>CDDA</td>
+<td class="instruction">JR Z,<a href="52391.html#52712">BUILD_OBJECTS_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52700"></span>CDDC</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="2">The end of the group: the next header</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52701"></span>CDDD</td>
+<td class="instruction">JP Z,<a href="52391.html#52544">BUILD_NEXT_GROUP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52704"></span>CDE0</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">The next position, the same template</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52705"></span>CDE1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52706"></span>CDE2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52707"></span>CDE3</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52708"></span>CDE4</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52709"></span>CDE5</td>
+<td class="instruction">JP <a href="52391.html#52577">BUILD_NEXT_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_OBJECTS_DONE</td>
+<td class="address-2"><span id="52712"></span>CDE8</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="4">DE = the next free record; the caller's IY back; clear the rest</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52714"></span>CDEA</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52715"></span>CDEB</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52717"></span>CDED</td>
+<td class="instruction">JP <a href="52391.html#52432">BUILD_CLEAR_REST</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_TEMPLATE_PAGE</td>
+<td class="address-2"><span id="52720"></span>CDF0</td>
+<td class="instruction">LD HL,(<a href="23296.html#23328">TEMPLATES_AT</a>)</td>
+<td class="comment-1" rowspan="4">Template 31: the next page of templates</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52723"></span>CDF3</td>
+<td class="instruction">LD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52725"></span>CDF5</td>
+<td class="instruction">CALL <a href="52742.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52728"></span>CDF8</td>
+<td class="instruction">LD (<a href="23296.html#23328">TEMPLATES_AT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_ROOM_3</td>
+<td class="address-2"><span id="52731"></span>CDFB</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="3">The byte after the header counted and skipped; the next group</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52732"></span>CDFC</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52733"></span>CDFD</td>
+<td class="instruction">JP <a href="52391.html#52544">BUILD_NEXT_GROUP</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUILD_SET_NUDGE</td>
+<td class="address-2"><span id="52736"></span>CE00</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="3">Template 0: the byte after it is the nudge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52737"></span>CE01</td>
+<td class="instruction">LD (<a href="23296.html#23321">PLACE_NUDGE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52740"></span>CE04</td>
+<td class="instruction">JR <a href="52391.html#52731">BUILD_ROOM_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52374.html">CC96</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52391">Map</a></td>
+<td class="next">
+Next: <a href="52742.html">CE06</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>

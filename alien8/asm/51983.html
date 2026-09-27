@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Alien 8: Routine at CB0F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../alien8.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Alien 8</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51974.html">CB06</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51983">Map</a></td>
+<td class="next">
+Next: <a href="52058.html">CB5A</a>
+</td>
+</tr>
+</table>
+<div class="description">CB0F: Draw the panel's scroll-work and icons at the foot of the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="42688.html">OBJECT_DONE</a>.
+</div>
+<div class="paragraph">
+Draws the twelve pieces of <a href="52058.html">PANEL_DATA</a> into the buffer through the spare record at <a href="48440.html">PANEL_RECORD</a>: on each side a slanting run of five of graphic 9, stepping 16 pixels in and 8 down, a column of six of graphic 10 up the edge, and graphics 7 and 8 at the ends, the right side the left mirrored; then three icons -- the robot (graphic 12) beside the lives, the frame round the light years (graphic 84, in two mirrored halves), and graphic 131 beside the count of chambers activated, which <a href="42915.html">PRINT_CHAMBERS</a> prints at (32, 31). That is the only place graphic 131 is drawn, which is why it has a sprite but no update routine. Where each entry lands was measured: the routine run in the simulator, and run again with each entry's graphic made 0, the difference being that entry's pixels.
+</div>
+<div class="paragraph">
+Called from the main loop (<a href="42688.html">OBJECT_DONE</a>) on the first turn in a new room, before <a href="42825.html">COLOUR_PANEL</a> colours the panel and prints its numbers and <a href="52869.html">SHOW_BUFFER</a> shows the whole buffer. Knight Lore's display_panel draws the same kind of scroll-work from six entries; the icons are Alien 8's.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPLAY_PANEL</td>
+<td class="address-2"><span id="51983"></span>CB0F</td>
+<td class="instruction">LD IX,<a href="48440.html">PANEL_RECORD</a></td>
+<td class="comment-1" rowspan="3">IX = the spare record; the first entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51987"></span>CB13</td>
+<td class="instruction">LD HL,<a href="52058.html">PANEL_DATA</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51990"></span>CB16</td>
+<td class="instruction">CALL <a href="51953.html">TRANSFER_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51993"></span>CB19</td>
+<td class="instruction">LD DE,<a href="61696.html#63504">$F810</a></td>
+<td class="comment-1" rowspan="3">The left run: five, each 16 pixels right and 8 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51996"></span>CB1C</td>
+<td class="instruction">LD B,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51998"></span>CB1E</td>
+<td class="instruction">CALL <a href="48214.html">MULTIPLE_PRINT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52001"></span>CB21</td>
+<td class="instruction">CALL <a href="51953.html">TRANSFER_SPRITE</a></td>
+<td class="comment-1" rowspan="4">Six up the left edge, 8 pixels apart</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52004"></span>CB24</td>
+<td class="instruction">LD DE,$0800</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52007"></span>CB27</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52009"></span>CB29</td>
+<td class="instruction">CALL <a href="48214.html">MULTIPLE_PRINT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52012"></span>CB2C</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+<td class="comment-1" rowspan="2">Graphic 7 above the edge, and graphic 8 at the foot of the run</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52015"></span>CB2F</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52018"></span>CB32</td>
+<td class="instruction">CALL <a href="51953.html">TRANSFER_SPRITE</a></td>
+<td class="comment-1" rowspan="4">The right run: five, each 16 pixels left and 8 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52021"></span>CB35</td>
+<td class="instruction">LD DE,<a href="61696.html#63728">$F8F0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52024"></span>CB38</td>
+<td class="instruction">LD B,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52026"></span>CB3A</td>
+<td class="instruction">CALL <a href="48214.html">MULTIPLE_PRINT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52029"></span>CB3D</td>
+<td class="instruction">CALL <a href="51953.html">TRANSFER_SPRITE</a></td>
+<td class="comment-1" rowspan="4">Six up the right edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52032"></span>CB40</td>
+<td class="instruction">LD DE,$0800</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52035"></span>CB43</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52037"></span>CB45</td>
+<td class="instruction">CALL <a href="48214.html">MULTIPLE_PRINT_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52040"></span>CB48</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+<td class="comment-1" rowspan="2">Graphics 7 and 8 on the right, mirrored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52043"></span>CB4B</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52046"></span>CB4E</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+<td class="comment-1" rowspan="1">The robot beside the lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52049"></span>CB51</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+<td class="comment-1" rowspan="2">The two halves of the frame round the light years</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52052"></span>CB54</td>
+<td class="instruction">CALL <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52055"></span>CB57</td>
+<td class="instruction">JP <a href="51974.html">TRANSFER_SPRITE_AND_PRINT</a></td>
+<td class="comment-1" rowspan="1">The icon beside the chambers count</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51974.html">CB06</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51983">Map</a></td>
+<td class="next">
+Next: <a href="52058.html">CB5A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_alien8.py</code>.</div>
+</footer>
+</body>
+</html>
