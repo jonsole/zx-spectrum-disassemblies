@@ -57,7 +57,7 @@ the same pitch C times. A half-wave count of 128 is about 1 kHz.
 |---|---|---|---|
 | sound_movable_block | $B3E9 | 4 waves, pitch from `block_blip_pitches` by frame | type 62, every frame |
 | sound_sparkle | $B403 | (~type AND 31) blips of 2 waves, pitches = ROM bytes from $1234 | death sparkles; charm into cauldron (with the colour cycling) |
-| sound_materialise | $B419 | rising sweep, 3 to 27 steps, longer each frame | types 120-126 |
+| sound_materialise | $B419 | rising sweep, 7 to 31 steps, longer each frame | types 121-127 (the handler moves the type on before calling) |
 | sound_thud | $B42E | 4 low blips of 3 waves from ROM $0000-$0003 OR $C0 | balls landing, flames turning |
 | sound_jump | $B441 | 32-step rising sweep | Sabreman jumping |
 | sound_pitch_from_z | $B451 | 6 waves, higher when higher | sinking block, dropping spiked ball, bouncing ball, Sabreman falling |

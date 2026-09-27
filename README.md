@@ -20,7 +20,9 @@ page on how the game works, a map, and pages for its locations (with their
 pictures), objects, characters and actions; Atic Atac with its loader, room
 types, sprites, graphics and sounds; Ant Attack with how it works, the whole
 city drawn in the game's own projection, its levels, sprites and scripts;
-Knight Lore with how it is put together and where its code map comes from.
+Knight Lore with how it works (drawing, the depth sort, collision, day and
+night, the charms), the castle map with its layers, its graphics, animations
+and sounds, and its bugs, pokes and trivia.
 
 ## What is committed where
 

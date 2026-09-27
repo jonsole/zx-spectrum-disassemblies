@@ -1903,10 +1903,12 @@ c $B40D One blip of the sparkle
 
 @ $B419 label=sound_materialise
 c $B419 Sound: materialising
-R $B419 IX the object, types 120 to 126
+R $B419 IX the object, types 121 to 127
 D $B419 A rising sweep, one wave per step from a low note upwards. The number
-. of steps comes from the type, so each frame of the materialising sweep is
-. longer than the last: 3, 7, 11 and so on up to 27 steps.
+. of steps comes from the type: four times its bottom three bits, plus
+. three. #R$BEFE moves the object on to its next type before calling, so the
+. calls are for types 121 to 127 and each is longer than the last: 7, 11, 15
+. and so on up to 31 steps.
   $B419,10 C = the number of steps
 
 @ $B423 label=materialise_sweep

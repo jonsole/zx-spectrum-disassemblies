@@ -80,7 +80,11 @@ DEC HL / LD A,L / OR H / JR NZ, 26 T-states each: 33,280 T-states plus the
 DJNZ, about 9.5ms, just under half a 50Hz frame (69,888 T). So the game's speed
 is even for rooms where up to six things change per frame and slows beyond
 that. (Worked out from the documented instruction timings, without memory
-contention; the loop is in uncontended memory.)
+contention; the loop is in uncontended memory.) An idle frame in the empty room $0B,
+with Sabreman standing, measured 145,709 T-states in SkoolKit's simulator
+(2026-09-26, for the sounds page): he alone is drawn and wiped, so the frame
+waits four units or fewer, and the drawing makes up the rest (*inferred*;
+$5BBE was not read).
 
 **New room.** `build_screen_objects` ($D1E6) sets $5BB7; on the next frame end
 `no_delay` ($B03F) clears it and redraws everything: attributes in the room
@@ -162,10 +166,3 @@ room").
 
 - Why a delay of six units: a guess is that six moving things was the design
   budget, but nothing in the code says so.
-- The existing annotation on $7112 says the sprite table is indexed by "type
-  times eight plus a frame". `flip_sprite` ($D6EF) indexes it by type times two:
-  one word per type. That entry is outside this range; whoever owns it should
-  correct it.
-- The existing annotation on $6FF2 says "#R$B2CF picks a set from this table".
-  $B2CF is `play_audio`; the routine that fills that table is
-  `init_special_objects` ($C47E). Also outside this range.

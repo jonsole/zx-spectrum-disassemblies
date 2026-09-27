@@ -110,3 +110,26 @@ were placeholders (`loc_B000`), and 20 of 8685 instructions had a comment.
   moveable block, ten lives printing as a letter (latent: eight is the most
   there can be), the depth sort's unchecked chain (latent); and eight facts,
   each with its routine.
+- **The medium tasks: animations, sounds, map layers, how-it-works pages.**
+  Each family is its own module beside `knightlore_pages.py`, called from its
+  `build()`: `knightlore_animations.py` (17 GIFs, every frame one pass of the
+  game's own frame loop in the simulator, timed by its T-states),
+  `knightlore_sounds.py` (21 WAVs -- 4 tunes, 17 effects -- from single calls
+  on fresh machines, or from real room runs where the effect's object is the
+  only thing making a noise; tune pitches checked within 5% of `freq_tbl`),
+  and `knightlore_howitworks.py` (the depth sort's 27 cases drawn from the
+  table, the collision code run on seven set pieces, day and night, the
+  charms and the cauldron). Written by three parallel agents; the map layers
+  by hand.
+- **Map layers.** Start rooms from `start_locations`, the wizard's room from
+  its background, the 32 charm places, and dangers from the handlers that set
+  the deadly flags -- which showed the wizard is deadly to touch, as a guard
+  is. See [object-behaviours.md](object-behaviours.md#deadly-contact).
+- **Correction.** `sound_materialise` was described as 3 to 27 steps for
+  types 120-126. The handler at $BEFE moves the type on before calling, so
+  the calls are for types 121-127 and 7 to 31 steps; the recording's edge
+  count (532) agrees. Found by the sounds agent, checked by reading the
+  RLCA/AND/OR arithmetic.
+- **Not a correction.** An idle frame measured 145,709 T-states against the
+  six-unit pad in [main-loop.md](main-loop.md); the pad is 6 - $5BBE units,
+  so a frame drawing Sabreman waits less. Noted there.

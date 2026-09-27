@@ -517,6 +517,72 @@ def castle_map(all_rooms, pictures: dict, sizes) -> tuple:
     return image, floors
 
 
+# Layers over the castle map: which rooms hold what, each a transparent picture
+# the size of the overview that a checkbox shows or hides (knightlore.css).
+START_LOCATIONS = 0xD1E2         # the four rooms a game can start in
+WIZARD_BACKGROUND = 18           # the background the wizard's room names
+PORTCULLIS_BACKGROUNDS = (8, 9, 10, 11)
+PORTCULLIS_TYPES = (0x08, 0x09)
+# The types whose handlers end in set_deadly_wipe_and_draw_flags or call
+# set_both_deadly_flags: touching one starts the player's death (#R$C82B).
+GUARD_TYPES = (0x1E, 0x1F, 0x96, 0x97, 0x50, 0x51, 0x52, 0x53)
+HAZARD_TYPES = (0x16, 0x17, 0x3F, 0x56, 0x57, 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5,
+                0xB6, 0xB7)
+MARKER_RADIUS = 6                # on the overview, in pixels
+MARKER_SUPERSAMPLE = 4           # drawn larger and scaled down, for smooth edges
+# (key, what, colour, slot across and down from the floor's centre, shown at first)
+LAYERS = [
+    ("start", "Start rooms", (60, 220, 60), (-1, -0.5), True),
+    ("wizard", "The wizard and the cauldron", (230, 60, 230), (0, -0.5), True),
+    ("charms", "Charm places", (240, 220, 40), (1, -0.5), True),
+    ("guards", "Guards and ghosts", (240, 50, 50), (-1, 0.5), False),
+    ("hazards", "Spikes, fire, balls and gargoyles", (255, 140, 0), (0, 0.5), False),
+    ("portcullis", "Portcullises", (60, 220, 230), (1, 0.5), False),
+]
+
+
+def room_layers(memory, all_rooms) -> dict[str, list[int]]:
+    """For each layer, the rooms it marks, from the game's own tables: the
+    start table, the charm places and what each room record builds."""
+    marked = {key: [] for key, *_ in LAYERS}
+    marked["start"] = sorted(memory[START_LOCATIONS:START_LOCATIONS + 4])
+    marked["charms"] = sorted({memory[kd.CHARM_PLACES + kd.CHARM_PLACE_SIZE * i + 4]
+                               for i in range(kd.CHARM_PLACE_COUNT)})
+    for room in all_rooms:
+        types = set()
+        for template, _ in room["groups"]:
+            types.update(part[0] for part in block_type_parts(memory, template)[1])
+        number = room["number"]
+        if WIZARD_BACKGROUND in room["backgrounds"]:
+            marked["wizard"].append(number)
+        if types & set(GUARD_TYPES):
+            marked["guards"].append(number)
+        if types & set(HAZARD_TYPES):
+            marked["hazards"].append(number)
+        if (types & set(PORTCULLIS_TYPES)
+                or set(room["backgrounds"]) & set(PORTCULLIS_BACKGROUNDS)):
+            marked["portcullis"].append(number)
+    return marked
+
+
+def _layer_image(size, centres: dict, rooms_marked, colour, slot):
+    """A marker on each marked room, in the layer's own place round the
+    floor's centre so that several layers on one room sit side by side."""
+    from PIL import Image, ImageDraw
+
+    big = MARKER_SUPERSAMPLE
+    image = Image.new("RGBA", (size[0] * big, size[1] * big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    r = MARKER_RADIUS * big
+    for number in rooms_marked:
+        cx, cy = centres[number]
+        x = (cx + slot[0] * (2 * MARKER_RADIUS + 3)) * big
+        y = (cy + slot[1] * (2 * MARKER_RADIUS + 3)) * big
+        draw.ellipse((x - r, y - r, x + r, y + r), fill=colour + (255,),
+                     outline=(0, 0, 0, 255), width=2 * big)
+    return image.resize(size, Image.LANCZOS)
+
+
 def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
     sizes = [memory[SIZES + 3 * s:SIZES + 3 * s + 3] for s in range(3)]
     pictures = {}
@@ -537,6 +603,21 @@ def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
         + ",".join(f"{round(x * scale)},{round(y * scale)}" for x, y in corners)
         + f'" href="#room{number:02x}" title="Room ${number:02X}" alt="Room ${number:02X}">'
         for number, corners in sorted(floors.items()))
+    centres = {n: (sum(x for x, _ in c) * scale / 4, sum(y for _, y in c) * scale / 4)
+               for n, c in floors.items()}
+    marked = room_layers(memory, all_rooms)
+    toggles, overlays, keys = [], [], []
+    for key, what, colour, slot, shown in LAYERS:
+        _layer_image(overview.size, centres, marked[key], colour, slot).save(
+            image_dir / f"layer_{key}.png")
+        toggles.append(f'<input type="checkbox" class="kl-toggle" id="kl-layer-{key}"'
+                       + (" checked" if shown else "") + ">"
+                       f'<label for="kl-layer-{key}"><span class="kl-key kl-key-{key}">'
+                       f"</span>{what} ({len(marked[key])})</label>")
+        overlays.append(f'<img class="kl-layer kl-layer-{key}" '
+                        f'src="images/rooms/layer_{key}.png" alt="">')
+        keys.append(f'<p><span class="kl-key kl-key-{key}"></span><b>{what}</b>: '
+                    + ", ".join(_room_link(n) for n in marked[key]) + ".</p>")
     lines = ['<div class="kl-list">',
              "<h3>The castle</h3>",
              "<p>The castle is a grid of 16 by 16 squares, and a room's number is its "
@@ -547,10 +628,24 @@ def _rooms_page(memory, castle, all_rooms, image_dir: Path) -> str:
              "places it -- east down to the right, north up to the right -- on its "
              "floor, so the castle can be seen whole. Click a room for its record, or "
              '<a href="images/rooms/castle.png">see the whole castle at full size</a>.</p>',
-             '<div class="kl-castle">'
+             "<p>The markers show where things are, each read from the game's own "
+             "tables: the four rooms a game can start in (#R$D1E2, chosen by the "
+             "menu's seed), the wizard's room, the rooms of the 32 places where a charm "
+             "or an extra life lies (#R$6FF2: the eight kinds are dealt round the "
+             "places, four of each, from a different kind each game), and "
+             "the rooms whose records build something that kills on touch or a "
+             "portcullis, which kills what it falls on. A thing is counted as deadly "
+             "when its handler sets the deadly flags (#R$B856 or #R$B85C and their "
+             "callers): the guards and the wizard, the ghosts, spikes, gargoyles, the "
+             "spiked ball, fires, flames and the bouncing balls. Tick a box to show "
+             "its layer.</p>",
+             '<div class="kl-layers">', "".join(toggles),
+             '<div class="kl-castle"><div class="kl-castle-stack">'
              f'<img src="images/rooms/castle_overview.png" usemap="#castle" alt="The castle" '
              f'width="{overview.width}" height="{overview.height}">'
-             f'<map name="castle">{areas}</map></div>']
+             + "".join(overlays) + "</div>"
+             f'<map name="castle">{areas}</map></div></div>']
+    lines += keys
     lines += ["<h3>A room record</h3>",
               "<p>A room is a record of a few dozen bytes in #R$6251, and the records "
               "are packed end to end with no index: #R$D3CF finds a room by walking "
@@ -858,5 +953,17 @@ def build(memory, skool: Path, html_dir: Path, out_ref: Path, log=print) -> None
         "RoomStructure": _rooms_page(memory, castle, all_rooms, room_dir),
         "MovingObjects": _moving_page(castle, comments, room_dir),
     }
+    # The animations, the sounds and the how-it-works pages each have their
+    # own module; they run the game's code on their own machines.
+    import knightlore_animations
+    import knightlore_howitworks
+    import knightlore_sounds
+
+    log("Animating...")
+    sections["Animations"] = knightlore_animations.build(memory, html_dir, log)
+    log("Recording the sounds...")
+    sections["Sounds"] = knightlore_sounds.build(memory, html_dir, log)
+    log("Drawing the how-it-works pages...")
+    sections.update(knightlore_howitworks.build(memory, html_dir, log))
     out_ref.write_text("\n\n".join(f"[{name}]\n{body}" for name, body in sections.items())
                        + "\n", encoding="utf-8")

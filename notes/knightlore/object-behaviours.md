@@ -109,6 +109,20 @@ Objects with +7 bit 1 set are skipped by the collision scan
 (`is_object_not_ignored` $B538), so the rising bubbles, though their +13 is
 $A0 from the start, hurt nobody until they turn solid.
 
+**Which types kill** (*read*, 2026-09-26, for the castle map's danger
+layers): the handlers that reach the two routines above are
+`bounce_ball_animate` (182, 183), `guard_ew_legs` (150, 151),
+`upd_22` (gargoyle), `upd_63` (spiked ball), `upd_23` (spikes),
+`fire_flicker_and_draw` (the flames 86/87 and 180/181, the fires 176/177),
+`ud_ball_draw` (178, 179), `upd_30_31_158_159` (the guard that walks round
+*and the wizard* -- he is as deadly to touch as a guard) and `ghost_animate`
+(80-83). The portcullis kills differently: `upd_9` makes it deadly to what it
+falls on. Of the templates rooms name, those types come from 1, 2, 4, 5, 8,
+9, 10, 12, 13, 17-20, 23, 24 and 28; `room_layers()` in
+`scripts/knightlore_pages.py` reads the rooms that build them -- 19 rooms
+with a guard or a ghost, 81 with spikes, fire, a ball or a gargoyle, and 8
+with a portcullis (background 8-11 or template 26/27).
+
 ### Two-record creatures
 
 A guard or the wizard is two consecutive records: the body, then the legs.
