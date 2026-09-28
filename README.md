@@ -70,7 +70,7 @@ You need Python 3.11+, SkoolKit, a 48K ROM at `roms/48.rom`, sjasmplus at
 ```
 pip install skoolkit
 python scripts/build_aticatac.py --tape "Atic Atac.tap" --html
-python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --html
+python scripts/build_knightlore.py --snapshot "Knight Lore (1984)(Ultimate).sna" --tape "Knight Lore (1984)(Ultimate).tzx" --html
 python scripts/build_antattack.py --tape "Ant Attack.tzx" --html
 python scripts/build_pentagram.py --tape "Pentagram.tzx" --html
 python scripts/build_alien8.py --tape "Alien 8 (1985)(Ultimate).tap" --html

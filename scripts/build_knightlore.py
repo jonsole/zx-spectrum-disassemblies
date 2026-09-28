@@ -371,7 +371,7 @@ def assemble(asm: Path, sld: Path) -> bytes:
     return game_bytes
 
 
-def build_html(skool: Path, out: Path, snapshot: Path) -> None:
+def build_html(skool: Path, out: Path, snapshot: Path, tape: Path | None) -> None:
     """Render the skool file as a browsable HTML disassembly.
 
     -a makes the pages use the labels from the code map rather than bare
@@ -380,6 +380,7 @@ def build_html(skool: Path, out: Path, snapshot: Path) -> None:
     """
     from skoolkit import skool2html
 
+    import filmation_logos
     import knightlore_pages
 
     # The graphics and castle pages carry the game's own pictures and room
@@ -387,6 +388,13 @@ def build_html(skool: Path, out: Path, snapshot: Path) -> None:
     # (see knightlore_pages.py); knightlore.ref only #INCLUDEs them.
     pages = OUT_DIR / "knightlore-pages.ref"
     knightlore_pages.build(game_memory(snapshot), skool, out / "knightlore", pages, _log)
+
+    # The title from the tape's loading screen, for the top of every page
+    # (LogoImage in knightlore.ref) and the landing page. The snapshot has
+    # no loading screen, so without --tape the pages show the name instead.
+    if tape:
+        filmation_logos.write_logo("knightlore", tape,
+                                   out / "knightlore" / "images" / "logo.png", _log)
 
     _log("Writing HTML disassembly...")
     # knightlore.css, which knightlore.ref's StyleSheet names, lives beside this.
@@ -499,6 +507,9 @@ def main() -> None:
     parser.add_argument("--from-skool", type=Path, metavar="FILE",
                         help="rebuild the code map from a SkoolKit "
                              "disassembly, then exit")
+    parser.add_argument("--tape", type=Path,
+                        help="the tape the snapshot came from, for the logo on its "
+                             "loading screen (with --html)")
     parser.add_argument("--html", action="store_true",
                         help="also write a browsable HTML disassembly")
     args = parser.parse_args()
@@ -522,7 +533,7 @@ def main() -> None:
     verify(game_bytes, args.snapshot)
     write_snapshot(game_bytes, args.snapshot, sna)
     if args.html:
-        build_html(skool, OUT_DIR / "html", args.snapshot)
+        build_html(skool, OUT_DIR / "html", args.snapshot, args.tape)
         render_menu(args.snapshot, OUT_DIR / "html" / "knightlore" / "images")
     _log(f"{NEWLINE}Wrote {asm}, {sld} and {sna}")
 

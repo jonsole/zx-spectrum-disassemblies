@@ -1050,11 +1050,17 @@ def write_pages_ref(snapshot: Path, html_dir: Path, path: Path) -> list[str]:
     return built
 
 
-def build_html(skool: Path, snapshot: Path, out: Path) -> None:
+def build_html(skool: Path, snapshot: Path, out: Path, tape: Path) -> None:
     from skoolkit import skool2html
+
+    import filmation_logos
 
     _log("Writing HTML disassembly...")
     game_dir = out / "pentagram"
+    # The title from the loading screen, for the top of every page
+    # (LogoImage in pentagram.ref) and the landing page; written before
+    # skool2html, which shows a logo only if the file is there.
+    filmation_logos.write_logo("pentagram", tape, game_dir / "images" / "logo.png", _log)
     count = draw_sprites(snapshot, game_dir / "images" / "sprites")
     _log(f"  {count} sprites drawn")
     pages_ref = OUT_DIR / "pentagram-pages.ref"
@@ -1103,7 +1109,7 @@ def main() -> None:
     verify(game_bytes, snapshot)
     write_snapshot(game_bytes, snapshot, rebuilt)
     if args.html:
-        build_html(skool, snapshot, OUT_DIR / "html")
+        build_html(skool, snapshot, OUT_DIR / "html", args.tape)
 
     _log("")
     _log(f"Wrote {asm}, {sld} and {rebuilt} in {time.time() - started:.0f} s")
