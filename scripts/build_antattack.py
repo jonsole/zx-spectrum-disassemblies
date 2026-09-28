@@ -1208,13 +1208,16 @@ def block_picture(snapshot: Path, drawer: int) -> list[list]:
     return rows
 
 
-# The map from above, and its layers. y runs down the page, so the one gap in
-# the outer wall, on the y=$FF side, is at the bottom; past it y wraps round to
-# $00 and up, open ground, where the player starts. That much of the outside is
-# drawn below the wall.
-ABOVE_SCALE = 6                 # pixels to a cell
-OUTSIDE_ROWS = 12               # y=$00 to $0B, below the gate
-GROUND = (225, 212, 170)
+# The city in the game's own projection, view 0, and its layers. A cell (u, v)
+# at height h is drawn at 8(u + v) across and 4(v - u) - 8h down, u and v
+# counted from $80. The one gap in the outer wall is on the y=$FF side; past it
+# y wraps round to $00 and up, open ground, where the player starts -- so v
+# carries on past 127 there, and that much of the outside is drawn beyond the
+# gate, empty ground in front of the city.
+OUTSIDE_ROWS = 12               # y=$00 to $0B, past the gate
+HEIGHTS = 6                     # bits 0-5 of a cell: a block at each height
+BLOCK = 16                      # the block picture is 16 by 16
+GROUND_DOWN = 11                # its bottom diamond's middle, down from its top
 LEVEL_NUMBER_SIZE = 14          # points, for the level beside each place
 OBJECT_DATA_LINES = range(110, 190, 10)     # DATA for the eight objects
 HOME = 10                       # +$0A: home x, then y and height
@@ -1225,6 +1228,8 @@ CITY_LAYERS = [
     ("ants", "Where the ants start", (220, 0, 0), True),
     ("rescue", "Where someone waits, by level", (200, 0, 170), True),
 ]
+CITY_SIZE = (8 * (256 + OUTSIDE_ROWS) + BLOCK, 4 * (256 + OUTSIDE_ROWS) + 8 * HEIGHTS + BLOCK)
+CITY_ORIGIN_Y = 4 * 127 + 8 * HEIGHTS       # where v - u = 0 lands, for a block on the ground
 
 
 def basic_data(snapshot: Path) -> dict[int, list[int]]:
@@ -1254,35 +1259,54 @@ def city_openings(memory) -> list[tuple[int, int]]:
     return [(x, y) for x, y in edges if memory[0xC000 + 128 * (y - 0x80) + (x - 0x80)] == 0]
 
 
-def _above_xy(x: int, y: int) -> tuple[int, int]:
-    """A cell's top-left pixel on the map from above; y below $80 is past the
-    gate, under the city."""
-    row = y - 0x80 if y >= 0x80 else 128 + y
-    return (x - 0x80) * ABOVE_SCALE, row * ABOVE_SCALE
+def _cell_uv(x: int, y: int) -> tuple[int, int]:
+    """A cell's u and v in the projection; y below $80 is past the gate, in
+    front of the city."""
+    return x - 0x80, (y - 0x80 if y >= 0x80 else 128 + y)
+
+
+def _ground(x: int, y: int) -> tuple[int, int]:
+    """The middle of a cell's ground in the projection: the bottom diamond
+    of the block that would stand on it."""
+    u, v = _cell_uv(x, y)
+    return 8 * (u + v) + BLOCK // 2, CITY_ORIGIN_Y + 4 * (v - u) + GROUND_DOWN
+
+
+def _diamond(x: int, y: int) -> list[tuple[int, int]]:
+    """A cell's ground: left, top, right, bottom."""
+    cx, cy = _ground(x, y)
+    return [(cx - 8, cy), (cx, cy - 4), (cx + 8, cy), (cx, cy + 4)]
 
 
 def render_city(snapshot: Path, out_dir: Path, levels: list[dict]) -> dict[str, list]:
-    """Two pictures of Antescher -- from above, and in the game's own
-    projection -- and the layers over the first. Returns what each layer marks."""
+    """Antescher in the game's own projection, view 0, and the layers over
+    it. Returns what each layer marks."""
     from PIL import Image, ImageDraw, ImageFont
 
     out_dir.mkdir(parents=True, exist_ok=True)
     memory = game_memory(snapshot)
 
-    # From above: the tallest block in each cell, the ground sand-coloured.
-    scale = ABOVE_SCALE
-    size = (128 * scale, (128 + OUTSIDE_ROWS) * scale)
-    above = Image.new("RGB", size, GROUND)
-    draw = ImageDraw.Draw(above)
-    for y in range(128):
-        for x in range(128):
-            height = memory[0xC000 + 128 * y + x].bit_length()
-            if height:
-                draw.rectangle([x * scale, y * scale, x * scale + scale - 1, y * scale + scale - 1],
-                               fill=tuple([200 - 26 * height] * 3))
-    # A line where the city ends and the outside begins.
-    draw.line([0, 128 * scale, size[0], 128 * scale], fill=(150, 140, 110))
-    above.save(out_dir / "above.png")
+    # Each block the picture #R$8203 paints, captured by running it, and
+    # painted lowest height first and then top to bottom, as DRAW_SCENE
+    # paints -- so it hides exactly what the game would hide.
+    block = block_picture(snapshot, 0x8203)
+    city = Image.new("RGB", CITY_SIZE, PAPER)
+    pixels = city.load()
+    cells = []
+    for v in range(128):
+        for u in range(128):
+            cell = memory[0xC000 + 128 * v + u]
+            for h in range(HEIGHTS):
+                if cell >> h & 1:
+                    cells.append((h, 4 * (v - u) - 8 * h, 8 * (u + v)))
+    cells.sort()
+    for h, down, across in cells:
+        for row in range(BLOCK):
+            for column in range(BLOCK):
+                pixel = block[row][column]
+                if pixel is not None:
+                    pixels[across + column, CITY_ORIGIN_Y + down + row] = INK if pixel else PAPER
+    city.save(out_dir / "city.png")
 
     homes = object_homes(snapshot)
     marked = {
@@ -1293,32 +1317,36 @@ def render_city(snapshot: Path, out_dir: Path, levels: list[dict]) -> dict[str, 
     }
     font = ImageFont.load_default(LEVEL_NUMBER_SIZE)
     for key, _, colour, _ in CITY_LAYERS:
-        layer = Image.new("RGBA", size, (0, 0, 0, 0))
+        layer = Image.new("RGBA", CITY_SIZE, (0, 0, 0, 0))
         draw = ImageDraw.Draw(layer)
         for place in marked[key]:
-            left, top = _above_xy(place[0], place[1])
-            cx, cy = left + scale // 2, top + scale // 2
+            cx, cy = _ground(place[0], place[1])
             if key == "gate":
-                draw.rectangle([left, top, left + scale - 1, top + scale - 1], fill=colour + (255,))
+                draw.polygon(_diamond(place[0], place[1]), fill=colour + (255,))
             else:
-                draw.ellipse([cx - 7, cy - 7, cx + 7, cy + 7], outline=colour + (255,), width=3)
+                draw.ellipse([cx - 8, cy - 6, cx + 8, cy + 6], outline=colour + (255,), width=3)
             if key == "rescue":
-                draw.text((cx + 9, cy - 9), str(place[2]), fill=colour + (255,), font=font,
-                          stroke_width=2, stroke_fill=GROUND)
+                draw.text((cx + 10, cy - 12), str(place[2]), fill=colour + (255,), font=font,
+                          stroke_width=2, stroke_fill=PAPER)
         layer.save(out_dir / f"layer_{key}.png")
     return marked
 
 
 def write_city_ref(snapshot: Path, path: Path, marked: dict[str, list]) -> None:
-    """The city page: the map from above with its layers, each row of it a
-    link to that row's entry, and the city in the game's projection."""
-    scale = ABOVE_SCALE
-    width, height = 128 * scale, (128 + OUTSIDE_ROWS) * scale
-    areas = "".join(
-        f'<area shape="rect" coords="0,{row * scale},{width},{row * scale + scale}" '
-        f'href="asm/{0xC000 + 128 * row}.html" title="y=${0x80 + row:02X}" '
-        f'alt="y=${0x80 + row:02X}">'
-        for row in range(128))
+    """The city page: the city in the game's projection with its layers, each
+    row of it a link to that row's entry."""
+    width, height = CITY_SIZE
+
+    def row_area(y: int) -> str:
+        # A row of cells runs up and to the right: from the first cell's
+        # left and bottom corners to the last cell's top and right.
+        left, _, _, bottom = _diamond(0x80, y)
+        _, top, right, _ = _diamond(0xFF, y)
+        coords = ",".join(f"{a},{b}" for a, b in (left, top, right, bottom))
+        return (f'<area shape="poly" coords="{coords}" href="asm/{0xC000 + 128 * (y - 0x80)}.html" '
+                f'title="y=${y:02X}" alt="y=${y:02X}">')
+
+    areas = "".join(row_area(y) for y in range(0x80, 0x100))
     toggles, overlays = [], []
     for key, what, _, shown in CITY_LAYERS:
         toggles.append(f'<input type="checkbox" class="aa-toggle" id="aa-layer-{key}"'
@@ -1355,56 +1383,23 @@ def write_city_ref(snapshot: Path, path: Path, marked: dict[str, list]) -> None:
              "is a column of set bits. Coordinates run from $80 to $FF; anything lower is "
              "outside the walls, where nothing is solid and nothing collides. Each row of "
              "the map is an entry of its own in the listing.</p>",
-             "<p>From above, the taller the darker, with the open ground past the gate "
-             "drawn below the city. x runs left to right, y top to bottom. Each layer is "
-             "read from the game when these pages are built -- the city map, BASIC's DATA "
-             "and the levels -- and a box shows or hides it. Click a row to see its "
-             "bytes.</p>",
-             '<div class="aa-layers">' + "".join(toggles)
-             + '<div class="aa-city"><div class="aa-city-stack">'
-             f'<img src="images/city/above.png" usemap="#aacity" alt="Antescher from above" '
-             f'width="{width}" height="{height}">' + "".join(overlays) + "</div>"
-             f'<map name="aacity">{areas}</map></div></div>'] + keys + [
-             "<p>And the whole city at once, the way the game draws a corner of it: view 0, "
+             "<p>The whole city at once, the way the game draws a corner of it: view 0, "
              "each block the picture #R$8203 paints -- captured by running that routine "
              "rather than copied -- and painted in the same order #R$8500 uses, lowest "
              "height first and then from the back, so every block hides exactly what it "
-             "hides in the game.</p>",
-             "<p><img src=\"images/city/city.png\" alt=\"Antescher in the game's projection\" "
-             'style="max-width:100%"></p>']
+             "hides in the game. x runs up and to the right, y down and to the right; the "
+             "open ground past the gate, where the player starts, is in front of the city "
+             "at the bottom right. Each layer is read from the game when these pages are "
+             "built -- the city map, BASIC's DATA and the levels -- and a box shows or hides "
+             "it; a mark sits on its cell's ground, so one behind a wall shows through it. "
+             "Click a row of the city to see its bytes.</p>",
+             '<div class="aa-layers">' + "".join(toggles)
+             + '<div class="aa-city"><div class="aa-city-stack">'
+             f'<img src="images/city/city.png" usemap="#aacity" '
+             f'alt="Antescher in the game\'s projection" width="{width}" height="{height}">'
+             + "".join(overlays) + "</div>"
+             f'<map name="aacity">{areas}</map></div></div>'] + keys
     path.write_text(NEWLINE.join(lines), encoding="utf-8")
-
-
-def render_projection(snapshot: Path, out_dir: Path) -> None:
-    """The whole city in the game's own projection, view 0."""
-    from PIL import Image
-
-    memory = game_memory(snapshot)
-
-    # The game's projection, view 0: a cell (u, v) at height h is drawn at
-    # 8(u + v) across and 4(v - u) - 8h down, and painted lowest height first
-    # and then top to bottom, as DRAW_SCENE paints -- so it hides exactly what
-    # the game would hide, with the block the game draws.
-    block = block_picture(snapshot, 0x8203)
-    width, height = 8 * 256 + 16, 4 * 256 + 8 * 6 + 16
-    city = Image.new("RGB", (width, height), PAPER)
-    pixels = city.load()
-    cells = []
-    for v in range(128):
-        for u in range(128):
-            cell = memory[0xC000 + 128 * v + u]
-            for h in range(6):
-                if cell >> h & 1:
-                    cells.append((h, 4 * (v - u) - 8 * h, 8 * (u + v)))
-    cells.sort()
-    origin_y = 4 * 127 + 8 * 6
-    for h, down, across in cells:
-        for row in range(16):
-            for column in range(16):
-                pixel = block[row][column]
-                if pixel is not None:
-                    pixels[across + column, origin_y + down + row] = INK if pixel else PAPER
-    city.save(out_dir / "city.png")
 
 
 # The generated pages beyond the listing, each family in a module of its own
@@ -1450,9 +1445,8 @@ def build_html(skool: Path, snapshot: Path, out: Path) -> None:
             str(skool), str(REF), str(sprites_ref), str(scripts_ref), str(levels_ref),
             str(city_ref), str(pages_ref)]
     _capture(skool2html.main, args)
-    _log("  running the scripts, and drawing the city...")
+    _log("  running the scripts...")
     render_scripts(snapshot, game_dir / SCRIPT_IMAGES)
-    render_projection(snapshot, game_dir / "images" / "city")
 
 
 def main() -> None:
