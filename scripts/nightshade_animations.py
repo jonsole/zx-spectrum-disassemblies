@@ -44,6 +44,14 @@ the screen after a game, the tune at the end -- the screen is read once a
 television frame (69,888 T-states), and identical frames merged; in the
 ending, where both come, a sample never stops inside the copy of the buffer
 to the screen, so no picture is half of one turn and half of the next.
+
+The monsters, the creature and the villains are shown alone, not in the
+town: their runs are made the same way, but what is kept of each turn is the
+thing's record -- its graphic and its flags -- and each frame is that graphic
+drawn by itself by the game's own DRAW_SPRITE_AT (#R$E3D9), the way the
+Sprites page draws it (Alone), on a transparent background. Where the facing
+changes the picture, a staging is run once for each way round, and each
+facing gets its GIF.
 """
 from __future__ import annotations
 
@@ -884,11 +892,6 @@ def bump(snapshot: Path) -> dict:
                      labels=[f"{_knight_label(f)} V {f.record(LEGS)[3]}" for f in frames])
 
 
-def _monster_label(frame: Frame, first: int = MONSTERS, count: int = 6) -> str:
-    return " ".join(str(frame.record(i)[0]) for i in range(first, first + count)
-                    if frame.record(i)[0] > 1) + f"; hits {frame.variable(HITS)}"
-
-
 # Where the four staged monsters are put, from the knight, in units of U
 # and V: round him, far enough apart to be told from one another.
 FOUR_PLACES = [(-64, -64), (64, -64), (-64, 64), (64, 64)]
@@ -898,7 +901,7 @@ APPEAR_CELLS = [(24, 18), (24, 23), (16, 15), (14, 12)]
 APPEAR_TURNS = 400
 
 
-def monsters(snapshot: Path, first: int) -> dict:
+def monsters(snapshot: Path, first: int, rotation: int = 0) -> dict:
     """Four monsters, one of each kind -- graphics `first`, +4, +8 and +12
     -- put round him in the open cell as #R$CDE8's template makes them
     (#R$CE79: speed 6, 16 by 16 units), as if each had just finished
@@ -907,19 +910,21 @@ def monsters(snapshot: Path, first: int) -> dict:
     still. What touches him takes a hit
     (his hits are topped up every turn); what wanders more than two cells
     off is gone. The records a new monster would appear in are kept busy
-    (quiet()), so the four are all there is."""
+    (quiet()), so the four are all there is. Kind n starts in place and
+    facing n + `rotation` of FOUR_PLACES and FACINGS, so that over the
+    four rotations each kind starts once in each. The turns, for the
+    pictures made from them (alone_family())."""
     game = started(snapshot)
     game.go(*OPEN_CELL, facing=0xC0)
     game.to_turn()
-    for n, (du, dv) in enumerate(FOUR_PLACES):
+    for n in range(4):
+        du, dv = FOUR_PLACES[(n + rotation) % 4]
         graphic = first + 4 * n
         game.put(MONSTERS + n, graphic, du, dv, template=MONSTER_TEMPLATE,
-                 facing=FACINGS[n][0],
+                 facing=FACINGS[(n + rotation) % 4][0],
                  size=(0x10, 0x18) if graphic == 76 else None)
     frames = game.turns(MONSTER_TURNS, each=lambda g: g.poke(HITS, 3))
-    key = f"monsters-{first}"
-    return animation(key, game.memory, frames, box=PLAY_AREA,
-                     labels=[_monster_label(f) for f in frames])
+    return {"key": f"monsters-{first}", "turns": frames}
 
 
 def appearing(snapshot: Path) -> dict:
@@ -959,8 +964,7 @@ def appearing(snapshot: Path) -> dict:
     for _ in range(8):
         kept.append(game.turn())
         game.top_up()
-    return {**animation("appearing", game.memory, kept, [index], margin=8,
-                        labels=[str(f.record(index)[0]) for f in kept]), "index": index}
+    return {"key": "appearing", "turns": kept, "index": index}
 
 
 def creature(snapshot: Path) -> dict:
@@ -981,8 +985,7 @@ def creature(snapshot: Path) -> dict:
     else:
         raise RuntimeError("the creature never reached him")
     frames += game.turns(6)
-    return animation("creature", game.memory, frames, box=PLAY_AREA,
-                     labels=[_monster_label(f, MONSTERS, 1) for f in frames])
+    return {"key": "creature", "turns": frames}
 
 
 def _score(frame: Frame) -> str:
@@ -1149,18 +1152,21 @@ def panel_flash(snapshot: Path) -> dict:
                      labels=[_flash_label(f) for f in frames])
 
 
-def villains(snapshot: Path) -> dict:
+def villains(snapshot: Path, rotation: int = 0) -> dict:
     """The four villains walking (#R$D94F), each put, from the villains'
     template (#R$D932), 80 units out from him along U or V and facing away
     from him, him standing still in the open cell: each walks at speed 4,
     turning at walls and now and then at random (#R$DD28), its picture
     taken from its facing (#R$D978). A villain kills at a touch, so the
-    run stops if one reaches him."""
+    run stops if one reaches him. Villain n takes place n + `rotation` of
+    VILLAIN_PLACES, so that over the four rotations each starts once
+    facing each way. The turns, for the pictures made from them
+    (alone_family())."""
     game = started(snapshot)
     game.go(*OPEN_CELL, facing=0xC0)
     game.to_turn()
-    places = [(-80, 0, 0xC0), (80, 0, 0x40), (0, -80, 0x80), (0, 80, 0x00)]
-    for which, (du, dv, facing) in enumerate(places):
+    for which in range(4):
+        du, dv, facing = VILLAIN_PLACES[(which + rotation) % 4]
         game.put(VILLAINS + which, 108 - 4 * which, du, dv, template=VILLAIN_TEMPLATE,
                  facing=facing)
     frames = []
@@ -1169,9 +1175,12 @@ def villains(snapshot: Path) -> dict:
         game.top_up()
         if not game.playing():
             break
-    return animation("villains", game.memory, frames, box=PLAY_AREA,
-                     labels=[" ".join(str(f.record(VILLAINS + n)[0]) for n in range(4))
-                             for f in frames])
+    return {"key": "villains", "turns": frames}
+
+
+# Where the villains are put: 80 units out from him along U or V, each
+# facing away from him.
+VILLAIN_PLACES = [(-80, 0, 0xC0), (80, 0, 0x40), (0, -80, 0x80), (0, 80, 0x00)]
 
 
 VILLAIN_TURNS = 30
@@ -1267,6 +1276,285 @@ def ending(snapshot: Path) -> dict:
 
 
 ENDING_LIMIT = 50 * 60            # television frames: a minute
+
+
+# --------------------------------------------------------------------------
+# Things alone: a record read every turn of a run, and the graphic it held
+# drawn by itself by the game's own sprite code.
+# --------------------------------------------------------------------------
+
+# A picture of a thing alone is what the Sprites page shows: white where the
+# sprite's image is set, black where its mask alone clears the buffer, and
+# clear where the background would show through. In a GIF that is three
+# colours, the first transparent; it is given the Sprites page's blue-grey
+# for a viewer that ignores transparency. The page shows them on that
+# blue-grey too (kl-sprite): its own background is nearly black, and the
+# black of the masks would vanish into it.
+ALONE_CLEAR, ALONE_BLACK, ALONE_WHITE = 0, 1, 2
+_ALONE_PALETTE = [0x5A, 0x5A, 0x8C, 0, 0, 0, 0xFF, 0xFF, 0xFF] + [0] * (768 - 9)
+ALONE_SCALE = 3                   # on the page, three times the Spectrum's size
+ROTATIONS = 4                     # runs of a staged family, its places turned round
+
+
+class Alone:
+    """Graphics drawn one at a time by the game's own code, as the Sprites
+    page draws them (nightshade_graphics.Rig): DRAW_SPRITE_AT, the entry
+    of #R$E3D9 that draws at a record's +E and +F as they are, run from a
+    spare record holding the graphic and the flags (+7) a record had in
+    play, into the play area's buffer, once over zeros and once over ones
+    -- a pixel set in the first is the image, one cleared in the second the
+    mask. With bit 6 of the flags set #R$E353 turns the stored sprite round
+    first, as in play. Each picture is checked against the sprite's bytes as
+    the listing reads them (build_nightshade.sprite_image), turned round
+    for bit 6, and a difference stops the build."""
+
+    def __init__(self, snapshot: Path):
+        import nightshade_graphics as ng
+
+        self.ng = ng
+        self.rig = ng.Rig(snapshot)
+        self.tape = bn.game_memory(snapshot)
+        self.drawn: dict = {}
+
+    def picture(self, graphic: int, flags: int):
+        """The graphic drawn with these flags, cut to its sprite's size (RGBA)."""
+        if (graphic, flags) in self.drawn:
+            return self.drawn[graphic, flags]
+        from PIL import ImageOps
+
+        ng = self.ng
+        address = _word(self.tape, GRAPHICS + 2 * graphic)
+        width, height = self.tape[address] & 0x0F, self.tape[address + 1]
+        dark, light = self.rig._sprite_runs(graphic, flags)
+        image = ng._three_colour(dark, light)
+        left = ng.SPRITE_X - ng.BUFFER_X
+        top = ng.BUFFER_ROWS - 1 - (ng.SPRITE_Y - ng.BUFFER_Y) - (height - 1)
+        image = image.crop((left, top, left + 8 * width, top + height))
+        expected = bn.sprite_image(self.tape, address, 1)
+        if flags & 0x40:
+            expected = ImageOps.mirror(expected)
+        if list(image.getdata()) != list(expected.getdata()):
+            raise ValueError(f"animations: graphic {graphic} drawn with flags ${flags:02X} is "
+                             f"not the sprite at ${address:04X}")
+        self.drawn[graphic, flags] = image
+        return image
+
+
+def _alone_label(record) -> str:
+    return str(record[0]) + (" mirrored" if record[7] & 0x40 else "")
+
+
+def alone_frames(alone: Alone, turns: list[Frame], index: int, first: int, end: int,
+                 cycle: int = 1) -> list[tuple]:
+    """(picture, milliseconds, label, tstates) for record `index` in turns
+    first to end - 1 of a run: the graphic it held at the end of each turn,
+    which is what that turn drew, drawn alone with its flags. Cut to whole
+    rounds of `cycle` turns, so that the GIF loops as the game goes round;
+    each picture shown for as long as the scenes show its turn (shown_for(),
+    from the whole run), identical pictures in a row as one."""
+    count = end - first
+    if count >= cycle:
+        count -= count % cycle
+    times = shown_for(turns)
+    out = []
+    for n in range(first, first + count):
+        record = turns[n].record(index)
+        picture = alone.picture(record[0], record[7])
+        label = _alone_label(record)
+        if out and out[-1][0].size == picture.size and \
+                out[-1][0].tobytes() == picture.tobytes():
+            last = out[-1]
+            if label not in last[1]:
+                last[1].append(label)
+            out[-1] = (last[0], last[1], last[2] + times[n])
+        else:
+            out.append((picture, [label], times[n]))
+    return [(p, duration(t), "/".join(labels), t) for p, labels, t in out]
+
+
+def _canvas(pictures) -> tuple[int, int]:
+    return max(p.width for p in pictures), max(p.height for p in pictures)
+
+
+def save_alone_gif(path: Path, frames: list[tuple], size: tuple[int, int]) -> None:
+    """Frames (picture, milliseconds, ...) as a looping GIF, transparent
+    where the sprite lets the background through. Every frame is the whole
+    canvas with its picture at the bottom left -- the corner DRAW_SPRITE_AT
+    draws from, so a thing stands where the game stands it -- and is
+    cleared before the next (disposal 2), or the clear parts of one would
+    show the last. The GIF is read back and each frame compared with what
+    was meant."""
+    from PIL import Image
+
+    images = []
+    for picture, *_ in frames:
+        canvas = Image.new("P", size, ALONE_CLEAR)
+        canvas.putpalette(_ALONE_PALETTE)
+        pixels, source = canvas.load(), picture.load()
+        top = size[1] - picture.height
+        for y in range(picture.height):
+            for x in range(picture.width):
+                red, _, _, alpha = source[x, y]
+                if alpha:
+                    pixels[x, top + y] = ALONE_WHITE if red else ALONE_BLACK
+        images.append(canvas)
+    if len(images) == 1:
+        images[0].save(path, transparency=ALONE_CLEAR)
+    else:
+        images[0].save(path, save_all=True, append_images=images[1:], loop=0,
+                       duration=[ms for _, ms, *_ in frames], disposal=2,
+                       transparency=ALONE_CLEAR, optimize=False)
+    with Image.open(path) as gif:
+        for n, meant in enumerate(images):
+            gif.seek(n)
+            got = gif.convert("RGBA")
+            want = meant.convert("RGBA")
+            for (r1, g1, b1, a1), (r2, g2, b2, _) in zip(got.getdata(), want.getdata()):
+                expected = None if (r2, g2, b2) == (0x5A, 0x5A, 0x8C) else (r2, g2, b2)
+                if (expected is None and a1) or (expected is not None and
+                                                 (not a1 or (r1, g1, b1) != expected)):
+                    raise RuntimeError(f"animations: {path.name} frame {n} did not read back "
+                                       "as written")
+
+
+def _longest(runs: list[list[Frame]], records, look) -> dict:
+    """For each value look(record) gives other than None, the longest
+    stretch of turns in a row, in any run, in which one of `records` gave
+    it: value -> (length, run number, record index, first turn, end)."""
+    best: dict = {}
+    for number, turns in enumerate(runs):
+        for index in records:
+            n = 0
+            while n < len(turns):
+                value = look(turns[n].record(index))
+                if value is None:
+                    n += 1
+                    continue
+                end = n
+                while end < len(turns) and look(turns[end].record(index)) == value:
+                    end += 1
+                if value not in best or end - n > best[value][0]:
+                    best[value] = (end - n, number, index, n, end)
+                n = end
+    return best
+
+
+def alone_family(snapshot: Path, key: str, runs: list[list[Frame]], records, kinds,
+                 by_facing: bool, cycle: int) -> dict:
+    """A family of things alone: a row for each of `kinds` (kind number,
+    first graphic, name), and a column for each facing if `by_facing`. Each
+    cell is the longest stretch of turns, in any of the runs, in which a
+    record held a graphic of that kind (and faced that way), drawn alone
+    turn by turn. A facing whose pictures are all another's already in the
+    row is not drawn again: its cell names that one."""
+    alone = run(snapshot, Alone)
+    facings = FACINGS if by_facing else [(None, "")]
+
+    def look(record):
+        for kind, base, _ in kinds:
+            if base <= record[0] < base + 4:
+                return kind, (record[6] & 0xC0) if by_facing else None
+        return None
+
+    best = _longest(runs, records, look)
+    rows = []
+    for kind, base, name in kinds:
+        cells, seen = [], []
+        for facing, facing_name in facings:
+            found = best.get((kind, facing))
+            if found is None:
+                cells.append("not seen in these runs")
+                continue
+            _, number, index, first, end = found
+            turns = runs[number]
+            frames = alone_frames(alone, turns, index, first, end, cycle)
+            pictures = frozenset((p.size, p.tobytes()) for p, *_ in frames)
+            same = next((other for other, drawn in seen if drawn == pictures), None)
+            if same is not None:
+                cells.append(f"as {same}")
+                continue
+            seen.append((facing_name, pictures))
+            count = end - first
+            if count >= cycle:
+                count -= count % cycle
+            used = turns[first:first + count]
+            cells.append({"name": f"{key}-{kind}" + (f"-{'pmpm'[facing >> 7]}"
+                                                      f"{'vuvu'[facing >> 6]}" if by_facing
+                                                      else ""),
+                          "frames": frames, "turns": used, "index": index,
+                          "times": shown_for(turns)[first:first + count],
+                          "facing": facing_name})
+        drawn = [p for cell in cells if isinstance(cell, dict) for p, *_ in cell["frames"]]
+        rows.append({"kind": kind, "base": base, "name": name, "cells": cells,
+                     "size": _canvas(drawn) if drawn else (8, 8)})
+    return {"key": key, "runs": runs, "rows": rows,
+            "columns": [name for _, name in facings] if by_facing else []}
+
+
+def alone_one(snapshot: Path, key: str, turns: list[Frame], index: int, graphics,
+              cycle: int = 1) -> dict:
+    """One thing alone: record `index` over the first stretch of turns in
+    which it held one of `graphics`."""
+    alone = run(snapshot, Alone)
+    first = next(n for n, f in enumerate(turns) if f.record(index)[0] in graphics)
+    end = first
+    while end < len(turns) and turns[end].record(index)[0] in graphics:
+        end += 1
+    frames = alone_frames(alone, turns, index, first, end, cycle)
+    return {"key": key, "frames": frames, "size": _canvas([p for p, *_ in frames]),
+            "turns": turns, "index": index, "stretch": (first, end)}
+
+
+# The kinds, with the short names the Sprites page gives their pictures
+# (nightshade_graphics, named after drawing them).
+WANDERER_KINDS = [(0, 64, "a blob"), (1, 68, "a swarm"), (2, 72, "a dome"), (3, 76, "a slug")]
+MONSTER_KINDS = [(0, 112, "the horned monster with its arms up"),
+                 (1, 116, "the spiky round monster"), (2, 120, "the horned head"),
+                 (3, 124, "the crested monster")]
+VILLAIN_KINDS = [(0, 108, "the skeleton"), (1, 104, "the hooded figure with the scythe"),
+                 (2, 100, "the hooded figure"), (3, 96, "the ghost")]
+
+
+def monsters_alone(snapshot: Path, first: int) -> dict:
+    """The monsters of `first` to first + 15 alone: MONSTERS' staging run
+    ROTATIONS times. Those of 64-79 look the same whichever way they face
+    (only the view mirrors them, #R$CE89): a GIF a kind, cut to whole rounds
+    of their four frames. Those of 112-127 by facing too, in pairs of
+    frames (#R$D978)."""
+    runs = [run(snapshot, monsters, first, r)["turns"] for r in range(ROTATIONS)]
+    kinds = WANDERER_KINDS if first == 64 else MONSTER_KINDS
+    return alone_family(snapshot, f"monsters-{first}", runs,
+                        range(MONSTERS, MONSTERS + 4), kinds, first != 64,
+                        4 if first == 64 else 2)
+
+
+def villains_alone(snapshot: Path) -> dict:
+    """The four villains alone, walking, by facing: villains()' staging run
+    ROTATIONS times, in pairs of frames (#R$D978)."""
+    runs = [run(snapshot, villains, r)["turns"] for r in range(ROTATIONS)]
+    return alone_family(snapshot, "villains", runs, range(VILLAINS, VILLAINS + 4),
+                        VILLAIN_KINDS, True, 2)
+
+
+def creature_alone(snapshot: Path) -> dict:
+    """The creature alone, from creature()'s run, in whole rounds of its four
+    frames."""
+    return alone_one(snapshot, "creature", run(snapshot, creature)["turns"], MONSTERS,
+                     range(136, 140), 4)
+
+
+def appearing_alone(snapshot: Path) -> dict:
+    """The monster appearing alone, from appearing()'s run: its four turns of
+    128-131."""
+    made = run(snapshot, appearing)
+    return {**alone_one(snapshot, "appearing", made["turns"], made["index"], range(128, 132)),
+            "run": made}
+
+
+def dying_alone(snapshot: Path) -> dict:
+    """The villain dying alone (132-135), from villain_destroyed()'s run."""
+    made = run(snapshot, villain_destroyed)
+    return alone_one(snapshot, "villain-dying", made["turns"], VILLAINS, range(132, 136))
 
 
 # --------------------------------------------------------------------------
@@ -1481,29 +1769,71 @@ def _measure_antibodies(anim: dict) -> str:
         f"while the first was still busy with the last throw's cloud (#R$DAB7)."])
 
 
+def _look_words(name: str, picture: int, mirrored: bool) -> str:
+    return f"{name} picture {picture}" + (" mirrored" if mirrored else "")
+
+
+def _measure_facings(runs: list[list[Frame]], records, graphics) -> str:
+    """Every turn recorded, against #R$D978: bit 1 of the graphic set for
+    facing +V or -U, clear for +U or -V (the town the usual way round),
+    mirrored for +U and -U, and bit 0 toggled every turn."""
+    seen: dict = {}
+    total = pairs = still = 0
+    for turns in runs:
+        for index in records:
+            for n, frame in enumerate(turns):
+                record = frame.record(index)
+                if record[0] not in graphics:
+                    continue
+                total += 1
+                seen.setdefault(record[6] & 0xC0, set()).add(
+                    (record[0] >> 1 & 1, bool(record[7] & 0x40)))
+                before = turns[n - 1].record(index)[0] if n else None
+                if before in graphics:
+                    pairs += 1
+                    if (before ^ record[0]) & 1 == 0:
+                        still += 1
+    expected, measured = [], []
+    for facing, name in FACINGS:
+        expected.append(_look_words(name, 1 if facing in (0x00, 0xC0) else 0,
+                                    bool(facing & 0x40)))
+        measured.append(" or ".join(_look_words(name, p, m) for p, m in sorted(seen[facing]))
+                        if facing in seen else f"{name} never")
+    return " ".join([
+        _check(f"The picture (bit 1 of the graphic) and the mirroring by facing, over the "
+               f"{total} turns recorded", expected, measured),
+        _check(f"Turns, of the {pairs} that followed a turn of the same thing, in which the "
+               f"walking frame (bit 0) did not change", 0, still)])
+
+
 def _measure_monsters(anim: dict, first: int) -> str:
-    turns = anim["turns"]
-    steps, frames_ok = set(), True
-    for n in range(4):
-        index = MONSTERS + n
-        for (du, dv), a, b in zip(_moves(turns, index), turns, turns[1:]):
-            if a.record(index)[0] in range(first, first + 16) and \
-                    b.record(index)[0] in range(first, first + 16):
-                steps.add((abs(du), abs(dv)))
-                if first == 64 and (b.record(index)[0] & 3) != ((a.record(index)[0] + 1) & 3):
-                    frames_ok = False
+    runs = anim["runs"]
+    graphics = range(first, first + 16)
+    steps, frames_ok, mirrored = set(), True, 0
+    for turns in runs:
+        for n in range(4):
+            index = MONSTERS + n
+            for (du, dv), a, b in zip(_moves(turns, index), turns, turns[1:]):
+                if a.record(index)[0] in graphics and b.record(index)[0] in graphics:
+                    steps.add((abs(du), abs(dv)))
+                    if first == 64 and (b.record(index)[0] & 3) != ((a.record(index)[0] + 1) & 3):
+                        frames_ok = False
+            mirrored += sum(1 for f in turns if f.record(index)[0] in graphics
+                            and f.record(index)[7] & 0x40)
+    every = [f for turns in runs for f in turns]
     if first == 64:
         largest = max(max(s) for s in steps)
-        return (f"Measured: steps of up to {largest} units a turn along U and V, both at "
-                f"once (#R$DDCF gives each up to 14), and "
-                + ("the frame stepped on every turn (#R$CEF8)." if frames_ok else
-                   "the frame did not always step on.")
-                + f" A turn took {_ms(turns)}.")
+        return (f"Measured over the {len(runs)} runs: steps of up to {largest} units a turn "
+                f"along U and V, both at once (#R$DDCF gives each up to 14), and "
+                + ("the frame stepped on every turn (#R$CEF8). " if frames_ok else
+                   "the frame did not always step on. ")
+                + _check("Turns drawn mirrored, the town the usual way round", 0, mirrored)
+                + f" A turn took {_ms(every)}.")
     along = sorted({max(s) for s in steps if min(s) == 0})
-    return (_check("The distance a monster of 112-127 moved a turn, along one axis", [6],
-                   along)
-            + " Its picture is one of two by its facing, mirrored for U, its walking frame "
-            f"flipped every turn (#R$D978). A turn took {_ms(turns)}.")
+    return " ".join([
+        _check("The distance a monster of 112-127 moved a turn, along one axis", [6], along),
+        _measure_facings(runs, range(MONSTERS, MONSTERS + 4), graphics),
+        f"A turn took {_ms(every)}."])
 
 
 def _measure_appearing(anim: dict) -> str:
@@ -1522,7 +1852,10 @@ def _measure_creature(anim: dict) -> str:
     moving = [m for m, f in zip(_moves(turns, MONSTERS), turns[1:])
               if f.record(MONSTERS)[0] in range(136, 140)]
     burst = next(n for n, f in enumerate(turns) if f.record(MONSTERS)[0] == VANISH)
+    graphics = [f.record(MONSTERS)[0] for f in turns[:burst]]
+    skipped = sum(1 for a, b in zip(graphics, graphics[1:]) if b & 3 != (a + 1) & 3)
     return " ".join([
+        _check("Turns in which its frame did not step on by one (#R$CEF8)", 0, skipped),
         _check("Its step each turn in U and V", [(-2, -2)], sorted(set(moving))),
         _check("The turn it touched him in, from 80 units off each way: touching needs "
                "less than 24 between them along each axis (its half-size of 16 and half "
@@ -1601,12 +1934,33 @@ def _measure_flash(anim: dict) -> str:
 
 
 def _measure_villains(anim: dict) -> str:
-    turns = anim["turns"]
-    steps = sorted({max(abs(du), abs(dv)) for n in range(4)
+    runs = anim["runs"]
+    steps = sorted({max(abs(du), abs(dv)) for turns in runs for n in range(4)
                     for du, dv in _moves(turns, VILLAINS + n) if du or dv})
-    return (_check("The distance a villain moved a turn", [4], steps)
-            + f" Over {len(turns)} turns, him standing still; the hum is played for each "
-            f"villain drawn (#R$C332).")
+    return " ".join([
+        _check("The distance a villain moved a turn", [4], steps),
+        _measure_facings(runs, range(VILLAINS, VILLAINS + 4), range(96, 112)),
+        f"Over {len(runs)} runs of {', '.join(str(len(t)) for t in runs)} turns, him "
+        f"standing still; a turn took {_ms([f for t in runs for f in t])}. The hum is "
+        f"played for each villain drawn (#R$C332)."])
+
+
+def _measure_dying(anim: dict) -> str:
+    """The dying villain's graphics against #R$D847: a new frame only on odd
+    turns, so struck on an even turn 132 and then two turns each of
+    133-135, on an odd one straight to 133."""
+    turns = anim["turns"]
+    first, end = anim["stretch"]
+    graphics = [f.record(VILLAINS)[0] for f in turns[first:end]]
+    # The updates run before the turn is counted (#R$C5B4): the counter a
+    # frame ends with is one more than the one #R$D847 read.
+    counted = (turns[first].variable(TURNS) - 1) & 0xFF
+    expected = ([132] if counted % 2 == 0 else []) + [133, 133, 134, 134, 135, 135]
+    flags = {bool(f.record(VILLAINS)[7] & 0x40) for f in turns[first:end]}
+    return (_check("Its graphics turn by turn, struck on "
+                   + ("an even" if counted % 2 == 0 else "an odd") + " turn", expected, graphics)
+            + (" Drawn mirrored, with the flags it had facing along U."
+               if flags == {True} else " Drawn unmirrored, with the flags it had."))
 
 
 def _measure_menu(anim: dict) -> str:
@@ -1650,7 +2004,8 @@ def measure(key: str, anim: dict, memory) -> str:
               "vanishing": _measure_vanishing, "antibodies": _measure_antibodies,
               "appearing": _measure_appearing, "creature": _measure_creature,
               "villain-destroyed": _measure_villain, "panel-flash": _measure_flash,
-              "villains": _measure_villains, "menu": _measure_menu}
+              "villains": _measure_villains, "menu": _measure_menu,
+              "villain-dying": _measure_dying}
     if key in simple:
         return simple[key](anim)
     if key == "arriving":
@@ -1758,38 +2113,60 @@ TEXT = {
                    "the game's own pick-up (the finds were put where he stood), in cell "
                    "(22,23) facing the wall across it, and fire was pressed every eight "
                    "turns."),
-    "monsters-64": ("The monsters of graphics 64-79", [64, 68, 72, 76],
-                    "Four kinds of four frames (#R$CE89). They wander: every so often a "
-                    "new random step of up to 14 units each way (#R$DDCF), the frame "
-                    "stepped on every turn; touching him they vanish and take a hit, and "
-                    "more than two cells off they are gone. Any antibody destroys them. "
-                    "Here one of each kind, staged round him in the open cell from the "
-                    "monster template (#R$CE79), him standing still."),
-    "monsters-112": ("The monsters of graphics 112-127", [112, 116, 120, 124],
+    "monsters-64": ("The monsters of graphics 64-79", list(range(64, 80)),
+                    "Four kinds of four frames (#R$CE89), three pictures each: the "
+                    "second frame's picture is also the fourth's. They wander: every so "
+                    "often a new random step of up to 14 units each way (#R$DDCF), the "
+                    "frame stepped on every turn (#R$CEF8); touching him they vanish and "
+                    "take a hit, and more than two cells off they are gone. Any antibody "
+                    "destroys them. Which way one faces makes no difference to its "
+                    "picture: it is drawn mirrored only while the town is turned round "
+                    "(#R$CE89), so a GIF for each kind. Here one of each kind was staged "
+                    "round him in the open cell from the monster template (#R$CE79), him "
+                    "standing still, and left to wander for 16 turns; that was run four "
+                    "times, each kind starting in each of the four places in turn. Each "
+                    "GIF is the longest stretch of turns in which a record held its kind, "
+                    "cut to whole rounds of four frames."),
+    "monsters-112": ("The monsters of graphics 112-127", list(range(112, 128)),
                      "The other monsters (#R$C083) walk: at speed 6 the way they face, "
                      "turning at walls and now and then (#R$DD28), those born in the "
-                     "first half of every 256 turns towards the knight; the picture is "
-                     "one of two by the facing, mirrored along U, its frame flipped "
-                     "every turn (#R$D978). What an antibody does to one depends on the "
-                     "kinds of both (below). Here one of each kind, staged round him in "
-                     "the open cell, facing each way."),
+                     "first half of every 256 turns towards the knight. Each kind has a "
+                     "picture from behind and one from the front, two walking frames "
+                     "each, and the facing picks the picture and the mirroring "
+                     "(#R$D978): facing +V or -U, away from the viewer, it is seen from "
+                     "behind (bit 1 of the graphic set), facing +U or -V from the front, "
+                     "and facing along U it is drawn mirrored; bit 0, the frame, flips "
+                     "every turn. With the town turned round it shows the other picture, "
+                     "its other side. What an antibody does to one depends on the kinds "
+                     "of both (below). Here one of each kind was staged round him in the "
+                     "open cell from the monster template (#R$CE79), each facing a "
+                     "different way, him standing still, and left to walk for 16 turns; "
+                     "that was run four times, the places and facings turned one along "
+                     "each time, so that each kind started once facing each way. Each GIF "
+                     "is the longest stretch of turns in which a kind walked the way its "
+                     "column says, cut to whole pairs of frames."),
     "appearing": ("A monster appearing", [128, 129, 130, 131],
                   "Every fourth turn a free monster record gets a monster appearing "
                   "(#R$CDE8) in his cell or one round it; it counts 128 to 131, one a "
                   "turn, with a rising note (#R$C455), and then becomes a monster of "
                   "64-79 or 112-127, by the random number, of the kind of the villain "
-                  "nearest it (#R$C164). Here the game was left to run with him standing "
-                  "still until one appeared where it was drawn; while waiting, the monster "
-                  "records were emptied every turn, as walking away from monsters empties "
-                  "them, so that new ones kept coming."),
+                  "nearest it (#R$C164). Its pictures are the puffs of the vanishing "
+                  "cloud, largest first. Here the puff alone, its four turns: the game "
+                  "was left to run with him standing still until one appeared where it "
+                  "was drawn -- while waiting, the monster records were emptied every "
+                  "turn, as walking away from monsters empties them, so that new ones "
+                  "kept coming."),
     "creature": ("The creature", [136, 137, 138, 139],
                  "Every 256 turns a monster record becomes the creature, in his own cell "
                  "(#R$BF95). It makes for him two units a turn along U and along V "
-                 "(#R$C02C), blipping, its four frames stepping on; led into a wall it "
-                 "bursts for 1000 points, and touching him it bursts and takes a hit "
-                 "(#R$BFF1), his colour going from white to yellow. Here put 80 units "
-                 "off along each axis in his cell, where the game would put it (staged), "
-                 "him standing still."),
+                 "(#R$C02C), blipping, its four frames stepping on one a turn (#R$CEF8) "
+                 "-- three pictures, 139 drawn as 137; led into a wall it bursts for "
+                 "1000 points, and touching him it bursts and takes a hit (#R$BFF1), his "
+                 "colour going from white to yellow. Its own code never mirrors it: it "
+                 "keeps the flags of the monster record it is put in. Here the creature "
+                 "alone, from the turn it was put 80 units off along each axis in his "
+                 "cell, where the game would put it (staged), him standing still, until "
+                 "it reached him and burst: whole rounds of its four frames."),
     "strike-destroyed": ("An antibody strikes: destroyed", [112, 80],
                          "The monster's kind (bits 2-3 of 112-127) and the antibody's "
                          "(bits 2-3 of 80-95), added, pick one of four outcomes from "
@@ -1821,8 +2198,8 @@ TEXT = {
                           "scores 250000, sends out four sparkles from the villain's place "
                           "(#R$D6D6), one each way, which fly on until they meet a wall "
                           "(#R$D70A), and redraws the panel's villains, the dead one now "
-                          "in the object's colour (#R$C1FD). The villain dies for seven or "
-                          "eight turns (#R$D847: a new frame only on odd turns), the play "
+                          "in the object's colour (#R$C1FD). The villain dies for six or "
+                          "seven turns (#R$D847: a new frame only on odd turns), the play "
                           "area's paper a new colour each turn. "
                           "Here the object for villain 0 (the one drawn with graphic 108) "
                           "was picked up and thrown in the open cell, facing -U, and the "
@@ -1835,12 +2212,29 @@ TEXT = {
                     "he picked up the objects for villains 3 and 0 and two antibodies; "
                     "villain 0 was put three cells along U from him, kept standing, and "
                     "the others far off (staged). The panel, bottom four places."),
-    "villains": ("The villains", [108, 104, 100, 96],
+    "villains": ("The four villains walking", list(range(96, 112)),
                  "A villain walks at speed 4 (#R$D94F), turning at walls and now and "
-                 "then at random, its picture from its facing (#R$D978), humming while it "
-                 "is on the screen; it kills him at a touch, whatever his hits. Here the "
-                 "four put 80 units from him along U and V, facing away (staged), him "
-                 "standing still."),
+                 "then at random, humming while it is on the screen; it kills him at a "
+                 "touch, whatever his hits. Its picture comes from its facing as a "
+                 "monster's of 112-127 does (#R$D978): from behind facing +V or -U, from "
+                 "the front facing +U or -V, mirrored along U, and bit 0 of the graphic, "
+                 "the walking frame, toggled every turn. The skeleton has a picture for "
+                 "each; the hooded figures one frame for each side, so each facing is a "
+                 "still; the ghost one picture from either side but two frames, so "
+                 "facing -V it looks as it does facing +V, and -U as +U. Here the four "
+                 "were put 80 units from him along U and V, facing away (staged), him "
+                 "standing still, and left to walk for 30 turns; that was run four "
+                 "times, each villain starting in each place in turn. Each GIF is the "
+                 "longest stretch of turns in which a villain walked the way its column "
+                 "says, cut to whole pairs of frames."),
+    "villain-dying": ("A villain dying", [132, 133, 134, 135],
+                      "A villain struck by its object dies for six or seven turns "
+                      "(#R$D847): its graphic steps from 132 to 135 on odd turns only, so "
+                      "each picture stays for two turns, while the play area's paper "
+                      "flashes (above). The pictures are the vanishing cloud's, smallest "
+                      "first (#R$D7D8), drawn with the flags the villain had. Here the "
+                      "villain of graphic 108 alone, from the run above, from the turn "
+                      "it was struck until its record emptied."),
     "menu": ("The menu", [],
              "The menu (#R$C8CA) is Alien 8's, key 5 and all (see "
              '<a href="../alien8/Animations.html#menu">Alien 8\'s</a>), but its tune plays '
@@ -1870,13 +2264,14 @@ GROUPS = [
     ("Antibodies and monsters", ["antibodies", "appearing", "monsters-64", "monsters-112",
                                  "creature", "strike-destroyed", "strike-changed",
                                  "strike-split", "strike-demoted", "strike-64"]),
-    ("The villains", ["villains", "panel-flash", "villain-destroyed"]),
+    ("The villains", ["villains", "panel-flash", "villain-destroyed", "villain-dying"]),
     ("The menu and the ending", ["menu", "ending"]),
 ]
 
-# Pictured at three times the Spectrum's size; the rest at twice.
+# Pictured at three times the Spectrum's size; the rest at twice. The
+# things alone are at ALONE_SCALE.
 SPRITE_SIZED = {"walk-0", "walk-1", "walk-2", "walk-3", "turn", "standing", "bump",
-                "arriving", "vanishing", "appearing", "panel-flash"}
+                "arriving", "vanishing", "panel-flash"}
 WHOLE = {"town-turn", "villain-destroyed", "menu", "ending"}
 MAX_LISTED = 12
 
@@ -1903,17 +2298,70 @@ def _sprite_links(memory, graphics) -> str:
     return ", ".join(f"{g} (#R${_word(memory, GRAPHICS + 2 * g):04X})" for g in graphics)
 
 
+def _alone_caption(cell: dict) -> str:
+    """Under a GIF of a thing alone: its graphics in the order it shows
+    them, whether mirrored, and its turns."""
+    turns, index = cell["turns"], cell["index"]
+    graphics = []
+    for frame in turns:
+        if frame.record(index)[0] not in graphics:
+            graphics.append(frame.record(index)[0])
+    mirrored = all(f.record(index)[7] & 0x40 for f in turns)
+    text = ", ".join(str(g) for g in graphics) + (", mirrored" if mirrored else "")
+    if len(cell["frames"]) == 1:
+        return text + f": one picture, {len(turns)} turns"
+    ms = sorted(round(t / T_STATES_PER_MS) for t in cell["times"])
+    return text + f"; {len(turns)} turns of {ms[0]}-{ms[-1]} ms"
+
+
+def _family_table(anim: dict, title: str, out_dir: Path, memory, entries) -> list[str]:
+    """A family of things alone as a table: a row a kind, with its graphics
+    and their sprites, and a GIF for each facing -- or, without facings,
+    a column a kind."""
+    def cell_html(cell, size, alt):
+        if isinstance(cell, str):
+            return f"<td>{_esc(cell)}</td>"
+        save_alone_gif(out_dir / f"{cell['name']}.gif", cell["frames"], size)
+        return (f'<td><img class="kl-sprite" src="images/animations/{cell["name"]}.gif" '
+                f'alt="{_esc(alt)}" width="{size[0] * ALONE_SCALE}" '
+                f'height="{size[1] * ALONE_SCALE}"><br>{_esc(_alone_caption(cell))}</td>')
+
+    lines = ['<table class="kl-table">']
+    if anim["columns"]:
+        lines.append("<tr><th>Kind</th>" + "".join(f"<th>Facing {_esc(c)}</th>"
+                                                 for c in anim["columns"]) + "</tr>")
+        for row in anim["rows"]:
+            graphics = range(row["base"], row["base"] + 4)
+            lines.append(f"<tr><td>{_esc(row['name'])}<br>"
+                         f"{link(_sprite_links(memory, graphics), entries)}</td>"
+                         + "".join(cell_html(cell, row["size"],
+                                             f"{row['name']}, facing {column}")
+                                   for cell, column in zip(row["cells"], anim["columns"]))
+                         + "</tr>")
+    else:
+        lines.append("<tr>" + "".join(f"<th>{_esc(row['name'])}</th>" for row in anim["rows"])
+                     + "</tr>")
+        lines.append("<tr>" + "".join(cell_html(row["cells"][0], row["size"], row["name"])
+                                      for row in anim["rows"]) + "</tr>")
+        lines.append("<tr>" + "".join(
+            f"<td>{link(_sprite_links(memory, range(row['base'], row['base'] + 4)), entries)}"
+            f"</td>" for row in anim["rows"]) + "</tr>")
+    lines.append("</table>")
+    return lines
+
+
 def animations(snapshot: Path, log=print) -> dict[str, dict]:
     made = {}
     for facing, _ in FACINGS:
         made[f"walk-{facing >> 6}"] = run(snapshot, walking, facing)
     for make, args in [(turning, ()), (standing, ()), (bump, ()), (arriving, ()),
                        (town_walk, ()), (town_turn, ()), (bonus, (2,)), (bonus, (3,)),
-                       (vanishing, ()), (antibodies, ()), (appearing, ()),
-                       (monsters, (64,)), (monsters, (112,)), (creature, ())] + [
+                       (vanishing, ()), (antibodies, ()), (appearing_alone, ()),
+                       (monsters_alone, (64,)), (monsters_alone, (112,)),
+                       (creature_alone, ())] + [
             (strike, (key,)) for key, _, _ in STRIKES] + [
-            (villains, ()), (panel_flash, ()), (villain_destroyed, ()), (menu, ()),
-            (ending, ())]:
+            (villains_alone, ()), (panel_flash, ()), (villain_destroyed, ()),
+            (dying_alone, ()), (menu, ()), (ending, ())]:
         log(f"  {make.__name__}{'' if not args else ' ' + str(args[0])}")
         anim = run(snapshot, make, *args)
         made[anim["key"]] = anim
@@ -1962,31 +2410,61 @@ def build(snapshot: Path, html_dir: Path, log=print) -> dict[str, str]:
              "the one before is merged into it. The menu and the screens of the ending "
              "have no turns: they were read once a television frame (69,888 T-states), "
              "FLASH shown as the ULA shows it.</p>",
+             "<p>The monsters, the creature and the villains are shown alone, not in the "
+             "town. In runs made the same way, the thing's record was read at the end of "
+             "every turn -- its graphic, and its flags, whose bit 6 mirrors it -- and that "
+             "graphic drawn by itself by the game's own drawing code: DRAW_SPRITE_AT, an "
+             "entry point of #R$E3D9, run from a spare record holding the graphic and "
+             "those flags (so that #R$E353 turns a mirrored one round first, as in play), "
+             "once over a buffer of zeros and once over ones, which tells the image from "
+             "the mask, as the <a href=\"Sprites.html\">Sprites</a> page draws them. "
+             "Every picture was checked against the sprite's bytes as the listing reads "
+             "them, turned round where mirrored. White is the image, black the mask where "
+             "the image is clear, and the rest is transparent; they are shown on the "
+             "Sprites page's blue-grey, since this page's own dark would swallow the "
+             "black. Each picture stands on its bottom left corner, the corner the game "
+             "draws a sprite from, and is shown for as long as its turn stayed on the "
+             "screen, as in the scenes. Where the way a thing faces changes its picture, "
+             "a table has a GIF for each facing, or names the facing it looks the same "
+             "as.</p>",
              "<p>Under each: the graphics shown with their sprites, what was measured in "
              "the run beside what the code says it should be, and the frames of the "
-             "picture with what they show and how long each lasts.</p>"]
+             "picture with what they show and how long each lasts -- for a table, under "
+             "each GIF, its graphics in the order it shows them and its turns.</p>"]
     for heading, keys in GROUPS:
         lines.append(f"<h3>{_esc(heading)}</h3>")
         for key in keys:
             anim = made[key]
             title, graphics, words = TEXT[key]
-            frames = anim["frames"]
-            save_gif(out_dir / f"{key}.gif", frames)
-            width, height = frames[0][0].size
-            scale = 3 if key in SPRITE_SIZED else 2
-            css = "kl-sprite" if key in SPRITE_SIZED else ("kl-scene" if key in WHOLE
-                                                           else "kl-piece")
-            lines += [f'<div class="kl-item" id="{key}">',
-                      f"<h4>{_esc(title)}</h4>",
-                      f'<img class="{css}" src="images/animations/{key}.gif" '
-                      f'alt="{_esc(title)}" width="{width * scale}" height="{height * scale}">',
-                      f"<p>{link(words, entries)}</p>"]
+            lines += [f'<div class="kl-item" id="{key}">', f"<h4>{_esc(title)}</h4>"]
+            if "rows" in anim:
+                lines += _family_table(anim, title, out_dir, memory, entries)
+                graphics = []
+            elif "size" in anim:
+                frames = anim["frames"]
+                save_alone_gif(out_dir / f"{key}.gif", frames, anim["size"])
+                width, height = anim["size"]
+                lines.append(f'<img class="kl-sprite" src="images/animations/{key}.gif" '
+                             f'alt="{_esc(title)}" width="{width * ALONE_SCALE}" '
+                             f'height="{height * ALONE_SCALE}">')
+            else:
+                frames = anim["frames"]
+                save_gif(out_dir / f"{key}.gif", frames)
+                width, height = frames[0][0].size
+                scale = 3 if key in SPRITE_SIZED else 2
+                css = "kl-sprite" if key in SPRITE_SIZED else ("kl-scene" if key in WHOLE
+                                                               else "kl-piece")
+                lines.append(f'<img class="{css}" src="images/animations/{key}.gif" '
+                             f'alt="{_esc(title)}" width="{width * scale}" '
+                             f'height="{height * scale}">')
+            lines.append(f"<p>{link(words, entries)}</p>")
             if graphics:
                 lines.append(f"<p>Graphics and their sprites: "
                              f"{link(_sprite_links(memory, graphics), entries)}.</p>")
-            lines += [f"<p>{link(_esc(measure(key, anim, memory)), entries)}</p>",
-                      f"<p>In the picture: {_esc(_order(frames))}.</p>",
-                      "</div>"]
+            lines.append(f"<p>{link(_esc(measure(key, anim, memory)), entries)}</p>")
+            if "rows" not in anim:
+                lines.append(f"<p>In the picture: {_esc(_order(anim['frames']))}.</p>")
+            lines.append("</div>")
     lines.append("</div>")
     body = "\n".join(lines)
     for line in body.splitlines():
