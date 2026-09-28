@@ -2065,8 +2065,9 @@ def save_logo(screen, path: Path) -> None:
     magenta above the hat -- leaves the letters and the sign, and two
     six-pixel scraps of the chains' red padlocks. Those are dropped as any
     red or white piece of fewer than 20 pixels; the one small piece that stays
-    is the magenta C inside the copyright ring. On black, as on the screen,
-    with a margin, at twice the size.
+    is the magenta C inside the copyright ring. On a transparent background,
+    so that it sits on whatever the page's colour is, with a margin, at
+    twice the size.
     """
     from PIL import Image
 
@@ -2108,10 +2109,11 @@ def save_logo(screen, path: Path) -> None:
     right = max(bounds(p)[2] for p in kept)
     bottom = max(bounds(p)[3] for p in kept)
     margin = 6
-    image = Image.new("RGB", (right - left + 1 + 2 * margin, bottom - top + 1 + 2 * margin))
+    image = Image.new("RGBA", (right - left + 1 + 2 * margin, bottom - top + 1 + 2 * margin),
+                      (0, 0, 0, 0))
     for piece in kept:
         for x, y in piece:
-            image.putpixel((x - left + margin, y - top + margin), colour[(x, y)])
+            image.putpixel((x - left + margin, y - top + margin), colour[(x, y)] + (255,))
     image.resize((image.width * 2, image.height * 2), Image.NEAREST).save(path)
 
 

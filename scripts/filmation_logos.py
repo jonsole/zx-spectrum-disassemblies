@@ -6,8 +6,8 @@ time -- the tape is read, never the repository -- for the top of every page
 (LogoImage in the game's ref) and the site's landing page, as Atic Atac's and
 The Hobbit's builds do with theirs. What is kept is the title's own colours,
 only where they belong to the title; each game's cut says how that is told
-apart from the rest. The result is on black, as on the screen, with a margin,
-at twice the size.
+apart from the rest. The result is on a transparent background, so that it
+sits on whatever the page's colour is, with a margin, at twice the size.
 """
 from pathlib import Path
 
@@ -151,9 +151,10 @@ def write_logo(game: str, tape: Path, path: Path, log=print) -> bool:
     ys = [y for _, y in drawn]
     left, top = min(xs) - MARGIN, min(ys) - MARGIN
     width, height = max(xs) - left + 1 + MARGIN, max(ys) - top + 1 + MARGIN
-    image = Image.new("RGB", (width, height), PALETTE[BLACK])
+    image = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     for (x, y), rgb in drawn.items():
-        image.putpixel((x - left, y - top), rgb)
+        # Black the title keeps (Alien 8's letters) stays opaque.
+        image.putpixel((x - left, y - top), rgb + (255,))
     path.parent.mkdir(parents=True, exist_ok=True)
     image.resize((width * SCALE, height * SCALE), Image.NEAREST).save(path)
     log(f"  logo cut from the loading screen: {width * SCALE}x{height * SCALE}")

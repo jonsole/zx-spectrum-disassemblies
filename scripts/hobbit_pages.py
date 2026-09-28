@@ -236,11 +236,11 @@ def save_logo(memory, path: Path) -> None:
                     # all wings.
                     if memory[0x5800 + (py >> 3) * 32 + (px >> 3)] & 7 in (5, 6):
                         image.putpixel((px, py), cyan)
-    # On the loading screen's black, with a margin, so that it reads on the
-    # pages' light backgrounds.
+    # On a transparent background, with a margin, so that it sits on
+    # whatever the page's colour is.
     image = image.crop(image.getbbox())
     margin = 6
-    framed = Image.new("RGB", (image.width + 2 * margin, image.height + 2 * margin), (0, 0, 0))
+    framed = Image.new("RGBA", (image.width + 2 * margin, image.height + 2 * margin), (0, 0, 0, 0))
     framed.paste(image, (margin, margin), image)
     path.parent.mkdir(parents=True, exist_ok=True)
     framed.resize((framed.width * 2, framed.height * 2), Image.NEAREST).save(path)
