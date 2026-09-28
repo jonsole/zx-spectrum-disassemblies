@@ -125,8 +125,9 @@ holds none of any game's bytes, and it is on the site, one page for all three,
 as [room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/room-editor.html).
 Alien 8's sprite layout and graphic table, which Knight Lore and Pentagram
 take from their remakes, are `scripts/room_editor_art.py`'s.
-[docs/room-editor.md](docs/room-editor.md) says what each original can hold
-and how it was checked.
+[docs/room-editor-guide.md](docs/room-editor-guide.md) is the user guide, and
+the page's **Help**; [docs/room-editor.md](docs/room-editor.md) says what each
+original can hold and how it was checked.
 
 ## How it is put together
 

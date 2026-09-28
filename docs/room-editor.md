@@ -7,7 +7,9 @@ castle in the Filmation room designer and **Download .sna**: Ultimate's own
 game, with your rooms in it. There is no server and nothing to install, and
 nothing leaves the page. Most of what follows is the same for every game,
 told for Knight Lore; [Pentagram](#pentagram) and [Alien 8](#alien-8) say
-where they differ.
+where they differ. How to use it is
+[room-editor-guide.md](room-editor-guide.md), which the page shows as its
+**Help**; this is how it works.
 
 Write the page once, from the checkout of
 [zx-spectrum-emulator](https://github.com/jonsole/zx-spectrum-emulator) this
@@ -17,6 +19,11 @@ repository is a submodule of -- the designer lives there, in
 ```
 python scripts/room_editor.py page       # -> game_disassembly/room-editor.html
 ```
+
+The guide goes in as HTML, made from the Markdown by a small converter in
+`room_editor.py` -- headings, paragraphs, bullets, tables, and bold, italic,
+code and links -- so the guide and the page's Help are one text. Keep the
+guide to those.
 
 The page carries the designer and `room_editor.js`, which tells the games
 apart, reads the snapshot, paints the sprite sheet out of it, decodes the

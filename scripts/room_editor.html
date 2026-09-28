@@ -15,6 +15,7 @@
       in place of VS Code's or room_designer.py's;
     room_editor.js, which tells the games apart, reads a snapshot, paints
       the sprite sheet out of it, decodes the castle and packs it back;
+    the user guide, docs/room-editor-guide.md, as HTML for Help;
     each game's sprites.json and graphics.json -- from its Filmation remake,
       or for Alien 8 from room_editor_art.py: names, rectangles, boxes and
       pixel nudges, and not one byte of the game. Every pixel, room and template comes from the copy of the game
@@ -79,6 +80,34 @@
   #status.bad { color: var(--bad); }
   iframe { display: none; flex: 1 1 auto; border: 0; width: 100%; background: var(--bg); }
   input[type=file] { display: none; }
+
+  /* --- the user guide, over whatever is showing --- */
+  #help { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: center;
+          align-items: flex-start; padding: 28px 16px; box-sizing: border-box;
+          background: rgba(0, 0, 0, 0.6); }
+  #help[hidden] { display: none; }
+  #help .sheet { width: 100%; max-width: 780px; max-height: 100%; display: flex;
+                 flex-direction: column; background: var(--panel); border: 1px solid var(--edge);
+                 border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
+  #help .head { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 24px;
+                border-bottom: 1px solid var(--edge); }
+  #help .head h1 { flex: 1; font-size: 16px; margin: 0; }
+  .guide { overflow: auto; padding: 8px 24px 28px; line-height: 1.6; }
+  .guide .contents { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 8px 0 12px;
+                     border-bottom: 1px solid var(--edge); font-size: 13px; }
+  .guide h2 { font-size: 18px; font-weight: 600; margin: 30px 0 8px; }
+  .guide h3 { font-size: 15px; font-weight: 600; margin: 22px 0 6px; }
+  .guide p, .guide ul { margin: 8px 0; }
+  .guide ul { padding-left: 20px; }
+  .guide li { margin: 4px 0; }
+  .guide strong { color: #e6e6e6; }
+  .guide code { font: 12px Consolas, monospace; background: #333337; padding: 1px 4px;
+                border-radius: 3px; }
+  .guide table { border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .guide th, .guide td { border: 1px solid var(--edge); padding: 5px 9px; text-align: left;
+                         vertical-align: top; }
+  .guide th { background: #2d2d30; }
+  .guide td:first-child { min-width: 9em; }
 </style>
 </head>
 <body>
@@ -89,7 +118,8 @@
     <p class="lede">Rearrange the castle of Ultimate&rsquo;s Knight Lore (1984), the starship of
       Alien 8 (1985) or the world of Pentagram (1986), and play it: open a snapshot of your own copy
       of the game, edit its rooms, and download the game again with your rooms in it. Nothing leaves
-      this page &mdash; there is no server.</p>
+      this page &mdash; there is no server. New to it? Read the
+      <button class="link" id="help-landing">user guide</button>.</p>
     <div id="drop" tabindex="0">
       <strong>Open a snapshot of Knight Lore, Alien 8 or Pentagram</strong>
       <span>Drop a 48K <code>.sna</code> or <code>.z80</code> here, or click to choose one.
@@ -123,7 +153,8 @@
         <li>In Pentagram every doorway has to lead to a room that is there: the game looks for a
           room by walking the list, and one that is not there sends it through the rest of
           memory.</li>
-        <li>Eight objects a group, 32 kinds of object, and a room has to have something in it.</li>
+        <li>Eight objects a group, and a room has to have something in it; 32 kinds of object in
+          Knight Lore, 31 in Pentagram, 60 in Alien 8.</li>
       </ul>
       <h2>Keeping your work</h2>
       <ul>
@@ -152,10 +183,23 @@
   <button id="export">Export</button>
   <button id="import">Import</button>
   <button id="close">Close</button>
+  <button id="help-bar" title="the user guide">Help</button>
   <div id="status" aria-live="polite"></div>
 </div>
 <iframe id="rooms-frame" title="Rooms"></iframe>
 <iframe id="templates-frame" title="Templates"></iframe>
+
+<div id="help" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+  <div class="sheet">
+    <div class="head">
+      <h1 id="help-title">Room editor: user guide</h1>
+      <button id="help-close" title="close (Esc)">Close</button>
+    </div>
+    <div class="guide" id="guide" tabindex="-1">
+<!--@guide@-->
+    </div>
+  </div>
+</div>
 
 <input type="file" id="pick-snapshot" accept=".sna,.z80">
 <input type="file" id="pick-castle" accept=".json,application/json">
@@ -270,7 +314,8 @@
                     'resume-forget', 'problem', 'bar', 'file', 'status', 'unsaved', 'save',
                     'download', 'export', 'import', 'close', 'undo', 'redo',
                     'view-rooms', 'view-templates', 'rooms-frame', 'templates-frame', 'game-name',
-                    'pick-snapshot', 'pick-castle']) {
+                    'pick-snapshot', 'pick-castle', 'help', 'help-landing', 'help-bar',
+                    'help-close', 'guide']) {
     el[id] = document.getElementById(id);
   }
 
@@ -706,6 +751,35 @@
       event.preventDefault();
       save();
     }
+  });
+  // The guide: docs/room-editor-guide.md, made HTML by room_editor.py. It
+  // opens over whatever is showing and closes back to it, so reading it in
+  // the middle of an edit loses nothing.
+  function openHelp() {
+    el.help.hidden = false;
+    el.guide.focus();
+  }
+  function closeHelp() {
+    el.help.hidden = true;
+  }
+  el['help-landing'].addEventListener('click', openHelp);
+  el['help-bar'].addEventListener('click', openHelp);
+  el['help-close'].addEventListener('click', closeHelp);
+  el.help.addEventListener('click', function (event) {
+    if (event.target === el.help) closeHelp();
+  });
+  // A link to one of the guide's own sections scrolls the guide to it rather
+  // than going through the page's address, which would scroll the page.
+  el.guide.addEventListener('click', function (event) {
+    const link = event.target.closest && event.target.closest('a[href^="#"]');
+    if (!link) return;
+    const target = document.getElementById(link.getAttribute('href').slice(1));
+    if (!target || !el.guide.contains(target)) return;
+    event.preventDefault();
+    target.scrollIntoView({ block: 'start' });
+  });
+  window.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !el.help.hidden) closeHelp();
   });
   window.addEventListener('beforeunload', function (event) {
     if (!unsaved()) return;
