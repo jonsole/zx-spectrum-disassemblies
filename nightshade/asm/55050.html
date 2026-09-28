@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D70A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54998.html">D6D6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55050">Map</a></td>
+<td class="next">
+Next: <a href="55079.html">D727</a>
+</td>
+</tr>
+</table>
+<div class="description">D70A: The update routine for a sparkle from a destroyed villain (graphics 140-143)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The four records at FINDS become sparkles when a villain is struck by its object (<a href="54998.html">VILLAIN_SPARKLES</a> sets them up: each at the villain's place, speed 12, one facing each way). Each flies straight on at its speed, cycling through its four pictures -- the four kinds of antibody's first frames, which the graphic table gives graphics 140-143 -- until it meets a wall, where it vanishes. The quest ends only when no sparkle is still on the screen (<a href="55397.html">CHECK_QUEST_DONE</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The sparkle's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPARKLE_FLY</td>
+<td class="address-2"><span id="55050"></span>D70A</td>
+<td class="instruction">RES 1,(IX+$07)</td>
+<td class="comment-1" rowspan="1">Clear the drawn flag: the drawing sets it again if the sparkle is still on the screen, which <a href="55397.html">CHECK_QUEST_DONE</a> waits for</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55054"></span>D70E</td>
+<td class="instruction">LD A,(IX+$05)</td>
+<td class="comment-1" rowspan="4">Take the step from the speed and the facing, trim it against the town's walls and move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55057"></span>D711</td>
+<td class="instruction">CALL <a href="56544.html">SET_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55060"></span>D714</td>
+<td class="instruction">CALL <a href="56921.html">MOVE_CLIPPED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55063"></span>D717</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55066"></span>D71A</td>
+<td class="instruction">CALL <a href="52984.html">NEXT_FRAME_MOD4</a></td>
+<td class="comment-1" rowspan="1">Next picture of the four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55069"></span>D71D</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Done unless the move was stopped by a wall...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55073"></span>D721</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55074"></span>D722</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+<td class="comment-1" rowspan="2">...in which case it vanishes (<a href="55256.html">VANISHING</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55078"></span>D726</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54998.html">D6D6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55050">Map</a></td>
+<td class="next">
+Next: <a href="55079.html">D727</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

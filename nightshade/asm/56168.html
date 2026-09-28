@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DB68</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55991.html">DAB7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56168">Map</a></td>
+<td class="next">
+Next: <a href="56201.html">DB89</a>
+</td>
+</tr>
+</table>
+<div class="description">DB68: Turn the town round when its key is let go</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55930.html">UPDATE_KNIGHT</a>.
+</div>
+<div class="paragraph">
+Z or SYMBOL SHIFT (bit 5 of the controls) turns the town round, to be seen from the other side, once a press: the key sets KEY_LATCH while held, and the turn happens when it is let go. The knight's facing gets a turn delay of two or three turns (bit 1 of +6), so a turn key held at the same time does not spin him while the view changes, and the panel's heading and compass are redrawn (<a href="49818.html">PRINT_HEADING</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The controls</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_TOWN</td>
+<td class="address-2"><span id="56168"></span>DB68</td>
+<td class="instruction">LD HL,<a href="48042.html#48061">KEY_LATCH</a></td>
+<td class="comment-1" rowspan="5">Held: remember it and wait</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56171"></span>DB6B</td>
+<td class="instruction">BIT 5,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56173"></span>DB6D</td>
+<td class="instruction">JR Z,<a href="56168.html#56178">TURN_TOWN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56175"></span>DB6F</td>
+<td class="instruction">LD (HL),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56177"></span>DB71</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_TOWN_0</td>
+<td class="address-2"><span id="56178"></span>DB72</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">Not held: done unless it was last turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56179"></span>DB73</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56180"></span>DB74</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56181"></span>DB75</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56183"></span>DB77</td>
+<td class="instruction">LD HL,<a href="48042.html#48058">VIEW</a></td>
+<td class="comment-1" rowspan="4">Turn the town round</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56186"></span>DB7A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56187"></span>DB7B</td>
+<td class="instruction">XOR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56189"></span>DB7D</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56190"></span>DB7E</td>
+<td class="instruction">LD A,(<a href="48042.html#48276">KNIGHT_FACING</a>)</td>
+<td class="comment-1" rowspan="3">A turn delay for the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56193"></span>DB81</td>
+<td class="instruction">OR $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56195"></span>DB83</td>
+<td class="instruction">LD (<a href="48042.html#48276">KNIGHT_FACING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56198"></span>DB86</td>
+<td class="instruction">JP <a href="49818.html">PRINT_HEADING</a></td>
+<td class="comment-1" rowspan="1">Redraw the heading and the compass</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55991.html">DAB7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56168">Map</a></td>
+<td class="next">
+Next: <a href="56201.html">DB89</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

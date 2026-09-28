@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D7ED</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55256.html">D7D8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55277">Map</a></td>
+<td class="next">
+Next: <a href="55308.html">D80C</a>
+</td>
+</tr>
+</table>
+<div class="description">D7ED: The update routine for an antibody in flight (graphics 80-95)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+An antibody thrown by the knight (<a href="55991.html">KNIGHT_THROWS</a>) flies straight on at speed 12, moving twice a turn, and vanishes at the first wall. It does not look for its targets: the monsters' own routines test for an antibody touching them (<a href="49283.html">MONSTER112_UPDATE</a>, <a href="52873.html">WANDERING_MONSTER</a>, <a href="49137.html">CREATURE_UPDATE</a>). Its four frames animate through the low two bits of the graphic.
+</div>
+<div class="paragraph">
+The second move is made from <a href="56921.html">MOVE_CLIPPED</a>'s second entry, which does not clear the wall flag, so a wall met on the first move still ends it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The antibody's record (ANTIBODIES)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ANTIBODY_FLIGHT</td>
+<td class="address-2"><span id="55277"></span>D7ED</td>
+<td class="instruction">LD A,(IX+$05)</td>
+<td class="comment-1" rowspan="2">The step from the speed and the facing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55280"></span>D7F0</td>
+<td class="instruction">CALL <a href="56544.html">SET_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55283"></span>D7F3</td>
+<td class="instruction">CALL <a href="52984.html">NEXT_FRAME_MOD4</a></td>
+<td class="comment-1" rowspan="1">Next frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55286"></span>D7F6</td>
+<td class="instruction">CALL <a href="56921.html">MOVE_CLIPPED</a></td>
+<td class="comment-1" rowspan="2">Move, trimmed at a wall...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55289"></span>D7F9</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55292"></span>D7FC</td>
+<td class="instruction">CALL <a href="56921.html#56925">MOVE_CLIPPED_AGAIN</a></td>
+<td class="comment-1" rowspan="2">...and again, keeping the wall flag</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55295"></span>D7FF</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55298"></span>D802</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Done unless it met a wall...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55302"></span>D806</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55303"></span>D807</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+<td class="comment-1" rowspan="2">...where it vanishes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55307"></span>D80B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55256.html">D7D8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55277">Map</a></td>
+<td class="next">
+Next: <a href="55308.html">D80C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

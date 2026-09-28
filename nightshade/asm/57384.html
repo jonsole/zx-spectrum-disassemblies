@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E028</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57376.html">E020</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57384">Map</a></td>
+<td class="next">
+Next: <a href="57443.html">E063</a>
+</td>
+</tr>
+</table>
+<div class="description">E028: Look up a cell of the town, and where the object is in it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="57443.html">HIT_BOXES_U</a> and <a href="57504.html">HIT_BOXES_V</a>.
+</div>
+<div class="paragraph">
+Takes the cell at column D and row H -- the high bytes of any U and V in it -- and returns its type from the map (<a href="24068.html">TOWN</a>), and the object's position in that cell's own frame, in the units its boxes are measured in: the object's U and V less the cell's corner, halved, plus 64. A cell is 256 units a side, so it runs from 64 to 191 in these half units, and a position half a cell beyond it either way still fits in a byte; only the low byte of the halved difference is kept, which is right for anything within that distance.
+</div>
+<div class="paragraph">
+The entry point TOWN_CELL does only the look-up, for a column in L and a row in H; the finds (<a href="50638.html">SPAWN_FIND</a>), the visited cells (<a href="48968.html">VISIT_CELL</a>), the monsters (<a href="52712.html">SPAWN_MONSTER</a>) and the bonus (<a href="55148.html">PLACE_BONUS</a>) use it. The map is 32 cells a row, and nothing here checks that the column or the row is less than 32.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The column (the high byte of a U)</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The row (the high byte of a V)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The cell's type, with Z set if it is 0 (nothing there)</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The cell's address in the map</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The object's U in the cell, in half units from 64</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The object's V in the cell, likewise</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_IN_CELL</td>
+<td class="address-2"><span id="57384"></span>E028</td>
+<td class="instruction">LD B,H</td>
+<td class="comment-1" rowspan="3">Keep the row and the column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57385"></span>E029</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57386"></span>E02A</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57387"></span>E02B</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="11">E = (U less the cell's first U) halved, plus 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57389"></span>E02D</td>
+<td class="instruction">LD E,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57390"></span>E02E</td>
+<td class="instruction">LD L,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57393"></span>E031</td>
+<td class="instruction">LD H,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57396"></span>E034</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57397"></span>E035</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57399"></span>E037</td>
+<td class="instruction">SRL H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57401"></span>E039</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57403"></span>E03B</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57404"></span>E03C</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57406"></span>E03E</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57407"></span>E03F</td>
+<td class="instruction">LD L,(IX+$03)</td>
+<td class="comment-1" rowspan="9">D = (V less the cell's first V) halved, plus 64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57410"></span>E042</td>
+<td class="instruction">LD H,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57413"></span>E045</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57414"></span>E046</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57416"></span>E048</td>
+<td class="instruction">SRL H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57418"></span>E04A</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57420"></span>E04C</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57421"></span>E04D</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57423"></span>E04F</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57424"></span>E050</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1">H = the row, L = the column</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="57425"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="48968.html">VISIT_CELL</a>, <a href="50638.html">SPAWN_FIND</a>, <a href="52712.html">SPAWN_MONSTER</a> and <a href="55148.html">PLACE_BONUS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TOWN_CELL</td>
+<td class="address-2"><span id="57425"></span>E051</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="10">TOWN_CELL: HL = the row times 32, plus the column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57426"></span>E052</td>
+<td class="instruction">LD L,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57427"></span>E053</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57429"></span>E055</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57430"></span>E056</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57431"></span>E057</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57432"></span>E058</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57433"></span>E059</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57434"></span>E05A</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57435"></span>E05B</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57436"></span>E05C</td>
+<td class="instruction">LD BC,<a href="24068.html">TOWN</a></td>
+<td class="comment-1" rowspan="5">A = the cell's type from the map, Z set if the cell is empty</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57439"></span>E05F</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57440"></span>E060</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57441"></span>E061</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57442"></span>E062</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57376.html">E020</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57384">Map</a></td>
+<td class="next">
+Next: <a href="57443.html">E063</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

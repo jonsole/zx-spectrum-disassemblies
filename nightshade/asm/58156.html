@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E32C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57921.html">E241</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58156">Map</a></td>
+<td class="next">
+Next: <a href="58195.html">E353</a>
+</td>
+</tr>
+</table>
+<div class="description">E32C: Pause, when SPACE or CAPS SHIFT is pressed on its own</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Called once a turn by the main loop, at the end of the turn (<a href="48655.html">NEW_GAME</a>). Half-rows $7F and $FE are read together, so bit 0 is SPACE or CAPS SHIFT and bits 1-4 are the other eight keys of the two rows; the pause needs bit 0 and none of the others, so no key that plays the game starts one. It waits for the key to be let go, then for a press and a release, and the game goes on.
+</div>
+<div class="paragraph">
+Pentagram's pause (and Alien 8's) is the same test and the same waits, but beeps as it pauses and as it goes on, and turns interrupts on while it waits; Nightshade's is silent and leaves them off.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE</td>
+<td class="address-2"><span id="58156"></span>E32C</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="6">Not SPACE or CAPS SHIFT, or another key of those two rows with it: no pause</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58158"></span>E32E</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58161"></span>E331</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58163"></span>E333</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58164"></span>E334</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58166"></span>E336</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_0</td>
+<td class="address-2"><span id="58167"></span>E337</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">Wait for the key to be let go...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58169"></span>E339</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58172"></span>E33C</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58174"></span>E33E</td>
+<td class="instruction">JR NZ,<a href="58156.html#58167">PAUSE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_1</td>
+<td class="address-2"><span id="58176"></span>E340</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="4">...pressed again...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58178"></span>E342</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58181"></span>E345</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58183"></span>E347</td>
+<td class="instruction">JR Z,<a href="58156.html#58176">PAUSE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">PAUSE_2</td>
+<td class="address-2"><span id="58185"></span>E349</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="5">...and let go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58187"></span>E34B</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58190"></span>E34E</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58192"></span>E350</td>
+<td class="instruction">JR NZ,<a href="58156.html#58185">PAUSE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58194"></span>E352</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57921.html">E241</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58156">Map</a></td>
+<td class="next">
+Next: <a href="58195.html">E353</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

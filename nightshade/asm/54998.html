@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D6D6</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54997.html">D6D5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54998">Map</a></td>
+<td class="next">
+Next: <a href="55050.html">D70A</a>
+</td>
+</tr>
+</table>
+<div class="description">D6D6: Send four sparkles out from a villain destroyed</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55308.html">OBJECT_FLIGHT</a>.
+</div>
+<div class="paragraph">
+Called by the thrown object's update (<a href="55308.html">OBJECT_FLIGHT</a>) when it strikes its villain. The four records at FINDS become sparkles, graphic 140 (<a href="55050.html">SPARKLE_FLY</a> moves them), at the villain's U and V, each facing a different way so that they fly apart: a speed of 12, half-sizes of 16 and the drawing offset things of that size have. Graphics 140-143 share their sprites with the first frames of the four kinds of find (48, 52, 56 and 60), so the sparkles show the finds' pictures. Whatever the four records held -- things found in buildings and not yet picked up -- is lost. The flags (+7), the step (+A, +B) and where each was drawn (+E, +F) are left as they were. The ending waits for the sparkles to finish (<a href="55397.html">CHECK_QUEST_DONE</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the villain's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">VILLAIN_SPARKLES</td>
+<td class="address-2"><span id="54998"></span>D6D6</td>
+<td class="instruction">LD HL,<a href="48042.html#48334">FINDS</a></td>
+<td class="comment-1" rowspan="2">The four records at FINDS</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55001"></span>D6D9</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">VILLAIN_SPARKLES_0</td>
+<td class="address-2"><span id="55003"></span>D6DB</td>
+<td class="instruction">LD (HL),$8C</td>
+<td class="comment-1" rowspan="1">Graphic 140</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55005"></span>D6DD</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="11">U and V (+1 to +4), the villain's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55006"></span>D6DE</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55008"></span>D6E0</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55009"></span>D6E1</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55010"></span>D6E2</td>
+<td class="instruction">LD C,$04</td>
+</tr>
+<tr>
+<td class="asm-label">VILLAIN_SPARKLES_1</td>
+<td class="address-2"><span id="55012"></span>D6E4</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55013"></span>D6E5</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55014"></span>D6E6</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55015"></span>D6E7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55016"></span>D6E8</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55017"></span>D6E9</td>
+<td class="instruction">JR NZ,<a href="54998.html#55012">VILLAIN_SPARKLES_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55019"></span>D6EB</td>
+<td class="instruction">LD (HL),$0C</td>
+<td class="comment-1" rowspan="1">Speed (+5) 12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55021"></span>D6ED</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="7">Facing (+6, bits 6-7): 3, 2, 1 and 0 for the four records, so they fly apart</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55022"></span>D6EE</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55023"></span>D6EF</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55024"></span>D6F0</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55025"></span>D6F1</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55026"></span>D6F2</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55028"></span>D6F4</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55029"></span>D6F5</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="5">Half-sizes (+8, +9) 16 and 16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55030"></span>D6F6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55031"></span>D6F7</td>
+<td class="instruction">LD (HL),$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55033"></span>D6F9</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55034"></span>D6FA</td>
+<td class="instruction">LD (HL),$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55036"></span>D6FC</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="6">Drawing offset (+C, +D): 12 left and 4 up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55037"></span>D6FD</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55038"></span>D6FE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55039"></span>D6FF</td>
+<td class="instruction">LD (HL),$F4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55041"></span>D701</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55042"></span>D702</td>
+<td class="instruction">LD (HL),$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55044"></span>D704</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="5">On to the next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55045"></span>D705</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55046"></span>D706</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55047"></span>D707</td>
+<td class="instruction">DJNZ <a href="54998.html#55003">VILLAIN_SPARKLES_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55049"></span>D709</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54997.html">D6D5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54998">Map</a></td>
+<td class="next">
+Next: <a href="55050.html">D70A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D2B2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53922.html">D2A2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53938">Map</a></td>
+<td class="next">
+Next: <a href="54102.html">D356</a>
+</td>
+</tr>
+</table>
+<div class="description">D2B2: OR a 16-pixel picture into the buffer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53875.html">DRAW_EDGE</a>.
+</div>
+<div class="paragraph">
+Draws an edge picture -- a height byte, then two bytes a row, the bottom row first -- at a pixel x and a line y, ORed into the screen buffer (<a href="58820.html">BUFFER</a>). The buffer's lines run up the screen, 24 bytes apiece: line $48 is the bottom of the play area and $B7 its top, and <a href="58682.html">BUFFER_ADDRESS</a> turns x and y into an address. Rows above the top are cut; rows below the bottom are skipped by <a href="53922.html">CLIP_EDGE</a>.
+</div>
+<div class="paragraph">
+SP reads the picture, a row a POP, the real stack pointer kept in SAVED_SP; the game never enables interrupts. Four cases: x a multiple of 8 or not (bits 1 and 2 of x; bit 0 is ignored, so things move in steps of two pixels), and the first face or the second (DRAW_PASS), which is drawn mirrored. A shifted row covers three buffer bytes, through a pair of pages built by <a href="57595.html">MAKE_TABLES</a>: the part of each picture byte that stays in its buffer byte and the part that falls into the next. The pages at <a href="64000.html">SHIFT_TABLES</a> shift; the ones at <a href="61952.html">MIRROR_TABLES</a> reverse a byte and shift it, for the mirrored face, which also takes the row's two bytes the other way round. An aligned mirrored row reverses each byte through <a href="63744.html">REVERSE_TABLE</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">the y of its bottom row</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">its x</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the picture</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE</td>
+<td class="address-2"><span id="53938"></span>D2B2</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="3">Starting below the play area: <a href="53922.html">CLIP_EDGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53939"></span>D2B3</td>
+<td class="instruction">SUB $48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53941"></span>D2B5</td>
+<td class="instruction">JR C,<a href="53922.html">CLIP_EDGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53943"></span>D2B7</td>
+<td class="instruction">SUB $70</td>
+<td class="comment-1" rowspan="2">At or above its top: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53945"></span>D2B9</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53946"></span>D2BA</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="5">A = the rows: the height, or as many as fit below the top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53948"></span>D2BC</td>
+<td class="instruction">CP (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53949"></span>D2BD</td>
+<td class="instruction">JR C,<a href="53938.html#53952">PUT_EDGE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53951"></span>D2BF</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_0</td>
+<td class="address-2"><span id="53952"></span>D2C0</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="53953"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="53922.html">CLIP_EDGE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_1</td>
+<td class="address-2"><span id="53953"></span>D2C1</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="4">The count into A'; DE = the buffer address (<a href="58682.html">BUFFER_ADDRESS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53954"></span>D2C2</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53955"></span>D2C3</td>
+<td class="instruction">CALL <a href="58682.html">BUFFER_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53958"></span>D2C6</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53959"></span>D2C7</td>
+<td class="instruction">LD (<a href="48042.html#48046">SAVED_SP</a>),SP</td>
+<td class="comment-1" rowspan="2">SP onto the picture's rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53963"></span>D2CB</td>
+<td class="instruction">LD SP,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53964"></span>D2CC</td>
+<td class="instruction">LD A,(<a href="48042.html#48054">DRAW_X</a>)</td>
+<td class="comment-1" rowspan="3">Aligned: the plain cases</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53967"></span>D2CF</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53969"></span>D2D1</td>
+<td class="instruction">JR Z,<a href="53938.html#54051">PUT_EDGE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53971"></span>D2D3</td>
+<td class="instruction">OR $F0</td>
+<td class="comment-1" rowspan="2">H = $F2, $F4 or $F6, the reversing and shifting pages for a shift of 2, 4 or 6 pixels</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53973"></span>D2D5</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53974"></span>D2D6</td>
+<td class="instruction">LD A,(<a href="48042.html#48114">DRAW_PASS</a>)</td>
+<td class="comment-1" rowspan="3">The second face is mirrored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53977"></span>D2D9</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53978"></span>D2DA</td>
+<td class="instruction">JR NZ,<a href="53938.html#54018">PUT_EDGE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53980"></span>D2DC</td>
+<td class="instruction">SET 3,H</td>
+<td class="comment-1" rowspan="2">The first: H = $FA, $FC or $FE, the shifting pages</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53982"></span>D2DE</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_2</td>
+<td class="address-2"><span id="53983"></span>D2DF</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="7">A row: the first byte's part that stays, into the first buffer byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53984"></span>D2E0</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53985"></span>D2E1</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53986"></span>D2E2</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53987"></span>D2E3</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53988"></span>D2E4</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53989"></span>D2E5</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53990"></span>D2E6</td>
+<td class="instruction">INC H</td>
+<td class="comment-1" rowspan="7">The part that falls out of it and the second byte's part that stays, into the second</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53991"></span>D2E7</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53992"></span>D2E8</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53993"></span>D2E9</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53994"></span>D2EA</td>
+<td class="instruction">LD L,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53995"></span>D2EB</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53996"></span>D2EC</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53997"></span>D2ED</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="6">The part that falls out of the second, into the third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53998"></span>D2EE</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53999"></span>D2EF</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54000"></span>D2F0</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54001"></span>D2F1</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54002"></span>D2F2</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54003"></span>D2F3</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="7">Up a line, 24 bytes on from the first; until the rows run out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54004"></span>D2F4</td>
+<td class="instruction">LD BC,$0016</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54007"></span>D2F7</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54008"></span>D2F8</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54009"></span>D2F9</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54010"></span>D2FA</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54011"></span>D2FB</td>
+<td class="instruction">JR NZ,<a href="53938.html#53983">PUT_EDGE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_3</td>
+<td class="address-2"><span id="54013"></span>D2FD</td>
+<td class="instruction">LD SP,(<a href="48042.html#48046">SAVED_SP</a>)</td>
+<td class="comment-1" rowspan="2">The real stack pointer back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54017"></span>D301</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_4</td>
+<td class="address-2"><span id="54018"></span>D302</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="29">Mirrored: the same, with the row's second byte first, through the reversing pages</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_5</td>
+<td class="address-2"><span id="54019"></span>D303</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54020"></span>D304</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54021"></span>D305</td>
+<td class="instruction">LD L,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54022"></span>D306</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54023"></span>D307</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54024"></span>D308</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54025"></span>D309</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54026"></span>D30A</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54027"></span>D30B</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54028"></span>D30C</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54029"></span>D30D</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54030"></span>D30E</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54031"></span>D30F</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54032"></span>D310</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54033"></span>D311</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54034"></span>D312</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54035"></span>D313</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54036"></span>D314</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54037"></span>D315</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54038"></span>D316</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54039"></span>D317</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54040"></span>D318</td>
+<td class="instruction">LD BC,$0016</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54043"></span>D31B</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54044"></span>D31C</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54045"></span>D31D</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54046"></span>D31E</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54047"></span>D31F</td>
+<td class="instruction">JR NZ,<a href="53938.html#54019">PUT_EDGE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54049"></span>D321</td>
+<td class="instruction">JR <a href="53938.html#54013">PUT_EDGE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_6</td>
+<td class="address-2"><span id="54051"></span>D323</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="20">Aligned: the two bytes ORed in as they are</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54052"></span>D324</td>
+<td class="instruction">LD A,(<a href="48042.html#48114">DRAW_PASS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54055"></span>D327</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54056"></span>D328</td>
+<td class="instruction">JR NZ,<a href="53938.html#54078">PUT_EDGE_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54058"></span>D32A</td>
+<td class="instruction">LD BC,$0017</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54061"></span>D32D</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_7</td>
+<td class="address-2"><span id="54062"></span>D32E</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54063"></span>D32F</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54064"></span>D330</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54065"></span>D331</td>
+<td class="instruction">OR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54066"></span>D332</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54067"></span>D333</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54068"></span>D334</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54069"></span>D335</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54070"></span>D336</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54071"></span>D337</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54072"></span>D338</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54073"></span>D339</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54074"></span>D33A</td>
+<td class="instruction">JR NZ,<a href="53938.html#54062">PUT_EDGE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54076"></span>D33C</td>
+<td class="instruction">JR <a href="53938.html#54013">PUT_EDGE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_8</td>
+<td class="address-2"><span id="54078"></span>D33E</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="19">Aligned and mirrored: each byte reversed (<a href="63744.html">REVERSE_TABLE</a>), the second first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54080"></span>D340</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_EDGE_9</td>
+<td class="address-2"><span id="54081"></span>D341</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54082"></span>D342</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54083"></span>D343</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54084"></span>D344</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54085"></span>D345</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54086"></span>D346</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54087"></span>D347</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54088"></span>D348</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54089"></span>D349</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54090"></span>D34A</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54091"></span>D34B</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54092"></span>D34C</td>
+<td class="instruction">LD DE,$0017</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54095"></span>D34F</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54096"></span>D350</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54097"></span>D351</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54098"></span>D352</td>
+<td class="instruction">JR NZ,<a href="53938.html#54081">PUT_EDGE_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54100"></span>D354</td>
+<td class="instruction">JR <a href="53938.html#54013">PUT_EDGE_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53922.html">D2A2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53938">Map</a></td>
+<td class="next">
+Next: <a href="54102.html">D356</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

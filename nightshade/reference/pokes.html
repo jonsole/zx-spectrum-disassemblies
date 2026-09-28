@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#immunity">Nothing can kill him</a></li>
+<li><a href="#speed">The top speeds the numbers say</a></li>
+<li><a href="#nomonsters">No monsters and no creature</a></li>
+<li><a href="#hundred">A hundred per cent printed as 100</a></li>
+<li><a href="#hum">The villains hum their own tunes</a></li>
+<li><a href="#128k">Play on a 128K in 128 mode</a></li>
+</ul>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/52140.html">NEW_LIFE</a> takes a life with DEC (HL) at TAKE_LIFE ($CBDD), and
+goes to the game over when that leaves less than none. The usual poke, a NOP
+there, does not work: before each new life NEW_LIFE reads that very byte, and
+unless it is still DEC (HL) it jumps to address 0 and the Spectrum starts
+again (see <a href="facts.html#protection">the facts</a>). So leave the DEC
+where it is and aim it elsewhere: the LD HL before it gets ROM address 2
+instead of LIVES. DEC (HL) cannot change the ROM, and the byte there, $11 in
+the 48K ROM and in the 128's 48 BASIC ROM, less one is positive, so the JP M
+after it never goes to the game over.
+</div>
+<div class="paragraph">
+Tested in the simulator: a villain put on the knight at the start of every
+life. Without the poke LIVES went 5, 4, 3, 2, 1, 0 and the sixth death was the
+game over. With it, twelve deaths the same way and LIVES stayed at 5, the
+panel showing five knights throughout. With the NOP instead, at the first
+death the Spectrum started again from its copyright message:
+</div>
+<div class="paragraph">
+<div><img src="../images/reference/reset.png" alt="The Spectrum's copyright message: the machine reset by the game's check"/></div>
+POKE 52187,2: POKE 52188,0
+</div>
+</div>
+<div><span id="immunity"></span></div>
+<div class="box box-2">
+<div class="box-title">Nothing can kill him</div>
+<div class="paragraph">
+Two things end his lives. A monster or the creature that touches him takes one
+of his three hits at MONSTER_HITS_KNIGHT (in <a href="../asm/52873.html">WANDERING_MONSTER</a>), and the third ends the
+life; a villain's touch ends it at once (<a href="../asm/55631.html">VILLAIN_WANDER</a>, into KNIGHT_KILLED). Make
+the DEC (HL) that takes the hit a RET -- the monster has already been made to
+vanish -- and the RET NC with which a villain gives up when it is not
+touching him a plain RET, and neither can hurt him. The monsters still score
+when they meet him.
+</div>
+<div class="paragraph">
+Tested in the simulator, in cell (16,16): a villain put on him at the start of
+every turn cost 13 lives in 300 turns without the pokes and none with them;
+a monster of graphic 112 put on him whenever its record was free cost 29
+hits and 9 lives in 300 turns without, and nothing with, the hits staying at
+three.
+</div>
+<div class="paragraph">
+POKE 52930,201: POKE 55668,201
+</div>
+</div>
+<div><span id="speed"></span></div>
+<div class="box box-1">
+<div class="box-title">The top speeds the numbers say</div>
+<div class="paragraph">
+The knight never reaches TOP_SPEED (see <a href="bugs.html#speed">the
+bugs</a>): he stops two short. Give TOP_SPEED two more wherever it is set --
+12 at a new game (<a href="../asm/48655.html">NEW_GAME</a>) and when the faster walk ends (<a href="../asm/55930.html">UPDATE_KNIGHT</a>),
+20 for the faster walk (<a href="../asm/55079.html">SPEED_BONUS</a>) -- and he walks at the 10 and 18
+the code names.
+</div>
+<div class="paragraph">
+Tested in the simulator, walk held along an open street: without the pokes
+his speed went 4, 6, 8 and stayed at 8, and after the bonus 8, 12, 14, 16 and
+stayed at 16; with them 6, 8, 10 and 10, and after the bonus 10, 14, 16, 18
+and 18. He still came to rest on the eight-unit grid when the key was let go.
+</div>
+<div class="paragraph">
+POKE 48716,12: POKE 55958,12: POKE 55105,20
+</div>
+</div>
+<div><span id="nomonsters"></span></div>
+<div class="box box-2">
+<div class="box-title">No monsters and no creature</div>
+<div class="paragraph">
+Monsters are brought in by <a href="../asm/52712.html">SPAWN_MONSTER</a> every fourth turn, and the
+creature by <a href="../asm/49045.html">SPAWN_CREATURE</a> every 256th. A RET as the first
+instruction of each and none ever comes; the villains still wander, and still
+kill at a touch, and the antibodies have nothing to strike.
+</div>
+<div class="paragraph">
+Tested in the simulator, 1000 turns in cell (16,16): without the pokes the
+six monster records were busy 5833 record-turns in all -- nearly all six all
+the time -- and the creature was there for 52 turns; with them the records
+stayed empty.
+</div>
+<div class="paragraph">
+POKE 52712,201: POKE 49045,201
+</div>
+</div>
+<div><span id="hundred"></span></div>
+<div class="box box-1">
+<div class="box-title">A hundred per cent printed as 100</div>
+<div class="paragraph">
+<a href="../asm/48950.html">PRINT_PERCENTAGE</a> prints a hundred in whatever font was used last
+(see <a href="bugs.html#hundred">the bugs</a>). These pokes put eleven bytes
+into <a href="../asm/61845.html">UNUSED_F195</a>, which the game never touches -- PUSH HL, LD HL,$6CDE (the
+digits), LD ($BBAC),HL (FONT_BASE), POP HL, JP $C327 -- and point
+PRINT_PERCENTAGE's jump there instead of straight at PRINT_BCD_LOW. The
+routine is outside the tape's block, so the pokes go in after loading.
+</div>
+<div class="paragraph">
+Tested in the simulator, the same finished game as the bug's: FONT_BASE held
+the digits' font when the percentage was printed, and the screen said 100:
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/hundred_poked.png" alt="The game-over screen at a hundred per cent with the poke: COMPLETED 100"/></div>
+POKE 61845,229: POKE 61846,33: POKE 61847,222: POKE 61848,108: POKE 61849,34: POKE 61850,172: POKE 61851,187: POKE 61852,225: POKE 61853,195: POKE 61854,39: POKE 61855,195: POKE 48961,149: POKE 48962,241
+</div>
+</div>
+<div><span id="hum"></span></div>
+<div class="box box-2">
+<div class="box-title">The villains hum their own tunes</div>
+<div class="paragraph">
+Each villain was meant to hum from a table of its own, and hums from the ROM
+instead (see <a href="bugs.html#hum">the bugs</a>). These pokes rewrite the
+seven bytes of <a href="../asm/55631.html">VILLAIN_WANDER</a> from the AND onwards: AND $30, so the
+offset is the kind alone, 0 to 48; then ADD A,$5D : LD C,A : LD B,$C3 and a
+NOP, so that BC is the table itself, where LD C,A : LD B,0 and the unused LD
+HL,$C35D were. BLIP_FROM_TABLE adds the turn's four bits to BC as it always
+did.
+</div>
+<div class="paragraph">
+Tested in the simulator (at every build), each villain put near the knight:
+the pitches were read from $C38D-$C39C for the villain of 108-111, $C37D-$C38C for the villain of 104-107, $C36D-$C37C for the villain of 100-103 and $C35D-$C36C for the villain of 96-99, one table each.
+</div>
+<div class="paragraph">
+POKE 55637,48: POKE 55638,198: POKE 55639,93: POKE 55640,79: POKE 55641,6: POKE 55642,195: POKE 55643,0
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-1">
+<div class="box-title">Play on a 128K in 128 mode</div>
+<div class="paragraph">
+<a href="../asm/57913.html">READ_KEYS</a> sends the half-rows it is about to read to port $FD
+before reading port $FE, an OUT that does nothing on a 48K and pages memory on
+a 128K (see <a href="bugs.html#128k">the bugs</a>). The IN after it selects
+the half-rows by itself, so the OUT can simply go: two NOPs.
+</div>
+<div class="paragraph">
+Tested in the emulator's 128K, from the loaded game put into a 128K snapshot
+with the 48 BASIC ROM and bank 0 paged in and the paging unlocked: without
+the poke the game crashed at the end of its first turn of play; with it, 300
+turns of play with the paging as it started ($10: bank 0, the 48 BASIC ROM,
+unlocked). On a 48K it changes nothing but the refresh register, which counts
+one fetch for the OUT where it counts two for the NOPs, and with it the
+random numbers.
+</div>
+<div class="paragraph">
+POKE 57913,0: POKE 57914,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

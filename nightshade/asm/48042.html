@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Game status buffer entry at BBAA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-g">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Game status buffer</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47882.html">BB0A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48042">Map</a></td>
+<td class="next">
+Next: <a href="48638.html">BDFE</a>
+</td>
+</tr>
+</table>
+<div class="description">BBAA: Game variables and the object records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Cleared from here at the first start (<a href="48638.html">START</a>), and from CELL_LOOKED_UP at every new game (<a href="48655.html">NEW_GAME</a>), so only the random number, the font base, the saved stack pointer and the two control bytes survive from one game to the next; the turn counter is outside the cleared part too, but is set again from FRAMES at every new game. The snapshot's bytes here are what the tape's block held: none of them is ever read before it is written.
+</div>
+<div class="paragraph">
+The 23 object records from KNIGHT on are 16 bytes each, updated in turn every turn by the main loop through <a href="54681.html">UPDATES</a>: +0 the graphic, which picks the update routine (0 an empty record); +1 and +2 U, a word whose high byte is the town's column and low byte the place across the cell; +3 and +4 V the same, the high byte the row; +5 the speed (for a find, the type of cell it came from, <a href="50638.html">SPAWN_FIND</a>); +6 the facing in bits 6 and 7 (bit 6 along U rather than V, bit 7 backwards), and in the low bits a count -- for the knight bits 0-2, his turning; for a monster or a find bits 0-5, the turns before it next changes direction (<a href="56783.html">WANDER_STEP</a>, <a href="56616.html">STEER</a>); +7 the flags -- bit 0 stopped by a wall this turn (<a href="56921.html">MOVE_CLIPPED</a>), bit 1 drawn this turn (<a href="58329.html">DRAW_SPRITE</a>, cleared by the sound routines that play only for things on the screen), bit 5 a monster that makes for the knight when it turns (<a href="56616.html">STEER</a>), bit 6 its sprite mirrored and bit 7 upside down (<a href="58195.html">TURN_SPRITE</a>); +8 and +9 the half-size in U and V, centre to edge; +A and +B this turn's step in U and V, signed; +C and +D the drawing offset, added to where it projects on the screen; +E and +F where it was last drawn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM</td>
+<td class="address-1"><span id="48042"></span>BBAA</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The random number, stirred with R and the turn counter after every record's update and at every random choice (<a href="50612.html">NEXT_TURN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">FONT_BASE</td>
+<td class="address-1"><span id="48044"></span>BBAC</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The address of character code 0 for the printer (<a href="51993.html">PRINT_CHAR</a>): each routine that prints sets it first -- but see <a href="48950.html">PRINT_PERCENTAGE</a></td>
+</tr>
+<tr>
+<td class="asm-label">SAVED_SP</td>
+<td class="address-1"><span id="48046"></span>BBAE</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The stack pointer, kept while the drawing and the clearing of the buffers borrow SP (<a href="57856.html">SHOW_PLAY_AREA</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROL</td>
+<td class="address-1"><span id="48048"></span>BBB0</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Control method: bits 1-2 keyboard, Kempston, cursor, Interface II; bit 3 directional control (<a href="51402.html">MENU</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">LAST_CONTROL</td>
+<td class="address-1"><span id="48049"></span>BBB1</td>
+<td class="instruction">DEFB $1E</td>
+<td class="comment-1" rowspan="1">The control method before the last key on the menu</td>
+</tr>
+<tr>
+<td class="asm-label">TURNS</td>
+<td class="address-1"><span id="48050"></span>BBB2</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The turn counter: FRAMES at every new game (<a href="48655.html">NEW_GAME</a>), one more each turn (<a href="50612.html">NEXT_TURN</a>); its low byte paces the finds (<a href="50638.html">SPAWN_FIND</a>), the monsters (<a href="52712.html">SPAWN_MONSTER</a>) and the creature (<a href="49045.html">SPAWN_CREATURE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CELL_LOOKED_UP</td>
+<td class="address-1"><span id="48052"></span>BBB4</td>
+<td class="instruction">DEFB $00,$0F</td>
+<td class="comment-1" rowspan="1">The column and row last looked up on the map (<a href="54628.html">LOOK_UP_CELL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_X</td>
+<td class="address-1"><span id="48054"></span>BBB6</td>
+<td class="instruction">DEFB $00,$3F</td>
+<td class="comment-1" rowspan="1">Where on the screen a thing or a building is drawn: x</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_Y</td>
+<td class="address-1"><span id="48056"></span>BBB8</td>
+<td class="instruction">DEFB $1E,$80</td>
+<td class="comment-1" rowspan="1">...and y</td>
+</tr>
+<tr>
+<td class="asm-label">VIEW</td>
+<td class="address-1"><span id="48058"></span>BBBA</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Bit 0: the town is seen turned round, from the other side (Z or SYMBOL SHIFT, <a href="56168.html">TURN_TOWN</a>); the panel's heading says south instead of north (<a href="49818.html">PRINT_HEADING</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">COLUMNS_DRAWN</td>
+<td class="address-1"><span id="48059"></span>BBBB</td>
+<td class="instruction">DEFB $1F,$0F</td>
+<td class="comment-1" rowspan="1">A bit for each column of the screen a building has been drawn in this turn (<a href="54210.html">DRAW_WALL_COLUMN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">KEY_LATCH</td>
+<td class="address-1"><span id="48061"></span>BBBD</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Set while a key that acts once a press is held</td>
+</tr>
+<tr>
+<td class="asm-label">TOP_SPEED</td>
+<td class="address-1"><span id="48062"></span>BBBE</td>
+<td class="instruction">DEFB $03</td>
+<td class="comment-1" rowspan="1">The knight's top speed: 10, and 18 while a bonus's faster walk lasts (<a href="55079.html">SPEED_BONUS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">MENU_SHOWN</td>
+<td class="address-1"><span id="48063"></span>BBBF</td>
+<td class="instruction">DEFB $C0</td>
+<td class="comment-1" rowspan="1">Set once the menu's frame has been drawn (<a href="51755.html">DISPLAY_MENU</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CELL_TYPE</td>
+<td class="address-1"><span id="48064"></span>BBC0</td>
+<td class="instruction">DEFB $80</td>
+<td class="comment-1" rowspan="1">The type of the cell being drawn (<a href="54130.html">DRAW_WALLS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAYED</td>
+<td class="address-1"><span id="48065"></span>BBC1</td>
+<td class="instruction">DEFB $3F</td>
+<td class="comment-1" rowspan="1">Set once the menu's tune has played (<a href="50749.html">PLAY_TUNE_ONCE</a>); cleared with the rest at every new game, so it plays again after each</td>
+</tr>
+<tr>
+<td class="asm-label">SPRITE_WIDTH</td>
+<td class="address-1"><span id="48066"></span>BBC2</td>
+<td class="instruction">DEFB $1C</td>
+<td class="comment-1" rowspan="1">The width of the sprite being drawn</td>
+</tr>
+<tr>
+<td class="asm-label">SPRITE_ROWS</td>
+<td class="address-1"><span id="48067"></span>BBC3</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">The rows of it that are drawn</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_LIST_AT</td>
+<td class="address-1"><span id="48068"></span>BBC4</td>
+<td class="instruction">DEFB $FC,$E0</td>
+<td class="comment-1" rowspan="1">Pointers into the list of things to draw (<a href="53234.html">SORT_AND_DRAW_THINGS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_LIST_NEXT</td>
+<td class="address-1"><span id="48070"></span>BBC6</td>
+<td class="instruction">DEFB $40,$1F</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">FIRE_DELAY</td>
+<td class="address-1"><span id="48072"></span>BBC8</td>
+<td class="instruction">DEFB $0B</td>
+<td class="comment-1" rowspan="1">Turns before the knight can throw again (<a href="55991.html">KNIGHT_THROWS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SCORE</td>
+<td class="address-1"><span id="48073"></span>BBC9</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">The score, BCD, highest first: the top two digits, of which only the lower is printed (<a href="49901.html">ADD_SCORE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48074"></span>BBCA</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">The next two, where a villain's 250000 goes</td>
+</tr>
+<tr>
+<td class="asm-label">SCORE_LOW</td>
+<td class="address-1"><span id="48075"></span>BBCB</td>
+<td class="instruction">DEFB $C0</td>
+<td class="comment-1" rowspan="1">The next two, the hundreds and thousands, where everything else scores</td>
+</tr>
+<tr>
+<td class="asm-label">SCORE_ZEROS</td>
+<td class="address-1"><span id="48076"></span>BBCC</td>
+<td class="instruction">DEFB $80</td>
+<td class="comment-1" rowspan="1">Printed as the score's last two digits, and never written: so every score ends 00</td>
+</tr>
+<tr>
+<td class="asm-label">LIVES</td>
+<td class="address-1"><span id="48077"></span>BBCD</td>
+<td class="instruction">DEFB $0F</td>
+<td class="comment-1" rowspan="1">Lives in hand besides the one being played: six at a new game, from the code at LIVES_BYTE (<a href="48655.html">NEW_GAME</a>), and one taken as each life starts, the first included; none left to take is game over (<a href="52140.html">NEW_LIFE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">STOCKS</td>
+<td class="address-1"><span id="48078"></span>BBCE</td>
+<td class="instruction">DEFB $07,$FF,$FF,$E0,$C0,$1F</td>
+<td class="comment-1" rowspan="6">How many more finds the cells of each type have, by type, shared by every cell of it: types 2 on get 16-31 at every new game (<a href="49627.html">STOCK_BUILDINGS</a>), types 0 and 1 none; one is taken as a find appears (<a href="50638.html">SPAWN_FIND</a>) and put back if it is left behind (<a href="55715.html">FIND_WANDER</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48084"></span>BBD4</td>
+<td class="instruction">DEFB $0F,$FF,$FF,$E0,$C0,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48090"></span>BBDA</td>
+<td class="instruction">DEFB $0F,$FF,$FF,$E8,$C0,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48096"></span>BBE0</td>
+<td class="instruction">DEFB $0F,$FF,$FF,$FC,$E8,$3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48102"></span>BBE6</td>
+<td class="instruction">DEFB $00,$FF,$3F,$FE,$F4,$7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48108"></span>BBEC</td>
+<td class="instruction">DEFB $21,$FF,$1F,$FE,$F4,$7F</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_PASS</td>
+<td class="address-1"><span id="48114"></span>BBF2</td>
+<td class="instruction">DEFB $31</td>
+<td class="comment-1" rowspan="1">Which of a building's two faces is being drawn</td>
+</tr>
+<tr>
+<td class="asm-label">HITS</td>
+<td class="address-1"><span id="48115"></span>BBF3</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Hits the knight can still take in this life: 3 at each life and at the cure (<a href="55116.html">HITS_BONUS</a>), one fewer for each monster or creature that touches him (<a href="52873.html">WANDERING_MONSTER</a>); his colour shows them (<a href="49253.html">KNIGHT_COLOURS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">THROW_TOGGLE</td>
+<td class="address-1"><span id="48116"></span>BBF4</td>
+<td class="instruction">DEFB $8F</td>
+<td class="comment-1" rowspan="1">Which antibody record the next throw replaces (<a href="55991.html">KNIGHT_THROWS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">SPEED_TIME</td>
+<td class="address-1"><span id="48117"></span>BBF5</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Turns left of the faster walk a bonus gives (<a href="55079.html">SPEED_BONUS</a>, <a href="55930.html">UPDATE_KNIGHT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">LAST_CELL</td>
+<td class="address-1"><span id="48118"></span>BBF6</td>
+<td class="instruction">DEFB $F2,$7F</td>
+<td class="comment-1" rowspan="1">The cell the knight was last in, column and row (<a href="48968.html">VISIT_CELL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">FOOTSTEPS</td>
+<td class="address-1"><span id="48120"></span>BBF8</td>
+<td class="instruction">DEFB $20</td>
+<td class="comment-1" rowspan="1">Counts the knight's footsteps (<a href="50176.html">FOOTSTEP</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">EFFECT_TIME</td>
+<td class="address-1"><span id="48121"></span>BBF9</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Notes left of the sound effect under way, one a turn (<a href="50109.html">EFFECT_NOTE</a>); in the ending, a count the ending's note rises from (<a href="50077.html">ENDING_BEEP</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">EFFECT</td>
+<td class="address-1"><span id="48122"></span>BBFA</td>
+<td class="instruction">DEFB $05</td>
+<td class="comment-1" rowspan="1">Which sound effect (<a href="50136.html">EFFECT_TABLE</a>): 0 a new cell with a building, 1 the faster walk, 2 the cure, 3 an object taken up</td>
+</tr>
+<tr>
+<td class="asm-label">FLASH</td>
+<td class="address-1"><span id="48123"></span>BBFB</td>
+<td class="instruction">DEFB $FE</td>
+<td class="comment-1" rowspan="1">The paper colour of the play area, flashed when a villain dies (<a href="55367.html">VILLAIN_DYING</a>), and back to black at the end of every turn (<a href="48655.html">NEW_GAME</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">LAST_FLASH</td>
+<td class="address-1"><span id="48124"></span>BBFC</td>
+<td class="instruction">DEFB $D0</td>
+<td class="comment-1" rowspan="1">The paper this turn's play area was cleared to: FLASH as the last turn ended, which the knight's and the buildings' colours keep (<a href="51352.html">COLOUR_KNIGHT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENT</td>
+<td class="address-1"><span id="48125"></span>BBFD</td>
+<td class="instruction">DEFB $7F</td>
+<td class="comment-1" rowspan="1">The percentage of the game done, BCD: the hundreds (<a href="48863.html">PERCENTAGE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENT_LOW</td>
+<td class="address-1"><span id="48126"></span>BBFE</td>
+<td class="instruction">DEFB $1F</td>
+<td class="comment-1" rowspan="1">...and the tens and units</td>
+</tr>
+<tr>
+<td class="asm-label">ENDING</td>
+<td class="address-1"><span id="48127"></span>BBFF</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">Set while the ending plays (<a href="52310.html">GAME_OVER</a>): the main loop then only updates the records</td>
+</tr>
+<tr>
+<td class="asm-label">ENDING_COLOUR</td>
+<td class="address-1"><span id="48128"></span>BC00</td>
+<td class="instruction">DEFB $C1</td>
+<td class="comment-1" rowspan="1">The colour the ending's pictures are drawn in</td>
+</tr>
+<tr>
+<td class="asm-label">CONTROLS</td>
+<td class="address-1"><span id="48129"></span>BC01</td>
+<td class="instruction">DEFB $FE</td>
+<td class="comment-1" rowspan="1">What the controls say this turn: bits 0-1 turn, 2 walk, 3 throw, 4 down, 5 turn the town round (<a href="57921.html">READ_CONTROLS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">ARRIVING</td>
+<td class="address-1"><span id="48130"></span>BC02</td>
+<td class="instruction">DEFB $D4</td>
+<td class="comment-1" rowspan="1">Counts up by two a turn from 40 while the knight appears at a new life, and is $70 once he has (<a href="55930.html">UPDATE_KNIGHT</a>): until then nothing touches him and no find or monster comes (<a href="50527.html">TOUCHING_KNIGHT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED</td>
+<td class="address-1"><span id="48131"></span>BC03</td>
+<td class="instruction">DEFB $FF,$7F,$FF,$F9,$FF</td>
+<td class="comment-1" rowspan="2">The things carried, in the order taken up: 1-4 the four objects, 5-8 the four kinds of antibody, 0 an empty place (<a href="50313.html">PICK_UP_THING</a>); each has its place on the panel, from the bottom up (<a href="50396.html">COLOUR_CARRIED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48136"></span>BC08</td>
+<td class="instruction">DEFB $E6,$7F,$3F,$FF,$FD</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_LAST</td>
+<td class="address-1"><span id="48141"></span>BC0D</td>
+<td class="instruction">DEFB $FE</td>
+<td class="comment-1" rowspan="1">The eleventh; the knight throws the last thing he took up first (<a href="55991.html">KNIGHT_THROWS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">VISITED</td>
+<td class="address-1"><span id="48142"></span>BC0E</td>
+<td class="instruction">DEFB $E0,$3F,$07,$FF</td>
+<td class="comment-1" rowspan="32">A bit for each cell of the town the knight has been in, a row of the town to a line: a byte for eight columns, the column's low three bits the bit (<a href="48968.html">VISIT_CELL</a>); counted for the percentage (<a href="48863.html">PERCENTAGE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48146"></span>BC12</td>
+<td class="instruction">DEFB $FD,$FE,$F4,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48150"></span>BC16</td>
+<td class="instruction">DEFB $08,$FF,$05,$FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48154"></span>BC1A</td>
+<td class="instruction">DEFB $F0,$1F,$0E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48158"></span>BC1E</td>
+<td class="instruction">DEFB $4A,$F8,$F0,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48162"></span>BC22</td>
+<td class="instruction">DEFB $0E,$FF,$DA,$FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48166"></span>BC26</td>
+<td class="instruction">DEFB $F8,$1F,$0E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48170"></span>BC2A</td>
+<td class="instruction">DEFB $02,$FC,$78,$0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48174"></span>BC2E</td>
+<td class="instruction">DEFB $07,$FF,$27,$FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48178"></span>BC32</td>
+<td class="instruction">DEFB $78,$0F,$07,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48182"></span>BC36</td>
+<td class="instruction">DEFB $FE,$FC,$38,$2F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48186"></span>BC3A</td>
+<td class="instruction">DEFB $07,$FF,$76,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48190"></span>BC3E</td>
+<td class="instruction">DEFB $30,$7F,$27,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48194"></span>BC42</td>
+<td class="instruction">DEFB $32,$F8,$70,$3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48198"></span>BC46</td>
+<td class="instruction">DEFB $1E,$73,$20,$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48202"></span>BC4A</td>
+<td class="instruction">DEFB $60,$1F,$06,$27</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48206"></span>BC4E</td>
+<td class="instruction">DEFB $03,$F8,$F0,$3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48210"></span>BC52</td>
+<td class="instruction">DEFB $1B,$83,$00,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48214"></span>BC56</td>
+<td class="instruction">DEFB $50,$1F,$06,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48218"></span>BC5A</td>
+<td class="instruction">DEFB $00,$F8,$D0,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48222"></span>BC5E</td>
+<td class="instruction">DEFB $00,$00,$00,$D0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48226"></span>BC62</td>
+<td class="instruction">DEFB $00,$03,$22,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48230"></span>BC66</td>
+<td class="instruction">DEFB $00,$FE,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48234"></span>BC6A</td>
+<td class="instruction">DEFB $00,$03,$01,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48238"></span>BC6E</td>
+<td class="instruction">DEFB $B6,$80,$00,$0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48242"></span>BC72</td>
+<td class="instruction">DEFB $03,$FF,$B7,$E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48246"></span>BC76</td>
+<td class="instruction">DEFB $80,$1F,$0E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48250"></span>BC7A</td>
+<td class="instruction">DEFB $BF,$F0,$60,$3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48254"></span>BC7E</td>
+<td class="instruction">DEFB $1E,$FF,$BF,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48258"></span>BC82</td>
+<td class="instruction">DEFB $70,$1F,$0E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48262"></span>BC86</td>
+<td class="instruction">DEFB $FF,$FC,$78,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48266"></span>BC8A</td>
+<td class="instruction">DEFB $0F,$FF,$FB,$FE</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT</td>
+<td class="address-1"><span id="48270"></span>BC8E</td>
+<td class="instruction">DEFB $FC</td>
+<td class="comment-1" rowspan="1">The knight's legs, +0: graphics 16-21 and 24-29 as he walks, 12-15 as he vanishes, and 0 for a new life (<a href="52140.html">NEW_LIFE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_U</td>
+<td class="address-1"><span id="48271"></span>BC8F</td>
+<td class="instruction">DEFB $0F</td>
+<td class="comment-1" rowspan="1">+1: U within the cell</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_COLUMN</td>
+<td class="address-1"><span id="48272"></span>BC90</td>
+<td class="instruction">DEFB $05</td>
+<td class="comment-1" rowspan="1">+2: the column</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_V</td>
+<td class="address-1"><span id="48273"></span>BC91</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">+3: V within the cell</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_ROW</td>
+<td class="address-1"><span id="48274"></span>BC92</td>
+<td class="instruction">DEFB $F5</td>
+<td class="comment-1" rowspan="1">+4: the row</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_SPEED</td>
+<td class="address-1"><span id="48275"></span>BC93</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="1">+5: speed, up to TOP_SPEED</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_FACING</td>
+<td class="address-1"><span id="48276"></span>BC94</td>
+<td class="instruction">DEFB $F6</td>
+<td class="comment-1" rowspan="1">+6: facing, bits 6-7</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_FLAGS</td>
+<td class="address-1"><span id="48277"></span>BC95</td>
+<td class="instruction">DEFB $0F</td>
+<td class="comment-1" rowspan="1">+7: flags</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48278"></span>BC96</td>
+<td class="instruction">DEFB $07,$FF</td>
+<td class="comment-1" rowspan="4">+8 to +F: half-sizes in U and V; this turn's steps; the drawing offset; where he was drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48280"></span>BC98</td>
+<td class="instruction">DEFB $65,$E6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48282"></span>BC9A</td>
+<td class="instruction">DEFB $E0,$0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48284"></span>BC9C</td>
+<td class="instruction">DEFB $06,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_TOP</td>
+<td class="address-1"><span id="48286"></span>BC9E</td>
+<td class="instruction">DEFB $AD,$E0,$C0,$07,$02,$FF,$DD,$C0</td>
+<td class="comment-1" rowspan="2">The knight's top half (graphics 22, 30 and 32-47), kept on his legs by <a href="55787.html">UPDATE_TOP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48294"></span>BCA6</td>
+<td class="instruction">DEFB $80,$07,$02,$FF,$ED,$C0,$80,$07</td>
+</tr>
+<tr>
+<td class="asm-label">ANTIBODIES</td>
+<td class="address-1"><span id="48302"></span>BCAE</td>
+<td class="instruction">DEFB $02,$FF,$F5,$E0,$C0,$07,$02,$FF</td>
+<td class="comment-1" rowspan="2">The first antibody in flight (graphics 80-95): the only one that can strike anything (<a href="50488.html">ANTIBODY_STRIKE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48310"></span>BCB6</td>
+<td class="instruction">DEFB $FB,$E0,$C0,$07,$02,$FF,$FD,$E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48318"></span>BCBE</td>
+<td class="instruction">DEFB $C0,$07,$02,$FF,$FE,$E0,$C0,$0F</td>
+<td class="comment-1" rowspan="2">The second, used while the first is busy (<a href="55991.html">KNIGHT_THROWS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48326"></span>BCC6</td>
+<td class="instruction">DEFB $06,$FF,$FF,$F0,$E0,$0F,$06,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">FINDS</td>
+<td class="address-1"><span id="48334"></span>BCCE</td>
+<td class="instruction">DEFB $FF,$F0,$E0,$0F,$06,$FF,$43,$F0</td>
+<td class="comment-1" rowspan="2">A find in a building (graphics 48-63, <a href="50638.html">SPAWN_FIND</a>); when a villain dies all four records hold its sparkles instead (140-143, drawn with the finds' sprites, <a href="54998.html">VILLAIN_SPARKLES</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48342"></span>BCD6</td>
+<td class="instruction">DEFB $E0,$0F,$07,$FF,$BB,$F0,$E0,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48350"></span>BCDE</td>
+<td class="instruction">DEFB $0F,$FF,$FF,$E0,$C0,$1F,$0F,$FF</td>
+<td class="comment-1" rowspan="2">A second find, or sparkles</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48358"></span>BCE6</td>
+<td class="instruction">DEFB $DF,$C0,$80,$1F,$0F,$FF,$8F,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48366"></span>BCEE</td>
+<td class="instruction">DEFB $00,$0F,$07,$FF,$03,$C0,$80,$07</td>
+<td class="comment-1" rowspan="2">A third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48374"></span>BCF6</td>
+<td class="instruction">DEFB $01,$FF,$03,$C0,$80,$03,$01,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48382"></span>BCFE</td>
+<td class="instruction">DEFB $0B,$C0,$80,$03,$01,$FF,$5B,$C0</td>
+<td class="comment-1" rowspan="2">A fourth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48390"></span>BD06</td>
+<td class="instruction">DEFB $80,$03,$01,$FF,$63,$E0,$C0,$03</td>
+</tr>
+<tr>
+<td class="asm-label">BONUS</td>
+<td class="address-1"><span id="48398"></span>BD0E</td>
+<td class="instruction">DEFB $01,$FF,$03,$E0,$C0,$01,$00,$FF</td>
+<td class="comment-1" rowspan="2">A bonus (<a href="55148.html">PLACE_BONUS</a>): graphic 2 a faster walk, 3 the hits back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48406"></span>BD16</td>
+<td class="instruction">DEFB $C7,$E0,$C0,$00,$00,$FF,$3F,$F0</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS</td>
+<td class="address-1"><span id="48414"></span>BD1E</td>
+<td class="instruction">DEFB $E0,$00,$00,$3F,$01,$F8,$F0,$00</td>
+<td class="comment-1" rowspan="2">The object that kills the villain in record 0: graphic 7 lying, 11 thrown (<a href="55438.html">PLACE_OBJECTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48422"></span>BD26</td>
+<td class="instruction">DEFB $00,$01,$00,$F8,$70,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48430"></span>BD2E</td>
+<td class="instruction">DEFB $00,$70,$00,$03,$22,$63,$00,$F8</td>
+<td class="comment-1" rowspan="2">The object for villain 1: graphic 6 lying, 10 thrown</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48438"></span>BD36</td>
+<td class="instruction">DEFB $00,$00,$00,$FF,$63,$FF,$D0,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48446"></span>BD3E</td>
+<td class="instruction">DEFB $00,$7F,$3C,$FF,$ED,$C0,$00,$3F</td>
+<td class="comment-1" rowspan="2">For villain 2: 5 and 9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48454"></span>BD46</td>
+<td class="instruction">DEFB $1F,$FF,$6D,$F0,$C0,$1F,$07,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48462"></span>BD4E</td>
+<td class="instruction">DEFB $B6,$F8,$D0,$07,$03,$FF,$D6,$FC</td>
+<td class="comment-1" rowspan="2">For villain 3: 4 and 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48470"></span>BD56</td>
+<td class="instruction">DEFB $B8,$03,$01,$FF,$DA,$FE,$BC,$03</td>
+</tr>
+<tr>
+<td class="asm-label">VILLAINS</td>
+<td class="address-1"><span id="48478"></span>BD5E</td>
+<td class="instruction">DEFB $01,$FF,$EB,$FC,$B8,$03,$01,$FF</td>
+<td class="comment-1" rowspan="2">Villain 0 (graphics 108-111), panel colour cyan (<a href="55527.html">PLACE_VILLAINS</a>); every villain is 132-135 as it dies, drawn as a puff</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48486"></span>BD66</td>
+<td class="instruction">DEFB $EF,$F8,$F0,$01,$00,$FF,$EF,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48494"></span>BD6E</td>
+<td class="instruction">DEFB $F0,$01,$00,$FF,$FF,$F8,$F0,$01</td>
+<td class="comment-1" rowspan="2">Villain 1 (104-107), green</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48502"></span>BD76</td>
+<td class="instruction">DEFB $00,$FF,$FF,$F8,$F0,$00,$00,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48510"></span>BD7E</td>
+<td class="instruction">DEFB $7F,$F0,$E0,$00,$00,$FF,$7F,$E0</td>
+<td class="comment-1" rowspan="2">Villain 2 (100-103), magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48518"></span>BD86</td>
+<td class="instruction">DEFB $C0,$00,$00,$FF,$7F,$E0,$C0,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48526"></span>BD8E</td>
+<td class="instruction">DEFB $00,$FF,$7F,$F0,$E0,$01,$00,$FF</td>
+<td class="comment-1" rowspan="2">Villain 3 (96-99), red</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48534"></span>BD96</td>
+<td class="instruction">DEFB $DF,$F0,$E0,$01,$00,$FF,$DF,$F0</td>
+</tr>
+<tr>
+<td class="asm-label">MONSTERS</td>
+<td class="address-1"><span id="48542"></span>BD9E</td>
+<td class="instruction">DEFB $E0,$01,$00,$FF,$DF,$F8,$F0,$03</td>
+<td class="comment-1" rowspan="2">A monster (<a href="52712.html">SPAWN_MONSTER</a>): appearing (128-131), then of graphics 64-79 or 112-127; or the creature (136-139, <a href="49045.html">SPAWN_CREATURE</a>), which always takes the first record it can</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48550"></span>BDA6</td>
+<td class="instruction">DEFB $01,$FF,$DF,$F8,$F0,$03,$01,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48558"></span>BDAE</td>
+<td class="instruction">DEFB $BF,$F8,$F0,$03,$01,$FF,$BF,$F8</td>
+<td class="comment-1" rowspan="2">A second monster</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48566"></span>BDB6</td>
+<td class="instruction">DEFB $F0,$03,$01,$FF,$BF,$F0,$E0,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48574"></span>BDBE</td>
+<td class="instruction">DEFB $00,$FF,$FF,$E0,$80,$00,$00,$FF</td>
+<td class="comment-1" rowspan="2">A third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48582"></span>BDC6</td>
+<td class="instruction">DEFB $7F,$E0,$C0,$01,$00,$FF,$FF,$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48590"></span>BDCE</td>
+<td class="instruction">DEFB $E0,$07,$01,$FF,$FF,$F0,$E0,$1F</td>
+<td class="comment-1" rowspan="2">A fourth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48598"></span>BDD6</td>
+<td class="instruction">DEFB $07,$FF,$FF,$F8,$F0,$3F,$1F,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48606"></span>BDDE</td>
+<td class="instruction">DEFB $FF,$F8,$F0,$1F,$0F,$FF,$FF,$F8</td>
+<td class="comment-1" rowspan="2">A fifth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48614"></span>BDE6</td>
+<td class="instruction">DEFB $F0,$0F,$03,$FF,$FF,$F0,$E0,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48622"></span>BDEE</td>
+<td class="instruction">DEFB $00,$FF,$7F,$E0,$C0,$00,$00,$7F</td>
+<td class="comment-1" rowspan="2">A sixth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48630"></span>BDF6</td>
+<td class="instruction">DEFB $07,$C0,$80,$00,$00,$07,$00,$80</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47882.html">BB0A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48042">Map</a></td>
+<td class="next">
+Next: <a href="48638.html">BDFE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

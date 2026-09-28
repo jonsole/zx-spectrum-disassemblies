@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D508</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54515.html">D4F3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54536">Map</a></td>
+<td class="next">
+Next: <a href="54628.html">D564</a>
+</td>
+</tr>
+</table>
+<div class="description">D508: Where a cell's corner is on the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="53661.html">DRAW_OUTLINE</a> and <a href="54130.html">DRAW_WALLS</a>.
+</div>
+<div class="paragraph">
+The projection, and the scrolling: everything is placed relative to the knight, who therefore stays at the middle of the screen while the town moves under him. For a point at U and V, with dU and dV its distance from the knight's U and V (both turned round with the town if it is): DRAW_X = (dU + dV + $F0) / 2 and DRAW_Y = (dV - dU + $1B0) / 4, signed. So U runs right and down the screen and V right and up, 256 units a cell: a cell is a diamond 256 pixels wide and 128 lines high, bigger than the play area, and the knight's own point is at x 120, the middle of the part of the buffer that is shown, and line 108. DRAW_Y counts up the screen, as the buffer's lines do. It is Filmation's projection, x from U + V and y from V - U, at half the scale and with no height.
+</div>
+<div class="paragraph">
+PROJECT_CELL projects the corner of the cell last looked up (CELL_LOOKED_UP, in the view's terms): its lowest U and V, where the wall along its first face starts. PROJECT_POINT, entered from <a href="54515.html">PROJECT_THING</a> with a U in HL and a V pushed, both turned already if the town is, projects any point.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_CELL</td>
+<td class="address-2"><span id="54536"></span>D508</td>
+<td class="instruction">LD A,($BBB5)</td>
+<td class="comment-1" rowspan="4">V = the cell's row times 256, saved</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54539"></span>D50B</td>
+<td class="instruction">LD L,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54541"></span>D50D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54542"></span>D50E</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54543"></span>D50F</td>
+<td class="instruction">LD A,(<a href="48042.html#48052">CELL_LOOKED_UP</a>)</td>
+<td class="comment-1" rowspan="3">U = its column times 256</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54546"></span>D512</td>
+<td class="instruction">LD L,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54548"></span>D514</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="54549"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="54515.html">PROJECT_THING</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_POINT</td>
+<td class="address-2"><span id="54549"></span>D515</td>
+<td class="instruction">LD DE,(<a href="48042.html#48271">KNIGHT_U</a>)</td>
+<td class="comment-1" rowspan="11">The knight's U, turned if the town is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54553"></span>D519</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54556"></span>D51C</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54558"></span>D51E</td>
+<td class="instruction">JR Z,<a href="54536.html#54568">PROJECT_CELL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54560"></span>D520</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54561"></span>D521</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54562"></span>D522</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54563"></span>D523</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54564"></span>D524</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54565"></span>D525</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54567"></span>D527</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_CELL_0</td>
+<td class="address-2"><span id="54568"></span>D528</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="3">DE = dU</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54569"></span>D529</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54571"></span>D52B</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54572"></span>D52C</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="12">The knight's V, the same</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54573"></span>D52D</td>
+<td class="instruction">LD BC,(<a href="48042.html#48273">KNIGHT_V</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54577"></span>D531</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54580"></span>D534</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54582"></span>D536</td>
+<td class="instruction">JR Z,<a href="54536.html#54592">PROJECT_CELL_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54584"></span>D538</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54585"></span>D539</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54586"></span>D53A</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54587"></span>D53B</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54588"></span>D53C</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54589"></span>D53D</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54591"></span>D53F</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">PROJECT_CELL_1</td>
+<td class="address-2"><span id="54592"></span>D540</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="3">HL = dV</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54593"></span>D541</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54595"></span>D543</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54596"></span>D544</td>
+<td class="instruction">LD BC,$00F0</td>
+<td class="comment-1" rowspan="6">DRAW_X = (dU + dV + $F0) / 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54599"></span>D547</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54600"></span>D548</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54601"></span>D549</td>
+<td class="instruction">SRA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54603"></span>D54B</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54605"></span>D54D</td>
+<td class="instruction">LD (<a href="48042.html#48054">DRAW_X</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54608"></span>D550</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="10">DRAW_Y = (dV - dU + $1B0) / 4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54609"></span>D551</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54610"></span>D552</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54612"></span>D554</td>
+<td class="instruction">LD BC,$01B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54615"></span>D557</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54616"></span>D558</td>
+<td class="instruction">SRA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54618"></span>D55A</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54620"></span>D55C</td>
+<td class="instruction">SRA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54622"></span>D55E</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54624"></span>D560</td>
+<td class="instruction">LD (<a href="48042.html#48056">DRAW_Y</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54627"></span>D563</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54515.html">D4F3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54536">Map</a></td>
+<td class="next">
+Next: <a href="54628.html">D564</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

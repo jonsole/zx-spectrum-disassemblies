@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DE0D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56828.html">DDFC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56845">Map</a></td>
+<td class="next">
+Next: <a href="56921.html">DE59</a>
+</td>
+</tr>
+</table>
+<div class="description">DE0D: Trim a two-way step at the walls, one axis at a time</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49137.html">CREATURE_UPDATE</a>, <a href="52873.html">WANDERING_MONSTER</a> and <a href="55715.html">FIND_WANDER</a>.
+</div>
+<div class="paragraph">
+The clipping routines (<a href="56938.html">MOVE_TABLE</a>) handle a step along the facing only, so a wanderer's step, which can go both ways at once, is taken in two: the U part, facing +U or -U by its sign, with the V part set aside; then the V part, facing +V or -V, with the U part set aside. The facing ends as the V part's, if there is one. The second clip does not clear the wall flag, so it says whether either part met a wall.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_SPLIT</td>
+<td class="address-2"><span id="56845"></span>DE0D</td>
+<td class="instruction">LD A,(IX+$0A)</td>
+<td class="comment-1" rowspan="3">Any U step?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56848"></span>DE10</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56849"></span>DE11</td>
+<td class="instruction">JR Z,<a href="56845.html#56883">MOVE_SPLIT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56851"></span>DE13</td>
+<td class="instruction">LD A,$40</td>
+<td class="comment-1" rowspan="8">Face +U, or -U if it is negative</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56853"></span>DE15</td>
+<td class="instruction">JP P,<a href="56845.html#56858">MOVE_SPLIT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56856"></span>DE18</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_SPLIT_0</td>
+<td class="address-2"><span id="56858"></span>DE1A</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56859"></span>DE1B</td>
+<td class="instruction">LD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56862"></span>DE1E</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56864"></span>DE20</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56865"></span>DE21</td>
+<td class="instruction">LD (IX+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56868"></span>DE24</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="6">Trim the U step, with the V step put aside</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56871"></span>DE27</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56872"></span>DE28</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56876"></span>DE2C</td>
+<td class="instruction">CALL <a href="56921.html">MOVE_CLIPPED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56879"></span>DE2F</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56880"></span>DE30</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_SPLIT_1</td>
+<td class="address-2"><span id="56883"></span>DE33</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="3">Any V step?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56886"></span>DE36</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56887"></span>DE37</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56888"></span>DE38</td>
+<td class="instruction">LD A,$00</td>
+<td class="comment-1" rowspan="8">Face +V, or -V if it is negative</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56890"></span>DE3A</td>
+<td class="instruction">JP P,<a href="56845.html#56895">MOVE_SPLIT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56893"></span>DE3D</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_SPLIT_2</td>
+<td class="address-2"><span id="56895"></span>DE3F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56896"></span>DE40</td>
+<td class="instruction">LD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56899"></span>DE43</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56901"></span>DE45</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56902"></span>DE46</td>
+<td class="instruction">LD (IX+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56905"></span>DE49</td>
+<td class="instruction">LD A,(IX+$0A)</td>
+<td class="comment-1" rowspan="7">Trim the V step, with the U step put aside, keeping the wall flag</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56908"></span>DE4C</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56909"></span>DE4D</td>
+<td class="instruction">LD (IX+$0A),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56913"></span>DE51</td>
+<td class="instruction">CALL <a href="56921.html#56925">MOVE_CLIPPED_AGAIN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56916"></span>DE54</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56917"></span>DE55</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56920"></span>DE58</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56828.html">DDFC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56845">Map</a></td>
+<td class="next">
+Next: <a href="56921.html">DE59</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

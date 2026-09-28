@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D273</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53870.html">D26E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53875">Map</a></td>
+<td class="next">
+Next: <a href="53922.html">D2A2</a>
+</td>
+</tr>
+</table>
+<div class="description">D273: Draw the edge picture under one column of a building</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="53661.html">DRAW_OUTLINE</a> and <a href="53754.html">OUTLINE_NEAR_FACES</a>.
+</div>
+<div class="paragraph">
+The column's lower tile (the number at IY) picks its edge picture from <a href="25922.html">TILE_EDGES</a> -- 0 a whole line, 2 and 3 a stub at one end or the other of a tile with an archway -- and C, 1 for a face seen from behind, is XORed in to swap the stubs; <a href="28636.html">EDGE_TABLE</a> gives the picture, and <a href="53938.html">PUT_EDGE</a> ORs it into the buffer at DRAW_X and DRAW_Y, mirrored on a second face (DRAW_PASS). Only a column that starts inside the buffer's width (x from 17 to 207) and at a y from 0 to 255 is drawn.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the column's pair of tiles in a building definition</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">0, or 1 to swap the stubs at an archway</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_EDGE</td>
+<td class="address-2"><span id="53875"></span>D273</td>
+<td class="instruction">LD DE,(<a href="48042.html#48054">DRAW_X</a>)</td>
+<td class="comment-1" rowspan="8">x from 17 to 207, or nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53879"></span>D277</td>
+<td class="instruction">LD HL,$00CF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53882"></span>D27A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53883"></span>D27B</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53885"></span>D27D</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53886"></span>D27E</td>
+<td class="instruction">LD HL,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53889"></span>D281</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53891"></span>D283</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53892"></span>D284</td>
+<td class="instruction">LD HL,(<a href="48042.html#48056">DRAW_Y</a>)</td>
+<td class="comment-1" rowspan="5">y from 0 to 255, or nothing; D = y, E = x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53895"></span>D287</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53896"></span>D288</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53897"></span>D289</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53898"></span>D28A</td>
+<td class="instruction">LD D,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53899"></span>D28B</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="7">The tile's edge number, XOR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53900"></span>D28C</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53901"></span>D28D</td>
+<td class="instruction">LD C,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53904"></span>D290</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53906"></span>D292</td>
+<td class="instruction">LD HL,<a href="25922.html">TILE_EDGES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53909"></span>D295</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53910"></span>D296</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53911"></span>D297</td>
+<td class="instruction">LD BC,<a href="28636.html">EDGE_TABLE</a></td>
+<td class="comment-1" rowspan="2">HL = the picture (<a href="28636.html">EDGE_TABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53914"></span>D29A</td>
+<td class="instruction">CALL <a href="54665.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53917"></span>D29D</td>
+<td class="instruction">CALL <a href="53938.html">PUT_EDGE</a></td>
+<td class="comment-1" rowspan="3">ORed into the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53920"></span>D2A0</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53921"></span>D2A1</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53870.html">D26E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53875">Map</a></td>
+<td class="next">
+Next: <a href="53922.html">D2A2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

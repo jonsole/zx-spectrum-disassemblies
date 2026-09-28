@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Where this disassembly comes from</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="nightshade.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Provenance">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Nightshade</a></td>
+<td class="page-header">Where this disassembly comes from</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#tape">The tape</a></li>
+<li><a href="#code">Code and data</a></li>
+<li><a href="#extent">What is disassembled</a></li>
+<li><a href="#names">Names, and how things were checked</a></li>
+</ul>
+<div><span id="tape"></span></div>
+<div class="box box-1">
+<div class="box-title">The tape</div>
+<div class="paragraph">
+The disassembly is of the original tape, loaded the way a Spectrum loads it: SkoolKit's <code>tap2sna</code> runs the ROM's own LOAD and the tape's own loader on a simulated machine, and stops at <a href="asm/24064.html">ENTRY</a>, where the loader enters the game, before the game has run a single instruction. That matters here: the game turns its sprites round in place as things face about, rewriting their bytes and the flags in their headers, so an image taken once it has run is no longer the tape.
+The tape holds a BASIC loader, the loading screen and four more blocks: the game, 34816 bytes loaded at 24576 ($6000); a 43-byte routine loaded into the printer buffer at <a href="asm/23424.html">LOADER</a>; one byte loaded into the system variable NMIADD at <a href="asm/23728.html">NMIADD</a>; and two into FRAMES at <a href="asm/23552.html#23672">FRAMES</a>. The BASIC ends with <code>PRINT USR 23424</code>, which runs the routine: it sets bit 7 of the R register, unscrambles the game block (each pair of bytes has a nibble swapped between them), moves it down to <a href="asm/24064.html">ENTRY</a> and jumps there.
+All three of the small blocks are protection, and the game checks each: its start returns to BASIC unless FRAMES is where the tape put it (<a href="asm/48638.html">START</a>), every object is updated through a jump to the byte at NMIADD, which the tape set to <code>JP (HL)</code> (<a href="asm/54675.html">DISPATCH</a>), and every new game resets the machine unless bit 7 of R is set, as the loader left it (<a href="asm/49627.html">STOCK_BUILDINGS</a>). The build does what the loader does to the tape's block itself and checks the result is what the snapshot holds.
+</div>
+</div>
+<div><span id="code"></span></div>
+<div class="box box-2">
+<div class="box-title">Code and data</div>
+<div class="paragraph">
+Which bytes are code was found by running the game, not by reading it. The build plays it in SkoolKit's simulator -- with each control method and directional control, walking, turning, firing and turning the town round, pausing, in every cell of the town, and through staged scenes for game over, the bonuses, what is found in buildings, and the four objects thrown at the four villains and the ending that follows -- and records every address the processor fetches an instruction from. Recursive descent then follows the branches out of what ran, and the tables of routines the game jumps through (<a href="asm/54681.html">UPDATES</a> and five smaller ones), inventing nothing. Everything else is data.
+The level data -- the town map (<a href="asm/24068.html">TOWN</a>), the drawing order, the buildings, their boxes and tiles, the graphic table (<a href="asm/28318.html">GRAPHICS</a>), the sprites, the fonts, the tunes and the game's text -- is laid out a record per entry from the game's own bytes each time the disassembly is built, so the game's design is never written into the repository's files. Each sprite's and tile's picture is drawn from its bytes the way the game's drawing code reads them.
+The listing reassembles byte for byte with sjasmplus, and the snapshot rebuilt from it is the one the tape made, byte for byte.
+</div>
+</div>
+<div><span id="extent"></span></div>
+<div class="box box-1">
+<div class="box-title">What is disassembled</div>
+<div class="paragraph">
+Everything from <a href="asm/23296.html">PRINTER_BUFFER</a> to the top of memory. Below the game are the system variables, the loader's routine, what is left of the BASIC program and the game's stack, which grows down from <a href="asm/24064.html">ENTRY</a>. Above the code are the screen buffer and its attributes (<a href="asm/58820.html">BUFFER</a>) and the lookup tables the game builds (<a href="asm/61952.html">MIRROR_TABLES</a>); the bytes the snapshot holds there are what the load left -- the tail of the game block, which the move down left behind, and zeros up to the ROM's user-defined graphics -- and the game writes all of it before it reads it.
+</div>
+</div>
+<div><span id="names"></span></div>
+<div class="box box-2">
+<div class="box-title">Names, and how things were checked</div>
+<div class="paragraph">
+No one else's disassembly of Nightshade was used. Nightshade shares the menu, the text printer, the tune player, the sprite format and parts of the drawing with Ultimate's earlier Filmation games, and where its code is theirs the names follow this project's own Knight Lore, Alien 8 and Pentagram annotations; the town, its drawing and the game's own routines are named from reading and running them. The pictures on these pages are drawn by the build from the game's own bytes.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

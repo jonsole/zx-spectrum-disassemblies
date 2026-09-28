@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Animations</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="nightshade.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Animations">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Nightshade</a></td>
+<td class="page-header">Animations</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Nightshade's objects animate the way the Filmation games' do: an object's graphic -- the first byte of its 16-byte record -- chooses both the routine that runs it every turn, through <a href="asm/54681.html">UPDATES</a>, and its sprite, through <a href="asm/28318.html">GRAPHICS</a>, so a thing animates by changing its own graphic. The knight's legs count six walking frames, the monsters and the sparkles four, whatever vanishes counts from 12 to 15. What is Nightshade's own is the town: the knight stands in the middle of the play area and the town is drawn round him again every turn, so it moves as he walks and turns round when he turns it. (See <a href="../knightlore/Animations.html">Knight Lore's animations</a> and <a href="../alien8/Animations.html">Alien 8's</a> for the rooms of the first Filmation games.)</p>
+<p>Each animation below was made by running the game in SkoolKit's simulator when these pages were built: started from the menu with the keyboard, and put into the cell wanted by the game's own restart (the cell and facing written into the start records at <a href="asm/52278.html">START_RECORDS</a> and his life ended, so that <a href="asm/52140.html">NEW_LIFE</a> starts the next there); then run a turn at a time -- every record's update, the town drawn round him, the buffer copied to the screen -- with each picture read off the screen as the turn left it. So that nothing wanders into a picture about something else, the records monsters, finds and bonuses come into were kept busy with an empty graphic that does nothing, unless the animation is about them; where more was staged, the animation says what. Nightshade's main loop has no wait: interrupts are off and a turn lasts as long as its work, about 60 to 90 ms in the town. Each picture is shown for as long as it stayed on the screen -- until the next turn's was copied over it -- counted in T-states at 3.5MHz; the simulator has none of a real Spectrum's memory contention, so the game runs a little faster here than on the machine. A frame drawn the same as the one before is merged into it. The menu and the screens of the ending have no turns: they were read once a television frame (69,888 T-states), FLASH shown as the ULA shows it.</p>
+<p>Under each: the graphics shown with their sprites, what was measured in the run beside what the code says it should be, and the frames of the picture with what they show and how long each lasts.</p>
+<h3>The knight</h3>
+<div class="kl-item" id="walk-0">
+<h4>Walking, facing +V</h4>
+<img class="kl-sprite" src="images/animations/walk-0.gif" alt="Walking, facing +V" width="120" height="129">
+<p>The legs step through their six frames one a turn, the low three bits of the graphic counting 0 to 5 (<a href="asm/56488.html">WALK_ON</a>), 16-21 from behind and 24-29 from the front, his face showing (bit 3 of the graphic); the top copies them each turn, 32-37 or 40-45 (<a href="asm/55787.html">UPDATE_TOP</a>), and stands on them. Facing +U or -V he comes towards the viewer. Which view, and whether it is mirrored, comes from the facing and the way the town is turned (<a href="asm/56540.html">FACING_LOOKS</a>). His speed goes halfway to the top speed of 10 each turn, rounded down to an even number, so it settles at 8. He stays in the middle of the play area and the town moves under him. Here the open cell (24,23) of the town, walk held from standing; the six turns at full speed, over and over. Facing +V he is seen from behind, mirrored.</p>
+<p>Graphics and their sprites: 16 (<a href="asm/41045.html">SPRITE16</a>), 32 (<a href="asm/39103.html">SPRITE32</a>).</p>
+<p>His speed over the first five turns with walk held from standing: 4, 6, 8, 8, 8, as the code has it. The distance moved a turn once it has settled, along the one axis he faces: 8, as the code has it. The walking frame, one a turn: 0, 1, 2, 3, 4, 5, as the code has it. A turn took 78-93 ms here.</p>
+<p>In the picture: 16+32m (80 ms); 17+33m (90 ms); 18+34m (90 ms); 19+35m (90 ms); 20+36m (90 ms); 21+37m (90 ms). 6 frames, 0.5 s in all.</p>
+</div>
+<div class="kl-item" id="walk-1">
+<h4>Walking, facing +U</h4>
+<img class="kl-sprite" src="images/animations/walk-1.gif" alt="Walking, facing +U" width="120" height="132">
+<p>As above, facing +U: seen from the front.</p>
+<p>Graphics and their sprites: 24 (<a href="asm/41455.html">SPRITE24</a>), 40 (<a href="asm/39693.html">SPRITE40</a>).</p>
+<p>His speed over the first five turns with walk held from standing: 4, 6, 8, 8, 8, as the code has it. The distance moved a turn once it has settled, along the one axis he faces: 8, as the code has it. The walking frame, one a turn: 0, 1, 2, 3, 4, 5, as the code has it. A turn took 71-82 ms here.</p>
+<p>In the picture: 24+40 (70 ms); 25+41 (70 ms); 26+42 (70 ms); 27+43 (80 ms); 28+44 (80 ms); 29+45 (80 ms). 6 frames, 0.5 s in all.</p>
+</div>
+<div class="kl-item" id="walk-2">
+<h4>Walking, facing -V</h4>
+<img class="kl-sprite" src="images/animations/walk-2.gif" alt="Walking, facing -V" width="120" height="132">
+<p>As above, facing -V: seen from the front, mirrored.</p>
+<p>Graphics and their sprites: 24 (<a href="asm/41455.html">SPRITE24</a>), 40 (<a href="asm/39693.html">SPRITE40</a>).</p>
+<p>His speed over the first five turns with walk held from standing: 4, 6, 8, 8, 8, as the code has it. The distance moved a turn once it has settled, along the one axis he faces: 8, as the code has it. The walking frame, one a turn: 0, 1, 2, 3, 4, 5, as the code has it. A turn took 62-68 ms here.</p>
+<p>In the picture: 24+40m (60 ms); 25+41m (70 ms); 26+42m (60 ms); 27+43m (60 ms); 28+44m (70 ms); 29+45m (70 ms). 6 frames, 0.4 s in all.</p>
+</div>
+<div class="kl-item" id="walk-3">
+<h4>Walking, facing -U</h4>
+<img class="kl-sprite" src="images/animations/walk-3.gif" alt="Walking, facing -U" width="120" height="129">
+<p>As above, facing -U: seen from behind.</p>
+<p>Graphics and their sprites: 16 (<a href="asm/41045.html">SPRITE16</a>), 32 (<a href="asm/39103.html">SPRITE32</a>).</p>
+<p>His speed over the first five turns with walk held from standing: 4, 6, 8, 8, 8, as the code has it. The distance moved a turn once it has settled, along the one axis he faces: 8, as the code has it. The walking frame, one a turn: 0, 1, 2, 3, 4, 5, as the code has it. A turn took 64-74 ms here.</p>
+<p>In the picture: 16+32 (60 ms); 17+33 (70 ms); 18+34 (60 ms); 19+35 (70 ms); 20+36 (70 ms); 21+37 (70 ms). 6 frames, 0.4 s in all.</p>
+</div>
+<div class="kl-item" id="turn">
+<h4>Turning</h4>
+<img class="kl-sprite" src="images/animations/turn.gif" alt="Turning" width="120" height="132">
+<p>The turn keys turn him a quarter at a time (<a href="asm/56201.html">TURN_KNIGHT</a>): left takes $40 off the facing, right adds it, and a turn sets a delay that lets the next come only every other turn while the key is held. He does not turn part way: the legs and top simply take the picture for the new facing, from the front or behind, mirrored or not (<a href="asm/56540.html">FACING_LOOKS</a>). Here right held from facing +U until he faced +U again.</p>
+<p>Graphics and their sprites: 16 (<a href="asm/41045.html">SPRITE16</a>), 24 (<a href="asm/41455.html">SPRITE24</a>).</p>
+<p>Turns between one quarter turn and the next, the key held: 2, as the code has it. <a href="asm/56201.html">TURN_KNIGHT</a> sets the turn delay to 1, and a delay counts down a turn before he can turn again. Each quarter turn changes the view between behind (16-21) and the front (24-29), the mirror bit, or both, by <a href="asm/56540.html">FACING_LOOKS</a>.</p>
+<p>In the picture: 24+47 +U (70 ms); 24+40m -V (130 ms); 16+32 -U (130 ms); 16+32m +V (130 ms); 24+40 +U (130 ms). 5 frames, 0.6 s in all.</p>
+</div>
+<div class="kl-item" id="standing">
+<h4>Standing still</h4>
+<img class="kl-sprite" src="images/animations/standing.gif" alt="Standing still" width="120" height="132">
+<p>While he is not turning, one turn in 32 the top starts a pose of its own for two to nine turns, 38 or 39 from behind, 46 or 47 from the front (<a href="asm/55787.html">UPDATE_TOP</a>), and then goes back to matching the legs. Here 200 turns standing, facing +U, towards the viewer, with the frames that do not change merged.</p>
+<p>Graphics and their sprites: 38 (<a href="asm/38957.html">SPRITE38</a>), 39 (<a href="asm/39997.html">SPRITE39</a>), 46 (<a href="asm/40149.html">SPRITE46</a>), 47 (<a href="asm/40301.html">SPRITE47</a>).</p>
+<p>Measured over 200 turns: 9 poses, lasting 6, 4, 5, 3, 3, 3, 2, 4, 2 turns. One in 32 of the turns without one would start a pose, on average; the random number decides which turns.</p>
+<p>In the picture: 24+47 (380 ms); 24+40 (2810 ms); 24+47 (260 ms); 24+40 (640 ms); 24+47 (320 ms); 24+40 (700 ms); 24+46 (190 ms); 24+40 (1090 ms); 24+46 (190 ms); 24+40 (2170 ms); 24+46 (190 ms); and so on. 17 frames, 12.8 s in all.</p>
+</div>
+<div class="kl-item" id="bump">
+<h4>Walking into a wall</h4>
+<img class="kl-sprite" src="images/animations/bump.gif" alt="Walking into a wall" width="120" height="129">
+<p>When the legs are stopped by a wall (<a href="asm/56921.html">MOVE_CLIPPED</a> sets bit 0 of their flags) the top throws its arms out -- graphic 22 seen from behind, 30 from the front -- stays where it is, and the bump warbles (<a href="asm/50090.html">BUMP_SOUND</a>) every turn walk is held. Here walk held from the middle of cell (22,23), facing +V, into the building of cell (22,24), and then let go.</p>
+<p>Graphics and their sprites: 22 (<a href="asm/40605.html">SPRITE22</a>), 30 (<a href="asm/40453.html">SPRITE30</a>).</p>
+<p>Measured: his V stopped at 240 within the cell, with his half-size of 16 that is the wall at the cell's edge; the top showed arms out for 7 turns, one for each turn walk was held against the wall, and went back to following the legs when it was let go.</p>
+<p>In the picture: 16+32m V 128 (80 ms); 17+33m V 132 (80 ms); 18+34m V 138 (80 ms); 19+35m V 146 (80 ms); 20+36m V 154 (80 ms); 21+37m V 162 (80 ms); 16+32m V 170 (80 ms); 17+33m V 178 (90 ms); 18+34m V 186 (80 ms); 19+35m V 194 (80 ms); 20+36m V 202 (90 ms); and so on. 23 frames, 2.0 s in all.</p>
+</div>
+<div class="kl-item" id="arriving">
+<h4>A life lost, and the next life rising from the ground</h4>
+<img class="kl-sprite" src="images/animations/arriving.gif" alt="A life lost, and the next life rising from the ground" width="132" height="141">
+<p>Standing in the open cell with one hit left, a monster of graphic 64 was put on him (the only thing staged): its update found it touching him and took the last hit (<a href="asm/52873.html">WANDERING_MONSTER</a>), which ends his life -- both his records and the monster become the cloud, and his cell and facing go into the start records. When the cloud has gone, <a href="asm/52140.html">NEW_LIFE</a> plays the new-life tune and copies him back in, with ARRIVING at 40; each turn the legs' update adds two (<a href="asm/55930.html">UPDATE_KNIGHT</a>), and the drawing shows only the lines of his two records that are less than ARRIVING above the bottom of the play area (<a href="asm/58329.html">DRAW_SPRITE</a>), so he rises out of the ground feet first. Nothing touches him until ARRIVING has reached 76 and become $70 (<a href="asm/50527.html">TOUCHING_KNIGHT</a>).</p>
+<p>Graphics and their sprites: 12 (<a href="asm/31535.html">SPRITE12</a>), 13 (<a href="asm/31601.html">SPRITE13</a>), 14 (<a href="asm/31667.html">SPRITE14</a>), 15 (<a href="asm/31733.html">SPRITE15</a>).</p>
+<p>Turns his records were the cloud: 4, as the code has it. The turn his record emptied played the new-life tune and took 1039 ms; it ended with ARRIVING at 40, which then went 42, 44, 46 ... 74. Turns he was drawn cut short, ARRIVING counting from 42 to 74 by two: 17, as the code has it. His feet stand 38 lines above the bottom of the play area and the top of his head 73, so he rises into sight from ARRIVING 38 and is whole from 73; the count goes on to 76, when it becomes $70 and he can move.</p>
+<p>In the picture: here 16+32 (130 ms); vanishing 12 (60 ms); vanishing 13 (60 ms); vanishing 14 (60 ms); vanishing 15 (1040 ms); appearing, ARRIVING 40 (70 ms); appearing, ARRIVING 42 (70 ms); appearing, ARRIVING 44 (70 ms); appearing, ARRIVING 46 (70 ms); appearing, ARRIVING 48 (70 ms); appearing, ARRIVING 50 (70 ms); and so on. 23 frames, 2.9 s in all.</p>
+</div>
+<h3>The town</h3>
+<div class="kl-item" id="town-walk">
+<h4>The town as he walks</h4>
+<img class="kl-piece" src="images/animations/town-walk.gif" alt="The town as he walks" width="352" height="224">
+<p>Nightshade's own: the knight stands still in the middle of the play area and the town is drawn round him every turn (<a href="asm/53000.html">DRAW_CELLS</a>) -- the cells the drawing order picks round his, walls and all, back to front -- into the buffer, which is copied to the screen at the end of the turn (<a href="asm/57856.html">SHOW_PLAY_AREA</a>). So the whole play area changes every turn, and a turn is as long as the drawing takes. Here the street along row 23 of the town, walked from its east end facing -U, from standing.</p>
+<p>The distance he moved a turn along U once at speed: 8, as the code has it. He went through cells (29,23), (28,23), (27,23), (26,23): 256 units a cell, 32 turns. The picture is the play area, redrawn every turn round him; a turn took 59-85 ms.</p>
+<p>In the picture: cell 29,23 U 128 (140 ms); cell 29,23 U 124 (70 ms); cell 29,23 U 118 (60 ms); cell 29,23 U 110 (70 ms); cell 29,23 U 102 (60 ms); cell 29,23 U 94 (70 ms); cell 29,23 U 86 (60 ms); cell 29,23 U 78 (70 ms); cell 29,23 U 70 (60 ms); cell 29,23 U 62 (70 ms); cell 29,23 U 54 (70 ms); and so on. 101 frames, 6.9 s in all.</p>
+</div>
+<div class="kl-item" id="town-turn">
+<h4>Turning the town round</h4>
+<img class="kl-scene" src="images/animations/town-turn.gif" alt="Turning the town round" width="512" height="384">
+<p>Z or SYMBOL SHIFT shows the town from the other side (<a href="asm/56168.html">TURN_TOWN</a>): the key is latched while held and acts when it is let go, flipping VIEW, and every cell is then looked up and drawn turned round (<a href="asm/53629.html">TURN_CELL</a>, <a href="asm/53646.html">TURN_POSITION</a>), the knight seen from his other side, and the panel's heading changes between NORTH and SOUTH (<a href="asm/49818.html">PRINT_HEADING</a>). Here, standing in cell (27,23) facing -U, Z pressed and let go twice. The whole screen.</p>
+<p>Turns from the one with Z held to the one the view changed in: 1, 1, as the code has it. <a href="asm/56168.html">TURN_TOWN</a> acts when the key is let go. The panel's heading changes with it (<a href="asm/49818.html">PRINT_HEADING</a>).</p>
+<p>In the picture: the usual way (190 ms); the usual way, Z held (60 ms); turned round (450 ms); turned round/turned round, Z held (130 ms); the usual way (520 ms). 5 frames, 1.4 s in all.</p>
+</div>
+<h3>Bonuses and the cloud</h3>
+<div class="kl-item" id="bonus-speed">
+<h4>The bonus of a faster walk</h4>
+<img class="kl-piece" src="images/animations/bonus-speed.gif" alt="The bonus of a faster walk" width="352" height="224">
+<p>A bonus (<a href="asm/55148.html">PLACE_BONUS</a>) lies near him almost all the time, graphic 2 or 3. Touched, graphic 2 (<a href="asm/55079.html">SPEED_BONUS</a>) becomes the cloud and gives him a top speed of 18 for 255 turns: his speed goes on halfway to it each turn, to 16, and the footsteps come twice as often. Here a bonus of graphic 2 was put 72 units ahead of him in the open cell (staged), and walk held.</p>
+<p>Graphics and their sprites: 2 (<a href="asm/29335.html">SPRITE2</a>).</p>
+<p>His speed from the turn he touched it: 8, 12, 14, 16, 16, as the code has it. SPEED_TIME was 255 and TOP_SPEED 18 after it; it counts down a turn at a time (<a href="asm/55930.html">UPDATE_KNIGHT</a>), about 18 seconds at these turns.</p>
+<p>In the picture: speed 0, bonus 2, hits 3 (140 ms); speed 4, bonus 2, hits 3 (80 ms); speed 6, bonus 2, hits 3 (70 ms); speed 8, bonus 2, hits 3 x4 (300 ms); speed 8, bonus 12, hits 3 (80 ms); speed 12, bonus 13, hits 3 (80 ms); speed 14, bonus 14, hits 3 (90 ms); speed 16, bonus 15, hits 3 (100 ms); speed 16, bonus 1, hits 3 x15 (1070 ms). 26 frames, 2.0 s in all.</p>
+</div>
+<div class="kl-item" id="bonus-hits">
+<h4>The bonus of the hits back</h4>
+<img class="kl-piece" src="images/animations/bonus-hits.gif" alt="The bonus of the hits back" width="352" height="224">
+<p>Graphic 3 (<a href="asm/55116.html">HITS_BONUS</a>) gives him back all three hits of his life, and his colour goes back to white (<a href="asm/49253.html">KNIGHT_COLOURS</a>, <a href="asm/51352.html">COLOUR_KNIGHT</a>). Here with one hit left, green, a bonus of graphic 3 put 72 units ahead (staged), and walk held.</p>
+<p>Graphics and their sprites: 3 (<a href="asm/31799.html">SPRITE3</a>).</p>
+<p>His hits before and after he touched it: (1, 3), as the code has it.</p>
+<p>In the picture: speed 0, bonus 3, hits 1 (140 ms); speed 4, bonus 3, hits 1 (70 ms); speed 6, bonus 3, hits 1 (70 ms); speed 8, bonus 3, hits 1 x4 (290 ms); speed 8, bonus 12, hits 3 (90 ms); speed 8, bonus 13, hits 3 (80 ms); speed 8, bonus 14, hits 3 (90 ms); speed 8, bonus 15, hits 3 (90 ms); speed 8, bonus 1, hits 3 x5 (390 ms). 16 frames, 1.3 s in all.</p>
+</div>
+<div class="kl-item" id="vanishing">
+<h4>The cloud things vanish in</h4>
+<img class="kl-sprite" src="images/animations/vanishing.gif" alt="The cloud things vanish in" width="180" height="129">
+<p>Whatever is taken up, destroyed or killed becomes graphic 12 and counts to 15, one a turn, and then its record is emptied, with a crackle if it was drawn (<a href="asm/55256.html">VANISHING</a>, <a href="asm/50229.html">PUFF_SOUND</a>). The dying villain's graphics 132-135 are drawn with the same pictures (<a href="asm/55367.html">VILLAIN_DYING</a>). Cut from the run above: the bonus as he touches it.</p>
+<p>Graphics and their sprites: 12 (<a href="asm/31535.html">SPRITE12</a>), 13 (<a href="asm/31601.html">SPRITE13</a>), 14 (<a href="asm/31667.html">SPRITE14</a>), 15 (<a href="asm/31733.html">SPRITE15</a>).</p>
+<p>The bonus record, turn by turn: 2, 12, 13, 14, 15, 1, as the code has it. The record empties in the turn after 15; the 1 is the empty graphic these pages put in idle records, which keeps another bonus from coming at once.</p>
+<p>In the picture: bonus record 2 (70 ms); bonus record 12 (80 ms); bonus record 13 (80 ms); bonus record 14 (90 ms); bonus record 15 (100 ms); bonus record 1 (100 ms). 6 frames, 0.5 s in all.</p>
+</div>
+<h3>Antibodies and monsters</h3>
+<div class="kl-item" id="antibodies">
+<h4>Antibodies thrown</h4>
+<img class="kl-piece" src="images/animations/antibodies.gif" alt="Antibodies thrown" width="352" height="224">
+<p>Fire throws the last thing taken up (<a href="asm/55991.html">KNIGHT_THROWS</a>). An antibody goes into a free antibody record as a copy of his legs' record, graphic 80, 84, 88 or 92 by its kind, and flies at speed 12, moving twice a turn, its four frames stepping on, until a wall, where it becomes the cloud (<a href="asm/55277.html">ANTIBODY_FLIGHT</a>). The antibodies share their pictures with the finds they were picked up as. Here he picked up four finds, one of each kind, by the game's own pick-up (the finds were put where he stood), in cell (22,23) facing the wall across it, and fire was pressed every eight turns.</p>
+<p>Graphics and their sprites: 80 (<a href="asm/33625.html">SPRITE48</a>), 84 (<a href="asm/33841.html">SPRITE52</a>), 88 (<a href="asm/34039.html">SPRITE56</a>), 92 (<a href="asm/34303.html">SPRITE60</a>).</p>
+<p>The antibodies' graphics in the order thrown: 92, 88, 84, 80, as the code has it. The distance an antibody moved a turn: 24, as the code has it. Each flew 4, 4, 4, 4 turns before the wall stopped it and it became the cloud; the two antibody records were used by turns, the second while the first was still busy with the last throw's cloud (<a href="asm/55991.html">KNIGHT_THROWS</a>).</p>
+<p>In the picture: antibodies 0, 0; carried 5,6,7,8 x2 (160 ms); antibodies 93, 0; carried 5,6,7,0 (80 ms); antibodies 94, 0; carried 5,6,7,0 (70 ms); antibodies 95, 0; carried 5,6,7,0 (70 ms); antibodies 92, 0; carried 5,6,7,0 (70 ms); antibodies 12, 0; carried 5,6,7,0 (70 ms); antibodies 13, 0; carried 5,6,7,0 (70 ms); antibodies 14, 0; carried 5,6,7,0 (70 ms); antibodies 15, 0; carried 5,6,7,0 (100 ms); antibodies 0, 89; carried 5,6,0,0 (70 ms); antibodies 0, 90; carried 5,6,0,0 (70 ms); and so on. 34 frames, 2.5 s in all.</p>
+</div>
+<div class="kl-item" id="appearing">
+<h4>A monster appearing</h4>
+<img class="kl-sprite" src="images/animations/appearing.gif" alt="A monster appearing" width="192" height="114">
+<p>Every fourth turn a free monster record gets a monster appearing (<a href="asm/52712.html">SPAWN_MONSTER</a>) in his cell or one round it; it counts 128 to 131, one a turn, with a rising note (<a href="asm/50261.html">APPEAR_SOUND</a>), and then becomes a monster of 64-79 or 112-127, by the random number, of the kind of the villain nearest it (<a href="asm/49508.html">APPEARING_UPDATE</a>). Here the game was left to run with him standing still until one appeared where it was drawn; while waiting, the monster records were emptied every turn, as walking away from monsters empties them, so that new ones kept coming.</p>
+<p>Graphics and their sprites: 128 (<a href="asm/31733.html">SPRITE15</a>), 129 (<a href="asm/31667.html">SPRITE14</a>), 130 (<a href="asm/31601.html">SPRITE13</a>), 131 (<a href="asm/31535.html">SPRITE12</a>).</p>
+<p>The record's graphics from its first turn: 128, 129, 130, 131, as the code has it. Then it became 68: a monster of 64-79, of the kind of the villain nearest it (<a href="asm/49508.html">APPEARING_UPDATE</a>).</p>
+<p>In the picture: 0 (60 ms); 128 (70 ms); 129 (70 ms); 130 (60 ms); 131 (60 ms); 68 (60 ms); 69 (60 ms); 70 (60 ms); 71 (60 ms); 68 (60 ms). 10 frames, 0.6 s in all.</p>
+</div>
+<div class="kl-item" id="monsters-64">
+<h4>The monsters of graphics 64-79</h4>
+<img class="kl-piece" src="images/animations/monsters-64.gif" alt="The monsters of graphics 64-79" width="352" height="224">
+<p>Four kinds of four frames (<a href="asm/52873.html">WANDERING_MONSTER</a>). They wander: every so often a new random step of up to 14 units each way (<a href="asm/56783.html">WANDER_STEP</a>), the frame stepped on every turn; touching him they vanish and take a hit, and more than two cells off they are gone. Any antibody destroys them. Here one of each kind, staged round him in the open cell from the monster template (<a href="asm/52857.html">MONSTER_RECORD</a>), him standing still.</p>
+<p>Graphics and their sprites: 64 (<a href="asm/35787.html">SPRITE64</a>), 68 (<a href="asm/36497.html">SPRITE68</a>), 72 (<a href="asm/35427.html">SPRITE72</a>), 76 (<a href="asm/36359.html">SPRITE76</a>).</p>
+<p>Measured: steps of up to 12 units a turn along U and V, both at once (<a href="asm/56783.html">WANDER_STEP</a> gives each up to 14), and the frame stepped on every turn (<a href="asm/52984.html">NEXT_FRAME_MOD4</a>). A turn took 71-83 ms.</p>
+<p>In the picture: 65 69 73 77; hits 3 (80 ms); 66 70 74 78; hits 3 (80 ms); 67 71 75 79; hits 3 (80 ms); 64 68 72 76; hits 3 (80 ms); 65 69 73 77; hits 3 (80 ms); 66 70 74 78; hits 3 (80 ms); 67 71 75 79; hits 3 (80 ms); 64 68 72 76; hits 3 (80 ms); 65 69 73 12; hits 2 (80 ms); 66 70 74 13; hits 3 (80 ms); 67 71 75 14; hits 3 (70 ms); and so on. 16 frames, 1.2 s in all.</p>
+</div>
+<div class="kl-item" id="monsters-112">
+<h4>The monsters of graphics 112-127</h4>
+<img class="kl-piece" src="images/animations/monsters-112.gif" alt="The monsters of graphics 112-127" width="352" height="224">
+<p>The other monsters (<a href="asm/49283.html">MONSTER112_UPDATE</a>) walk: at speed 6 the way they face, turning at walls and now and then (<a href="asm/56616.html">STEER</a>), those born in the first half of every 256 turns towards the knight; the picture is one of two by the facing, mirrored along U, its frame flipped every turn (<a href="asm/55672.html">FACING_PICTURE</a>). What an antibody does to one depends on the kinds of both (below). Here one of each kind, staged round him in the open cell, facing each way.</p>
+<p>Graphics and their sprites: 112 (<a href="asm/37871.html">SPRITE112</a>), 116 (<a href="asm/37695.html">SPRITE116</a>), 120 (<a href="asm/37361.html">SPRITE120</a>), 124 (<a href="asm/36863.html">SPRITE124</a>).</p>
+<p>The distance a monster of 112-127 moved a turn, along one axis: 6, as the code has it. Its picture is one of two by its facing, mirrored for U, its walking frame flipped every turn (<a href="asm/55672.html">FACING_PICTURE</a>). A turn took 78-91 ms.</p>
+<p>In the picture: 115 119 121 125; hits 3 (90 ms); 114 118 120 124; hits 3 (80 ms); 115 119 121 125; hits 3 (80 ms); 114 118 120 124; hits 3 (80 ms); 115 119 121 125; hits 3 (80 ms); 114 118 120 124; hits 3 (80 ms); 115 119 121 125; hits 3 (80 ms); 114 118 120 124; hits 3 (80 ms); 115 119 121 125; hits 3 (80 ms); 114 118 120 124; hits 3 (80 ms); 115 119 121 125; hits 3 (80 ms); and so on. 16 frames, 1.3 s in all.</p>
+</div>
+<div class="kl-item" id="creature">
+<h4>The creature</h4>
+<img class="kl-piece" src="images/animations/creature.gif" alt="The creature" width="352" height="224">
+<p>Every 256 turns a monster record becomes the creature, in his own cell (<a href="asm/49045.html">SPAWN_CREATURE</a>). It makes for him two units a turn along U and along V (<a href="asm/49196.html">STEER_AT_KNIGHT</a>), blipping, its four frames stepping on; led into a wall it bursts for 1000 points, and touching him it bursts and takes a hit (<a href="asm/49137.html">CREATURE_UPDATE</a>), his colour going from white to yellow. Here put 80 units off along each axis in his cell, where the game would put it (staged), him standing still.</p>
+<p>Graphics and their sprites: 136 (<a href="asm/29489.html">SPRITE136</a>), 137 (<a href="asm/29659.html">SPRITE137</a>), 138 (<a href="asm/29871.html">SPRITE138</a>), 139 (<a href="asm/29659.html">SPRITE137</a>).</p>
+<p>Its step each turn in U and V: (-2, -2), as the code has it. The turn it touched him in, from 80 units off each way: touching needs less than 24 between them along each axis (its half-size of 16 and half his, <a href="asm/50527.html">TOUCHING_KNIGHT</a>): 29, as the code has it. His hits before and after: (3, 2), as the code has it.</p>
+<p>In the picture: 137; hits 3 (80 ms); 138; hits 3 (70 ms); 139; hits 3 (70 ms); 136; hits 3 (70 ms); 137; hits 3 (70 ms); 138; hits 3 (80 ms); 139; hits 3 (70 ms); 136; hits 3 (70 ms); 137; hits 3 (70 ms); 138; hits 3 (80 ms); 139; hits 3 (80 ms); and so on. 33 frames, 2.5 s in all.</p>
+</div>
+<div class="kl-item" id="strike-destroyed">
+<h4>An antibody strikes: destroyed</h4>
+<img class="kl-piece" src="images/animations/strike-destroyed.gif" alt="An antibody strikes: destroyed" width="352" height="224">
+<p>The monster's kind (bits 2-3 of 112-127) and the antibody's (bits 2-3 of 80-95), added, pick one of four outcomes from <a href="asm/49361.html">MONSTER_HIT_TABLE</a>, so each kind of monster is destroyed by one kind of antibody. Monster 112 and antibody 80: 0, destroyed, 2500 points (<a href="asm/49374.html">HIT_DESTROYS</a>). In each of these the monster was staged 96 units ahead of him, facing him, in the open cell, after one antibody of the kind was picked up and thrown.</p>
+<p>Graphics and their sprites: 112 (<a href="asm/37871.html">SPRITE112</a>), 80 (<a href="asm/33625.html">SPRITE48</a>).</p>
+<p>Points for outcome 0 of <a href="asm/49361.html">MONSTER_HIT_TABLE</a> (monster 112, antibody 80): 2500, as the code has it. The monster's graphic after: 12, as the code has it.</p>
+<p>In the picture: antibody none; monsters none; score 00000000 (90 ms); antibody 81; monsters none; score 00000000 (80 ms); antibody 82; monsters 115; score 00000000 (80 ms); antibody 12; monsters 12; score 00002500 (70 ms); antibody 13; monsters 13; score 00002500 (70 ms); antibody 14; monsters 14; score 00002500 (70 ms); antibody 15; monsters 15; score 00002500 (80 ms); antibody none; monsters none; score 00002500 x2 (450 ms). 9 frames, 1.0 s in all.</p>
+</div>
+<div class="kl-item" id="strike-changed">
+<h4>An antibody strikes: changed</h4>
+<img class="kl-piece" src="images/animations/strike-changed.gif" alt="An antibody strikes: changed" width="352" height="224">
+<p>Monster 112 and antibody 84: 1, changed into the next kind, 116, which another antibody would destroy; 2000 points (<a href="asm/49389.html">HIT_CHANGES</a>).</p>
+<p>Graphics and their sprites: 112 (<a href="asm/37871.html">SPRITE112</a>), 84 (<a href="asm/33841.html">SPRITE52</a>), 116 (<a href="asm/37695.html">SPRITE116</a>).</p>
+<p>Points for outcome 1 of <a href="asm/49361.html">MONSTER_HIT_TABLE</a> (monster 112, antibody 84): 2000, as the code has it. The monster's graphic after: 116, as the code has it.</p>
+<p>In the picture: antibody none; monsters none; score 00000000 (90 ms); antibody 85; monsters none; score 00000000 (80 ms); antibody 86; monsters 115; score 00000000 (80 ms); antibody 12; monsters 118; score 00002000 (70 ms); antibody 13; monsters 119; score 00002000 (70 ms); antibody 14; monsters 118; score 00002000 (70 ms); antibody 15; monsters 119; score 00002000 (80 ms); antibody none; monsters 118; score 00002000 (70 ms); antibody none; monsters 119; score 00002000 (70 ms); antibody none; monsters 118; score 00002000 (70 ms); antibody none; monsters 119; score 00002000 (70 ms); and so on. 14 frames, 1.0 s in all.</p>
+</div>
+<div class="kl-item" id="strike-split">
+<h4>An antibody strikes: split</h4>
+<img class="kl-piece" src="images/animations/strike-split.gif" alt="An antibody strikes: split" width="352" height="224">
+<p>Monster 112 and antibody 88: 2, split, 1500 points (<a href="asm/49409.html">HIT_SPLITS</a>). The copy goes into the first monster record whatever is there -- the loop that should find an empty record looks at the wrong one (see <a href="asm/49409.html">HIT_SPLITS</a>) -- and the two are turned a quarter each way.</p>
+<p>Graphics and their sprites: 112 (<a href="asm/37871.html">SPRITE112</a>), 88 (<a href="asm/34039.html">SPRITE56</a>).</p>
+<p>Points for outcome 2 of <a href="asm/49361.html">MONSTER_HIT_TABLE</a> (monster 112, antibody 88): 1500, as the code has it. After the strike the first monster record held 114 and the second 114: the copy, and the original, each turned a quarter.</p>
+<p>In the picture: antibody none; monsters none; score 00000000 (90 ms); antibody 89; monsters none; score 00000000 (80 ms); antibody 90; monsters 115; score 00000000 (90 ms); antibody 12; monsters 114 114; score 00001500 (90 ms); antibody 13; monsters 115 113; score 00001500 (80 ms); antibody 14; monsters 114 112; score 00001500 (80 ms); antibody 15; monsters 115 113; score 00001500 (80 ms); antibody none; monsters 114 112; score 00001500 (70 ms); antibody none; monsters 115 113; score 00001500 (70 ms); antibody none; monsters 114 112; score 00001500 (70 ms); antibody none; monsters 115 113; score 00001500 (70 ms); and so on. 14 frames, 1.1 s in all.</p>
+</div>
+<div class="kl-item" id="strike-demoted">
+<h4>An antibody strikes: turned into a lesser monster</h4>
+<img class="kl-piece" src="images/animations/strike-demoted.gif" alt="An antibody strikes: turned into a lesser monster" width="352" height="224">
+<p>Monster 112 and antibody 92: 3, turned into a monster of 64 or 68 (<a href="asm/49490.html">HIT_DEMOTES</a>), 1000 points; any antibody destroys those.</p>
+<p>Graphics and their sprites: 112 (<a href="asm/37871.html">SPRITE112</a>), 92 (<a href="asm/34303.html">SPRITE60</a>), 64 (<a href="asm/35787.html">SPRITE64</a>).</p>
+<p>Points for outcome 3 of <a href="asm/49361.html">MONSTER_HIT_TABLE</a> (monster 112, antibody 92): 1000, as the code has it. The monster's graphic after: 64, as the code has it.</p>
+<p>In the picture: antibody none; monsters none; score 00000000 (90 ms); antibody 93; monsters none; score 00000000 (80 ms); antibody 94; monsters 115; score 00000000 (80 ms); antibody 12; monsters 64; score 00001000 (70 ms); antibody 13; monsters 65; score 00001000 (70 ms); antibody 14; monsters 66; score 00001000 (70 ms); antibody 15; monsters 67; score 00001000 (80 ms); antibody none; monsters 64; score 00001000 (70 ms); antibody none; monsters 65; score 00001000 (70 ms); antibody none; monsters 66; score 00001000 (70 ms); antibody none; monsters 67; score 00001000 (70 ms); and so on. 14 frames, 1.0 s in all.</p>
+</div>
+<div class="kl-item" id="strike-64">
+<h4>An antibody strikes a monster of 64-79</h4>
+<img class="kl-piece" src="images/animations/strike-64.gif" alt="An antibody strikes a monster of 64-79" width="352" height="224">
+<p>Any antibody destroys a monster of 64-79: both become the cloud, and 5 goes on the score, 500 as printed (<a href="asm/52873.html">WANDERING_MONSTER</a>). Here the monster was put 60 units ahead, where the antibody would be a turn after the throw, since these wander rather than walk at him.</p>
+<p>Graphics and their sprites: 64 (<a href="asm/35787.html">SPRITE64</a>), 80 (<a href="asm/33625.html">SPRITE48</a>).</p>
+<p>Points scored: 500, as the code has it. (<a href="asm/52873.html">WANDERING_MONSTER</a> adds 5 at the score's hundreds; every score ends 00). The antibody and the monster both became graphic 12, the cloud, in the same turn.</p>
+<p>In the picture: antibody none; monsters none; score 00000000 (90 ms); antibody 81; monsters none; score 00000000 (80 ms); antibody 12; monsters 12; score 00000500 (80 ms); antibody 13; monsters 13; score 00000500 (70 ms); antibody 14; monsters 14; score 00000500 (70 ms); antibody 15; monsters 15; score 00000500 (90 ms); antibody none; monsters none; score 00000500 (450 ms). 7 frames, 0.9 s in all.</p>
+</div>
+<h3>The villains</h3>
+<div class="kl-item" id="villains">
+<h4>The villains</h4>
+<img class="kl-piece" src="images/animations/villains.gif" alt="The villains" width="352" height="224">
+<p>A villain walks at speed 4 (<a href="asm/55631.html">VILLAIN_WANDER</a>), turning at walls and now and then at random, its picture from its facing (<a href="asm/55672.html">FACING_PICTURE</a>), humming while it is on the screen; it kills him at a touch, whatever his hits. Here the four put 80 units from him along U and V, facing away (staged), him standing still.</p>
+<p>Graphics and their sprites: 108 (<a href="asm/33037.html">SPRITE108</a>), 104 (<a href="asm/35221.html">SPRITE104</a>), 100 (<a href="asm/38247.html">SPRITE100</a>), 96 (<a href="asm/32065.html">SPRITE96</a>).</p>
+<p>The distance a villain moved a turn: 4, as the code has it. Over 30 turns, him standing still; the hum is played for each villain drawn (<a href="asm/49970.html">BLIP_BY_TURN</a>).</p>
+<p>In the picture: 109 107 101 99 (130 ms); 108 106 100 98 (140 ms); 109 107 101 99 (120 ms); 108 106 100 98 (130 ms); 109 107 101 99 (120 ms); 108 106 100 98 (120 ms); 109 107 101 99 (110 ms); 108 106 100 98 (130 ms); 109 107 101 99 (100 ms); 108 106 100 98 (110 ms); 109 107 101 99 (120 ms); and so on. 30 frames, 3.5 s in all.</p>
+</div>
+<div class="kl-item" id="panel-flash">
+<h4>The panel's warning</h4>
+<img class="kl-sprite" src="images/animations/panel-flash.gif" alt="The panel's warning" width="144" height="264">
+<p>The carried things are coloured every turn (<a href="asm/50396.html">COLOUR_CARRIED</a>): each in its own colour, but an object whose villain is less than five cells off in column and row flashes through the four antibodies' colours, a new one each turn -- the only sign of a villain out of sight. Here he picked up the objects for villains 3 and 0 and two antibodies; villain 0 was put three cells along U from him, kept standing, and the others far off (staged). The panel, bottom four places.</p>
+<p>Measured, the third place's ink turn by turn: magenta, green, cyan, yellow, magenta, green, cyan, yellow ...; the first place's: red throughout. Turns before the third place's colour came round again: 4, as the code has it.</p>
+<p>In the picture: villain 0 (3, 0) cells off; places red, magenta, magenta, green (70 ms); villain 0 (3, 0) cells off; places red, magenta, green, green (70 ms); villain 0 (3, 0) cells off; places red, magenta, cyan, green (70 ms); villain 0 (3, 0) cells off; places red, magenta, yellow, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, magenta, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, green, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, cyan, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, yellow, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, magenta, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, green, green (60 ms); villain 0 (3, 0) cells off; places red, magenta, cyan, green (60 ms); and so on. 16 frames, 1.0 s in all.</p>
+</div>
+<div class="kl-item" id="villain-destroyed">
+<h4>A villain destroyed, and its sparkles</h4>
+<img class="kl-scene" src="images/animations/villain-destroyed.gif" alt="A villain destroyed, and its sparkles" width="512" height="384">
+<p>Only the object in the same place in its records destroys a villain (<a href="asm/50516.html">OBJECT_STRIKE</a>). Thrown, an object flies at speed 12 twice a turn (<a href="asm/55308.html">OBJECT_FLIGHT</a>); striking its villain it becomes the cloud, scores 250000, sends out four sparkles from the villain's place (<a href="asm/54998.html">VILLAIN_SPARKLES</a>), one each way, which fly on until they meet a wall (<a href="asm/55050.html">SPARKLE_FLY</a>), and redraws the panel's villains, the dead one now in the object's colour (<a href="asm/49661.html">DRAW_VILLAINS</a>). The villain dies for seven or eight turns (<a href="asm/55367.html">VILLAIN_DYING</a>: a new frame only on odd turns), the play area's paper a new colour each turn. Here the object for villain 0 (the one drawn with graphic 108) was picked up and thrown in the open cell, facing -U, and the villain put 96 units ahead of him (staged). The whole screen.</p>
+<p>Graphics and their sprites: 108 (<a href="asm/33037.html">SPRITE108</a>), 11 (<a href="asm/32793.html">SPRITE7</a>), 132 (<a href="asm/31535.html">SPRITE12</a>), 140 (<a href="asm/33625.html">SPRITE48</a>).</p>
+<p>Turns the villain was dying (132-135), struck on an odd turn: 6, as the code has it. Its record was empty in the turn after. The play area's paper in those turns, by the turn counter's low bits: white, black, blue, red, magenta, green, as the code has it. A sparkle's move a turn: 12, as the code has it. The score went from 00000000 to 00250000.</p>
+<p>In the picture: object 0, villain 108, sparkles none, paper black (90 ms); object 11, villain 109, sparkles none, paper black (80 ms); object 11, villain 111, sparkles none, paper black (100 ms); object 12, villain 133, sparkles 140,140,140,140, paper white (80 ms); object 13, villain 133, sparkles 141,141,141,141, paper black (80 ms); object 14, villain 134, sparkles 142,142,142,142, paper blue (80 ms); object 15, villain 134, sparkles 143,143,143,143, paper red (90 ms); object 0, villain 135, sparkles 140,140,140,140, paper magenta (80 ms); object 0, villain 135, sparkles 141,141,141,141, paper green (70 ms); object 0, villain 0, sparkles 142,142,142,142, paper cyan (70 ms); object 0, villain 0, sparkles 143,143,143,143, paper black (70 ms); and so on. 29 frames, 2.2 s in all.</p>
+</div>
+<h3>The menu and the ending</h3>
+<div class="kl-item" id="menu">
+<h4>The menu</h4>
+<img class="kl-scene" src="images/animations/menu.gif" alt="The menu" width="512" height="384">
+<p>The menu (<a href="asm/51402.html">MENU</a>) is Alien 8's, key 5 and all (see <a href="../alien8/Animations.html#menu">Alien 8's</a>), but its tune plays once until a key (<a href="asm/50749.html">PLAY_TUNE_ONCE</a>), and a change of control method plays a short tune (<a href="asm/51188.html">TUNE_CONTROL_CHOSEN</a>) where Alien 8 beeps. Here 2, 3, 4, 5 and 1 pressed in turn. The whole screen, read once a television frame.</p>
+<p>Read once a television frame, 481 samples. The tune stopped at the first key; each change of control method played the short tune before the menu went on, which is why the flash moves a moment after the key.</p>
+<p>In the picture: the menu's tune x8 (2320 ms); the menu's tune/2 pressed (320 ms); after 2 x3 (960 ms); after 2/3 pressed (320 ms); 3 pressed/after 3 (320 ms); after 3 x3 (960 ms); after 3/4 pressed (320 ms); after 4 x3 (960 ms); after 4/5 pressed (320 ms); 5 pressed/after 5 (320 ms); after 5 x4 (960 ms); and so on. 34 frames, 9.6 s in all.</p>
+</div>
+<div class="kl-item" id="ending">
+<h4>The ending</h4>
+<img class="kl-scene" src="images/animations/ending.gif" alt="The ending" width="512" height="384">
+<p>With the four villains gone and their sparkles off the screen, <a href="asm/55397.html">CHECK_QUEST_DONE</a> ends the game: <a href="asm/52310.html">GAME_OVER</a> shows the percentage and the score under the game-over tune, then empties every record, fills ten from <a href="asm/52452.html">ENDING_RECORDS</a> and lets the main loop run them: five pictures of the back of a pit and one of its front, updated last so it is drawn over what sinks, and the four villains, each waiting unseen while the record before it holds one on its way (<a href="asm/52568.html">ENDING_VILLAIN</a>) -- so they come record by record, the villains of 96, 100, 104 and 108 -- carried across to the pit at up to four a turn, then sunk four lines a turn, in their own colours, with a note that rises. When the last is gone the end tune plays and the menu comes back (<a href="asm/52496.html">ENDING_PIT_FRONT</a>). Staged: the four villain records emptied at the start of a turn, as four destroyed villains leave them; the rest is the game's. The whole screen.</p>
+<p>Graphics and their sprites: 144 (<a href="asm/32065.html">SPRITE96</a>), 145 (<a href="asm/32325.html">SPRITE97</a>), 146 (<a href="asm/38247.html">SPRITE100</a>), 147 (<a href="asm/38247.html">SPRITE100</a>), 148 (<a href="asm/35221.html">SPRITE104</a>), 149 (<a href="asm/35221.html">SPRITE104</a>), 150 (<a href="asm/33037.html">SPRITE108</a>), 151 (<a href="asm/34567.html">SPRITE109</a>), 152 (<a href="asm/28695.html">SPRITE152</a>), 153 (<a href="asm/28905.html">SPRITE153</a>), 154 (<a href="asm/28991.html">SPRITE154</a>), 155 (<a href="asm/29089.html">SPRITE155</a>), 156 (<a href="asm/29203.html">SPRITE156</a>), 157 (<a href="asm/29285.html">SPRITE157</a>).</p>
+<p>Record 5 (graphic 144) waited 0 turns; from x 16 to the pit at x 100, turns crossing: 21, as the code has it. Turns drawn sinking, 4 lines a turn from y 128 while y is 48 or more: 20, as the code has it. Record 6 (graphic 146) waited 41 turns; from x 208 to the pit at x 100, turns crossing: 27, as the code has it. Turns drawn sinking, 4 lines a turn from y 128 while y is 48 or more: 20, as the code has it. Record 7 (graphic 148) waited 88 turns; from x 16 to the pit at x 100, turns crossing: 21, as the code has it. Turns drawn sinking, 4 lines a turn from y 128 while y is 48 or more: 20, as the code has it. Record 8 (graphic 150) waited 129 turns; from x 208 to the pit at x 100, turns crossing: 27, as the code has it. Turns drawn sinking, 4 lines a turn from y 128 while y is 48 or more: 20, as the code has it. 176 turns of the ending in all, 24-43 ms each.</p>
+<p>In the picture: the last turn of play (20 ms); game over x11 (4150 ms); record 5: villain 144 at x 16, y 128 (40 ms); record 5: villain 145 at x 20, y 128 (50 ms); record 5: villain 144 at x 24, y 128 (50 ms); record 5: villain 145 at x 28, y 128 (50 ms); record 5: villain 144 at x 32, y 128 (50 ms); record 5: villain 145 at x 36, y 128 (50 ms); record 5: villain 144 at x 40, y 128 (50 ms); record 5: villain 145 at x 44, y 128 (50 ms); record 5: villain 144 at x 48, y 128 (50 ms); and so on. 187 frames, 18.8 s in all.</p>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

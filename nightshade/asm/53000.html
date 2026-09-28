@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CF08</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52984.html">CEF8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53000">Map</a></td>
+<td class="next">
+Next: <a href="53167.html">CFAF</a>
+</td>
+</tr>
+</table>
+<div class="description">CF08: Draw the cells round the knight, back to front</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Called every turn by <a href="48655.html">NEW_GAME</a>. The view shows the knight's cell and the eight round it; they are drawn back to front, the back ones in an order that depends on which of them are built on. Everything here is in the view's coordinates: with the town turned round (VIEW) his cell is turned round first (<a href="53629.html">TURN_CELL</a>), and the map is read through the view (<a href="54628.html">LOOK_UP_CELL</a>), so U-1 is always further back.
+</div>
+<div class="paragraph">
+Five cells lie behind or beside his: U-1 V+1, U-1, V+1, U-1 V-1 and U+1 V+1. A bit for each that is not open ground, bits 0 to 4 in that order, picks one of 32 records of five steps in <a href="25092.html">DRAW_ORDER</a>. Each step byte gives a cell as an offset from his -- bits 4-5 for U, bits 6-7 for V: bit 5 (or 7) the same, bit 4 (or 6) one more, neither one less -- and in bits 0-1 what to draw there: 0 the things in it (<a href="53167.html">LIST_THINGS_IN_CELL</a>, <a href="53234.html">SORT_AND_DRAW_THINGS</a>), 1 its walls (<a href="54130.html">DRAW_WALLS</a>), 2 its walls by <a href="53661.html">DRAW_OUTLINE</a>, 3 nothing.
+</div>
+<div class="paragraph">
+Every record gives the five cells, each with action 1 if it is built on and 0 if not: actions 2 and 3 are in no record, and their instructions never ran. Last come his own cell and the three in front of it, V-1, U+1 and U+1 V-1, each with its walls by <a href="53661.html">DRAW_OUTLINE</a> -- the routine action 2 would have used -- and then the things in it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS</td>
+<td class="address-2"><span id="53000"></span>CF08</td>
+<td class="instruction">LD HL,$E001</td>
+<td class="comment-1" rowspan="2">no columns drawn yet this turn (<a href="54210.html">DRAW_WALL_COLUMN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53003"></span>CF0B</td>
+<td class="instruction">LD (<a href="48042.html#48059">COLUMNS_DRAWN</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53006"></span>CF0E</td>
+<td class="instruction">LD A,(<a href="48042.html#48272">KNIGHT_COLUMN</a>)</td>
+<td class="comment-1" rowspan="5">HL = his cell, as the view sees it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53009"></span>CF11</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53010"></span>CF12</td>
+<td class="instruction">LD A,(<a href="48042.html#48274">KNIGHT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53013"></span>CF15</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53014"></span>CF16</td>
+<td class="instruction">CALL <a href="53629.html">TURN_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53017"></span>CF19</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">kept, for every step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53018"></span>CF1A</td>
+<td class="instruction">LD E,$00</td>
+<td class="comment-1" rowspan="6">bit 0: U-1 V+1 not open</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53020"></span>CF1C</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53021"></span>CF1D</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53022"></span>CF1E</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53025"></span>CF21</td>
+<td class="instruction">JR Z,<a href="53000.html#53029">DRAW_CELLS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53027"></span>CF23</td>
+<td class="instruction">SET 0,E</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_0</td>
+<td class="address-2"><span id="53029"></span>CF25</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">bit 1: U-1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53030"></span>CF26</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53031"></span>CF27</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53032"></span>CF28</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53035"></span>CF2B</td>
+<td class="instruction">JR Z,<a href="53000.html#53039">DRAW_CELLS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53037"></span>CF2D</td>
+<td class="instruction">SET 1,E</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_1</td>
+<td class="address-2"><span id="53039"></span>CF2F</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">bit 2: V+1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53040"></span>CF30</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53041"></span>CF31</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53042"></span>CF32</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53045"></span>CF35</td>
+<td class="instruction">JR Z,<a href="53000.html#53049">DRAW_CELLS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53047"></span>CF37</td>
+<td class="instruction">SET 2,E</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_2</td>
+<td class="address-2"><span id="53049"></span>CF39</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="7">bit 3: U-1 V-1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53050"></span>CF3A</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53051"></span>CF3B</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53052"></span>CF3C</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53053"></span>CF3D</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53056"></span>CF40</td>
+<td class="instruction">JR Z,<a href="53000.html#53060">DRAW_CELLS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53058"></span>CF42</td>
+<td class="instruction">SET 3,E</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_3</td>
+<td class="address-2"><span id="53060"></span>CF44</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="7">bit 4: U+1 V+1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53061"></span>CF45</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53062"></span>CF46</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53063"></span>CF47</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53064"></span>CF48</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53067"></span>CF4B</td>
+<td class="instruction">JR Z,<a href="53000.html#53071">DRAW_CELLS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53069"></span>CF4D</td>
+<td class="instruction">SET 4,E</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_4</td>
+<td class="address-2"><span id="53071"></span>CF4F</td>
+<td class="instruction">LD D,$00</td>
+<td class="comment-1" rowspan="12">DE = the drawing order's record for them, five bytes each; five steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53073"></span>CF51</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53074"></span>CF52</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53075"></span>CF53</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53076"></span>CF54</td>
+<td class="instruction">LD D,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53077"></span>CF55</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53078"></span>CF56</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53079"></span>CF57</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53080"></span>CF58</td>
+<td class="instruction">LD DE,<a href="25092.html">DRAW_ORDER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53083"></span>CF5B</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53084"></span>CF5C</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53085"></span>CF5D</td>
+<td class="instruction">LD B,$05</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_STEP</td>
+<td class="address-2"><span id="53087"></span>CF5F</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">his cell again; the step's byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53088"></span>CF60</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53089"></span>CF61</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53090"></span>CF62</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53091"></span>CF63</td>
+<td class="instruction">BIT 5,A</td>
+<td class="comment-1" rowspan="7">U: bit 5 the same, bit 4 one more, neither one less</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53093"></span>CF65</td>
+<td class="instruction">JR NZ,<a href="53000.html#53102">DRAW_CELLS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53095"></span>CF67</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53097"></span>CF69</td>
+<td class="instruction">JR Z,<a href="53000.html#53101">DRAW_CELLS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53099"></span>CF6B</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53100"></span>CF6C</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_5</td>
+<td class="address-2"><span id="53101"></span>CF6D</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_6</td>
+<td class="address-2"><span id="53102"></span>CF6E</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="7">V: bit 7 the same, bit 6 one more, neither one less</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53104"></span>CF70</td>
+<td class="instruction">JR NZ,<a href="53000.html#53113">DRAW_CELLS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53106"></span>CF72</td>
+<td class="instruction">BIT 6,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53108"></span>CF74</td>
+<td class="instruction">JR Z,<a href="53000.html#53112">DRAW_CELLS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53110"></span>CF76</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53111"></span>CF77</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_7</td>
+<td class="address-2"><span id="53112"></span>CF78</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELLS_8</td>
+<td class="address-2"><span id="53113"></span>CF79</td>
+<td class="instruction">AND $03</td>
+<td class="comment-1" rowspan="5">the action; the count and the record kept, and DRAW_STEP_DONE to return to</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53115"></span>CF7B</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53116"></span>CF7C</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53117"></span>CF7D</td>
+<td class="instruction">LD DE,<a href="53000.html#53133">DRAW_STEP_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53120"></span>CF80</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53121"></span>CF81</td>
+<td class="instruction">JP Z,<a href="53000.html#53162">DRAW_CELL_THINGS</a></td>
+<td class="comment-1" rowspan="1">0: the things in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53124"></span>CF84</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="2">1: its walls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53125"></span>CF85</td>
+<td class="instruction">JP Z,<a href="54130.html">DRAW_WALLS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53128"></span>CF88</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="2">2: its outline on the ground by <a href="53661.html">DRAW_OUTLINE</a> (no record has it; never ran)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53129"></span>CF89</td>
+<td class="instruction">JP Z,<a href="53661.html">DRAW_OUTLINE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53132"></span>CF8C</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1">3: nothing -- the return address dropped (never ran either)</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_STEP_DONE</td>
+<td class="address-1"><span id="53133"></span>CF8D</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="3">the next step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53134"></span>CF8E</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53135"></span>CF8F</td>
+<td class="instruction">DJNZ <a href="53000.html#53087">DRAW_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53137"></span>CF91</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">his own cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53138"></span>CF92</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53139"></span>CF93</td>
+<td class="instruction">CALL <a href="53000.html#53157">DRAW_FRONT_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53142"></span>CF96</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">V-1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53143"></span>CF97</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53144"></span>CF98</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53145"></span>CF99</td>
+<td class="instruction">CALL <a href="53000.html#53157">DRAW_FRONT_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53148"></span>CF9C</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">U+1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53149"></span>CF9D</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53150"></span>CF9E</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53151"></span>CF9F</td>
+<td class="instruction">CALL <a href="53000.html#53157">DRAW_FRONT_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53154"></span>CFA2</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">U+1 V-1, whose RET ends the routine</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53155"></span>CFA3</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53156"></span>CFA4</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_FRONT_CELL</td>
+<td class="address-2"><span id="53157"></span>CFA5</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">a front cell: its walls by <a href="53661.html">DRAW_OUTLINE</a>, if it is built on...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53158"></span>CFA6</td>
+<td class="instruction">CALL <a href="53661.html">DRAW_OUTLINE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53161"></span>CFA9</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CELL_THINGS</td>
+<td class="address-2"><span id="53162"></span>CFAA</td>
+<td class="instruction">CALL <a href="53167.html">LIST_THINGS_IN_CELL</a></td>
+<td class="comment-1" rowspan="2">...then the things in it: listed (<a href="53167.html">LIST_THINGS_IN_CELL</a>), and drawn in depth order (<a href="53234.html">SORT_AND_DRAW_THINGS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53165"></span>CFAD</td>
+<td class="instruction">JR <a href="53234.html">SORT_AND_DRAW_THINGS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52984.html">CEF8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53000">Map</a></td>
+<td class="next">
+Next: <a href="53167.html">CFAF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

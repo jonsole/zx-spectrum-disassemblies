@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C2ED</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49895.html">C2E7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49901">Map</a></td>
+<td class="next">
+Next: <a href="49940.html">C314</a>
+</td>
+</tr>
+</table>
+<div class="description">C2ED: Add BC to the score, and print it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49137.html">CREATURE_UPDATE</a>, <a href="49283.html">MONSTER112_UPDATE</a>, <a href="49374.html">HIT_DESTROYS</a>, <a href="49389.html">HIT_CHANGES</a>, <a href="49409.html">HIT_SPLITS</a>, <a href="49490.html">HIT_DEMOTES</a>, <a href="52873.html">WANDERING_MONSTER</a> and <a href="55308.html">OBJECT_FLIGHT</a>.
+</div>
+<div class="paragraph">
+In BCD: B goes to the middle byte of SCORE and C to SCORE_LOW, carrying up. The score printed is seven digits: the lower digit of SCORE's first byte, the four of the next two, and the two zeros of SCORE_ZEROS, which nothing writes -- so what is shown is a hundred times what is added: C = $25 shows as 2500. Measured: from nothing, BC = $0025 printed 0002500 and BC = $2500 printed 0250000.
+</div>
+<div class="paragraph">
+What scores (from the callers): a villain destroyed, 250000 (<a href="55308.html">OBJECT_FLIGHT</a>); a monster of 112-127 destroyed by an antibody 2500, changed 2000, split 1500, turned into one of 64-79 1000 (<a href="49361.html">MONSTER_HIT_TABLE</a>); the creature struck or run into a wall, 1000 (<a href="49137.html">CREATURE_UPDATE</a>); a monster of 64-79 struck, 500 (<a href="52873.html">WANDERING_MONSTER</a>). And a monster that touches the knight scores too, as it takes his hit: 2500 for one of 112-127, 500 for one of 64-79.
+</div>
+<div class="paragraph">
+PRINT_SCORE prints it where it stays on the panel, in yellow; <a href="52310.html">GAME_OVER</a> uses PRINT_SCORE_AT to print it after a game in its own place and colour.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">the points, BCD: B in tens of thousands, C in hundreds</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_SCORE</td>
+<td class="address-2"><span id="49901"></span>C2ED</td>
+<td class="instruction">LD HL,<a href="48042.html#48075">SCORE_LOW</a></td>
+<td class="comment-1" rowspan="15">add, in BCD, carrying up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49904"></span>C2F0</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49905"></span>C2F1</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49906"></span>C2F2</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49907"></span>C2F3</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49908"></span>C2F4</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49909"></span>C2F5</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49910"></span>C2F6</td>
+<td class="instruction">ADC A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49911"></span>C2F7</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49912"></span>C2F8</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49913"></span>C2F9</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49914"></span>C2FA</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49915"></span>C2FB</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49917"></span>C2FD</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49918"></span>C2FE</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49919"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_SCORE</td>
+<td class="address-2"><span id="49919"></span>C2FF</td>
+<td class="instruction">LD A,$46</td>
+<td class="comment-1" rowspan="3">PRINT_SCORE: yellow, at the bottom of the panel</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49921"></span>C301</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49922"></span>C302</td>
+<td class="instruction">LD HL,$50E6</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49925"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="52310.html">GAME_OVER</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_SCORE_AT</td>
+<td class="address-2"><span id="49925"></span>C305</td>
+<td class="instruction">LD DE,<a href="48042.html#48073">SCORE</a></td>
+<td class="comment-1" rowspan="7">PRINT_SCORE_AT: four bytes from SCORE, in the digits' font, from the first byte's lower digit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49928"></span>C308</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49930"></span>C30A</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49931"></span>C30B</td>
+<td class="instruction">LD HL,<a href="27870.html">FONT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49934"></span>C30E</td>
+<td class="instruction">LD (<a href="48042.html#48044">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49937"></span>C311</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49938"></span>C312</td>
+<td class="instruction">JR <a href="49940.html#49959">PRINT_BCD_LOW</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49895.html">C2E7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49901">Map</a></td>
+<td class="next">
+Next: <a href="49940.html">C314</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

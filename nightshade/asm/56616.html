@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DD28</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56577.html">DD01</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56616">Map</a></td>
+<td class="next">
+Next: <a href="56682.html">DD6A</a>
+</td>
+</tr>
+</table>
+<div class="description">DD28: Decide whether a walker turns: at a wall, when its count runs out, or towards the knight</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49283.html">MONSTER112_UPDATE</a> and <a href="55631.html">VILLAIN_WANDER</a>.
+</div>
+<div class="paragraph">
+Used by the villains (<a href="55631.html">VILLAIN_WANDER</a>) and the monsters of graphics 112-127 (<a href="49283.html">MONSTER112_UPDATE</a>). Stopped by a wall, it turns a quarter left or right at random and starts a new count of up to 63 turns. Otherwise the count (the low bits of the facing byte) goes down each turn, and when its low five bits reach 0: with bit 5 of the flags clear it turns at random the same way; with it set it turns towards the knight (<a href="56729.html">KNIGHT_DIRECTION</a>, <a href="56682.html">TURN_TO_KNIGHT_TABLE</a>) and starts a count of 1-16.
+</div>
+<div class="paragraph">
+Bit 5 is set only for a monster spawned in the first half of a 256-turn cycle (<a href="52712.html">SPAWN_MONSTER</a>); the villains never have it, so they wander and never chase. The counts are set from the random number's high byte and tested on only five bits, so a count of 32-63 runs out after the count less 32.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">STEER</td>
+<td class="address-2"><span id="56616"></span>DD28</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">Stopped by a wall: turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56620"></span>DD2C</td>
+<td class="instruction">JR NZ,<a href="56616.html#56637">STEER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56622"></span>DD2E</td>
+<td class="instruction">DEC (IX+$06)</td>
+<td class="comment-1" rowspan="4">Count down; done unless the low five bits are 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56625"></span>DD31</td>
+<td class="instruction">LD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56628"></span>DD34</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56630"></span>DD36</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56631"></span>DD37</td>
+<td class="instruction">BIT 5,(IX+$07)</td>
+<td class="comment-1" rowspan="2">A chaser turns towards the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56635"></span>DD3B</td>
+<td class="instruction">JR NZ,<a href="56616.html#56664">STEER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_0</td>
+<td class="address-2"><span id="56637"></span>DD3D</td>
+<td class="instruction">LD A,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">Turn left or right at random</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56640"></span>DD40</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56642"></span>DD42</td>
+<td class="instruction">LD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56645"></span>DD45</td>
+<td class="instruction">JR NC,<a href="56616.html#56660">STEER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56647"></span>DD47</td>
+<td class="instruction">ADD A,$40</td>
+<td class="comment-1" rowspan="1">Right</td>
+</tr>
+<tr>
+<td class="asm-label">STEER_1</td>
+<td class="address-2"><span id="56649"></span>DD49</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="6">A new count, the random number's high byte's low six bits ORed with what was left of the old one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56650"></span>DD4A</td>
+<td class="instruction">LD A,($BBAB)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56653"></span>DD4D</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56655"></span>DD4F</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56656"></span>DD50</td>
+<td class="instruction">LD (IX+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56659"></span>DD53</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">STEER_2</td>
+<td class="address-2"><span id="56660"></span>DD54</td>
+<td class="instruction">SUB $40</td>
+<td class="comment-1" rowspan="2">Left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56662"></span>DD56</td>
+<td class="instruction">JR <a href="56616.html#56649">STEER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">STEER_3</td>
+<td class="address-2"><span id="56664"></span>DD58</td>
+<td class="instruction">CALL <a href="56729.html">KNIGHT_DIRECTION</a></td>
+<td class="comment-1" rowspan="2">A: the knight's direction, 0-3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56667"></span>DD5B</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56668"></span>DD5C</td>
+<td class="instruction">LD A,(IX+$06)</td>
+<td class="comment-1" rowspan="5">Where it is compared with the facing: 0 ahead, 1 to the left, 2 behind, 3 to the right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56671"></span>DD5F</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56672"></span>DD60</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56673"></span>DD61</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56674"></span>DD62</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56676"></span>DD64</td>
+<td class="instruction">LD BC,<a href="56682.html">TURN_TO_KNIGHT_TABLE</a></td>
+<td class="comment-1" rowspan="2">Turn by it (<a href="56682.html">TURN_TO_KNIGHT_TABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56679"></span>DD67</td>
+<td class="instruction">JP <a href="54675.html">DISPATCH</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56577.html">DD01</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56616">Map</a></td>
+<td class="next">
+Next: <a href="56682.html">DD6A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

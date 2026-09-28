@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DFFA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57239.html">DF97</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57338">Map</a></td>
+<td class="next">
+Next: <a href="57355.html">E00B</a>
+</td>
+</tr>
+</table>
+<div class="description">DFFA: Cut a step in +V short at a box of a cell</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56946.html">CLIP_PLUS_V</a>.
+</div>
+<div class="paragraph">
+Called by the +V routine (<a href="56946.html">CLIP_PLUS_V</a>) for each cell its object's leading edge covers. If the object's box, moved by this turn's step, overlaps one of the cell's boxes (<a href="57504.html">HIT_BOXES_V</a>), the step in V (+B) is cut by the overlap, so that the move ends with the object against the box's face; bit 0 of the flags (+7) is set to say it was stopped, and carry is returned.
+</div>
+<div class="paragraph">
+The entry point CUT_STEP_V adds twice A, the overlap in half units, to the step; MARK_BLOCKED sets the flag. <a href="57355.html">CUT_STEP_MINUS_V</a>, <a href="57363.html">CUT_STEP_PLUS_U</a> and <a href="57376.html">CUT_STEP_MINUS_U</a> are the same for -V, +U and -U.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The column of the cell to test (the high byte of a U in it)</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">Its row (the high byte of a V in it)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Carry set if the step was cut</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CUT_STEP_PLUS_V</td>
+<td class="address-2"><span id="57338"></span>DFFA</td>
+<td class="instruction">CALL <a href="57504.html">HIT_BOXES_V</a></td>
+<td class="comment-1" rowspan="2">Test the cell's boxes; nothing in the way returns with carry clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57341"></span>DFFD</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="57342"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="57355.html">CUT_STEP_MINUS_V</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CUT_STEP_V</td>
+<td class="address-2"><span id="57342"></span>DFFE</td>
+<td class="instruction">ADD A,A</td>
+<td class="comment-1" rowspan="3">CUT_STEP_V: A is minus the overlap, in half units; twice it added to a positive step ends the move at the box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57343"></span>DFFF</td>
+<td class="instruction">ADD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57346"></span>E002</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="57349"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="57363.html">CUT_STEP_PLUS_U</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MARK_BLOCKED</td>
+<td class="address-2"><span id="57349"></span>E005</td>
+<td class="instruction">SET 0,(IX+$07)</td>
+<td class="comment-1" rowspan="3">MARK_BLOCKED: bit 0 of the flags says the object was stopped; return with carry set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57353"></span>E009</td>
+<td class="instruction">SCF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57354"></span>E00A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57239.html">DF97</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57338">Map</a></td>
+<td class="next">
+Next: <a href="57355.html">E00B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

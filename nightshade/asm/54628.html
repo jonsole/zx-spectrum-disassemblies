@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D564</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54536.html">D508</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54628">Map</a></td>
+<td class="next">
+Next: <a href="54665.html">D589</a>
+</td>
+</tr>
+</table>
+<div class="description">D564: The type of a cell of the town</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="53000.html">DRAW_CELLS</a>, <a href="53661.html">DRAW_OUTLINE</a>, <a href="54130.html">DRAW_WALLS</a>, <a href="55438.html">PLACE_OBJECTS</a> and <a href="55527.html">PLACE_VILLAINS</a>.
+</div>
+<div class="paragraph">
+Reads a cell from the map (<a href="24068.html">TOWN</a>, 32 rows of 32 bytes) and keeps its column and row in CELL_LOOKED_UP for <a href="54536.html">PROJECT_CELL</a>. The cell comes in the view's terms: with the town turned round the offset into the map is complemented and added to the address one past its end, which reads the map backwards from its last byte -- the same as turning the cell round with <a href="53629.html">TURN_CELL</a>. The listing would otherwise call that address DRAW_ORDER, the table that follows the map.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">the column</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">the row</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the cell's type: 0 open ground, 1 and 2 solid, 3 up built on</td>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z for open ground</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LOOK_UP_CELL</td>
+<td class="address-2"><span id="54628"></span>D564</td>
+<td class="instruction">LD (<a href="48042.html#48052">CELL_LOOKED_UP</a>),HL</td>
+<td class="comment-1" rowspan="1">Kept for the projection</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54631"></span>D567</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="10">HL = the row times 32, plus the column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54632"></span>D568</td>
+<td class="instruction">LD L,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54633"></span>D569</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54635"></span>D56B</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54636"></span>D56C</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54637"></span>D56D</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54638"></span>D56E</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54639"></span>D56F</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54640"></span>D570</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54641"></span>D571</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54642"></span>D572</td>
+<td class="instruction">LD BC,<a href="24068.html">TOWN</a></td>
+<td class="comment-1" rowspan="4">Turned round?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54645"></span>D575</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54648"></span>D578</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54650"></span>D57A</td>
+<td class="instruction">JR Z,<a href="54628.html#54661">LOOK_UP_CELL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54652"></span>D57C</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="7">The offset complemented, from one past the map's end: the map read backwards</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54653"></span>D57D</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54654"></span>D57E</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54655"></span>D57F</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54656"></span>D580</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54657"></span>D581</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54658"></span>D582</td>
+<td class="instruction">LD BC,<a href="25092.html">DRAW_ORDER</a></td>
+</tr>
+<tr>
+<td class="asm-label">LOOK_UP_CELL_0</td>
+<td class="address-2"><span id="54661"></span>D585</td>
+<td class="instruction">ADD HL,BC</td>
+<td class="comment-1" rowspan="4">The type; Z if open</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54662"></span>D586</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54663"></span>D587</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54664"></span>D588</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54536.html">D508</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54628">Map</a></td>
+<td class="next">
+Next: <a href="54665.html">D589</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at BFF1</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49045.html">BF95</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49137">Map</a></td>
+<td class="next">
+Next: <a href="49196.html">C02C</a>
+</td>
+</tr>
+</table>
+<div class="description">BFF1: The update routine for the creature (graphics 136-139)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+It makes for the knight, two units a turn along U and along V (<a href="49196.html">STEER_AT_KNIGHT</a>), blipping while on the screen (<a href="49970.html">BLIP_BY_TURN</a>). A wall stops it dead: it bursts, for 1000 points -- the reward for leading it into one. More than two cells from the knight in column or row, it is left behind: the record is emptied. An antibody strikes it for 1000, both bursting (but only the first antibody record can, <a href="50488.html">ANTIBODY_STRIKE</a>); touching the knight, it bursts and takes one of his hits (<a href="52873.html">WANDERING_MONSTER</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the creature's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE</td>
+<td class="address-2"><span id="49137"></span>BFF1</td>
+<td class="instruction">CALL <a href="49970.html">BLIP_BY_TURN</a></td>
+<td class="comment-1" rowspan="1">the blip, if it was drawn last turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49140"></span>BFF4</td>
+<td class="instruction">CALL <a href="49196.html">STEER_AT_KNIGHT</a></td>
+<td class="comment-1" rowspan="1">steps of two towards the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49143"></span>BFF7</td>
+<td class="instruction">CALL <a href="56845.html">MOVE_SPLIT</a></td>
+<td class="comment-1" rowspan="1">is the way clear, along U and then V? (<a href="56845.html">MOVE_SPLIT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49146"></span>BFFA</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">a wall: it bursts, for 1000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49150"></span>BFFE</td>
+<td class="instruction">JR NZ,<a href="49137.html#49186">CREATURE_UPDATE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49152"></span>C000</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+<td class="comment-1" rowspan="1">move by the steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49155"></span>C003</td>
+<td class="instruction">CALL <a href="52984.html">NEXT_FRAME_MOD4</a></td>
+<td class="comment-1" rowspan="1">the next frame of the four</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49158"></span>C006</td>
+<td class="instruction">LD C,$03</td>
+<td class="comment-1" rowspan="3">three cells or more from him: left behind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49160"></span>C008</td>
+<td class="instruction">CALL <a href="49257.html">NEAR_KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49163"></span>C00B</td>
+<td class="instruction">JR NC,<a href="49137.html#49177">CREATURE_UPDATE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49165"></span>C00D</td>
+<td class="instruction">CALL <a href="50488.html">ANTIBODY_STRIKE</a></td>
+<td class="comment-1" rowspan="2">struck by an antibody?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49168"></span>C010</td>
+<td class="instruction">JR C,<a href="49137.html#49182">CREATURE_UPDATE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49170"></span>C012</td>
+<td class="instruction">CALL <a href="50527.html">TOUCHING_KNIGHT</a></td>
+<td class="comment-1" rowspan="3">touching him: it bursts, and he loses a hit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49173"></span>C015</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49174"></span>C016</td>
+<td class="instruction">JP <a href="52873.html#52923">MONSTER_HITS_KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_0</td>
+<td class="address-2"><span id="49177"></span>C019</td>
+<td class="instruction">LD (IX+$00),$00</td>
+<td class="comment-1" rowspan="2">left behind: the record emptied (never ran in the sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49181"></span>C01D</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_1</td>
+<td class="address-2"><span id="49182"></span>C01E</td>
+<td class="instruction">LD (IY+$00),$0C</td>
+<td class="comment-1" rowspan="1">the antibody bursts...</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_2</td>
+<td class="address-2"><span id="49186"></span>C022</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+<td class="comment-1" rowspan="1">...and so does the creature</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49190"></span>C026</td>
+<td class="instruction">LD BC,$0010</td>
+<td class="comment-1" rowspan="2">1000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49193"></span>C029</td>
+<td class="instruction">JP <a href="49901.html">ADD_SCORE</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49045.html">BF95</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49137">Map</a></td>
+<td class="next">
+Next: <a href="49196.html">C02C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

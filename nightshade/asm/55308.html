@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D80C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55277.html">D7ED</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55308">Map</a></td>
+<td class="next">
+Next: <a href="55367.html">D847</a>
+</td>
+</tr>
+</table>
+<div class="description">D80C: The update routine for a thrown object (graphics 8-11)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+An object the knight has thrown (<a href="55991.html">KNIGHT_THROWS</a>) flies straight on at speed 12, twice a turn like an antibody, until it strikes a villain or a wall. The only villain it can strike is the one in the record 64 bytes on from its own (<a href="50516.html">OBJECT_STRIKE</a>): the object in record n of OBJECTS and the villain in record n of VILLAINS are a pair, and the other three pass through each other. A wall leaves the object lying where it stopped (graphics 4-7, the same object), to be taken up again.
+</div>
+<div class="paragraph">
+A strike turns the villain into graphic 132, dying (<a href="55367.html">VILLAIN_DYING</a>), and the object into the vanishing cloud; scores 250000 (BC = $2500, shown with the score's two dead zeros); lets out the four sparkles from the villain's place (<a href="54998.html">VILLAIN_SPARKLES</a>); and redraws the villains on the panel (<a href="49661.html">DRAW_VILLAINS</a>), where the dead one is now drawn as a picture in the colour of the object that killed it, not an outline (seen in the quest run: the skeleton in cyan after the first kill).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object's record (OBJECTS)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_FLIGHT</td>
+<td class="address-2"><span id="55308"></span>D80C</td>
+<td class="instruction">LD A,(IX+$05)</td>
+<td class="comment-1" rowspan="2">The step from the speed and the facing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55311"></span>D80F</td>
+<td class="instruction">CALL <a href="56544.html">SET_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55314"></span>D812</td>
+<td class="instruction">CALL <a href="56921.html">MOVE_CLIPPED</a></td>
+<td class="comment-1" rowspan="4">Move twice, trimmed at a wall, the wall flag kept from the first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55317"></span>D815</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55320"></span>D818</td>
+<td class="instruction">CALL <a href="56921.html#56925">MOVE_CLIPPED_AGAIN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55323"></span>D81B</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55326"></span>D81E</td>
+<td class="instruction">CALL <a href="50516.html">OBJECT_STRIKE</a></td>
+<td class="comment-1" rowspan="2">Is it touching its own villain, four records on? (IY points to that record)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55329"></span>D821</td>
+<td class="instruction">JR C,<a href="55308.html#55347">OBJECT_FLIGHT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55331"></span>D823</td>
+<td class="instruction">BIT 0,(IX+$07)</td>
+<td class="comment-1" rowspan="2">No: done unless it met a wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55335"></span>D827</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55336"></span>D828</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="5">At a wall it falls: graphic 8-11 becomes 4-7, the same object lying</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55339"></span>D82B</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55341"></span>D82D</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55343"></span>D82F</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55346"></span>D832</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_FLIGHT_0</td>
+<td class="address-2"><span id="55347"></span>D833</td>
+<td class="instruction">LD (IY+$00),$84</td>
+<td class="comment-1" rowspan="1">Struck: the villain is dying</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55351"></span>D837</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+<td class="comment-1" rowspan="1">The object vanishes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55355"></span>D83B</td>
+<td class="instruction">LD BC,$2500</td>
+<td class="comment-1" rowspan="2">250000 points as shown</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55358"></span>D83E</td>
+<td class="instruction">CALL <a href="49901.html">ADD_SCORE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55361"></span>D841</td>
+<td class="instruction">CALL <a href="54998.html">VILLAIN_SPARKLES</a></td>
+<td class="comment-1" rowspan="1">Four sparkles from where the villain was</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55364"></span>D844</td>
+<td class="instruction">JP <a href="49661.html">DRAW_VILLAINS</a></td>
+<td class="comment-1" rowspan="1">Redraw the panel's villains, the dead one blanked</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55277.html">D7ED</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55308">Map</a></td>
+<td class="next">
+Next: <a href="55367.html">D847</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

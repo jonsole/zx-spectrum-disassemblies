@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E239</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57856.html">E200</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57913">Map</a></td>
+<td class="next">
+Next: <a href="57921.html">E241</a>
+</td>
+</tr>
+</table>
+<div class="description">E239: Read a half-row of the keyboard</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50749.html">PLAY_TUNE_ONCE</a>, <a href="51402.html">MENU</a>, <a href="57921.html">READ_CONTROLS</a> and <a href="58156.html">PAUSE</a>.
+</div>
+<div class="paragraph">
+Knight Lore's, Alien 8's and Pentagram's routine, byte for byte. IN A,($FE) puts A on the top half of the address bus, so each 0 bit in A selects a half-row, and two or more can be read at once; the CPL turns the active-low bits the right way up, so a key held is a 1, and Z is set when none of the five is held.
+</div>
+<div class="paragraph">
+The OUT before it is not needed for the read. It writes A to port A*256+$FD, which nothing on a 48K Spectrum answers. A 128K machine's paging port would decode it whenever A has bit 7 clear, and <a href="57921.html">READ_CONTROLS</a> sends $7F with the keyboard and $7E with every method, every turn, as <a href="58156.html">PAUSE</a> does: in 128 mode that would page RAM 7 or 6 over the top 16K, where the game's code and tables are, show the other screen and lock the paging. Read, not tried on a 128K; Pentagram's identical routine was tried and reset the machine at the first turn of play.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The half-rows to read: a 0 bit for each</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">Bits 0-4 the keys held, 1 for held</td>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z set if none is held</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_KEYS</td>
+<td class="address-2"><span id="57913"></span>E239</td>
+<td class="instruction">OUT ($FD),A</td>
+<td class="comment-1" rowspan="1">The OUT that a 128K would take for paging (see above)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57915"></span>E23B</td>
+<td class="instruction">IN A,($FE)</td>
+<td class="comment-1" rowspan="4">Read the half-rows; held keys as 1s</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57917"></span>E23D</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57918"></span>E23E</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57920"></span>E240</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57856.html">E200</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57913">Map</a></td>
+<td class="next">
+Next: <a href="57921.html">E241</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

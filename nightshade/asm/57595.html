@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E0FB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57582.html">E0EE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57595">Map</a></td>
+<td class="next">
+Next: <a href="57672.html">E148</a>
+</td>
+</tr>
+</table>
+<div class="description">E0FB: Build the drawing tables</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Run at every new game (<a href="48655.html">NEW_GAME</a>). Fills the six pages from <a href="61952.html">MIRROR_TABLES</a>, the six from <a href="64000.html">SHIFT_TABLES</a>, and <a href="63744.html">REVERSE_TABLE</a> with the tables the drawing of sprites and tiles reads to put a byte at any even pixel.
+</div>
+<div class="paragraph">
+The six pages from <a href="64000.html">SHIFT_TABLES</a> up are every byte value shifted right two, four and six places, in pairs: page $FA holds a byte shifted right two, the part that stays in its own byte, and page $FB the two bits that fall out into the next byte; $FC and $FD the same for four places, $FE and $FF for six. The loop builds them the other way about: it shifts each value left across two bytes, two places at a time, and stores the pair after each shift from the top page down, so the high byte of a shift left by eight less s is the shift right by s. The six from <a href="61952.html">MIRROR_TABLES</a> are the same for every value with its bits reversed first, for tiles drawn mirrored; and <a href="63744.html">REVERSE_TABLE</a> is every value reversed, for mirroring sprites (<a href="58195.html">TURN_SPRITE</a>) and tiles on a byte boundary.
+</div>
+<div class="paragraph">
+Only even shifts are built because nothing is drawn at an odd pixel: the drawing ignores bit 0 of x. Knight Lore, Alien 8 and Pentagram build seven shifts, complemented; these are three, and plain. Checked in the simulator: after this routine every byte of the thirteen pages is as described, and the page between them, <a href="63488.html">UNUSED_F800</a>, is not touched.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES</td>
+<td class="address-2"><span id="57595"></span>E0FB</td>
+<td class="instruction">LD L,$00</td>
+<td class="comment-1" rowspan="5">For each value L: DE = L, starting at the top page</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_0</td>
+<td class="address-2"><span id="57597"></span>E0FD</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57599"></span>E0FF</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57600"></span>E100</td>
+<td class="instruction">LD H,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57602"></span>E102</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_1</td>
+<td class="address-2"><span id="57604"></span>E104</td>
+<td class="instruction">SLA E</td>
+<td class="comment-1" rowspan="9">Shift DE left two places; the low byte to page H and the high to the page below; three times, for pages $FF down to $FA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57606"></span>E106</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57608"></span>E108</td>
+<td class="instruction">SLA E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57610"></span>E10A</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57612"></span>E10C</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57613"></span>E10D</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57614"></span>E10E</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57615"></span>E10F</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57616"></span>E110</td>
+<td class="instruction">DJNZ <a href="57595.html#57604">MAKE_TABLES_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57618"></span>E112</td>
+<td class="instruction">INC L</td>
+<td class="comment-1" rowspan="2">The next value</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57619"></span>E113</td>
+<td class="instruction">JR NZ,<a href="57595.html#57597">MAKE_TABLES_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57621"></span>E115</td>
+<td class="instruction">LD L,$00</td>
+<td class="comment-1" rowspan="8">Again with the value's bits reversed first: C = L back to front</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_2</td>
+<td class="address-2"><span id="57623"></span>E117</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57625"></span>E119</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57627"></span>E11B</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_3</td>
+<td class="address-2"><span id="57628"></span>E11C</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57629"></span>E11D</td>
+<td class="instruction">RL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57631"></span>E11F</td>
+<td class="instruction">DJNZ <a href="57595.html#57628">MAKE_TABLES_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57633"></span>E121</td>
+<td class="instruction">LD E,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57634"></span>E122</td>
+<td class="instruction">LD H,$F7</td>
+<td class="comment-1" rowspan="11">...shifted and stored the same way on pages $F7 down to $F2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57636"></span>E124</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_4</td>
+<td class="address-2"><span id="57638"></span>E126</td>
+<td class="instruction">SLA E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57640"></span>E128</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57642"></span>E12A</td>
+<td class="instruction">SLA E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57644"></span>E12C</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57646"></span>E12E</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57647"></span>E12F</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57648"></span>E130</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57649"></span>E131</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57650"></span>E132</td>
+<td class="instruction">DJNZ <a href="57595.html#57638">MAKE_TABLES_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57652"></span>E134</td>
+<td class="instruction">INC L</td>
+<td class="comment-1" rowspan="2">The next value</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57653"></span>E135</td>
+<td class="instruction">JR NZ,<a href="57595.html#57623">MAKE_TABLES_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57655"></span>E137</td>
+<td class="instruction">LD HL,<a href="63744.html">REVERSE_TABLE</a></td>
+<td class="comment-1" rowspan="9">Page $F9: each value's bits in reverse order</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_5</td>
+<td class="address-2"><span id="57658"></span>E13A</td>
+<td class="instruction">LD D,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57659"></span>E13B</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">MAKE_TABLES_6</td>
+<td class="address-2"><span id="57661"></span>E13D</td>
+<td class="instruction">SRL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57663"></span>E13F</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57665"></span>E141</td>
+<td class="instruction">DJNZ <a href="57595.html#57661">MAKE_TABLES_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57667"></span>E143</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57668"></span>E144</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57669"></span>E145</td>
+<td class="instruction">JR NZ,<a href="57595.html#57658">MAKE_TABLES_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57671"></span>E147</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">Done</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57582.html">E0EE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57595">Map</a></td>
+<td class="next">
+Next: <a href="57672.html">E148</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

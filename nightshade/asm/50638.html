@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C5CE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50612.html">C5B4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50638">Map</a></td>
+<td class="next">
+Next: <a href="50749.html">C63D</a>
+</td>
+</tr>
+</table>
+<div class="description">C5CE: Every sixteen turns, a find in the knight's cell if its type has any left</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Not while he is appearing. If a find record is free and the type of cell he stands in still has finds in STOCKS, one is taken from the stock and a find (graphic 48, 52, 56 or 60, by the type's low two bits) put in his cell at a random place 64-191 across it each way, half-size 8. The stock is shared by every cell of the type, and the find keeps the type at +5 so that <a href="55715.html">FIND_WANDER</a> can put it back if he leaves it behind. Open ground, type 0, has no stock: finds come only in cells with buildings.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_FIND</td>
+<td class="address-2"><span id="50638"></span>C5CE</td>
+<td class="instruction">LD A,(<a href="48042.html#48130">ARRIVING</a>)</td>
+<td class="comment-1" rowspan="3">not while he appears</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50641"></span>C5D1</td>
+<td class="instruction">CP $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50643"></span>C5D3</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50644"></span>C5D4</td>
+<td class="instruction">LD A,(<a href="48042.html#48050">TURNS</a>)</td>
+<td class="comment-1" rowspan="3">one turn in sixteen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50647"></span>C5D7</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50649"></span>C5D9</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50650"></span>C5DA</td>
+<td class="instruction">LD IY,<a href="48042.html#48334">FINDS</a></td>
+<td class="comment-1" rowspan="9">the first empty find record; none: no find</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50654"></span>C5DE</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50657"></span>C5E1</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_FIND_0</td>
+<td class="address-2"><span id="50659"></span>C5E3</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50662"></span>C5E6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50663"></span>C5E7</td>
+<td class="instruction">JR Z,<a href="50638.html#50670">SPAWN_FIND_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50665"></span>C5E9</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50667"></span>C5EB</td>
+<td class="instruction">DJNZ <a href="50638.html#50659">SPAWN_FIND_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50669"></span>C5ED</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_FIND_1</td>
+<td class="address-2"><span id="50670"></span>C5EE</td>
+<td class="instruction">LD A,(<a href="48042.html#48272">KNIGHT_COLUMN</a>)</td>
+<td class="comment-1" rowspan="7">his cell, and its type from the map</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50673"></span>C5F1</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50674"></span>C5F2</td>
+<td class="instruction">LD A,(<a href="48042.html#48274">KNIGHT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50677"></span>C5F5</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50678"></span>C5F6</td>
+<td class="instruction">LD E,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50679"></span>C5F7</td>
+<td class="instruction">LD D,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50680"></span>C5F8</td>
+<td class="instruction">CALL <a href="57384.html#57425">TOWN_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50683"></span>C5FB</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="7">none left of that type: no find</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50684"></span>C5FC</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50686"></span>C5FE</td>
+<td class="instruction">LD HL,<a href="48042.html#48078">STOCKS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50689"></span>C601</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50690"></span>C602</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50691"></span>C603</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50692"></span>C604</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50693"></span>C605</td>
+<td class="instruction">DEC (HL)</td>
+<td class="comment-1" rowspan="4">one fewer; the find in his cell, its type kept at +5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50694"></span>C606</td>
+<td class="instruction">LD (IY+$02),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50697"></span>C609</td>
+<td class="instruction">LD (IY+$04),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50700"></span>C60C</td>
+<td class="instruction">LD (IY+$05),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50703"></span>C60F</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="6">graphic 48, 52, 56 or 60 by the type's low two bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50704"></span>C610</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50706"></span>C612</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50707"></span>C613</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50708"></span>C614</td>
+<td class="instruction">OR $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50710"></span>C616</td>
+<td class="instruction">LD (IY+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50713"></span>C619</td>
+<td class="instruction">LD HL,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="9">a random place in the cell, 64-191 each way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50716"></span>C61C</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50717"></span>C61D</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50719"></span>C61F</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50721"></span>C621</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50724"></span>C624</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50725"></span>C625</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50727"></span>C627</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50729"></span>C629</td>
+<td class="instruction">LD (IY+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50732"></span>C62C</td>
+<td class="instruction">LD A,$08</td>
+<td class="comment-1" rowspan="6">half-size 8 each way; the drawing offset</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50734"></span>C62E</td>
+<td class="instruction">LD (IY+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50737"></span>C631</td>
+<td class="instruction">LD (IY+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50740"></span>C634</td>
+<td class="instruction">LD (IY+$0C),$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50744"></span>C638</td>
+<td class="instruction">LD (IY+$0D),$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50748"></span>C63C</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50612.html">C5B4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50638">Map</a></td>
+<td class="next">
+Next: <a href="50749.html">C63D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

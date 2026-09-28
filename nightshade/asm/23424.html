@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at 5B80</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="23296.html">5B00</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#23424">Map</a></td>
+<td class="next">
+Next: <a href="23467.html">5BAB</a>
+</td>
+</tr>
+</table>
+<div class="description">5B80: The loader's routine: unscramble the game and start it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Loaded from the tape into the printer buffer and run by the BASIC loader's PRINT USR. It sets bit 7 of the R register, which the refresh count never changes and which the game checks at every new game (<a href="49627.html">STOCK_BUILDINGS</a>); unscrambles the game block, which the tape loaded 512 bytes higher, a pair of bytes at a time -- RLD with the second byte swaps a nibble between the two; moves it all down to <a href="24064.html">ENTRY</a>; and jumps there. The build does the same to the tape's block and checks the result is the snapshot's (check_loader in scripts/build_nightshade.py).
+</div>
+<div class="paragraph">
+The DI here is for good: nothing in the game enables interrupts again, so FRAMES, which the interrupt counts, keeps the value the tape gave it for as long as the game runs (<a href="23552.html">SYSTEM_VARIABLES</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LOADER</td>
+<td class="address-2"><span id="23424"></span>5B80</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1">interrupts off, never to come back on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23425"></span>5B81</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="3">set bit 7 of R, the mark <a href="49627.html">STOCK_BUILDINGS</a> looks for; the refresh counts only the low seven bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23427"></span>5B83</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23429"></span>5B85</td>
+<td class="instruction">LD R,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23431"></span>5B87</td>
+<td class="instruction">LD DE,$6000</td>
+<td class="comment-1" rowspan="3">DE and HL on the first pair of the loaded block; 17408 pairs</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23434"></span>5B8A</td>
+<td class="instruction">LD HL,$6001</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23437"></span>5B8D</td>
+<td class="instruction">LD BC,$4400</td>
+</tr>
+<tr>
+<td class="asm-label">LOADER_0</td>
+<td class="address-2"><span id="23440"></span>5B90</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">the first byte becomes its own high nibble and the second's; the second, its own low nibble and the first's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23441"></span>5B91</td>
+<td class="instruction">RLD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23443"></span>5B93</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23444"></span>5B94</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="8">on to the next pair, until all are done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23445"></span>5B95</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23446"></span>5B96</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23447"></span>5B97</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23448"></span>5B98</td>
+<td class="instruction">DEC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23449"></span>5B99</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23450"></span>5B9A</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23451"></span>5B9B</td>
+<td class="instruction">JR NZ,<a href="23424.html#23440">LOADER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23453"></span>5B9D</td>
+<td class="instruction">LD HL,$6000</td>
+<td class="comment-1" rowspan="4">move the whole block down 512 bytes, to where it runs</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23456"></span>5BA0</td>
+<td class="instruction">LD DE,<a href="24064.html">ENTRY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23459"></span>5BA3</td>
+<td class="instruction">LD BC,$8800</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23462"></span>5BA6</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23464"></span>5BA8</td>
+<td class="instruction">JP <a href="24064.html">ENTRY</a></td>
+<td class="comment-1" rowspan="1">and start it</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="23296.html">5B00</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#23424">Map</a></td>
+<td class="next">
+Next: <a href="23467.html">5BAB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C29A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49802.html">C28A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49818">Map</a></td>
+<td class="next">
+Next: <a href="49860.html">C2C4</a>
+</td>
+</tr>
+</table>
+<div class="description">C29A: Print the heading on the panel: north, or south with the town turned round</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="48655.html">NEW_GAME</a> and <a href="56168.html">TURN_TOWN</a>.
+</div>
+<div class="paragraph">
+Four characters, a word, from the panel's icons (<a href="31343.html">PANEL_ICONS</a>): north in cyan, or while VIEW's bit 0 is set south in magenta, which way the town is seen from. At a new game, and whenever it is turned round (<a href="56168.html">TURN_TOWN</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_HEADING</td>
+<td class="address-2"><span id="49818"></span>C29A</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="6">which word, and its colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49819"></span>C29B</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49822"></span>C29E</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49824"></span>C2A0</td>
+<td class="instruction">JR NZ,<a href="49818.html#49853">PRINT_HEADING_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49826"></span>C2A2</td>
+<td class="instruction">LD HL,<a href="31343.html#31407">HEADING_CHARS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49829"></span>C2A5</td>
+<td class="instruction">LD A,$45</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_HEADING_0</td>
+<td class="address-2"><span id="49831"></span>C2A7</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="12">its four characters in a row, bottom right of the panel</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49832"></span>C2A8</td>
+<td class="instruction">LD (<a href="48042.html#48044">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49835"></span>C2AB</td>
+<td class="instruction">LD HL,$50DB</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49838"></span>C2AE</td>
+<td class="instruction">LD DE,<a href="49860.html">HEADING_ORDER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49841"></span>C2B1</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_HEADING_1</td>
+<td class="address-2"><span id="49843"></span>C2B3</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49844"></span>C2B4</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49845"></span>C2B5</td>
+<td class="instruction">CALL <a href="52059.html">PRINT_CHAR_COLOURED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49848"></span>C2B8</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49849"></span>C2B9</td>
+<td class="instruction">DJNZ <a href="49818.html#49843">PRINT_HEADING_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49851"></span>C2BB</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49852"></span>C2BC</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_HEADING_2</td>
+<td class="address-2"><span id="49853"></span>C2BD</td>
+<td class="instruction">LD HL,<a href="31343.html#31439">HEADING_TURNED_CHARS</a></td>
+<td class="comment-1" rowspan="3">south</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49856"></span>C2C0</td>
+<td class="instruction">LD A,$43</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49858"></span>C2C2</td>
+<td class="instruction">JR <a href="49818.html#49831">PRINT_HEADING_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49802.html">C28A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49818">Map</a></td>
+<td class="next">
+Next: <a href="49860.html">C2C4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

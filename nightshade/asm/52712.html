@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CDE8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52703.html">CDDF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52712">Map</a></td>
+<td class="next">
+Next: <a href="52857.html">CE79</a>
+</td>
+</tr>
+</table>
+<div class="description">CDE8: Bring a monster into a cell next to the knight's</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Called by <a href="48655.html">NEW_GAME</a> every turn but during the ending. Once the knight has finished appearing, every fourth turn (bits 0-1 of TURNS both set), the first empty monster record (MONSTERS) gets <a href="52857.html">MONSTER_RECORD</a>, a monster appearing (graphic 128). Its cell is the knight's or one of the eight round it, a column and a row each chosen from a third of the random number's range. It goes at a random place in that cell, at least 32 from each edge; one that appears in the first half of every 256 turns gets bit 5 of its flags, which makes a monster of 112-127 turn towards the knight when it chooses a way to go (<a href="56616.html">STEER</a>). After four turns <a href="49508.html">APPEARING_UPDATE</a> makes it a monster of 64-79 or 112-127.
+</div>
+<div class="paragraph">
+If the cell chosen is solid (types 1 and 2) the routine returns there -- but the record has already been filled, so it keeps its monster, in the corner of the town, cell 0,0, which is solid. Measured: a spawn with the knight's cell set to the corner, where every cell round it is solid, left graphic 128 at U 0 and V 0. Away from the corner it does no harm: after its four turns of appearing its own update finds it more than two cells from the knight and empties the record (<a href="52873.html">WANDERING_MONSTER</a>, <a href="49283.html">MONSTER112_UPDATE</a>), so it only keeps the record from a real monster for those turns. Near the top-left corner it lives: with the knight in cell 1,1 the strays walk off the map to column or row 255, which the byte subtraction of the nearness test counts as close, and for 1463 of 1500 turns three or four of the six monster records held them (measured for the bugs page). Only types 1 and 2 are refused, so a monster is often put inside a building's cell, where it is never drawn and walks on the spot; with the knight standing still the six records fill with these and no new monster appears (measured for the animations page).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER</td>
+<td class="address-2"><span id="52712"></span>CDE8</td>
+<td class="instruction">LD A,(<a href="48042.html#48130">ARRIVING</a>)</td>
+<td class="comment-1" rowspan="3">the knight still appearing: none</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52715"></span>CDEB</td>
+<td class="instruction">CP $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52717"></span>CDED</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52718"></span>CDEE</td>
+<td class="instruction">LD A,(<a href="48042.html#48050">TURNS</a>)</td>
+<td class="comment-1" rowspan="4">only when bits 0-1 of TURNS are both set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52721"></span>CDF1</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52722"></span>CDF2</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52724"></span>CDF4</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52725"></span>CDF5</td>
+<td class="instruction">LD IY,<a href="48042.html#48542">MONSTERS</a></td>
+<td class="comment-1" rowspan="9">the first empty monster record; none, none</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52729"></span>CDF9</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52732"></span>CDFC</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_0</td>
+<td class="address-2"><span id="52734"></span>CDFE</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52737"></span>CE01</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52738"></span>CE02</td>
+<td class="instruction">JR Z,<a href="52712.html#52745">SPAWN_MONSTER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52740"></span>CE04</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52742"></span>CE06</td>
+<td class="instruction">DJNZ <a href="52712.html#52734">SPAWN_MONSTER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52744"></span>CE08</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_1</td>
+<td class="address-2"><span id="52745"></span>CE09</td>
+<td class="instruction">LD HL,<a href="52857.html">MONSTER_RECORD</a></td>
+<td class="comment-1" rowspan="5">a monster appearing, in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52748"></span>CE0C</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52750"></span>CE0E</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52751"></span>CE0F</td>
+<td class="instruction">LD BC,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52754"></span>CE12</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52756"></span>CE14</td>
+<td class="instruction">LD A,(<a href="48042.html#48272">KNIGHT_COLUMN</a>)</td>
+<td class="comment-1" rowspan="4">HL = the knight's column and row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52759"></span>CE17</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52760"></span>CE18</td>
+<td class="instruction">LD A,(<a href="48042.html#48274">KNIGHT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52763"></span>CE1B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52764"></span>CE1C</td>
+<td class="instruction">LD A,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="8">the random number's low byte: below $55 the same column, below $AA the next, else the one before</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52767"></span>CE1F</td>
+<td class="instruction">CP $55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52769"></span>CE21</td>
+<td class="instruction">JR C,<a href="52712.html#52778">SPAWN_MONSTER_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52771"></span>CE23</td>
+<td class="instruction">CP $AA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52773"></span>CE25</td>
+<td class="instruction">JR C,<a href="52712.html#52777">SPAWN_MONSTER_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52775"></span>CE27</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52776"></span>CE28</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_2</td>
+<td class="address-2"><span id="52777"></span>CE29</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_3</td>
+<td class="address-2"><span id="52778"></span>CE2A</td>
+<td class="instruction">LD A,($BBAB)</td>
+<td class="comment-1" rowspan="8">its high byte chooses the row the same way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52781"></span>CE2D</td>
+<td class="instruction">CP $55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52783"></span>CE2F</td>
+<td class="instruction">JR C,<a href="52712.html#52792">SPAWN_MONSTER_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52785"></span>CE31</td>
+<td class="instruction">CP $AA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52787"></span>CE33</td>
+<td class="instruction">JR C,<a href="52712.html#52791">SPAWN_MONSTER_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52789"></span>CE35</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52790"></span>CE36</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_4</td>
+<td class="address-2"><span id="52791"></span>CE37</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_5</td>
+<td class="address-2"><span id="52792"></span>CE38</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">in the town, 0-31</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52793"></span>CE39</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52795"></span>CE3B</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52796"></span>CE3C</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52797"></span>CE3D</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52799"></span>CE3F</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52800"></span>CE40</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="6">a solid cell: leave it (the record keeps its monster, at the corner)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52801"></span>CE41</td>
+<td class="instruction">CALL <a href="57384.html#57425">TOWN_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52804"></span>CE44</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52805"></span>CE45</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52806"></span>CE46</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52808"></span>CE48</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52809"></span>CE49</td>
+<td class="instruction">LD (IY+$02),L</td>
+<td class="comment-1" rowspan="2">its cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52812"></span>CE4C</td>
+<td class="instruction">LD (IY+$04),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52815"></span>CE4F</td>
+<td class="instruction">CALL <a href="50612.html#50619">STIR_RANDOM</a></td>
+<td class="comment-1" rowspan="1">stir the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52818"></span>CE52</td>
+<td class="instruction">LD A,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="6">U within the cell: 32-223</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52821"></span>CE55</td>
+<td class="instruction">CP $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52823"></span>CE57</td>
+<td class="instruction">JR C,<a href="52712.html#52827">SPAWN_MONSTER_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52825"></span>CE59</td>
+<td class="instruction">SUB $40</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_6</td>
+<td class="address-2"><span id="52827"></span>CE5B</td>
+<td class="instruction">ADD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52829"></span>CE5D</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52832"></span>CE60</td>
+<td class="instruction">LD A,($BBAB)</td>
+<td class="comment-1" rowspan="6">V the same, from the high byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52835"></span>CE63</td>
+<td class="instruction">CP $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52837"></span>CE65</td>
+<td class="instruction">JR C,<a href="52712.html#52841">SPAWN_MONSTER_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52839"></span>CE67</td>
+<td class="instruction">SUB $40</td>
+</tr>
+<tr>
+<td class="asm-label">SPAWN_MONSTER_7</td>
+<td class="address-2"><span id="52841"></span>CE69</td>
+<td class="instruction">ADD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52843"></span>CE6B</td>
+<td class="instruction">LD (IY+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52846"></span>CE6E</td>
+<td class="instruction">LD A,(<a href="48042.html#48050">TURNS</a>)</td>
+<td class="comment-1" rowspan="5">born in the first half of 256 turns: bit 5, heading for the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52849"></span>CE71</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52851"></span>CE73</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52852"></span>CE74</td>
+<td class="instruction">SET 5,(IY+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52856"></span>CE78</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52703.html">CDDF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52712">Map</a></td>
+<td class="next">
+Next: <a href="52857.html">CE79</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

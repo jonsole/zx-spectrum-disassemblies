@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E556</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58682.html">E53A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58710">Map</a></td>
+<td class="next">
+Next: <a href="58745.html">E579</a>
+</td>
+</tr>
+</table>
+<div class="description">E556: Display address of a pixel position</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50313.html">PICK_UP_THING</a>, <a href="51695.html">PRINT_TEXT_SINGLE_COLOUR</a> and <a href="51708.html">PRINT_TEXT</a>.
+</div>
+<div class="paragraph">
+For drawing straight onto the screen: the carried things (<a href="50313.html">PICK_UP_THING</a>) and the text printer's two ways in (<a href="51695.html">PRINT_TEXT_SINGLE_COLOUR</a>, <a href="51708.html">PRINT_TEXT</a>). The y here counts up from the screen's bottom line, 0 at line 191. Turns it into the display's line counted from the top by complementing it: 255 - y is that line plus 64, one third of the screen too many in the top bits, which is taken back by adding 56 rather than 64 to the high byte. The same as Knight Lore's and Pentagram's routine of this name.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">x</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">y, upwards from the screen's bottom line</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The display address</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CALC_VRAM_ADDR</td>
+<td class="address-2"><span id="58710"></span>E556</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="2">E = x, D = y; DE kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58711"></span>E557</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58712"></span>E558</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="6">L's low five bits: the column, x / 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58713"></span>E559</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58714"></span>E55A</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58715"></span>E55B</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58716"></span>E55C</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58718"></span>E55E</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58719"></span>E55F</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="7">L's top three: the character row within the third, from 255 - y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58720"></span>E560</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58721"></span>E561</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58722"></span>E562</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58723"></span>E563</td>
+<td class="instruction">AND $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58725"></span>E565</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58726"></span>E566</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58727"></span>E567</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="7">H's third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58728"></span>E568</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58729"></span>E569</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58730"></span>E56A</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58731"></span>E56B</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58732"></span>E56C</td>
+<td class="instruction">AND $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58734"></span>E56E</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58735"></span>E56F</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="6">H's pixel line within the cell; adding 56 takes back the extra third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58736"></span>E570</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58737"></span>E571</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58739"></span>E573</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58740"></span>E574</td>
+<td class="instruction">ADD A,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58742"></span>E576</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58743"></span>E577</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="2">Restore DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58744"></span>E578</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58682.html">E53A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58710">Map</a></td>
+<td class="next">
+Next: <a href="58745.html">E579</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CBAC</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52091.html">CB7B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52140">Map</a></td>
+<td class="next">
+Next: <a href="52253.html">CC1D</a>
+</td>
+</tr>
+</table>
+<div class="description">CBAC: Start a new life when the knight's record is empty</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Called every turn by <a href="48655.html">NEW_GAME</a>; it does nothing until the knight's legs' record is empty, which happens when a life ends and his vanishing (graphic 12) has run its four turns.
+</div>
+<div class="paragraph">
+Then it checks its own code. The byte at TAKE_LIFE, the instruction that takes a life, must still be $35, DEC (HL); if it is anything else the game jumps to RESET (in <a href="49627.html">STOCK_BUILDINGS</a>), address 0, and the Spectrum starts again from its copyright message. So the obvious infinite-lives poke -- a NOP over that DEC -- resets the machine at the first death instead. It is the fourth of the game's protections, and the only one aimed at a player rather than a copier.
+</div>
+<div class="paragraph">
+With lives left it plays the new-life tune (<a href="51257.html">TUNE_NEW_LIFE</a>), copies the start records (<a href="52278.html">START_RECORDS</a>) over the knight's two records -- at a new game <a href="48655.html">NEW_GAME</a> comes in at FIRST_LIFE, without the tune -- sets him appearing (ARRIVING) with three hits, and takes a life: with none to take, the game is over (<a href="52310.html">GAME_OVER</a>). Otherwise the monsters are cleared away (<a href="49239.html">CLEAR_MONSTERS</a>), his cell is marked visited (<a href="48968.html">VISIT_CELL</a>), and the lives are drawn on the panel: five places at character row 18 from column 5, a bright white knight for each life left and a blue one for each lost.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">NEW_LIFE</td>
+<td class="address-2"><span id="52140"></span>CBAC</td>
+<td class="instruction">LD A,(<a href="48042.html#48270">KNIGHT</a>)</td>
+<td class="comment-1" rowspan="3">his legs' record still in use: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52143"></span>CBAF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52144"></span>CBB0</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52145"></span>CBB1</td>
+<td class="instruction">LD A,(<a href="52140.html#52189">TAKE_LIFE</a>)</td>
+<td class="comment-1" rowspan="3">the check: DEC (HL) at TAKE_LIFE, or reset the machine</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52148"></span>CBB4</td>
+<td class="instruction">CP $35</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52150"></span>CBB6</td>
+<td class="instruction">JP NZ,<a href="49627.html#49657">RESET</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52153"></span>CBB9</td>
+<td class="instruction">LD A,(<a href="48042.html#48077">LIVES</a>)</td>
+<td class="comment-1" rowspan="5">a life to come: the new-life tune</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52156"></span>CBBC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52157"></span>CBBD</td>
+<td class="instruction">JR Z,<a href="52140.html#52165">FIRST_LIFE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52159"></span>CBBF</td>
+<td class="instruction">LD DE,<a href="51257.html">TUNE_NEW_LIFE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52162"></span>CBC2</td>
+<td class="instruction">CALL <a href="50774.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="52165"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIRST_LIFE</td>
+<td class="address-2"><span id="52165"></span>CBC5</td>
+<td class="instruction">LD HL,<a href="52278.html">START_RECORDS</a></td>
+<td class="comment-1" rowspan="4">the start records over the knight's legs and top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52168"></span>CBC8</td>
+<td class="instruction">LD DE,<a href="48042.html#48270">KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52171"></span>CBCB</td>
+<td class="instruction">LD BC,$0020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52174"></span>CBCE</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52176"></span>CBD0</td>
+<td class="instruction">LD A,$28</td>
+<td class="comment-1" rowspan="2">appearing: ARRIVING counts up from here to $70, when he is there</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52178"></span>CBD2</td>
+<td class="instruction">LD (<a href="48042.html#48130">ARRIVING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52181"></span>CBD5</td>
+<td class="instruction">LD A,$03</td>
+<td class="comment-1" rowspan="2">three hits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52183"></span>CBD7</td>
+<td class="instruction">LD (<a href="48042.html#48115">HITS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52186"></span>CBDA</td>
+<td class="instruction">LD HL,<a href="48042.html#48077">LIVES</a></td>
+<td class="comment-1" rowspan="1">the lives</td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_LIFE</td>
+<td class="address-1"><span id="52189"></span>CBDD</td>
+<td class="instruction">DEC (HL)</td>
+<td class="comment-1" rowspan="1">take one (the instruction the check reads)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52190"></span>CBDE</td>
+<td class="instruction">JP M,<a href="52310.html">GAME_OVER</a></td>
+<td class="comment-1" rowspan="1">none left: game over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52193"></span>CBE1</td>
+<td class="instruction">CALL <a href="49239.html">CLEAR_MONSTERS</a></td>
+<td class="comment-1" rowspan="1">no monsters</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52196"></span>CBE4</td>
+<td class="instruction">LD IX,<a href="48042.html#48270">KNIGHT</a></td>
+<td class="comment-1" rowspan="2">his cell visited, with IX on his record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52200"></span>CBE8</td>
+<td class="instruction">CALL <a href="48968.html#48982">ENTER_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52203"></span>CBEB</td>
+<td class="instruction">LD HL,<a href="31343.html#31471">LIFE_CHARS</a></td>
+<td class="comment-1" rowspan="4">the life picture's eight characters, 16 into <a href="31343.html">PANEL_ICONS</a>; bright white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52206"></span>CBEE</td>
+<td class="instruction">LD (<a href="48042.html#48044">FONT_BASE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52209"></span>CBF1</td>
+<td class="instruction">LD A,$47</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52211"></span>CBF3</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52212"></span>CBF4</td>
+<td class="instruction">LD DE,<a href="52270.html">LIFE_ICON_CODES</a></td>
+<td class="comment-1" rowspan="2">codes 0-7; row 18, column 5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52215"></span>CBF7</td>
+<td class="instruction">LD HL,$5045</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52218"></span>CBFA</td>
+<td class="instruction">LD A,(<a href="48042.html#48077">LIVES</a>)</td>
+<td class="comment-1" rowspan="5">B = lives left, C = 5 - B lost</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52221"></span>CBFD</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52222"></span>CBFE</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52224"></span>CC00</td>
+<td class="instruction">ADD A,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52226"></span>CC02</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">NEW_LIFE_0</td>
+<td class="address-2"><span id="52227"></span>CC03</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="7">B white knights, two columns apart</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52228"></span>CC04</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52229"></span>CC05</td>
+<td class="instruction">JR Z,<a href="52140.html#52238">NEW_LIFE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52231"></span>CC07</td>
+<td class="instruction">CALL <a href="52253.html">PRINT_LIFE_ICON</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52234"></span>CC0A</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52235"></span>CC0B</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52236"></span>CC0C</td>
+<td class="instruction">DJNZ <a href="52140.html#52227">NEW_LIFE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">NEW_LIFE_1</td>
+<td class="address-2"><span id="52238"></span>CC0E</td>
+<td class="instruction">LD A,$41</td>
+<td class="comment-1" rowspan="5">then blue</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52240"></span>CC10</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52241"></span>CC11</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52242"></span>CC12</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52243"></span>CC13</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52244"></span>CC14</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="6">for the C lost</td>
+</tr>
+<tr>
+<td class="asm-label">NEW_LIFE_2</td>
+<td class="address-2"><span id="52245"></span>CC15</td>
+<td class="instruction">CALL <a href="52253.html">PRINT_LIFE_ICON</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52248"></span>CC18</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52249"></span>CC19</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52250"></span>CC1A</td>
+<td class="instruction">DJNZ <a href="52140.html#52245">NEW_LIFE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52252"></span>CC1C</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+LIVES counts the lives besides the one being played. A new game sets it to 6, from the opcode of the JR at LIVES_BYTE (in <a href="48655.html">NEW_GAME</a>), and the first life takes one, so the panel starts with five.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52091.html">CB7B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52140">Map</a></td>
+<td class="next">
+Next: <a href="52253.html">CC1D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

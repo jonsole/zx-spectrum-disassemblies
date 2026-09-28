@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CB7B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52081.html">CB71</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52091">Map</a></td>
+<td class="next">
+Next: <a href="52140.html">CBAC</a>
+</td>
+</tr>
+</table>
+<div class="description">CB7B: Choose the cell a new game starts in</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+Called by <a href="48655.html">NEW_GAME</a> at every new game. The random number, stirred (<a href="50612.html">NEXT_TURN</a>), gives a cell of the town map at random; if it is solid (types 1 and 2) the next cell in the map is tried, and the next, until one is not. Its column and row go into the start records (<a href="52278.html">START_RECORDS</a>), where <a href="52140.html">NEW_LIFE</a> takes them from; he starts in the middle of the cell. Only the cells a knight can stand in are chosen, but not all equally: a cell just after a run of solid ones in the map is chosen for the whole run as well as for itself.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM_START_CELL</td>
+<td class="address-2"><span id="52091"></span>CB7B</td>
+<td class="instruction">CALL <a href="50612.html#50619">STIR_RANDOM</a></td>
+<td class="comment-1" rowspan="1">stir the random number with R</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52094"></span>CB7E</td>
+<td class="instruction">LD DE,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">DE = a cell, 0-1023: the row in bits 5-9, the column in bits 0-4</td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM_START_CELL_0</td>
+<td class="address-2"><span id="52098"></span>CB82</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52099"></span>CB83</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52101"></span>CB85</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52102"></span>CB86</td>
+<td class="instruction">LD HL,<a href="24068.html">TOWN</a></td>
+<td class="comment-1" rowspan="6">is it solid, type 1 or 2?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52105"></span>CB89</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52106"></span>CB8A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52107"></span>CB8B</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52108"></span>CB8C</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52110"></span>CB8E</td>
+<td class="instruction">JR NC,<a href="52091.html#52115">RANDOM_START_CELL_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52112"></span>CB90</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="2">then the next one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52113"></span>CB91</td>
+<td class="instruction">JR <a href="52091.html#52098">RANDOM_START_CELL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">RANDOM_START_CELL_1</td>
+<td class="address-2"><span id="52115"></span>CB93</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="3">the column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52116"></span>CB94</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52118"></span>CB96</td>
+<td class="instruction">LD (<a href="52278.html#52280">START_U_CELL</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52121"></span>CB99</td>
+<td class="instruction">RL E</td>
+<td class="comment-1" rowspan="9">and the row, from bits 5-9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52123"></span>CB9B</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52125"></span>CB9D</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52127"></span>CB9F</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52129"></span>CBA1</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52131"></span>CBA3</td>
+<td class="instruction">RL D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52133"></span>CBA5</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52134"></span>CBA6</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52136"></span>CBA8</td>
+<td class="instruction">LD (<a href="52278.html#52282">START_V_CELL</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52139"></span>CBAB</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52081.html">CB71</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52091">Map</a></td>
+<td class="next">
+Next: <a href="52140.html">CBAC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

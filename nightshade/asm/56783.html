@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DDCF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56729.html">DD99</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56783">Map</a></td>
+<td class="next">
+Next: <a href="56828.html">DDFC</a>
+</td>
+</tr>
+</table>
+<div class="description">DDCF: Now and then give a wanderer a new random step</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="52873.html">WANDERING_MONSTER</a> and <a href="55715.html">FIND_WANDER</a>.
+</div>
+<div class="paragraph">
+For the finds (<a href="55715.html">FIND_WANDER</a>, B=4) and the monsters of graphics 64-79 (<a href="52873.html">WANDERING_MONSTER</a>, B=7). The low six bits of +6 count turns down; when they run out, or when the step has become 0 both ways, a new step is drawn for U and V from the random number's two bytes (<a href="56828.html">RANDOM_STEP</a>: up to twice B either way, those near B likeliest) and a new count of 0-63 from R. The facing's top two bits are set again from the step by <a href="56845.html">MOVE_SPLIT</a>, which follows.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The number of random bits to a step</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">WANDER_STEP</td>
+<td class="address-2"><span id="56783"></span>DDCF</td>
+<td class="instruction">DEC (IX+$06)</td>
+<td class="comment-1" rowspan="4">Count down; a new step when the count runs out...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56786"></span>DDD2</td>
+<td class="instruction">LD A,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56789"></span>DDD5</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56791"></span>DDD7</td>
+<td class="instruction">JR Z,<a href="56783.html#56800">WANDER_STEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56793"></span>DDD9</td>
+<td class="instruction">LD A,(IX+$0A)</td>
+<td class="comment-1" rowspan="3">...or when the old one is 0 both ways</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56796"></span>DDDC</td>
+<td class="instruction">OR (IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56799"></span>DDDF</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">WANDER_STEP_0</td>
+<td class="address-2"><span id="56800"></span>DDE0</td>
+<td class="instruction">LD A,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">The U step, from the random number's low byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56803"></span>DDE3</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56804"></span>DDE4</td>
+<td class="instruction">CALL <a href="56828.html">RANDOM_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56807"></span>DDE7</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56810"></span>DDEA</td>
+<td class="instruction">LD A,($BBAB)</td>
+<td class="comment-1" rowspan="4">The V step, from its high byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56813"></span>DDED</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56814"></span>DDEE</td>
+<td class="instruction">CALL <a href="56828.html">RANDOM_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56817"></span>DDF1</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56820"></span>DDF4</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="4">A new count of 0-63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56822"></span>DDF6</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56824"></span>DDF8</td>
+<td class="instruction">LD (IX+$06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56827"></span>DDFB</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56729.html">DD99</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56783">Map</a></td>
+<td class="next">
+Next: <a href="56828.html">DDFC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

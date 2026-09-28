@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C332</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49940.html">C314</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49970">Map</a></td>
+<td class="next">
+Next: <a href="49997.html">C34D</a>
+</td>
+</tr>
+</table>
+<div class="description">C332: The creature's blip: a note chosen by the turn counter</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49137.html">CREATURE_UPDATE</a>.
+</div>
+<div class="paragraph">
+Twelve waves at a pitch from <a href="49997.html">BLIP_PITCHES</a> picked by the turn counter's low four bits, if the record was drawn last turn; the flag is cleared, so it sounds once for each time the thing is on the screen. The creature's update calls it (<a href="49137.html">CREATURE_UPDATE</a>). Pentagram has the same bytes, unused.
+</div>
+<div class="paragraph">
+The villains' update (<a href="55631.html">VILLAIN_WANDER</a>) enters at BLIP_FROM_TABLE, meaning to give each villain its own sixteen pitches from VILLAIN_PITCHES, and misses twice. It loads the table's address into HL, which this routine overwrites with the turn's four bits before adding BC; and the offset it puts in BC, the graphic turned left two bits and cut to its top four, keeps graphic bit 5 as well as the kind, so it is $80, $90, $A0 or $B0 rather than 0 to 48. So a villain's blip is pitched by bytes of the ROM, from $0080 to $00BF, and the four villains' tables are never read (range 4's simulator run saw the villains read their pitches at ROM addresses in each of those four sixteens).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BLIP_BY_TURN</td>
+<td class="address-2"><span id="49970"></span>C332</td>
+<td class="instruction">LD BC,<a href="49997.html">BLIP_PITCHES</a></td>
+<td class="comment-1" rowspan="1">the creature's pitches</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49973"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="55631.html">VILLAIN_WANDER</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BLIP_FROM_TABLE</td>
+<td class="address-2"><span id="49973"></span>C335</td>
+<td class="instruction">BIT 1,(IX+$07)</td>
+<td class="comment-1" rowspan="3">BLIP_FROM_TABLE: not drawn last turn, silent; the flag cleared either way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49977"></span>C339</td>
+<td class="instruction">RES 1,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49981"></span>C33D</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49982"></span>C33E</td>
+<td class="instruction">LD A,(<a href="48042.html#48050">TURNS</a>)</td>
+<td class="comment-1" rowspan="8">twelve waves at the pitch for this turn of sixteen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49985"></span>C341</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49987"></span>C343</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49988"></span>C344</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49990"></span>C346</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49991"></span>C347</td>
+<td class="instruction">LD B,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49992"></span>C348</td>
+<td class="instruction">LD C,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49994"></span>C34A</td>
+<td class="instruction">JP <a href="50275.html#50282">BEEP</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49940.html">C314</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49970">Map</a></td>
+<td class="next">
+Next: <a href="49997.html">C34D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

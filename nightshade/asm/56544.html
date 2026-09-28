@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DCE0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56540.html">DCDC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56544">Map</a></td>
+<td class="next">
+Next: <a href="56577.html">DD01</a>
+</td>
+</tr>
+</table>
+<div class="description">DCE0: Set a record's step from its speed and facing</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49283.html">MONSTER112_UPDATE</a>, <a href="55050.html">SPARKLE_FLY</a>, <a href="55277.html">ANTIBODY_FLIGHT</a>, <a href="55308.html">OBJECT_FLIGHT</a>, <a href="55631.html">VILLAIN_WANDER</a> and <a href="56488.html">WALK_ON</a>.
+</div>
+<div class="paragraph">
+The step (+A, +B) is the speed along the one axis the record faces: U if bit 6 of the facing is set, V if not, negative if bit 7 is set. Only four directions; the random wanderers set their steps themselves (<a href="56783.html">WANDER_STEP</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The speed</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SET_STEP</td>
+<td class="address-2"><span id="56544"></span>DCE0</td>
+<td class="instruction">LD H,$00</td>
+<td class="comment-1" rowspan="6">H (V) or L (U) the speed, the other 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56546"></span>DCE2</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56547"></span>DCE3</td>
+<td class="instruction">BIT 6,(IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56551"></span>DCE7</td>
+<td class="instruction">JR NZ,<a href="56544.html#56556">SET_STEP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56553"></span>DCE9</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56554"></span>DCEA</td>
+<td class="instruction">LD L,$00</td>
+</tr>
+<tr>
+<td class="asm-label">SET_STEP_0</td>
+<td class="address-2"><span id="56556"></span>DCEC</td>
+<td class="instruction">BIT 7,(IX+$06)</td>
+<td class="comment-1" rowspan="8">Facing -V or -U: negate both</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56560"></span>DCF0</td>
+<td class="instruction">JR Z,<a href="56544.html#56570">SET_STEP_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56562"></span>DCF2</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56563"></span>DCF3</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56565"></span>DCF5</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56566"></span>DCF6</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56567"></span>DCF7</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56569"></span>DCF9</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">SET_STEP_1</td>
+<td class="address-2"><span id="56570"></span>DCFA</td>
+<td class="instruction">LD (IX+$0A),L</td>
+<td class="comment-1" rowspan="3">The step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56573"></span>DCFD</td>
+<td class="instruction">LD (IX+$0B),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56576"></span>DD00</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56540.html">DCDC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56544">Map</a></td>
+<td class="next">
+Next: <a href="56577.html">DD01</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

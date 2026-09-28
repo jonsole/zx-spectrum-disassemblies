@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D19D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53646.html">D18E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53661">Map</a></td>
+<td class="next">
+Next: <a href="53754.html">D1FA</a>
+</td>
+</tr>
+</table>
+<div class="description">D19D: Draw a building's outline on the ground</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53000.html">DRAW_CELLS</a>.
+</div>
+<div class="paragraph">
+What stands in front of the knight is not drawn as walls, which would hide him: the drawing order (<a href="53000.html">DRAW_CELLS</a>) calls this for his own cell and the three nearer the viewer -- one less in V, one more in U, and both -- and for those only the line where the building's walls meet the ground is drawn, all the way round. The two near faces come from the building definition for this view (<a href="53754.html">OUTLINE_NEAR_FACES</a>), and the two far ones from the definition for the other view, which describes those same walls seen from the other side: from the right-hand corner leftwards, up the screen along one face and down along the other, each column's edge through <a href="53875.html">DRAW_EDGE</a> with C set to 1. Each tile has an edge picture under it (<a href="25922.html">TILE_EDGES</a>): a plain line for a wall, or a stub at one end for a tile with an archway, and C = 1 swaps which end's stub, since those faces are seen from behind. An archway in a wall so leaves a gap in its outline.
+</div>
+<div class="paragraph">
+Open ground (type 0) has no building. Drawn with OR, and not through the column claims of <a href="54130.html">DRAW_WALLS</a>'s walls. Measured: with this routine made to return at once, the white lines on the ground in front of the knight were gone, and with <a href="54130.html">DRAW_WALLS</a> returning at once instead, the walls behind him.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the cell, as the drawing order sees it</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_OUTLINE</td>
+<td class="address-2"><span id="53661"></span>D19D</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+<td class="comment-1" rowspan="2">The cell's type; open ground: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53664"></span>D1A0</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53665"></span>D1A1</td>
+<td class="instruction">ADD A,A</td>
+<td class="comment-1" rowspan="5">The type times two, the building table's index for the usual view; DRAW_X and DRAW_Y the cell's corner on the screen (<a href="54536.html">PROJECT_CELL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53666"></span>D1A2</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53667"></span>D1A3</td>
+<td class="instruction">CALL <a href="54536.html">PROJECT_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53670"></span>D1A6</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53671"></span>D1A7</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53672"></span>D1A8</td>
+<td class="instruction">LD HL,<a href="48042.html#48058">VIEW</a></td>
+<td class="comment-1" rowspan="3">Which way round?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53675"></span>D1AB</td>
+<td class="instruction">BIT 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53677"></span>D1AD</td>
+<td class="instruction">JR NZ,<a href="53661.html#53746">DRAW_OUTLINE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53679"></span>D1AF</td>
+<td class="instruction">CALL <a href="53754.html">OUTLINE_NEAR_FACES</a></td>
+<td class="comment-1" rowspan="3">The usual way: the near faces from the usual view's definition, and then the far ones from the turned one's (index plus 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53682"></span>D1B2</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53683"></span>D1B3</td>
+<td class="instruction">OR $01</td>
+</tr>
+<tr>
+<td class="asm-label">OUTLINE_FAR_FACES</td>
+<td class="address-2"><span id="53685"></span>D1B5</td>
+<td class="instruction">LD HL,(<a href="48042.html#48054">DRAW_X</a>)</td>
+<td class="comment-1" rowspan="4">A column back to the left: the far faces start from the right-hand corner, where the near faces ended</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53688"></span>D1B8</td>
+<td class="instruction">LD DE,<a href="64000.html#65520">$FFF0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53691"></span>D1BB</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53692"></span>D1BC</td>
+<td class="instruction">LD (<a href="48042.html#48054">DRAW_X</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53695"></span>D1BF</td>
+<td class="instruction">LD BC,<a href="25252.html">BUILDING_TABLE</a></td>
+<td class="comment-1" rowspan="4">IY = the other view's definition (<a href="25252.html">BUILDING_TABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53698"></span>D1C2</td>
+<td class="instruction">CALL <a href="54665.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53701"></span>D1C5</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53702"></span>D1C6</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53704"></span>D1C8</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="6">Its first face, unmirrored: eight columns leftwards and up the screen, C = 1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53705"></span>D1C9</td>
+<td class="instruction">LD (<a href="48042.html#48114">DRAW_PASS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53708"></span>D1CC</td>
+<td class="instruction">LD BC,$0801</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_OUTLINE_0</td>
+<td class="address-2"><span id="53711"></span>D1CF</td>
+<td class="instruction">CALL <a href="53875.html">DRAW_EDGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53714"></span>D1D2</td>
+<td class="instruction">CALL <a href="53845.html">EDGE_LEFT_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53717"></span>D1D5</td>
+<td class="instruction">DJNZ <a href="53661.html#53711">DRAW_OUTLINE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53719"></span>D1D7</td>
+<td class="instruction">LD HL,(<a href="48042.html#48056">DRAW_Y</a>)</td>
+<td class="comment-1" rowspan="4">Down 8 lines for the second face, which slopes the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53722"></span>D1DA</td>
+<td class="instruction">LD DE,$FFF8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53725"></span>D1DD</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53726"></span>D1DE</td>
+<td class="instruction">LD (<a href="48042.html#48056">DRAW_Y</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53729"></span>D1E1</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="6">The second face, mirrored: eight columns leftwards and down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53731"></span>D1E3</td>
+<td class="instruction">LD (<a href="48042.html#48114">DRAW_PASS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53734"></span>D1E6</td>
+<td class="instruction">LD BC,$0801</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_OUTLINE_1</td>
+<td class="address-2"><span id="53737"></span>D1E9</td>
+<td class="instruction">CALL <a href="53875.html">DRAW_EDGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53740"></span>D1EC</td>
+<td class="instruction">CALL <a href="53870.html">EDGE_LEFT_DOWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53743"></span>D1EF</td>
+<td class="instruction">DJNZ <a href="53661.html#53737">DRAW_OUTLINE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53745"></span>D1F1</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_OUTLINE_2</td>
+<td class="address-2"><span id="53746"></span>D1F2</td>
+<td class="instruction">OR $01</td>
+<td class="comment-1" rowspan="4">Turned round: the turned definition's faces are the near ones, and the usual view's the far ones</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53748"></span>D1F4</td>
+<td class="instruction">CALL <a href="53754.html">OUTLINE_NEAR_FACES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53751"></span>D1F7</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53752"></span>D1F8</td>
+<td class="instruction">JR <a href="53661.html#53685">OUTLINE_FAR_FACES</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53646.html">D18E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53661">Map</a></td>
+<td class="next">
+Next: <a href="53754.html">D1FA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

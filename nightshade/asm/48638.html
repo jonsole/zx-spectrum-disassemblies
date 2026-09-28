@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at BDFE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48042.html">BBAA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48638">Map</a></td>
+<td class="next">
+Next: <a href="48655.html">BE0F</a>
+</td>
+</tr>
+</table>
+<div class="description">BDFE: The start: the first protection check, and every variable cleared</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="24064.html">ENTRY</a>.
+</div>
+<div class="paragraph">
+Entered from <a href="24064.html">ENTRY</a>. The first of the game's three protection checks: FRAMES' middle byte must still be $63, as the tape's last block left it, or the RET goes back to BASIC -- the loader's PRINT USR is what called it. A copy that loads the code some other way, without that block, or lets the interrupts run on for a few seconds before starting it, gets no further. Then the stack is put below the game, the variables and all 23 object records are cleared, and the set-up of a new game follows (<a href="48655.html">NEW_GAME</a>).
+</div>
+<div class="paragraph">
+This is the only place SP is set. <a href="52310.html">GAME_OVER</a> is jumped into from routines that were called, and leaves by jumping to NEW_GAME or MAIN_LOOP, so every game over leaves two bytes on the stack and every ending four. The stack creeps down through the BASIC program towards the system variables, and after 156 game overs in one sitting it has overwritten NMIADD: the next game's first update jumps into the screen and the machine crashes. Measured: 156 games started and ended at once in the simulator left SP at the menu two bytes lower after each, until after the 156th NMIADD held part of a return address; the 157th game ran off into the screen and the printer buffer (the loader's code ran again) and hung.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">START</td>
+<td class="address-2"><span id="48638"></span>BDFE</td>
+<td class="instruction">LD A,(<a href="23552.html#23673">FRAMES_MIDDLE</a>)</td>
+<td class="comment-1" rowspan="3">protection check 1: back to BASIC unless FRAMES' middle byte is $63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48641"></span>BE01</td>
+<td class="instruction">CP $63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48643"></span>BE03</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48644"></span>BE04</td>
+<td class="instruction">LD SP,<a href="24064.html">ENTRY</a></td>
+<td class="comment-1" rowspan="1">the stack below the game, growing into the BASIC program</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48647"></span>BE07</td>
+<td class="instruction">LD HL,<a href="48042.html">RANDOM</a></td>
+<td class="comment-1" rowspan="3">clear all 596 bytes from RANDOM to the last monster's record, and join the new game</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48650"></span>BE0A</td>
+<td class="instruction">LD BC,$0254</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48653"></span>BE0D</td>
+<td class="instruction">JR <a href="48655.html#48661">NEW_GAME_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48042.html">BBAA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48638">Map</a></td>
+<td class="next">
+Next: <a href="48655.html">BE0F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

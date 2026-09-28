@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: The panel</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="nightshade.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Panel">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Nightshade</a></td>
+<td class="page-header">The panel</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>The play area is only the middle of the screen, 22 characters by 14, in its frame; the game buffers that part alone (<a href="asm/58820.html">BUFFER</a>) and prints everything else straight onto the screen, once when a game starts and again only when something changes. Down the left, in a frame of its own, are the eleven places for what the knight carries; along the bottom his lives, the score, the four villains, the compass and the heading.</p>
+<p>Here is the whole screen at the top of the first turn of a game, as the game drew it in SkoolKit's simulator (read from the screen, colours and all): <a href="asm/48655.html">NEW_GAME</a> has drawn the frames, the heading over the score and the score, the compass and NORTH, five white knights for the lives (<a href="asm/52140.html">NEW_LIFE</a>) and the villains, still about, as outlines (<a href="asm/49661.html">DRAW_VILLAINS</a>).</p>
+<img class="kl-scene" src="images/graphics/panel_start.png" alt="A game starting" width="512" height="384">
+<p>The same, staged by calling the game's own routines on it: all eight kinds of thing carried (DRAW_CARRIED, 27 bytes into <a href="asm/50313.html">PICK_UP_THING</a> for each place, then <a href="asm/50396.html">COLOUR_CARRIED</a> for the colours); the villains of records 1 and 3 -- the hooded figure with the scythe and the ghost -- destroyed and <a href="asm/49661.html">DRAW_VILLAINS</a> run again, which draws them as pictures in the colour of the object that kills them; two lives lost (the lives' part of <a href="asm/52140.html">NEW_LIFE</a>: blue knights for the lost); the town turned round (<a href="asm/49818.html">PRINT_HEADING</a>: SOUTH, in magenta); and 252500 added to the score (<a href="asm/49901.html">ADD_SCORE</a>). The play area is the first turn's.</p>
+<img class="kl-scene" src="images/graphics/panel_staged.png" alt="The panel, staged" width="512" height="384">
+<p>A villain still about is drawn from its sprite's first standing picture -- 108, 104, 100 and 96 -- as the mask byte of each pair less the image byte, which comes out as its outline, in white; a dead one as the image bytes, its picture, in colour (<a href="asm/49661.html">DRAW_VILLAINS</a>). The carried things are coloured every turn: an object in the colour its villain is drawn in once dead, an antibody by its kind; an object whose villain is within five cells flashes through the antibodies' colours instead, the game's hint (<a href="asm/50396.html">COLOUR_CARRIED</a>).</p>
+<h3 id="border">The border</h3>
+<p><a href="asm/51869.html">PRINT_BORDER</a> draws the border round the whole screen for the menu and for the screen after a game, in the pieces of the play area's frame; here round the menu, as the game shows it at the first pass of the menu's loop (<a href="asm/51402.html">MENU</a>).</p>
+<img class="kl-scene" src="images/graphics/panel_menu.png" alt="The menu" width="512" height="384">
+<h3 id="characters">The panel's characters</h3>
+<p>The panel is printed a character at a time by the text printer (<a href="asm/51993.html">PRINT_CHAR</a>), each set with FONT_BASE pointed at its own characters, and each character eight bytes, the top row first. Printed here by the game's PRINT_CODE, put together as the game puts them, in white; the game colours them as it prints (<a href="asm/52059.html">PRINT_CHAR_COLOURED</a>).</p>
+<p><a href="asm/27830.html">PANEL_CHARS</a>, 5 characters: the frame round the carried things, printed by <a href="asm/51263.html">DRAW_PANEL_FRAME</a> in bright magenta: 0 the top of an upright, 1 an upright, 2 the left-hand bottom corner, 3 a length of the bar along the bottom and 4 the right-hand corner; here the top of an upright over two lengths of it, and the foot as the game prints it, 2, 3, 3, 4.</p><img class="kl-piece" src="images/graphics/panel_frame.png" alt="panel_frame" width="144" height="72">
+<p><a href="asm/47882.html">BORDER_CHARS</a>, 20 characters: the pieces of the frame round the play area (<a href="asm/51797.html">DRAW_PLAY_FRAME</a>, yellow on red) and of the border round the menu and the screen after a game (<a href="asm/51869.html">PRINT_BORDER</a>, bright yellow on blue), four to a piece two characters square as <a href="asm/51941.html">FRAME_PIECES</a> arranges them; here its six pieces: the corners, top left, top right, bottom left and bottom right, then a length of the top or the bottom and a length of a side.</p><img class="kl-piece" src="images/graphics/panel_border.png" alt="panel_border" width="408" height="48">
+<p><a href="asm/30065.html">ICONS</a>, 36 characters: the carried things, four characters each, two over two (DRAW_CARRIED, 27 bytes into <a href="asm/50313.html">PICK_UP_THING</a>): first the blank of an empty place, then things 1-4, the objects (the book, the cross, the hourglass, the hammer), and 5-8, the four kinds of antibody.</p><img class="kl-piece" src="images/graphics/panel_icons.png" alt="panel_icons" width="624" height="48">
+<p><a href="asm/31343.html">PANEL_ICONS</a>, 24 characters: the compass, stored as its two rows of four and printed as two blocks of two by two by <a href="asm/49864.html">PRINT_COMPASS</a>; the heading, four characters for each view, north and south (<a href="asm/49818.html">PRINT_HEADING</a>); and a life, two by four (<a href="asm/52253.html">PRINT_LIFE_ICON</a>).</p><img class="kl-piece" src="images/graphics/panel_compass.png" alt="panel_compass" width="408" height="96">
+<p>None of these characters is found in Knight Lore's, Alien 8's or Pentagram's snapshots but one plain bar of the border's (searched): the panel is Nightshade's own. Compare <a href="../alien8/Objects.html#screen">Alien 8's panel</a>, drawn from sprites.</p>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

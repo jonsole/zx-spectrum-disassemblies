@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E241</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57913.html">E239</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57921">Map</a></td>
+<td class="next">
+Next: <a href="58156.html">E32C</a>
+</td>
+</tr>
+</table>
+<div class="description">E241: Read the controls into CONTROLS</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55930.html">UPDATE_KNIGHT</a>.
+</div>
+<div class="paragraph">
+Called once a turn by the knight's controls (<a href="55930.html">UPDATE_KNIGHT</a>). Reads the keyboard or a joystick, by the method in bits 1-2 of CONTROL, into one byte, CONTROLS: bit 0 left, 1 right, 2 up, 3 fire, 4 down, 5 turn the town round -- what each does is the knight's controls' business (<a href="55930.html">UPDATE_KNIGHT</a>). Bits 6 and 7 are never set.
+</div>
+<div class="paragraph">
+The keyboard: X, V, B and M left, C and N right; the whole of the A-G and H-ENTER rows up; the whole of the Q-T and Y-P rows fire; any number key down. The bottom row is not alternate keys, as Pentagram's is (Z, C, M and B one way, X, V, SYMBOL SHIFT and N the other): here Z and SYMBOL SHIFT are the key that turns the town round, and of the rest X, V, B and M turn one way and C and N the other.
+</div>
+<div class="paragraph">
+A joystick: the Kempston stick from port 31; the cursor keys, 5 left, 8 right, 7 up, 6 down and 0 fire; Interface II, the 6-0 keys for one stick (6 left, 7 right, 8 down, 9 up, 0 fire) and 1-5 for the other, read together. With any method, Z or SYMBOL SHIFT sets bit 5 (half-rows $7F and $FE read together: bit 1 is either). SPACE and CAPS SHIFT do nothing here: <a href="58156.html">PAUSE</a> reads them for the pause.
+</div>
+<div class="paragraph">
+Measured in the simulator, a key or a stick direction at a time for each method: every key and direction sets the bits above and nothing else.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The controls, as stored in CONTROLS</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS</td>
+<td class="address-2"><span id="57921"></span>E241</td>
+<td class="instruction">LD A,(<a href="48042.html#48048">CONTROL</a>)</td>
+<td class="comment-1" rowspan="8">Bits 1-2 of CONTROL: 0 the keyboard, 1 Kempston, 2 the cursor keys, 3 Interface II</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57924"></span>E244</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57925"></span>E245</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57927"></span>E247</td>
+<td class="instruction">JP Z,<a href="57921.html#58074">READ_CONTROLS_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57930"></span>E24A</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57931"></span>E24B</td>
+<td class="instruction">JR Z,<a href="57921.html#57993">READ_CONTROLS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57933"></span>E24D</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57934"></span>E24E</td>
+<td class="instruction">JR Z,<a href="57921.html#58030">READ_CONTROLS_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57936"></span>E250</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="10">Interface II: the 1-5 half-row, turned end for end so that 5 is bit 0 and 1 bit 4, as 0 and 6 are in the 6-0 half-row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57938"></span>E252</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57941"></span>E255</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57942"></span>E256</td>
+<td class="instruction">LD B,$05</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_0</td>
+<td class="address-2"><span id="57944"></span>E258</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57945"></span>E259</td>
+<td class="instruction">RL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57947"></span>E25B</td>
+<td class="instruction">DJNZ <a href="57921.html#57944">READ_CONTROLS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57949"></span>E25D</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57950"></span>E25E</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57951"></span>E25F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57952"></span>E260</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="3">...ORed with the 6-0 half-row: bit 0 fire (0 or 5), 1 up (9 or 4), 2 down (8 or 3), 3 right (7 or 2), 4 left (6 or 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57954"></span>E262</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57957"></span>E265</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57958"></span>E266</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="16">Rearranged into the controls' bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57960"></span>E268</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57962"></span>E26A</td>
+<td class="instruction">JR Z,<a href="57921.html#57966">READ_CONTROLS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57964"></span>E26C</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_1</td>
+<td class="address-2"><span id="57966"></span>E26E</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57968"></span>E270</td>
+<td class="instruction">JR Z,<a href="57921.html#57972">READ_CONTROLS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57970"></span>E272</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_2</td>
+<td class="address-2"><span id="57972"></span>E274</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57974"></span>E276</td>
+<td class="instruction">JR Z,<a href="57921.html#57978">READ_CONTROLS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57976"></span>E278</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_3</td>
+<td class="address-2"><span id="57978"></span>E27A</td>
+<td class="instruction">BIT 3,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57980"></span>E27C</td>
+<td class="instruction">JR Z,<a href="57921.html#57984">READ_CONTROLS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57982"></span>E27E</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_4</td>
+<td class="address-2"><span id="57984"></span>E280</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57986"></span>E282</td>
+<td class="instruction">JR Z,<a href="57921.html#57990">READ_CONTROLS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57988"></span>E284</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_5</td>
+<td class="address-2"><span id="57990"></span>E286</td>
+<td class="instruction">JP <a href="57921.html#58140">READ_CONTROLS_24</a></td>
+<td class="comment-1" rowspan="1">On to the key that turns the town round</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_6</td>
+<td class="address-2"><span id="57993"></span>E289</td>
+<td class="instruction">IN A,($1F)</td>
+<td class="comment-1" rowspan="17">Kempston: bit 0 right, 1 left, 2 down, 3 up, 4 fire, rearranged</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57995"></span>E28B</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57997"></span>E28D</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57999"></span>E28F</td>
+<td class="instruction">JR Z,<a href="57921.html#58003">READ_CONTROLS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58001"></span>E291</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_7</td>
+<td class="address-2"><span id="58003"></span>E293</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58005"></span>E295</td>
+<td class="instruction">JR Z,<a href="57921.html#58009">READ_CONTROLS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58007"></span>E297</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_8</td>
+<td class="address-2"><span id="58009"></span>E299</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58011"></span>E29B</td>
+<td class="instruction">JR Z,<a href="57921.html#58015">READ_CONTROLS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58013"></span>E29D</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_9</td>
+<td class="address-2"><span id="58015"></span>E29F</td>
+<td class="instruction">BIT 3,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58017"></span>E2A1</td>
+<td class="instruction">JR Z,<a href="57921.html#58021">READ_CONTROLS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58019"></span>E2A3</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_10</td>
+<td class="address-2"><span id="58021"></span>E2A5</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58023"></span>E2A7</td>
+<td class="instruction">JR Z,<a href="57921.html#58027">READ_CONTROLS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58025"></span>E2A9</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_11</td>
+<td class="address-2"><span id="58027"></span>E2AB</td>
+<td class="instruction">JP <a href="57921.html#58140">READ_CONTROLS_24</a></td>
+<td class="comment-1" rowspan="1">On to the key that turns the town round</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_12</td>
+<td class="address-2"><span id="58030"></span>E2AE</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="6">The cursor keys: 5 left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58032"></span>E2B0</td>
+<td class="instruction">LD A,$F7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58034"></span>E2B2</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58037"></span>E2B5</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58039"></span>E2B7</td>
+<td class="instruction">JR Z,<a href="57921.html#58043">READ_CONTROLS_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58041"></span>E2B9</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_13</td>
+<td class="address-2"><span id="58043"></span>E2BB</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="15">0 fire, 7 up, 8 right, 6 down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58045"></span>E2BD</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58048"></span>E2C0</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58050"></span>E2C2</td>
+<td class="instruction">JR Z,<a href="57921.html#58054">READ_CONTROLS_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58052"></span>E2C4</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_14</td>
+<td class="address-2"><span id="58054"></span>E2C6</td>
+<td class="instruction">BIT 3,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58056"></span>E2C8</td>
+<td class="instruction">JR Z,<a href="57921.html#58060">READ_CONTROLS_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58058"></span>E2CA</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_15</td>
+<td class="address-2"><span id="58060"></span>E2CC</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58062"></span>E2CE</td>
+<td class="instruction">JR Z,<a href="57921.html#58066">READ_CONTROLS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58064"></span>E2D0</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_16</td>
+<td class="address-2"><span id="58066"></span>E2D2</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58068"></span>E2D4</td>
+<td class="instruction">JR Z,<a href="57921.html#58140">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58070"></span>E2D6</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58072"></span>E2D8</td>
+<td class="instruction">JR <a href="57921.html#58140">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_17</td>
+<td class="address-2"><span id="58074"></span>E2DA</td>
+<td class="instruction">LD A,$FE</td>
+<td class="comment-1" rowspan="9">The keyboard: X and V left, C right, from the CAPS SHIFT-V half-row turned two places</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58076"></span>E2DC</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58079"></span>E2DF</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58080"></span>E2E0</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58081"></span>E2E1</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58083"></span>E2E3</td>
+<td class="instruction">JR Z,<a href="57921.html#58087">READ_CONTROLS_18</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58085"></span>E2E5</td>
+<td class="instruction">SET 0,A</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_18</td>
+<td class="address-2"><span id="58087"></span>E2E7</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58089"></span>E2E9</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58090"></span>E2EA</td>
+<td class="instruction">LD A,$7F</td>
+<td class="comment-1" rowspan="11">M and B left, N right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58092"></span>E2EC</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58095"></span>E2EF</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58097"></span>E2F1</td>
+<td class="instruction">JR Z,<a href="57921.html#58101">READ_CONTROLS_19</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58099"></span>E2F3</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_19</td>
+<td class="address-2"><span id="58101"></span>E2F5</td>
+<td class="instruction">BIT 3,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58103"></span>E2F7</td>
+<td class="instruction">JR Z,<a href="57921.html#58107">READ_CONTROLS_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58105"></span>E2F9</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_20</td>
+<td class="address-2"><span id="58107"></span>E2FB</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58109"></span>E2FD</td>
+<td class="instruction">JR Z,<a href="57921.html#58113">READ_CONTROLS_21</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58111"></span>E2FF</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_21</td>
+<td class="address-2"><span id="58113"></span>E301</td>
+<td class="instruction">LD A,$BD</td>
+<td class="comment-1" rowspan="4">A-G and H-ENTER: up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58115"></span>E303</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58118"></span>E306</td>
+<td class="instruction">JR Z,<a href="57921.html#58122">READ_CONTROLS_22</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58120"></span>E308</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_22</td>
+<td class="address-2"><span id="58122"></span>E30A</td>
+<td class="instruction">LD A,$DB</td>
+<td class="comment-1" rowspan="4">Q-T and Y-P: fire</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58124"></span>E30C</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58127"></span>E30F</td>
+<td class="instruction">JR Z,<a href="57921.html#58131">READ_CONTROLS_23</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58129"></span>E311</td>
+<td class="instruction">SET 3,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_23</td>
+<td class="address-2"><span id="58131"></span>E313</td>
+<td class="instruction">LD A,$E7</td>
+<td class="comment-1" rowspan="4">1-5 and 6-0: down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58133"></span>E315</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58136"></span>E318</td>
+<td class="instruction">JR Z,<a href="57921.html#58140">READ_CONTROLS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58138"></span>E31A</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_24</td>
+<td class="address-2"><span id="58140"></span>E31C</td>
+<td class="instruction">LD A,$7E</td>
+<td class="comment-1" rowspan="5">Every method: Z or SYMBOL SHIFT turns the town round (bit 5)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58142"></span>E31E</td>
+<td class="instruction">CALL <a href="57913.html">READ_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58145"></span>E321</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58147"></span>E323</td>
+<td class="instruction">JR Z,<a href="57921.html#58151">READ_CONTROLS_25</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58149"></span>E325</td>
+<td class="instruction">SET 5,C</td>
+</tr>
+<tr>
+<td class="asm-label">READ_CONTROLS_25</td>
+<td class="address-2"><span id="58151"></span>E327</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">Store the controls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58152"></span>E328</td>
+<td class="instruction">LD (<a href="48042.html#48129">CONTROLS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58155"></span>E32B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57913.html">E239</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57921">Map</a></td>
+<td class="next">
+Next: <a href="58156.html">E32C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

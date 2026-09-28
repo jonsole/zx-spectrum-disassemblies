@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D94F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55618.html">D942</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55631">Map</a></td>
+<td class="next">
+Next: <a href="55672.html">D978</a>
+</td>
+</tr>
+</table>
+<div class="description">D94F: The update routine for a villain (graphics 96-111)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+A villain walks at speed 4, turning left or right at random when it meets a wall and every so often besides (<a href="56616.html">STEER</a>), and kills the knight at a touch: not a hit off his three but the whole life (<a href="52873.html">WANDERING_MONSTER</a> from offset 59, which also keeps his cell for the next life). Only its own object destroys it (<a href="55308.html">OBJECT_FLIGHT</a>).
+</div>
+<div class="paragraph">
+While it is on the screen it hums (<a href="49970.html">BLIP_BY_TURN</a>, from offset 3): twelve pulses a turn at a pitch read from a 16-byte table by the turn count. The table was meant to be one of the four that follow the creature's (<a href="49997.html">BLIP_PITCHES</a>), one per villain, but that routine builds the address from BC alone and throws away the table's address loaded into HL here; and the offset in BC is not 0, 16, 32 or 48 but 128, 144, 160 or 176, since the graphic's bit 5 lands in bit 7, which the AND $F0 keeps (AND $30 would have been right). So the pitches come from the ROM's bytes $0080-$00BF, and the four tables are never read. Measured in the simulator: with each villain put beside the knight, the pitch was read from $00BB, $00AD, $009F and $0081 for the villains of graphics 108, 104, 100 and 96.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The villain's record (VILLAINS)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">VILLAIN_WANDER</td>
+<td class="address-2"><span id="55631"></span>D94F</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">BC: the graphic's bits 2-3 times 16, plus 128 from its bit 5 (meant as an offset into the villains' tables)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55634"></span>D952</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55635"></span>D953</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55636"></span>D954</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55638"></span>D956</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55639"></span>D957</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55641"></span>D959</td>
+<td class="instruction">LD HL,<a href="49997.html#50013">VILLAIN_PITCHES</a></td>
+<td class="comment-1" rowspan="2">The hum, if it was drawn last turn; the table's address in HL is overwritten there, so BC alone is the address: the ROM</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55644"></span>D95C</td>
+<td class="instruction">CALL <a href="49970.html#49973">BLIP_FROM_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55647"></span>D95F</td>
+<td class="instruction">LD A,(IX+$05)</td>
+<td class="comment-1" rowspan="4">The step from the speed and the facing; trim it at a wall; move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55650"></span>D962</td>
+<td class="instruction">CALL <a href="56544.html">SET_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55653"></span>D965</td>
+<td class="instruction">CALL <a href="56921.html">MOVE_CLIPPED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55656"></span>D968</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55659"></span>D96B</td>
+<td class="instruction">CALL <a href="56616.html">STEER</a></td>
+<td class="comment-1" rowspan="1">Decide whether to turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55662"></span>D96E</td>
+<td class="instruction">CALL <a href="55672.html">FACING_PICTURE</a></td>
+<td class="comment-1" rowspan="1">Its picture for the facing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55665"></span>D971</td>
+<td class="instruction">CALL <a href="50527.html">TOUCHING_KNIGHT</a></td>
+<td class="comment-1" rowspan="2">Done unless it touches the knight...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55668"></span>D974</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55669"></span>D975</td>
+<td class="instruction">JP <a href="52873.html#52932">KNIGHT_KILLED</a></td>
+<td class="comment-1" rowspan="1">...who dies, and will start his next life where he stands</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55618.html">D942</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55631">Map</a></td>
+<td class="next">
+Next: <a href="55672.html">D978</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

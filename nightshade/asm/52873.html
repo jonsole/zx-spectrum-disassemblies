@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CE89</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52857.html">CE79</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52873">Map</a></td>
+<td class="next">
+Next: <a href="52984.html">CEF8</a>
+</td>
+</tr>
+</table>
+<div class="description">CE89: The monsters of graphics 64-79: wander, and hurt the knight</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The update routine for graphics 64-79 (<a href="54681.html">UPDATES</a>): four kinds of four frames, the kind chosen when it appears by the villain nearest to it (<a href="49508.html">APPEARING_UPDATE</a>). It wanders: a new random step at random times (<a href="56783.html">WANDER_STEP</a>, each way up to 14 a turn), turned to face its step and tested against the walls (<a href="56845.html">MOVE_SPLIT</a>), moved (<a href="56577.html">APPLY_STEP</a>), and its frame stepped on (<a href="52984.html">NEXT_FRAME_MOD4</a>); drawn mirrored when the town is turned round. More than two cells from the knight either way, it is gone.
+</div>
+<div class="paragraph">
+An antibody that touches it (<a href="50488.html">ANTIBODY_STRIKE</a>) vanishes with it, and 5 goes on the score. If it touches the knight (<a href="50527.html">TOUCHING_KNIGHT</a>, not while he is appearing) the score gets 5 as well and the monster vanishes, but it takes one of his hits; at the last, his life ends. Monsters of 112-127 (<a href="49283.html">MONSTER112_UPDATE</a>) and the creature of 136-139 (<a href="49137.html">CREATURE_UPDATE</a>) come in at MONSTER_HITS_KNIGHT, and a villain (<a href="55631.html">VILLAIN_WANDER</a>) at KNIGHT_KILLED, whatever his hits.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">WANDERING_MONSTER</td>
+<td class="address-2"><span id="52873"></span>CE89</td>
+<td class="instruction">LD B,$07</td>
+<td class="comment-1" rowspan="2">a new step now and then, up to 14 each way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52875"></span>CE8B</td>
+<td class="instruction">CALL <a href="56783.html">WANDER_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52878"></span>CE8E</td>
+<td class="instruction">CALL <a href="56845.html">MOVE_SPLIT</a></td>
+<td class="comment-1" rowspan="3">face it, against the walls; move; the next frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52881"></span>CE91</td>
+<td class="instruction">CALL <a href="56577.html">APPLY_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52884"></span>CE94</td>
+<td class="instruction">CALL <a href="52984.html">NEXT_FRAME_MOD4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52887"></span>CE97</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+<td class="comment-1" rowspan="9">bit 6 of its flags, drawn mirrored, set when the town is turned round</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52890"></span>CE9A</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52891"></span>CE9B</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52892"></span>CE9C</td>
+<td class="instruction">AND $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52894"></span>CE9E</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52895"></span>CE9F</td>
+<td class="instruction">LD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52898"></span>CEA2</td>
+<td class="instruction">AND $BF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52900"></span>CEA4</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52901"></span>CEA5</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52904"></span>CEA8</td>
+<td class="instruction">LD C,$03</td>
+<td class="comment-1" rowspan="3">more than two cells from the knight: gone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52906"></span>CEAA</td>
+<td class="instruction">CALL <a href="49257.html">NEAR_KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52909"></span>CEAD</td>
+<td class="instruction">JR NC,<a href="52873.html#52979">MONSTER_OUT_OF_RANGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52911"></span>CEAF</td>
+<td class="instruction">CALL <a href="50488.html">ANTIBODY_STRIKE</a></td>
+<td class="comment-1" rowspan="2">struck by an antibody</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52914"></span>CEB2</td>
+<td class="instruction">JR C,<a href="52873.html#52965">MONSTER_SHOT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52916"></span>CEB4</td>
+<td class="instruction">CALL <a href="50527.html">TOUCHING_KNIGHT</a></td>
+<td class="comment-1" rowspan="2">not touching the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52919"></span>CEB7</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52920"></span>CEB8</td>
+<td class="instruction">CALL <a href="52873.html#52973">MONSTER_SCORE</a></td>
+<td class="comment-1" rowspan="1">touching him: 5 on the score, and...</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="52923"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="49137.html">CREATURE_UPDATE</a> and <a href="49283.html">MONSTER112_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MONSTER_HITS_KNIGHT</td>
+<td class="address-2"><span id="52923"></span>CEBB</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+<td class="comment-1" rowspan="4">...it vanishes, and he loses a hit; with some left, that is all</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52927"></span>CEBF</td>
+<td class="instruction">LD HL,<a href="48042.html#48115">HITS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52930"></span>CEC2</td>
+<td class="instruction">DEC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52931"></span>CEC3</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="52932"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="55631.html">VILLAIN_WANDER</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_KILLED</td>
+<td class="address-2"><span id="52932"></span>CEC4</td>
+<td class="instruction">LD A,(<a href="48042.html#48272">KNIGHT_COLUMN</a>)</td>
+<td class="comment-1" rowspan="8">his life ends: his cell, facing and flags into the start records, so the next life starts here</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52935"></span>CEC7</td>
+<td class="instruction">LD (<a href="52278.html#52280">START_U_CELL</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52938"></span>CECA</td>
+<td class="instruction">LD A,(<a href="48042.html#48274">KNIGHT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52941"></span>CECD</td>
+<td class="instruction">LD (<a href="52278.html#52282">START_V_CELL</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52944"></span>CED0</td>
+<td class="instruction">LD A,(<a href="48042.html#48276">KNIGHT_FACING</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52947"></span>CED3</td>
+<td class="instruction">LD (<a href="52278.html#52284">START_FACING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52950"></span>CED6</td>
+<td class="instruction">LD A,(<a href="48042.html#48277">KNIGHT_FLAGS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52953"></span>CED9</td>
+<td class="instruction">LD (<a href="52278.html#52285">START_FLAGS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52956"></span>CEDC</td>
+<td class="instruction">LD A,$0C</td>
+<td class="comment-1" rowspan="4">both his records vanish; <a href="52140.html">NEW_LIFE</a> starts the next life when that has run</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52958"></span>CEDE</td>
+<td class="instruction">LD (<a href="48042.html#48270">KNIGHT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52961"></span>CEE1</td>
+<td class="instruction">LD (<a href="48042.html#48286">KNIGHT_TOP</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52964"></span>CEE4</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MONSTER_SHOT</td>
+<td class="address-2"><span id="52965"></span>CEE5</td>
+<td class="instruction">LD (IY+$00),$0C</td>
+<td class="comment-1" rowspan="2">the antibody and the monster both vanish</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52969"></span>CEE9</td>
+<td class="instruction">LD (IX+$00),$0C</td>
+</tr>
+<tr>
+<td class="asm-label">MONSTER_SCORE</td>
+<td class="address-2"><span id="52973"></span>CEED</td>
+<td class="instruction">LD BC,$0005</td>
+<td class="comment-1" rowspan="2">5 on the score</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52976"></span>CEF0</td>
+<td class="instruction">JP <a href="49901.html">ADD_SCORE</a></td>
+</tr>
+<tr>
+<td class="asm-label">MONSTER_OUT_OF_RANGE</td>
+<td class="address-2"><span id="52979"></span>CEF3</td>
+<td class="instruction">LD (IX+$00),$00</td>
+<td class="comment-1" rowspan="2">the record empty</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52983"></span>CEF7</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+The score's digits end in two that nothing adds to (the byte after SCORE_LOW, cleared at each game and printed with the rest by <a href="49901.html">ADD_SCORE</a>), so 5 shows as 500.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52857.html">CE79</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52873">Map</a></td>
+<td class="next">
+Next: <a href="52984.html">CEF8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

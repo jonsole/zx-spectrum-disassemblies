@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Game status buffer</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="GameStatusBuffer">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Game status buffer</td>
+</tr>
+</table>
+<div class="map-intro"></div>
+<table class="map">
+<tr>
+<th>Address</th>
+<th>Label</th>
+<th class="map-length">Length</th>
+<th>Description</th>
+</tr>
+<tr>
+<td class="map-g"><span id="48042"></span><a href="../asm/48042.html">BBAA</a></td>
+<td class="map-label"><a href="../asm/48042.html">RANDOM</a></td>
+<td class="map-length">596</td>
+<td class="map-g-desc">
+<div class="map-entry-title-11"><a class="map-entry-title" href="../asm/48042.html">Game variables and the object records</a></div>
+<div class="map-entry-desc">
+<div class="paragraph">
+Cleared from here at the first start (<a href="../asm/48638.html">START</a>), and from CELL_LOOKED_UP at every new game (<a href="../asm/48655.html">NEW_GAME</a>), so only the random number, the font base, the saved stack pointer and the two control bytes survive from one game to the next; the turn counter is outside the cleared part too, but is set again from FRAMES at every new game. The snapshot's bytes here are what the tape's block held: none of them is ever read before it is written.
+</div>
+<div class="paragraph">
+The 23 object records from KNIGHT on are 16 bytes each, updated in turn every turn by the main loop through <a href="../asm/54681.html">UPDATES</a>: +0 the graphic, which picks the update routine (0 an empty record); +1 and +2 U, a word whose high byte is the town's column and low byte the place across the cell; +3 and +4 V the same, the high byte the row; +5 the speed (for a find, the type of cell it came from, <a href="../asm/50638.html">SPAWN_FIND</a>); +6 the facing in bits 6 and 7 (bit 6 along U rather than V, bit 7 backwards), and in the low bits a count -- for the knight bits 0-2, his turning; for a monster or a find bits 0-5, the turns before it next changes direction (<a href="../asm/56783.html">WANDER_STEP</a>, <a href="../asm/56616.html">STEER</a>); +7 the flags -- bit 0 stopped by a wall this turn (<a href="../asm/56921.html">MOVE_CLIPPED</a>), bit 1 drawn this turn (<a href="../asm/58329.html">DRAW_SPRITE</a>, cleared by the sound routines that play only for things on the screen), bit 5 a monster that makes for the knight when it turns (<a href="../asm/56616.html">STEER</a>), bit 6 its sprite mirrored and bit 7 upside down (<a href="../asm/58195.html">TURN_SPRITE</a>); +8 and +9 the half-size in U and V, centre to edge; +A and +B this turn's step in U and V, signed; +C and +D the drawing offset, added to where it projects on the screen; +E and +F where it was last drawn.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

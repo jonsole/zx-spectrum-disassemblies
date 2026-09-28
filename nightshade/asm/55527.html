@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D8E7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55511.html">D8D7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55527">Map</a></td>
+<td class="next">
+Next: <a href="55602.html">D932</a>
+</td>
+</tr>
+</table>
+<div class="description">D8E7: Put the four villains in random cells at a new game</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+The same as <a href="55438.html">PLACE_OBJECTS</a>, with <a href="55602.html">VILLAIN_RECORD</a> and the villains' graphics: 108, 104, 100 and 96 for records 0 to 3 (four pictures each, <a href="55672.html">FACING_PICTURE</a>). Called just before it, and each call advances the turn count and stirs the random number, so the two start from different places in the ROM. A villain can be placed in the knight's first cell; he then dies there as he appears, as often as he comes back.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_VILLAINS</td>
+<td class="address-2"><span id="55527"></span>D8E7</td>
+<td class="instruction">CALL <a href="50612.html">NEXT_TURN</a></td>
+<td class="comment-1" rowspan="1">Advance the turn count and stir the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55530"></span>D8EA</td>
+<td class="instruction">LD IY,<a href="48042.html#48478">VILLAINS</a></td>
+<td class="comment-1" rowspan="2">Four records from VILLAINS</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55534"></span>D8EE</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55536"></span>D8F0</td>
+<td class="instruction">LD DE,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">DE: an address in the ROM, from the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55540"></span>D8F4</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55541"></span>D8F5</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55543"></span>D8F7</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_VILLAINS_0</td>
+<td class="address-2"><span id="55544"></span>D8F8</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="8">Read a column and a row from it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55545"></span>D8F9</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55546"></span>D8FA</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55548"></span>D8FC</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55549"></span>D8FD</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55550"></span>D8FE</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55551"></span>D8FF</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55553"></span>D901</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55554"></span>D902</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="8">Look the cell up; try the next pair if it is solid (type 1 or 2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55555"></span>D903</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55556"></span>D904</td>
+<td class="instruction">CALL <a href="54628.html">LOOK_UP_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55559"></span>D907</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55560"></span>D908</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55561"></span>D909</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55562"></span>D90A</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55564"></span>D90C</td>
+<td class="instruction">JR C,<a href="55527.html#55544">PLACE_VILLAINS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55566"></span>D90E</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="9">Copy <a href="55602.html">VILLAIN_RECORD</a> into the record, and point IY at the next one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55567"></span>D90F</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55568"></span>D910</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55569"></span>D911</td>
+<td class="instruction">LD HL,<a href="55602.html">VILLAIN_RECORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55572"></span>D914</td>
+<td class="instruction">LD BC,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55575"></span>D917</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55577"></span>D919</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55578"></span>D91A</td>
+<td class="instruction">ADD IY,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55580"></span>D91C</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55582"></span>D91E</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="8">Graphic 4 times the count plus 92: 108 for record 0 down to 96 for record 3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55583"></span>D91F</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55584"></span>D920</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55585"></span>D921</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55586"></span>D922</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55587"></span>D923</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55588"></span>D924</td>
+<td class="instruction">ADD A,$5C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55590"></span>D926</td>
+<td class="instruction">LD (IY-$10),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55593"></span>D929</td>
+<td class="instruction">LD (IY-$0E),L</td>
+<td class="comment-1" rowspan="2">The cell's column and row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55596"></span>D92C</td>
+<td class="instruction">LD (IY-$0C),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55599"></span>D92F</td>
+<td class="instruction">DJNZ <a href="55527.html#55544">PLACE_VILLAINS_0</a></td>
+<td class="comment-1" rowspan="2">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55601"></span>D931</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55511.html">D8D7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55527">Map</a></td>
+<td class="next">
+Next: <a href="55602.html">D932</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

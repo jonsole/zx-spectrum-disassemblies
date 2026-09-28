@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D356</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53938.html">D2B2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54102">Map</a></td>
+<td class="next">
+Next: <a href="54130.html">D372</a>
+</td>
+</tr>
+</table>
+<div class="description">D356: Colour a column of wall up to the top of the play area</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="54210.html">DRAW_WALL_COLUMN</a>.
+</div>
+<div class="paragraph">
+A wall hides everything above it on the screen, so its colour runs from the attribute row holding its bottom line to the top of the play area: two attribute bytes a row, filled by <a href="51337.html">COLOUR_STRIP</a> in the attribute buffer (<a href="61508.html">ATTR_BUFFER</a>, 24 bytes a row, the bottom row first). The ink is bright green, cyan, yellow or white by the two low bits of the cell's type (CELL_TYPE); the paper is this turn's, LAST_FLASH, which a dying villain flashes. Nothing for a wall standing at or above line $B8.
+</div>
+<div class="paragraph">
+The pair of bytes runs one past the end of a row when the column's x is in the last byte of the row: into the first byte of the next row, part of the two-byte margin at the left of the buffer that is never copied to the screen (<a href="57773.html">COPY_ATTR_BUFFER</a> shows 22 of each row's 24 bytes), and on the top row one past the attribute buffer altogether, into <a href="61844.html">ATTR_SPILL</a>. Measured: 28 of 752 fills in a random tour reached it, each at the right-hand edge; and over 877 calls the lowest wall bottom was line 126, so a fill never starts below the attribute buffer.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">the y of the wall's bottom line</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">its x</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COLOUR_WALL</td>
+<td class="address-2"><span id="54102"></span>D356</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="3">At or above line $BF: nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54103"></span>D357</td>
+<td class="instruction">SUB $BF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54105"></span>D359</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54106"></span>D35A</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="5">The attribute rows from its own up to the top: (191 - y) / 8; none, nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54108"></span>D35C</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54110"></span>D35E</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54112"></span>D360</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54114"></span>D362</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54115"></span>D363</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="3">B = the rows; HL = the attribute byte (<a href="58745.html">ATTR_ADDRESS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54116"></span>D364</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54117"></span>D365</td>
+<td class="instruction">CALL <a href="58745.html">ATTR_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54120"></span>D368</td>
+<td class="instruction">LD A,(<a href="48042.html#48064">CELL_TYPE</a>)</td>
+<td class="comment-1" rowspan="3">Bright, with the ink from the cell type</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54123"></span>D36B</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54125"></span>D36D</td>
+<td class="instruction">OR $44</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54127"></span>D36F</td>
+<td class="instruction">JP <a href="51337.html">COLOUR_STRIP</a></td>
+<td class="comment-1" rowspan="1">Fill the rows, with this turn's paper (<a href="51337.html">COLOUR_STRIP</a>)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53938.html">D2B2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54102">Map</a></td>
+<td class="next">
+Next: <a href="54130.html">D372</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

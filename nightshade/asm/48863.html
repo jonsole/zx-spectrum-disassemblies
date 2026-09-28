@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at BEDF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48655.html">BE0F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48863">Map</a></td>
+<td class="next">
+Next: <a href="48950.html">BF36</a>
+</td>
+</tr>
+</table>
+<div class="description">BEDF: Work out the percentage of the game done</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52310.html">GAME_OVER</a>.
+</div>
+<div class="paragraph">
+Called by <a href="52310.html">GAME_OVER</a> after every game. A unit for every cell the knight has been in (every set bit of VISITED) and three for every villain record not holding a live villain (graphics 96-111): a destroyed villain's record is empty or dying. Each unit adds 10288 to a 16-bit fraction of which 65536 is one per cent, the carries counted in BCD; at the end 144 more, exactly what 637 units need to make 100. The town has 625 cells a knight can stand in, and three for each of four villains makes 637.
+</div>
+<div class="paragraph">
+The carries are counted with DAA, which wraps from 99 to 0 and leaves its own carry to be lost: past 637 units the count starts again. A knight cannot be in more than 625 cells, so it never does in play; setting every bit of VISITED (1024) gave 62% (measured, stage 1).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE</td>
+<td class="address-2"><span id="48863"></span>BEDF</td>
+<td class="instruction">LD HL,$0000</td>
+<td class="comment-1" rowspan="12">HL = how many cells he has been in: the set bits of VISITED</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48866"></span>BEE2</td>
+<td class="instruction">LD DE,<a href="48042.html#48142">VISITED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48869"></span>BEE5</td>
+<td class="instruction">LD C,$80</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_0</td>
+<td class="address-2"><span id="48871"></span>BEE7</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48872"></span>BEE8</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48873"></span>BEE9</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_1</td>
+<td class="address-2"><span id="48875"></span>BEEB</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48876"></span>BEEC</td>
+<td class="instruction">JR NC,<a href="48863.html#48879">PERCENTAGE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48878"></span>BEEE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_2</td>
+<td class="address-2"><span id="48879"></span>BEEF</td>
+<td class="instruction">DJNZ <a href="48863.html#48875">PERCENTAGE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48881"></span>BEF1</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48882"></span>BEF2</td>
+<td class="instruction">JR NZ,<a href="48863.html#48871">PERCENTAGE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48884"></span>BEF4</td>
+<td class="instruction">LD IY,<a href="48042.html#48478">VILLAINS</a></td>
+<td class="comment-1" rowspan="11">three more for each villain record without a live villain</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48888"></span>BEF8</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_3</td>
+<td class="address-2"><span id="48890"></span>BEFA</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48893"></span>BEFD</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48895"></span>BEFF</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48897"></span>BF01</td>
+<td class="instruction">JR C,<a href="48863.html#48903">PERCENTAGE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48899"></span>BF03</td>
+<td class="instruction">LD DE,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48902"></span>BF06</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_4</td>
+<td class="address-2"><span id="48903"></span>BF07</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48906"></span>BF0A</td>
+<td class="instruction">ADD IY,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48908"></span>BF0C</td>
+<td class="instruction">DJNZ <a href="48863.html#48890">PERCENTAGE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48910"></span>BF0E</td>
+<td class="instruction">LD BC,$2830</td>
+<td class="comment-1" rowspan="14">add 10288 for each unit, the carries counted in BCD in A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48913"></span>BF11</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48914"></span>BF12</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48915"></span>BF13</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_5</td>
+<td class="address-2"><span id="48918"></span>BF16</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48919"></span>BF17</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48921"></span>BF19</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48922"></span>BF1A</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48923"></span>BF1B</td>
+<td class="instruction">DEC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48924"></span>BF1C</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48925"></span>BF1D</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48926"></span>BF1E</td>
+<td class="instruction">JR Z,<a href="48863.html#48931">PERCENTAGE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48928"></span>BF20</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48929"></span>BF21</td>
+<td class="instruction">JR <a href="48863.html#48918">PERCENTAGE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">PERCENTAGE_6</td>
+<td class="address-2"><span id="48931"></span>BF23</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="5">144 more, rounding 637 units up to exactly a hundred</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48932"></span>BF24</td>
+<td class="instruction">LD BC,$0090</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48935"></span>BF27</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48936"></span>BF28</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48938"></span>BF2A</td>
+<td class="instruction">DAA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48939"></span>BF2B</td>
+<td class="instruction">LD (<a href="48042.html#48126">PERCENT_LOW</a>),A</td>
+<td class="comment-1" rowspan="5">the tens and units, and the hundreds from the last carry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48942"></span>BF2E</td>
+<td class="instruction">LD A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48944"></span>BF30</td>
+<td class="instruction">ADC A,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48946"></span>BF32</td>
+<td class="instruction">LD (<a href="48042.html#48125">PERCENT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48949"></span>BF35</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48655.html">BE0F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48863">Map</a></td>
+<td class="next">
+Next: <a href="48950.html">BF36</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Sounds: the tunes and the effects</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="nightshade.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html">Nightshade</a></td>
+<td class="page-header">Sounds: the tunes and the effects</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>A 48K Spectrum has one bit of sound hardware, bit 4 of port $FE, and Nightshade makes every sound by setting and clearing it with the processor counting in between, the border kept black. While a sound plays nothing else happens: the game stands still for a tune, and every beep lengthens the turn it is in. There are two players. The tunes go through <a href="asm/50785.html">PLAY_NOTE</a>, a note at a time, from a table of notes; everything else is waves from <a href="asm/50289.html">CLICK</a>, which turns the speaker on for B turns of a 13 T-state loop and off for as long, most of them through BEEP ($C46A, the end of <a href="asm/50275.html">ARRIVE_SOUND</a>), which repeats it C times. Almost all of it is code Pentagram has too, a few bytes apart -- Nightshade came first, so Pentagram's unused sound routines are Nightshade's, left behind -- and the tune player and its notes are Knight Lore's and Alien 8's as well (the table at the foot of the page). The pause, which in Pentagram and Alien 8 beeps, is silent here: a pause in the running game -- SPACE held into the end of a turn for 0.3 s, let go 0.5 s, held 0.3 s and let go -- the game waiting in <a href="asm/58156.html">PAUSE</a> all the while, made no edge at all.</p>
+<p>Every recording here is the game's own code running in SkoolKit's simulator, each change of the speaker bit logged to the T-state and rendered at 44100 Hz; nothing is synthesised. What is heard in play was recorded from the game playing, a turn at a time, with whatever else sounded in those turns; to keep each recording to its subject the monsters were cleared away and the villains' drawn flags cleared at the start of every turn, except where they are the subject. Each recording is checked wave by wave against a model of the turn worked out from the code -- which records' routines sound, and at what half-wave count, given the state the turn began in -- and every off half-wave against the instruction timings of the loop that made it. The simulator has no memory contention, so all of this runs a touch faster, and a touch higher, than on a real Spectrum. A quiet turn (the knight standing, nothing else about) lasts 223,383 T-states, 64 ms; the calls that stand for a sound made over several turns are spaced by that.</p>
+<h3>Tunes</h3>
+<p>A tune is a string of note bytes ended by $FF: the low six bits index <a href="asm/50873.html">NOTES</a>, five octaves of semitones from G#1 to G6 with 0 a rest (no tune has one), and the top two bits are the length less one, one to four units of about 0.155 s. <a href="asm/50774.html">PLAY_TUNE</a> plays a tune through; <a href="asm/50749.html">PLAY_TUNE_ONCE</a> plays the menu's once, stopping at a key. Six tunes, none of them another Ultimate game's (compared at this build with Pentagram, Alien 8, Knight Lore).</p>
+<div class="kl-item" id="tune_menu">
+<h4>The menu</h4>
+<p>TUNE_MENU, played by <a href="asm/50749.html">PLAY_TUNE_ONCE</a> from the menu's loop (<a href="asm/51402.html">MENU</a>) the first time round after the game is loaded or a game ends (TUNE_PLAYED); any key stops it between two notes. The longest of the six: 131 notes, a slow climb of broken chords and back down.</p>
+<p>Recorded: <a href="asm/50749.html">PLAY_TUNE_ONCE</a> called with DE = $C770, TUNE_PLAYED clear and no key down, so that it plays to the end, as it does for a player who waits.</p>
+<p>Checked: 131 notes, 132 units, no rests, from row 18 (C#3, 132 Hz) to row 49 (G#5, 824 Hz). The table's wave counts make 9,241 waves, so 18,481 edges (the first OUT turns off a speaker already off); the recording has 18,481 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>20.79 s, 18,481 edges, 132 to 824 Hz (C#3 to G#5).</p>
+<audio controls preload="none" src="audio/tune_menu.wav"><a href="audio/tune_menu.wav">tune_menu.wav</a></audio>
+</div>
+<div class="kl-item" id="tune_control">
+<h4>A control method chosen</h4>
+<p>TUNE_CONTROL_CHOSEN, three notes played through by <a href="asm/50774.html">PLAY_TUNE</a> from the menu (<a href="asm/51402.html">MENU</a>) whenever a pass round its loop leaves CONTROL changed -- a key 1 to 4 choosing a control method, or 5 turning directional control on or off. Alien 8's menu beeps there instead.</p>
+<p>Recorded: <a href="asm/50774.html">PLAY_TUNE</a> called with DE = $C7F4.</p>
+<p>Checked: 3 notes, 3 units, no rests, from row 42 (C#5, 553 Hz) to row 49 (G#5, 824 Hz). The table's wave counts make 322 waves, so 643 edges (the first OUT turns off a speaker already off); the recording has 643 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>475 ms, 643 edges, 553 to 824 Hz (C#5 to G#5).</p>
+<audio controls preload="none" src="audio/tune_control.wav"><a href="audio/tune_control.wav">tune_control.wav</a></audio>
+</div>
+<div class="kl-item" id="tune_start">
+<h4>A game starting</h4>
+<p>TUNE_GAME_START, played through by <a href="asm/48655.html">NEW_GAME</a> once 0 has been pressed on the menu, before the play screen is drawn: the game stands still while it plays.</p>
+<p>Recorded: <a href="asm/50774.html">PLAY_TUNE</a> called with DE = $C7F8.</p>
+<p>Checked: 10 notes, 10 units, no rests, from row 37 (G#4, 415 Hz) to row 49 (G#5, 824 Hz). The table's wave counts make 885 waves, so 1,769 edges (the first OUT turns off a speaker already off); the recording has 1,769 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>1.58 s, 1,769 edges, 415 to 824 Hz (G#4 to G#5).</p>
+<audio controls preload="none" src="audio/tune_start.wav"><a href="audio/tune_start.wav">tune_start.wav</a></audio>
+</div>
+<div class="kl-item" id="tune_new_life">
+<h4>A new life</h4>
+<p>TUNE_NEW_LIFE, five falling notes, played by <a href="asm/52140.html">NEW_LIFE</a> when a life has ended and there is another to come -- not for the first life of a game, and not when none are left (below, <a href="#life">a life lost</a>, where it is heard in its place).</p>
+<p>Recorded: <a href="asm/50774.html">PLAY_TUNE</a> called with DE = $C839.</p>
+<p>Checked: 5 notes, 6 units, no rests, from row 33 (E4, 331 Hz) to row 37 (G#4, 415 Hz). The table's wave counts make 344 waves, so 687 edges (the first OUT turns off a speaker already off); the recording has 687 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>942 ms, 687 edges, 331 to 415 Hz (E4 to G#4).</p>
+<audio controls preload="none" src="audio/tune_new_life.wav"><a href="audio/tune_new_life.wav">tune_new_life.wav</a></audio>
+</div>
+<div class="kl-item" id="tune_over">
+<h4>Game over</h4>
+<p>TUNE_GAME_OVER, played by <a href="asm/52310.html">GAME_OVER</a> once the percentage and the score are on the screen -- after the last life, and after the last villain too: the ending comes after it (below, <a href="#ending">the ending</a>).</p>
+<p>Recorded: <a href="asm/50774.html">PLAY_TUNE</a> called with DE = $C803.</p>
+<p>Checked: 22 notes, 22 units, no rests, from row 25 (G#3, 209 Hz) to row 45 (E5, 656 Hz). The table's wave counts make 1,188 waves, so 2,375 edges (the first OUT turns off a speaker already off); the recording has 2,375 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>3.46 s, 2,375 edges, 209 to 656 Hz (G#3 to E5).</p>
+<audio controls preload="none" src="audio/tune_over.wav"><a href="audio/tune_over.wav">tune_over.wav</a></audio>
+</div>
+<div class="kl-item" id="tune_ending">
+<h4>The end of the ending</h4>
+<p>TUNE_ENDING, played by <a href="asm/52496.html">ENDING_PIT_FRONT</a> when the last of the four villains has sunk into the pit; then the menu.</p>
+<p>Recorded: <a href="asm/50774.html">PLAY_TUNE</a> called with DE = $C81A.</p>
+<p>Checked: 30 notes, 31 units, no rests, from row 30 (C#4, 279 Hz) to row 45 (E5, 656 Hz). The table's wave counts make 2,314 waves, so 4,627 edges (the first OUT turns off a speaker already off); the recording has 4,627 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>4.88 s, 4,627 edges, 279 to 656 Hz (C#4 to E5).</p>
+<audio controls preload="none" src="audio/tune_ending.wav"><a href="audio/tune_ending.wav">tune_ending.wav</a></audio>
+</div>
+<p>The notes the tunes use, worked out from <a href="asm/50873.html">NOTES</a> and <a href="asm/50785.html">PLAY_NOTE</a>'s timing: B and C time each half-wave, and a unit is that many waves. The table has 61 rows; these are the ones any of the six tunes plays.</p>
+<table class="kl-table">
+<tr><th>Row</th><th>Note</th><th>B</th><th>C</th><th>Waves a unit</th><th>Pitch</th><th>A unit</th><th>Played in</th></tr>
+<tr><td>18</td><td>C#3</td><td>243</td><td>4</td><td>22</td><td>132.3&nbsp;Hz</td><td>0.166&nbsp;s</td><td>The menu</td></tr>
+<tr><td>21</td><td>E3</td><td>35</td><td>4</td><td>26</td><td>166.2&nbsp;Hz</td><td>0.156&nbsp;s</td><td>The menu</td></tr>
+<tr><td>23</td><td>F#3</td><td>203</td><td>3</td><td>29</td><td>186.7&nbsp;Hz</td><td>0.155&nbsp;s</td><td>The menu</td></tr>
+<tr><td>24</td><td>G3</td><td>163</td><td>3</td><td>31</td><td>197.7&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu</td></tr>
+<tr><td>25</td><td>G#3</td><td>125</td><td>3</td><td>33</td><td>209.3&nbsp;Hz</td><td>0.158&nbsp;s</td><td>The menu, Game over</td></tr>
+<tr><td>26</td><td>A3</td><td>89</td><td>3</td><td>35</td><td>221.8&nbsp;Hz</td><td>0.158&nbsp;s</td><td>The menu, Game over</td></tr>
+<tr><td>29</td><td>C4</td><td>250</td><td>2</td><td>41</td><td>263.3&nbsp;Hz</td><td>0.156&nbsp;s</td><td>The menu, Game over</td></tr>
+<tr><td>30</td><td>C#4</td><td>221</td><td>2</td><td>44</td><td>279.2&nbsp;Hz</td><td>0.158&nbsp;s</td><td>The menu, Game over, The end of the ending</td></tr>
+<tr><td>32</td><td>D#4</td><td>169</td><td>2</td><td>49</td><td>312.9&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, Game over, The end of the ending</td></tr>
+<tr><td>33</td><td>E4</td><td>145</td><td>2</td><td>52</td><td>331.4&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, A new life, Game over, The end of the ending</td></tr>
+<tr><td>34</td><td>F4</td><td>123</td><td>2</td><td>55</td><td>350.4&nbsp;Hz</td><td>0.157&nbsp;s</td><td>A new life</td></tr>
+<tr><td>35</td><td>F#4</td><td>102</td><td>2</td><td>58</td><td>370.6&nbsp;Hz</td><td>0.156&nbsp;s</td><td>The menu, A new life, The end of the ending</td></tr>
+<tr><td>36</td><td>G4</td><td>81</td><td>2</td><td>62</td><td>393.4&nbsp;Hz</td><td>0.158&nbsp;s</td><td>A new life, The end of the ending</td></tr>
+<tr><td>37</td><td>G#4</td><td>63</td><td>2</td><td>65</td><td>415.2&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, A game starting, A new life, Game over, The end of the ending</td></tr>
+<tr><td>38</td><td>A4</td><td>45</td><td>2</td><td>69</td><td>439.6&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, The end of the ending</td></tr>
+<tr><td>39</td><td>A#4</td><td>28</td><td>2</td><td>73</td><td>465.5&nbsp;Hz</td><td>0.157&nbsp;s</td><td>A game starting</td></tr>
+<tr><td>40</td><td>B4</td><td>12</td><td>2</td><td>78</td><td>492.7&nbsp;Hz</td><td>0.158&nbsp;s</td><td>The menu, The end of the ending</td></tr>
+<tr><td>41</td><td>C5</td><td>253</td><td>1</td><td>82</td><td>523.1&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, A game starting</td></tr>
+<tr><td>42</td><td>C#5</td><td>239</td><td>1</td><td>87</td><td>553.2&nbsp;Hz</td><td>0.157&nbsp;s</td><td>The menu, A control method chosen, A game starting, Game over, The end of the ending</td></tr>
+<tr><td>44</td><td>D#5</td><td>213</td><td>1</td><td>98</td><td>619.4&nbsp;Hz</td><td>0.158&nbsp;s</td><td>The menu, The end of the ending</td></tr>
+<tr><td>45</td><td>E5</td><td>201</td><td>1</td><td>104</td><td>655.6&nbsp;Hz</td><td>0.159&nbsp;s</td><td>The menu, A control method chosen, A game starting, Game over, The end of the ending</td></tr>
+<tr><td>47</td><td>F#5</td><td>179</td><td>1</td><td>117</td><td>734.2&nbsp;Hz</td><td>0.159&nbsp;s</td><td>The menu</td></tr>
+<tr><td>49</td><td>G#5</td><td>159</td><td>1</td><td>131</td><td>824.1&nbsp;Hz</td><td>0.159&nbsp;s</td><td>The menu, A control method chosen, A game starting</td></tr>
+</table>
+<h3>The sound effects</h3>
+<p>Four short effects are played a note a turn: whatever starts one sets EFFECT_TIME to its length and EFFECT to which, and at the end of every turn <a href="asm/50109.html">EFFECT_NOTE</a> plays twelve waves (<a href="asm/50275.html">ARRIVE_SOUND</a>'s BEEP) at the note EFFECT_TIME points to in <a href="asm/50136.html">EFFECT_TABLE</a>, then counts it down. The notes run backwards, from the byte the count points to down to the one after the effect's address, so the byte at each address is never played by its own effect -- it is the previous effect's first note. A new effect simply replaces one under way. The table's notes are Pentagram's too, twenty bytes the same, but Pentagram only ever starts the first two.</p>
+<table class="kl-table">
+<tr><th>Effect</th><th>Its address</th><th>Notes</th><th>Half-wave counts, as played</th><th>Pitches (Hz)</th><th>Started by</th></tr>
+<tr><td>0</td><td>$C3E0</td><td>4</td><td>80, 112, 64, 112</td><td>1619, 1169, 2005, 1169</td><td><a href="asm/48968.html">VISIT_CELL</a>: a new cell with a building</td></tr>
+<tr><td>1</td><td>$C3E4</td><td>5</td><td>64, 64, 80, 96, 112</td><td>2005, 2005, 1619, 1358, 1169</td><td><a href="asm/55079.html">SPEED_BONUS</a>: the speed bonus</td></tr>
+<tr><td>2</td><td>$C3E9</td><td>7</td><td>48, 128, 128, 128, 112, 96, 80</td><td>2632, 1026, 1026, 1026, 1169, 1358, 1619</td><td><a href="asm/55116.html">HITS_BONUS</a>: the cure</td></tr>
+<tr><td>3</td><td>$C3F0</td><td>4</td><td>14, 96, 48, 96</td><td>7848, 1358, 2632, 1358</td><td><a href="asm/55618.html">OBJECT_LYING</a>: an object taken up</td></tr>
+</table>
+<div class="kl-item" id="effect0">
+<h4>Effect 0: a new cell with a building</h4>
+<p><a href="asm/48968.html">VISIT_CELL</a>, as the knight's walk takes him into a cell he has not been in before that has something built on it, sets EFFECT_TIME to four notes of effect 0; <a href="asm/50109.html">EFFECT_NOTE</a> plays one a turn at the end of the turn, twelve waves each, from the last of the effect's bytes back. Open ground (type 0) is marked visited without a sound, and a cell is only new once a game: VISITED is what the percentage at the end counts. His footsteps are heard under it.</p>
+<p>Recorded: the game running: a life started in open cell (3, 1) by the game's own restart, the first open cell with a building next along +U, and walk held along +U from its middle until he crossed into (4, 1); recorded from the first step to two turns after the last note.</p>
+<p>Checked: 68 waves from CLICK (the code implies 68); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.86 s, 136 edges, 23 turns, 1169 to 2005 Hz.</p>
+<audio controls preload="none" src="audio/effect0.wav"><a href="audio/effect0.wav">effect0.wav</a></audio>
+</div>
+<div class="kl-item" id="effect1">
+<h4>Effect 1: the faster walk</h4>
+<p><a href="asm/55079.html">SPEED_BONUS</a>, as the knight touches the bonus of graphic 2: 255 turns of a top speed of 18 and sound effect 1, five notes, one a turn (<a href="asm/50109.html">EFFECT_NOTE</a>). The bonus becomes a puff (graphic 12, <a href="asm/55256.html">VANISHING</a>), whose four frames end with its crackle (<a href="asm/50229.html">PUFF_SOUND</a>) if it was on the screen.</p>
+<p>Recorded: the game running, the knight standing in the cell a new game gave him: a bonus of graphic 2 laid where he stands at the start of a turn (build_nightshade's _beside_knight, as its sessions lay them); nine turns from that one.</p>
+<p>Checked: 76 waves from CLICK (the code implies 76); every on half-wave was 13B + 18 T-states for the B the code gives it; the puff's pitches were sixteen bytes in a row of the ROM's first 8K, less their top bits, as <a href="asm/50229.html">PUFF_SOUND</a> reads them; every off half-wave inside a sound was 13B plus 64 (BEEP's), 133 (<a href="asm/50229.html">PUFF_SOUND</a>'s), the loops' own timing.</p>
+<p>634 ms, 152 edges, 9 turns, 1087 to 15284 Hz.</p>
+<audio controls preload="none" src="audio/effect1.wav"><a href="audio/effect1.wav">effect1.wav</a></audio>
+</div>
+<div class="kl-item" id="effect2">
+<h4>Effect 2: the hits given back</h4>
+<p><a href="asm/55116.html">HITS_BONUS</a>, as he touches the bonus of graphic 3 (a flask): all three hits of the life back, and sound effect 2, seven notes, one a turn; then the bonus's crackle, as for the other.</p>
+<p>Recorded: the game running, the knight standing in the cell a new game gave him: a bonus of graphic 3 laid where he stands at the start of a turn (build_nightshade's _beside_knight, as its sessions lay them), his hits first set to one; nine turns from that one.</p>
+<p>Checked: 100 waves from CLICK (the code implies 100); every on half-wave was 13B + 18 T-states for the B the code gives it; the puff's pitches were sixteen bytes in a row of the ROM's first 8K, less their top bits, as <a href="asm/50229.html">PUFF_SOUND</a> reads them; every off half-wave inside a sound was 13B plus 64 (BEEP's), 133 (<a href="asm/50229.html">PUFF_SOUND</a>'s), the loops' own timing.</p>
+<p>660 ms, 200 edges, 9 turns, 1021 to 17241 Hz.</p>
+<audio controls preload="none" src="audio/effect2.wav"><a href="audio/effect2.wav">effect2.wav</a></audio>
+</div>
+<div class="kl-item" id="effect3">
+<h4>Effect 3: an object taken up</h4>
+<p><a href="asm/55618.html">OBJECT_LYING</a>, as the knight touches one of the four objects lying in the town: sound effect 3, four notes, and the object taken up (<a href="asm/50313.html">PICK_UP_THING</a>). Effect 3's address is the table's last and its notes run past the table's end: the first one played, the fourth byte after the address, is the first byte of <a href="asm/50164.html">FIRE_SOUND</a>'s code, $0E (LD C,$20), a half-wave count of 14 where the rest of the table's are 48 to 128 -- a squeak three times the pitch of anything else in the table, before three ordinary notes. Pentagram has the same table and the same squeak, but never starts effect 3 (<a href="../pentagram/Sounds.html#effect3">Pentagram's sounds</a>).</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the object of graphic 7 (the first object record's) laid where he stands at the start of a turn, as the build's sessions lay it; six turns from that one.</p>
+<p>Checked: 48 waves from CLICK (the code implies 48); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>409 ms, 96 edges, 6 turns, 1358 to 7848 Hz.</p>
+<audio controls preload="none" src="audio/effect3.wav"><a href="audio/effect3.wav">effect3.wav</a></audio>
+</div>
+<h3>The knight</h3>
+<div class="kl-item" id="footsteps">
+<h4>Walking</h4>
+<p><a href="asm/50176.html">FOOTSTEP</a>, called by <a href="asm/56488.html">WALK_ON</a> for every step of the walk: FOOTSTEPS counts them, and at a walking speed (under 12) every fourth step plays four waves, at a half-wave count of 64 and 96 by turns (bit 2 of the count): a tick and a tock, a step a turn, so one every four turns. From standing his speed goes 4, 6, 8 over three turns and stays at 8. Pentagram's footstep, with four waves where Pentagram's plays two.</p>
+<p>Recorded: the game running: a life started in open cell (1, 2), with open ground for two cells along +U; walk held for 24 turns, and two turns after.</p>
+<p>Checked: 24 waves from CLICK (the code implies 24); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.60 s, 48 edges, 26 turns, 1358 to 2005 Hz.</p>
+<audio controls preload="none" src="audio/footsteps.wav"><a href="audio/footsteps.wav">footsteps.wav</a></audio>
+</div>
+<div class="kl-item" id="footsteps_fast">
+<h4>Walking faster, with the bonus</h4>
+<p><a href="asm/50176.html">FOOTSTEP</a> at a speed of 12 or more, which only the speed bonus gives (<a href="asm/55079.html">SPEED_BONUS</a>, a top speed of 18 for 255 turns): a footstep every second step, pitched by bit 1 of the count, so the ticks come twice as often and he covers ground faster between them. Pentagram's footstep has no faster half.</p>
+<p>Recorded: the game running in open cell (1, 2): the speed bonus laid where he stood and taken, nine turns for its sound and its puff to finish, then walk held for 24 turns, and two after.</p>
+<p>Checked: 48 waves from CLICK (the code implies 48); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.71 s, 96 edges, 26 turns, 1358 to 2005 Hz.</p>
+<audio controls preload="none" src="audio/footsteps_fast.wav"><a href="audio/footsteps_fast.wav">footsteps_fast.wav</a></audio>
+</div>
+<div class="kl-item" id="bump">
+<h4>Walking into a wall</h4>
+<p><a href="asm/55787.html">UPDATE_TOP</a>, the knight's top, when the legs' move met a wall this turn: his arms thrown out (graphic 22 or 30) and <a href="asm/50090.html">BUMP_SOUND</a>, sixteen single waves at a half-wave count of (C XOR $A5) + C for C = 16 down to 1, so the pitch jumps about -- Pentagram's jump sound, with a test in front that keeps it quiet for anything not on the screen. Once his arms are out it does not sound again while he walks on into the wall; his feet go on ticking. The monsters of graphics 112-127 make the same sound at a wall (<a href="asm/49283.html">MONSTER112_UPDATE</a>).</p>
+<p>Recorded: the game running from where a new game put him: walk held along +U until he met a wall, four turns on into it, and two after; the last dozen turns kept.</p>
+<p>Checked: 24 waves from CLICK (the code implies 24); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), 83 (<a href="asm/50090.html">BUMP_SOUND</a>'s), the loops' own timing.</p>
+<p>840 ms, 48 edges, 12 turns, 670 to 2005 Hz.</p>
+<audio controls preload="none" src="audio/bump.wav"><a href="audio/bump.wav">bump.wav</a></audio>
+</div>
+<div class="kl-item" id="throw">
+<h4>Two throws, and their puffs</h4>
+<p><a href="asm/50164.html">FIRE_SOUND</a>, from <a href="asm/55991.html">KNIGHT_THROWS</a> as an antibody (or an object) leaves his hand: 32 single waves, each half-wave count the step count less the one before. The count it starts from is the B <a href="asm/55991.html">KNIGHT_THROWS</a> set to redraw the emptied place on the panel, 11 less the place's index (the first place, at the bottom, is 0), which the drawing leaves in B. From the second place (B = 10) the counts go 22, 9, 21, 8, 20, 7 ... 8, 251, 7, 250: two sequences interleaved, each a step shorter every other wave, so two rising notes at once, the second running down through 1 to 0 -- 256, the lowest count there is -- and on from 255, so that half-way through it drops to the bottom and climbs again. Each place throws with a slightly different sound. Each antibody flies on until it meets a wall, becomes a puff (<a href="asm/55256.html">VANISHING</a>), and as the puff ends crackles (<a href="asm/50229.html">PUFF_SOUND</a>): sixteen single waves at pitches read from the ROM, from an address made of the random number, so no two puffs sound alike. Pentagram's bolt and its puff, sixteen waves long here where Pentagram's is four.</p>
+<p>Recorded: the game running where a new game put him, facing the wall along +U: antibodies (things 5 and 6) put in the first two carried places, fire (Q) pressed for a turn, three turns off, pressed for another -- the second place throws first, then the first -- and on until both puffs had gone.</p>
+<p>Checked: 96 waves from CLICK (the code implies 96); every on half-wave was 13B + 18 T-states for the B the code gives it; the 2 puffs' pitches were sixteen bytes in a row of the ROM's first 8K, less their top bits, as <a href="asm/50229.html">PUFF_SOUND</a> reads them; every off half-wave inside a sound was 13B plus 76 (<a href="asm/50164.html">FIRE_SOUND</a>'s), 133 (<a href="asm/50229.html">PUFF_SOUND</a>'s), the loops' own timing.</p>
+<p>994 ms, 192 edges, 14 turns, 514 to 29167 Hz.</p>
+<audio controls preload="none" src="audio/throw.wav"><a href="audio/throw.wav">throw.wav</a></audio>
+</div>
+<div class="kl-item" id="life">
+<h4>A life lost, and the next begun</h4>
+<p>His end, as KNIGHT_KILLED ($CEC4, in <a href="asm/52873.html">WANDERING_MONSTER</a>) makes it: both his records become puffs (graphic 12, <a href="asm/55256.html">VANISHING</a>), and after their four frames each crackles in turn (<a href="asm/50229.html">PUFF_SOUND</a>, sixteen waves from the ROM, legs then top). With a life to come, <a href="asm/52140.html">NEW_LIFE</a> plays the new-life tune and puts him back in the cell he died in (KNIGHT_KILLED copies it into the start records); then for seventeen turns, while ARRIVING climbs from 40 by two a turn, <a href="asm/50275.html">ARRIVE_SOUND</a> plays eight waves a turn at its complement -- 213 down to 181 -- a note that rises as he appears. The first life of a game appears the same way, without the tune.</p>
+<p>Recorded: the game running where a new game put him: his end begun at the start of a turn the way KNIGHT_KILLED ends a life (build_nightshade's _kill: both records to the puff graphic), five lives; recorded to two turns after he stood there again.</p>
+<p>Checked: 167 waves from CLICK (the code implies 167); every on half-wave was 13B + 18 T-states for the B the code gives it (the first wave after a tune left out: the tune leaves the speaker on, so that wave's rising edge is no edge); the 2 puffs' pitches were sixteen bytes in a row of the ROM's first 8K, less their top bits, as <a href="asm/50229.html">PUFF_SOUND</a> reads them; every off half-wave inside a sound was 13B plus 64 (BEEP's), 133 (<a href="asm/50229.html">PUFF_SOUND</a>'s), the loops' own timing; and the tune at $C839: the table's wave counts make 344 waves, so 687 edges (the first OUT turns off a speaker already off); the recording has 687 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply.</p>
+<p>2.64 s, 1,022 edges, 24 turns, 623 to 17241 Hz.</p>
+<audio controls preload="none" src="audio/life.wav"><a href="audio/life.wav">life.wav</a></audio>
+</div>
+<h3>In the town</h3>
+<div class="kl-item" id="appear">
+<h4>A monster appearing</h4>
+<p><a href="asm/49508.html">APPEARING_UPDATE</a>: a new monster spends four turns appearing, graphics 128 to 131, and on each, if it was on the screen the turn before, <a href="asm/50261.html">APPEAR_SOUND</a> plays six waves at the complement of its graphic turned right three bits, the top three kept: 224, 192, 160 and 128 -- four notes rising. Then it is a monster of the kind of the villain nearest it. <a href="asm/52712.html">SPAWN_MONSTER</a> starts one every fourth turn in the knight's cell or one next to it, so in play this is heard whenever one appears in sight. The same bytes are Pentagram's, left over as data there (<a href="../pentagram/Sounds.html#beeps">Pentagram's sounds</a>).</p>
+<p>Recorded: the game running where a new game put him: at the point in a turn where <a href="asm/52712.html">SPAWN_MONSTER</a> starts a monster, one started as it does -- its record copied from the template it copies, put in the knight's cell -- 48 units from him along U; recorded until it had become a monster.</p>
+<p>Checked: 24 waves from CLICK (the code implies 24); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>366 ms, 48 edges, 5 turns, 593 to 1026 Hz.</p>
+<audio controls preload="none" src="audio/appear.wav"><a href="audio/appear.wav">appear.wav</a></audio>
+</div>
+<div class="kl-item" id="creature">
+<h4>The creature</h4>
+<p>Every 256th turn <a href="asm/49045.html">SPAWN_CREATURE</a> puts the creature (graphics 136-139) at a random place in the knight's cell, and it makes for him, two units a turn each way (<a href="asm/49137.html">CREATURE_UPDATE</a>). Every turn it was on the screen the turn before, <a href="asm/49970.html">BLIP_BY_TURN</a> blips: twelve waves at one of the sixteen pitches of <a href="asm/49997.html">BLIP_PITCHES</a>, picked by the turn counter's low four bits -- counts of 32, 32, 48, 64, 80 over and over, a figure falling in pitch (sixteen is not a multiple of five, so where the counter comes round the top note is held three turns). When it touches him it bursts and takes one of his hits (<a href="asm/52873.html">WANDERING_MONSTER</a>), and its puff crackles as it ends (<a href="asm/50229.html">PUFF_SOUND</a>). Pentagram has the routine and all five tables, the same bytes, and never reaches them (<a href="../pentagram/Sounds.html#blip">Pentagram's sounds</a>).</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the turn counter set to 255 at the start of a turn, so that the turn's count made it the 256th and <a href="asm/49045.html">SPAWN_CREATURE</a> did its work; recorded until the creature had burst and its puff had gone. His hits went from 3 to 2.</p>
+<p>Checked: 196 waves from CLICK (the code implies 196); every on half-wave was 13B + 18 T-states for the B the code gives it; the puff's pitches were sixteen bytes in a row of the ROM's first 8K, less their top bits, as <a href="asm/50229.html">PUFF_SOUND</a> reads them; every off half-wave inside a sound was 13B plus 64 (BEEP's), 133 (<a href="asm/50229.html">PUFF_SOUND</a>'s), the loops' own timing.</p>
+<p>1.46 s, 392 edges, 20 turns, 1029 to 19774 Hz.</p>
+<audio controls preload="none" src="audio/creature.wav"><a href="audio/creature.wav">creature.wav</a></audio>
+</div>
+<h3>The villains' hum: a bug</h3>
+<p>A villain on the screen hums: every turn it was drawn the turn before, <a href="asm/55631.html">VILLAIN_WANDER</a> enters the creature's blip routine at BLIP_FROM_TABLE ($C335) for twelve waves at a pitch picked by the turn counter's low four bits. It was meant, by every sign, to give each villain its own sixteen pitches (an inference, but a safe one): <a href="asm/49997.html">BLIP_PITCHES</a> holds five tables of sixteen, the creature's and then four more, VILLAIN_PITCHES ($C35D), and <a href="asm/55631.html">VILLAIN_WANDER</a> loads that address into HL and an offset by the villain's kind into BC before the call. Both halves are wrong. BLIP_FROM_TABLE builds its address as the turn's four bits in HL plus BC -- it overwrites HL, so the table's address is lost and BC alone is the base; and the offset, the graphic turned left two bits and ANDed with $F0, keeps the graphic's bit 5, which every villain (96-111) has set, in bit 7: it comes to $80, $90, $A0 or $B0, not 0, 16, 32 or 48 (AND $30 would have been right). So each villain hums sixteen bytes of the ROM, from $0080 to $00BF, and the four tables are never read. That part of the ROM is the end of a routine and, from $0095, the table of BASIC keywords, so three of the four villains hum mostly the spelling of keywords. (The mistakes read from the code; the pitches heard in the runs below, whose every wave matched the ROM's bytes.)</p>
+<table class="kl-table">
+<tr><th>Villain graphics</th><th>BC as <a href="asm/55631.html">VILLAIN_WANDER</a> makes it</th><th>What it hums (ROM)</th><th>Its own table, never read</th></tr>
+<tr><td>96-99</td><td>$80</td><td>$0080-$008F: 254 13 200 254 16 216 254 24 63 216 35 254 22 56 1 35 (ROM code)</td><td>$C35D: 32 32 48 48 64 64 80 80 96 96 112 112 128 128 144 144 (counts climbing from 32 to 144, each twice: a scale falling)</td></tr>
+<tr><td>100-103</td><td>$90</td><td>$0090-$009F: 55 34 93 92 201 191 82 78 196 73 78 75 69 89 164 80 (from $0095, the keywords' letters ?RNDINKEY$P)</td><td>$C36D: 144 144 128 128 112 112 96 96 80 80 64 64 48 48 32 32 (the same back down: a scale rising)</td></tr>
+<tr><td>104-107</td><td>$A0</td><td>$00A0-$00AF: 201 70 206 80 79 73 78 212 83 67 82 69 69 78 164 65 (from $00A0, the keywords' letters IFNPOINTSCREEN$A)</td><td>$C37D: 144 128 112 128 112 96 112 96 80 96 80 64 80 64 48 32 (counts in a zigzag from 144 down to 32: a zigzag rising)</td></tr>
+<tr><td>108-111</td><td>$B0</td><td>$00B0-$00BF: 84 84 210 65 212 84 65 194 86 65 76 164 67 79 68 197 (from $00B0, the keywords' letters TTRATTABVAL$CODE)</td><td>$C38D: 64 64 64 48 80 80 80 80 64 64 64 48 80 80 80 80 (a figure of eight counts between 48 and 80, twice)</td></tr>
+</table>
+<h4>What they hum</h4>
+<div class="kl-item" id="hum0">
+<h4>Villain 96-99: what it hums</h4>
+<p>The villain of graphics 96 to 99: BC comes to $80, so its twelve waves a turn are pitched by the ROM's bytes $0080 to $008F, one for each turn of sixteen.</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the villain of record $BD8E (graphic 98 when the run began) put in his cell 64 units from him along U at the start of every turn, so that it stayed in sight and out of his reach; seventeen turns, the first silent (it had not been drawn the turn before).</p>
+<p>Checked: 192 waves from CLICK (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.38 s, 384 edges, 17 turns, 523 to 32407 Hz.</p>
+<audio controls preload="none" src="audio/hum0.wav"><a href="audio/hum0.wav">hum0.wav</a></audio>
+</div>
+<div class="kl-item" id="hum1">
+<h4>Villain 100-103: what it hums</h4>
+<p>The villain of graphics 100 to 103: BC comes to $90, so its twelve waves a turn are pitched by the ROM's bytes $0090 to $009F, one for each turn of sixteen.</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the villain of record $BD7E (graphic 102 when the run began) put in his cell 64 units from him along U at the start of every turn, so that it stayed in sight and out of his reach; seventeen turns, the first silent (it had not been drawn the turn before).</p>
+<p>Checked: 192 waves from CLICK (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.33 s, 384 edges, 17 turns, 659 to 3623 Hz.</p>
+<audio controls preload="none" src="audio/hum1.wav"><a href="audio/hum1.wav">hum1.wav</a></audio>
+</div>
+<div class="kl-item" id="hum2">
+<h4>Villain 104-107: what it hums</h4>
+<p>The villain of graphics 104 to 107: BC comes to $A0, so its twelve waves a turn are pitched by the ROM's bytes $00A0 to $00AF, one for each turn of sixteen.</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the villain of record $BD6E (graphic 106 when the run began) put in his cell 64 units from him along U at the start of every turn, so that it stayed in sight and out of his reach; seventeen turns, the first silent (it had not been drawn the turn before).</p>
+<p>Checked: 192 waves from CLICK (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.33 s, 384 edges, 17 turns, 626 to 1975 Hz.</p>
+<audio controls preload="none" src="audio/hum2.wav"><a href="audio/hum2.wav">hum2.wav</a></audio>
+</div>
+<div class="kl-item" id="hum3">
+<h4>Villain 108-111: what it hums</h4>
+<p>The villain of graphics 108 to 111: BC comes to $B0, so its twelve waves a turn are pitched by the ROM's bytes $00B0 to $00BF, one for each turn of sixteen.</p>
+<p>Recorded: the game running, the knight standing where a new game put him: the villain of record $BD5E (graphic 110 when the run began) put in his cell 64 units from him along U at the start of every turn, so that it stayed in sight and out of his reach; seventeen turns, the first silent (it had not been drawn the turn before).</p>
+<p>Checked: 192 waves from CLICK (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.34 s, 384 edges, 17 turns, 626 to 1975 Hz.</p>
+<audio controls preload="none" src="audio/hum3.wav"><a href="audio/hum3.wav">hum3.wav</a></audio>
+</div>
+<h4>What their tables would have played</h4>
+<p>Recorded by calling BLIP_FROM_TABLE ($C335) sixteen times for each, with BC the table's address (VILLAIN_PITCHES plus 16 for each kind, which is what the two mistakes stop <a href="asm/55631.html">VILLAIN_WANDER</a> from giving it), IX on a record whose drawn flag is set, and the turn counter 0 to 15, a quiet turn apart: the villain in sight for sixteen turns, as the runs above have it. None of this is ever heard in the game.</p>
+<div class="kl-item" id="meant0">
+<h4>Villain 96-99, as meant</h4>
+<p>The second of the five sixteens in <a href="asm/49997.html">BLIP_PITCHES</a>, $C35D: counts climbing from 32 to 144, each twice: a scale falling.</p>
+<p>Recorded: sixteen calls of BLIP_FROM_TABLE ($C335) with BC = $C35D, the turn counter 0 to 15, a quiet turn apart.</p>
+<p>Checked: 192 waves (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.09 s, 384 edges, 915 to 3829 Hz.</p>
+<audio controls preload="none" src="audio/meant0.wav"><a href="audio/meant0.wav">meant0.wav</a></audio>
+</div>
+<div class="kl-item" id="meant1">
+<h4>Villain 100-103, as meant</h4>
+<p>The third of the five sixteens in <a href="asm/49997.html">BLIP_PITCHES</a>, $C36D: the same back down: a scale rising.</p>
+<p>Recorded: sixteen calls of BLIP_FROM_TABLE ($C335) with BC = $C36D, the turn counter 0 to 15, a quiet turn apart.</p>
+<p>Checked: 192 waves (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.09 s, 384 edges, 915 to 3829 Hz.</p>
+<audio controls preload="none" src="audio/meant1.wav"><a href="audio/meant1.wav">meant1.wav</a></audio>
+</div>
+<div class="kl-item" id="meant2">
+<h4>Villain 104-107, as meant</h4>
+<p>The fourth of the five sixteens in <a href="asm/49997.html">BLIP_PITCHES</a>, $C37D: counts in a zigzag from 144 down to 32: a zigzag rising.</p>
+<p>Recorded: sixteen calls of BLIP_FROM_TABLE ($C335) with BC = $C37D, the turn counter 0 to 15, a quiet turn apart.</p>
+<p>Checked: 192 waves (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.09 s, 384 edges, 915 to 3829 Hz.</p>
+<audio controls preload="none" src="audio/meant2.wav"><a href="audio/meant2.wav">meant2.wav</a></audio>
+</div>
+<div class="kl-item" id="meant3">
+<h4>Villain 108-111, as meant</h4>
+<p>The fifth of the five sixteens in <a href="asm/49997.html">BLIP_PITCHES</a>, $C38D: a figure of eight counts between 48 and 80, twice.</p>
+<p>Recorded: sixteen calls of BLIP_FROM_TABLE ($C335) with BC = $C38D, the turn counter 0 to 15, a quiet turn apart.</p>
+<p>Checked: 192 waves (the code implies 192); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing.</p>
+<p>1.06 s, 384 edges, 1619 to 2632 Hz.</p>
+<audio controls preload="none" src="audio/meant3.wav"><a href="audio/meant3.wav">meant3.wav</a></audio>
+</div>
+<h3>The ending</h3>
+<div class="kl-item" id="ending">
+<h4>The villains gone: game over, and the ending</h4>
+<p>When the last villain's sparkles have gone, <a href="asm/55397.html">CHECK_QUEST_DONE</a> goes to <a href="asm/52310.html">GAME_OVER</a> -- the same game-over screen and tune as when the lives run out -- and only then, finding no villain alive, does <a href="asm/52310.html">GAME_OVER</a> set up the ending. Its four villain pictures (<a href="asm/52568.html">ENDING_VILLAIN</a>) come across one at a time and sink into the pit, and every turn one moves, <a href="asm/50077.html">ENDING_BEEP</a> plays twelve waves at 64 plus EFFECT_TIME, counted up one each time -- a slowly falling note -- which is reset as each picture sinks out of sight, so each one's note starts again from the top. When the last has gone, <a href="asm/52496.html">ENDING_PIT_FRONT</a> plays the ending's tune, and it is the menu. The note is Pentagram's pause beep, put to another use (<a href="../pentagram/Sounds.html#pause">Pentagram's sounds</a>); Nightshade's pause (<a href="asm/58156.html">PAUSE</a>) makes no sound at all.</p>
+<p>Recorded: the game running where a new game put him: the four villain records emptied at the start of a turn, which is how <a href="asm/55397.html">CHECK_QUEST_DONE</a> finds them once the fourth villain has been destroyed and its sparkles have gone; recorded from that turn to the start of the new game.</p>
+<p>Checked: 2,160 waves from CLICK (the code implies 2,160); every on half-wave was 13B + 18 T-states for the B the code gives it; every off half-wave inside a sound was 13B plus 64 (BEEP's), the loops' own timing; and the tune at $C803: the table's wave counts make 1,188 waves, so 2,375 edges (the first OUT turns off a speaker already off); the recording has 2,375 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply; the tune at $C81A: the table's wave counts make 2,314 waves, so 4,627 edges (the first OUT turns off a speaker already off); the recording has 4,627 -- the same. Every off half-wave was D + 39 T-states and every on half-wave inside a note was D + 62, D being 13B + 3339C - 3333 for the note's B and C, as <a href="asm/50785.html">PLAY_NOTE</a>'s loops imply (the edge after a tune's last wave, where the next OUT to the port -- the screen cleared, the border set black -- turned the speaker off, left out).</p>
+<p>17.49 s, 11,323 edges, 178 turns, 945 to 1975 Hz.</p>
+<audio controls preload="none" src="audio/ending.wav"><a href="audio/ending.wav">ending.wav</a></audio>
+</div>
+<h3>Shared with Pentagram, Alien 8 and Knight Lore</h3>
+<p>Each routine and table compared byte for byte, at this build, with the other games' snapshots (their own builds write them), at the place each has it. &quot;Addresses&quot; means the only bytes that differ are the operands naming variables, tables and routines, which each game keeps in its own places. The sounds pages: <a href="../pentagram/Sounds.html">Pentagram</a>, <a href="../alien8/Sounds.html">Alien 8</a>, <a href="../knightlore/Sounds.html">Knight Lore</a>.</p>
+<table class="kl-table">
+<tr><th>Here</th><th>What</th><th>Bytes</th><th>Pentagram</th><th>Alien 8</th><th>Knight Lore</th><th>Note</th></tr>
+<tr><td><a href="asm/50289.html">CLICK</a></td><td>CLICK, one wave</td><td>16</td><td>$D682: identical</td><td>$B702: identical</td><td>$B4ED: identical</td><td></td></tr>
+<tr><td>$C46A</td><td>BEEP, C waves</td><td>7</td><td>$D67B: 2 bytes differ: addresses</td><td>$B6FB: 2 bytes differ: addresses</td><td>$B4E6: 2 bytes differ: addresses</td><td></td></tr>
+<tr><td><a href="asm/50785.html">PLAY_NOTE</a></td><td>PLAY_NOTE, the tune player's note</td><td>88</td><td>$D6C0: 4 bytes differ: addresses</td><td>$B4C5: 4 bytes differ: addresses</td><td>$B2DA: 4 bytes differ: addresses</td><td></td></tr>
+<tr><td><a href="asm/50873.html">NOTES</a></td><td>NOTES, the note table</td><td>183</td><td>$D718: identical</td><td>$B51D: identical</td><td>$B332: identical</td><td></td></tr>
+<tr><td><a href="asm/50774.html">PLAY_TUNE</a></td><td>PLAY_TUNE, a tune through</td><td>11</td><td>$D6B5: 2 bytes differ: addresses</td><td>$B4BA: 2 bytes differ: addresses</td><td>$B2CF: 2 bytes differ: addresses</td><td></td></tr>
+<tr><td><a href="asm/50749.html">PLAY_TUNE_ONCE</a></td><td>PLAY_TUNE_ONCE, the menu's tune, once</td><td>25</td><td>$D69C: 6 bytes differ: addresses</td><td>$B4A1: 6 bytes differ: addresses</td><td>$B2B6: 6 bytes differ: addresses</td><td></td></tr>
+<tr><td><a href="asm/49970.html">BLIP_BY_TURN</a></td><td>BLIP_BY_TURN, the creature's blip</td><td>27</td><td>$D56C: 6 bytes differ: addresses</td><td></td><td></td><td>Never reached in Pentagram.</td></tr>
+<tr><td><a href="asm/49997.html">BLIP_PITCHES</a></td><td>BLIP_PITCHES, the five sixteens of pitches</td><td>80</td><td>$D587: identical</td><td></td><td></td><td></td></tr>
+<tr><td><a href="asm/50077.html">ENDING_BEEP</a></td><td>ENDING_BEEP, the ending's note (Pentagram's pause beep)</td><td>13</td><td>$D5D7: 4 bytes differ: addresses</td><td></td><td></td><td></td></tr>
+<tr><td>$C3AF</td><td>BUMP_SOUND, the bump after its test (Pentagram's jump)</td><td>14</td><td>$D5E4: 2 bytes differ: addresses</td><td></td><td></td><td>Nightshade's has five bytes in front, the test of the drawn flag.</td></tr>
+<tr><td><a href="asm/50109.html">EFFECT_NOTE</a></td><td>EFFECT_NOTE, an effect's note a turn</td><td>27</td><td>$D5F2: 8 bytes differ: addresses</td><td></td><td></td><td></td></tr>
+<tr><td><a href="asm/50136.html">EFFECT_TABLE</a></td><td>EFFECT_TABLE, the four effects</td><td>28</td><td>$D60D: 8 bytes differ: addresses</td><td></td><td></td><td>The same twenty notes; Pentagram starts effects 0 and 1 only.</td></tr>
+<tr><td><a href="asm/50164.html">FIRE_SOUND</a></td><td>FIRE_SOUND, a throw (Pentagram's bolt)</td><td>12</td><td>$D629: 2 bytes differ: addresses</td><td></td><td></td><td></td></tr>
+<tr><td>$C40B</td><td>FOOTSTEP, the walking half of a footstep</td><td>21</td><td>$D639: 4 bytes differ: a jump, the waves</td><td></td><td></td><td>Four waves where Pentagram's are two; Nightshade's has the count and the test of the speed in front, and the faster half after.</td></tr>
+<tr><td>$C43E</td><td>PUFF_SOUND, a puff after its test</td><td>23</td><td>$D64E: 5 bytes differ: addresses, the waves</td><td></td><td></td><td>Sixteen waves where Pentagram's are four; Nightshade's has the test and clearing of the drawn flag in front.</td></tr>
+<tr><td><a href="asm/50261.html">APPEAR_SOUND</a></td><td>APPEAR_SOUND, a monster appearing</td><td>13</td><td>$D665: identical</td><td></td><td></td><td>Pentagram's bytes are never reached, and are followed by a data byte before its BEEP; Nightshade's jump to BEEP is one shorter.</td></tr>
+<tr><td><a href="asm/50275.html">ARRIVE_SOUND</a></td><td>ARRIVE_SOUND, the knight appearing</td><td>7</td><td>$D674: 2 bytes differ: addresses</td><td></td><td></td><td>Pentagram's reads a spare byte nothing writes; Nightshade's reads ARRIVING.</td></tr>
+</table>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

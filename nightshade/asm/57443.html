@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E063</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57384.html">E028</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57443">Map</a></td>
+<td class="next">
+Next: <a href="57479.html">E087</a>
+</td>
+</tr>
+</table>
+<div class="description">E063: Does the moved object run into a box of a cell? Give the overlap in U</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="57363.html">CUT_STEP_PLUS_U</a> and <a href="57376.html">CUT_STEP_MINUS_U</a>.
+</div>
+<div class="paragraph">
+The cell's boxes come from <a href="25396.html">BOX_TABLE</a> by its type: four bytes a box -- its centre in U and V and its half-sizes in U and V, in the cell's half units (<a href="57384.html">PLACE_IN_CELL</a>) -- and a list ends at a 0. A box is hit when the object's footprint, moved by this turn's step, overlaps it in V (<a href="57540.html">OVERLAP_V</a>) and in U (<a href="57479.html">OVERLAP_U</a>). The first box hit returns carry, with A minus the depth of the overlap in U, in half units. <a href="57504.html">HIT_BOXES_V</a> is the same with the two tests the other way round, to give the overlap in V.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The column of the cell</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">Its row</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">Minus the overlap in U, in half units (when carry is set)</td>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Carry set if a box is hit</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">HIT_BOXES_U</td>
+<td class="address-2"><span id="57443"></span>E063</td>
+<td class="instruction">CALL <a href="57384.html">PLACE_IN_CELL</a></td>
+<td class="comment-1" rowspan="1">Find the cell's type and the object's place in it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57446"></span>E066</td>
+<td class="instruction">LD BC,<a href="25396.html">BOX_TABLE</a></td>
+<td class="comment-1" rowspan="4">IY = the type's list of boxes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57449"></span>E069</td>
+<td class="instruction">CALL <a href="54665.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57452"></span>E06C</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57453"></span>E06D</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label">HIT_BOXES_U_0</td>
+<td class="address-2"><span id="57455"></span>E06F</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">A 0 ends the list: nothing hit, carry clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57458"></span>E072</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57459"></span>E073</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57460"></span>E074</td>
+<td class="instruction">CALL <a href="57540.html">OVERLAP_V</a></td>
+<td class="comment-1" rowspan="2">Overlapping this box in V?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57463"></span>E077</td>
+<td class="instruction">JR NC,<a href="57443.html#57469">HIT_BOXES_U_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57465"></span>E079</td>
+<td class="instruction">CALL <a href="57479.html">OVERLAP_U</a></td>
+<td class="comment-1" rowspan="2">...and in U: then return carry, with the overlap in U</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57468"></span>E07C</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label">HIT_BOXES_U_1</td>
+<td class="address-2"><span id="57469"></span>E07D</td>
+<td class="instruction">INC IY</td>
+<td class="comment-1" rowspan="5">The next box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57471"></span>E07F</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57473"></span>E081</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57475"></span>E083</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57477"></span>E085</td>
+<td class="instruction">JR <a href="57443.html#57455">HIT_BOXES_U_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57384.html">E028</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57443">Map</a></td>
+<td class="next">
+Next: <a href="57479.html">E087</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D425</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54293.html">D415</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54309">Map</a></td>
+<td class="next">
+Next: <a href="54511.html">D4EF</a>
+</td>
+</tr>
+</table>
+<div class="description">D425: Draw a tile of wall</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="54210.html">DRAW_WALL_COLUMN</a>.
+</div>
+<div class="paragraph">
+The number at IY picks the tile from <a href="28214.html">TILE_TABLE</a>: a height byte, then two bytes a row, the bottom row first. It is drawn at DRAW_X and the line in D exactly as <a href="53938.html">PUT_EDGE</a> draws an edge picture -- the same four cases, the same pages, the second face mirrored -- except that a tile is solid: its 16 pixels are written over what is under them rather than ORed in. A shifted row covers three buffer bytes; the middle one is wholly the tile's, and in the first and the last the pixels outside the tile are kept by AND masks. The masks come from <a href="54511.html">TILE_MASKS</a> by the shift and are patched into the four ANDs (TILE_MASK_FIRST, TILE_MASK_LAST, and the same in the mirrored run), the first byte's mask keeping the pixels to the left of the tile and its complement those to the right.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the tile's number in a building definition</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">the y of its bottom row</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">its x</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE</td>
+<td class="address-2"><span id="54309"></span>D425</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">HL = the tile (<a href="28214.html">TILE_TABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54312"></span>D428</td>
+<td class="instruction">LD BC,<a href="28214.html">TILE_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54315"></span>D42B</td>
+<td class="instruction">CALL <a href="54665.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54318"></span>D42E</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="3">Starting below the play area: <a href="54293.html">CLIP_TILE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54319"></span>D42F</td>
+<td class="instruction">SUB $48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54321"></span>D431</td>
+<td class="instruction">JR C,<a href="54293.html">CLIP_TILE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54323"></span>D433</td>
+<td class="instruction">SUB $70</td>
+<td class="comment-1" rowspan="7">At or above its top, nothing; A = the rows, the height or as many as fit below the top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54325"></span>D435</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54326"></span>D436</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54328"></span>D438</td>
+<td class="instruction">CP (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54329"></span>D439</td>
+<td class="instruction">JR C,<a href="54309.html#54332">PUT_TILE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54331"></span>D43B</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_0</td>
+<td class="address-2"><span id="54332"></span>D43C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="54333"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="54293.html">CLIP_TILE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_1</td>
+<td class="address-2"><span id="54333"></span>D43D</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="4">The count into A'; DE = the buffer address (<a href="58682.html">BUFFER_ADDRESS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54334"></span>D43E</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54335"></span>D43F</td>
+<td class="instruction">CALL <a href="58682.html">BUFFER_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54338"></span>D442</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54339"></span>D443</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="6">The shift's mask from <a href="54511.html">TILE_MASKS</a>: x / 2, bits 0-1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54340"></span>D444</td>
+<td class="instruction">LD A,(<a href="48042.html#48054">DRAW_X</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54343"></span>D447</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54344"></span>D448</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54346"></span>D44A</td>
+<td class="instruction">LD HL,<a href="54511.html">TILE_MASKS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54349"></span>D44D</td>
+<td class="instruction">CALL <a href="58774.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54352"></span>D450</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">Into the first byte's two ANDs...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54353"></span>D451</td>
+<td class="instruction">LD ($D47C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54356"></span>D454</td>
+<td class="instruction">LD ($D4A3),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54359"></span>D457</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="3">...and its complement into the last byte's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54360"></span>D458</td>
+<td class="instruction">LD ($D48A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54363"></span>D45B</td>
+<td class="instruction">LD ($D4B2),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54366"></span>D45E</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">SP onto the tile's rows, the real one in SAVED_SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54367"></span>D45F</td>
+<td class="instruction">LD (<a href="48042.html#48046">SAVED_SP</a>),SP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54371"></span>D463</td>
+<td class="instruction">LD SP,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54372"></span>D464</td>
+<td class="instruction">LD A,(<a href="48042.html#48054">DRAW_X</a>)</td>
+<td class="comment-1" rowspan="3">Aligned: the plain cases</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54375"></span>D467</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54377"></span>D469</td>
+<td class="instruction">JR Z,<a href="54309.html#54466">PUT_TILE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54379"></span>D46B</td>
+<td class="instruction">OR $F0</td>
+<td class="comment-1" rowspan="6">H = the shift's pages: $F2, $F4 or $F6 mirrored (the second face), $FA, $FC or $FE not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54381"></span>D46D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54382"></span>D46E</td>
+<td class="instruction">LD A,(<a href="48042.html#48114">DRAW_PASS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54385"></span>D471</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54386"></span>D472</td>
+<td class="instruction">JR NZ,<a href="54309.html#54429">PUT_TILE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54388"></span>D474</td>
+<td class="instruction">SET 3,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54390"></span>D476</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="8">A row: the first buffer byte kept left of the tile (patched mask), the tile's first part put in</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_2</td>
+<td class="address-2"><span id="54391"></span>D477</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54392"></span>D478</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54393"></span>D479</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54394"></span>D47A</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label">TILE_MASK_FIRST</td>
+<td class="address-1"><span id="54395"></span>D47B</td>
+<td class="instruction">AND $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54397"></span>D47D</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54398"></span>D47E</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54399"></span>D47F</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="7">The middle byte wholly the tile's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54400"></span>D480</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54401"></span>D481</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54402"></span>D482</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54403"></span>D483</td>
+<td class="instruction">LD L,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54404"></span>D484</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54405"></span>D485</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54406"></span>D486</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="7">The last kept right of the tile (patched mask), the tile's last part put in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54407"></span>D487</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54408"></span>D488</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label">TILE_MASK_LAST</td>
+<td class="address-1"><span id="54409"></span>D489</td>
+<td class="instruction">AND $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54411"></span>D48B</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54412"></span>D48C</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54413"></span>D48D</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54414"></span>D48E</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="7">Up a line, until the rows run out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54415"></span>D48F</td>
+<td class="instruction">LD BC,$0016</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54418"></span>D492</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54419"></span>D493</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54420"></span>D494</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54421"></span>D495</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54422"></span>D496</td>
+<td class="instruction">JR NZ,<a href="54309.html#54391">PUT_TILE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_3</td>
+<td class="address-2"><span id="54424"></span>D498</td>
+<td class="instruction">LD SP,(<a href="48042.html#48046">SAVED_SP</a>)</td>
+<td class="comment-1" rowspan="2">The real stack pointer back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54428"></span>D49C</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_4</td>
+<td class="address-2"><span id="54429"></span>D49D</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="31">Mirrored: the same, the row's second byte first, through the reversing pages</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_5</td>
+<td class="address-2"><span id="54430"></span>D49E</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54431"></span>D49F</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54432"></span>D4A0</td>
+<td class="instruction">LD L,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54433"></span>D4A1</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label">TILE_MASK_FIRST_TURNED</td>
+<td class="address-1"><span id="54434"></span>D4A2</td>
+<td class="instruction">AND $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54436"></span>D4A4</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54437"></span>D4A5</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54438"></span>D4A6</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54439"></span>D4A7</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54440"></span>D4A8</td>
+<td class="instruction">LD B,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54441"></span>D4A9</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54442"></span>D4AA</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54443"></span>D4AB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54444"></span>D4AC</td>
+<td class="instruction">OR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54445"></span>D4AD</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54446"></span>D4AE</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54447"></span>D4AF</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54448"></span>D4B0</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label">TILE_MASK_LAST_TURNED</td>
+<td class="address-1"><span id="54449"></span>D4B1</td>
+<td class="instruction">AND $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54451"></span>D4B3</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54452"></span>D4B4</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54453"></span>D4B5</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54454"></span>D4B6</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54455"></span>D4B7</td>
+<td class="instruction">LD BC,$0016</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54458"></span>D4BA</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54459"></span>D4BB</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54460"></span>D4BC</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54461"></span>D4BD</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54462"></span>D4BE</td>
+<td class="instruction">JR NZ,<a href="54309.html#54430">PUT_TILE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54464"></span>D4C0</td>
+<td class="instruction">JR <a href="54309.html#54424">PUT_TILE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_6</td>
+<td class="address-2"><span id="54466"></span>D4C2</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="16">Aligned: the two bytes written in as they are</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54467"></span>D4C3</td>
+<td class="instruction">LD A,(<a href="48042.html#48114">DRAW_PASS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54470"></span>D4C6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54471"></span>D4C7</td>
+<td class="instruction">JR NZ,<a href="54309.html#54489">PUT_TILE_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54473"></span>D4C9</td>
+<td class="instruction">LD BC,$0017</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54476"></span>D4CC</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_7</td>
+<td class="address-2"><span id="54477"></span>D4CD</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54478"></span>D4CE</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54479"></span>D4CF</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54480"></span>D4D0</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54481"></span>D4D1</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54482"></span>D4D2</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54483"></span>D4D3</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54484"></span>D4D4</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54485"></span>D4D5</td>
+<td class="instruction">JR NZ,<a href="54309.html#54477">PUT_TILE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54487"></span>D4D7</td>
+<td class="instruction">JR <a href="54309.html#54424">PUT_TILE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_8</td>
+<td class="address-2"><span id="54489"></span>D4D9</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="17">Aligned and mirrored: each reversed (<a href="63744.html">REVERSE_TABLE</a>), the second first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54491"></span>D4DB</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">PUT_TILE_9</td>
+<td class="address-2"><span id="54492"></span>D4DC</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54493"></span>D4DD</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54494"></span>D4DE</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54495"></span>D4DF</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54496"></span>D4E0</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54497"></span>D4E1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54498"></span>D4E2</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54499"></span>D4E3</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54500"></span>D4E4</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54501"></span>D4E5</td>
+<td class="instruction">LD DE,$0017</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54504"></span>D4E8</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54505"></span>D4E9</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54506"></span>D4EA</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54507"></span>D4EB</td>
+<td class="instruction">JR NZ,<a href="54309.html#54492">PUT_TILE_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54509"></span>D4ED</td>
+<td class="instruction">JR <a href="54309.html#54424">PUT_TILE_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54293.html">D415</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54309">Map</a></td>
+<td class="next">
+Next: <a href="54511.html">D4EF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

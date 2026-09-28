@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at E353</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58156.html">E32C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58195">Map</a></td>
+<td class="next">
+Next: <a href="58326.html">E3D6</a>
+</td>
+</tr>
+</table>
+<div class="description">E353: Find an object's sprite, and turn its stored data the way the object wants it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="58329.html">DRAW_SPRITE</a>.
+</div>
+<div class="paragraph">
+The graphic (+0) indexes <a href="28318.html">GRAPHICS</a> for the sprite. A sprite is a width byte -- bits 0-3 the width in bytes, bit 7 set while its data is stored upside down, bit 6 while it is stored mirrored -- a height byte, and then a mask byte and an image byte for each byte of each row, the bottom row first. Bits 7 and 6 of the object's flags (+7) say how it wants to be drawn. Where they differ from the sprite's, the data is turned in place and the sprite's bit toggled, so an object that keeps facing one way costs nothing after the first time, while two objects sharing a sprite and facing opposite ways turn it back and forth every time each is drawn.
+</div>
+<div class="paragraph">
+Upside down swaps whole rows end for end, the first with the last, working inwards. Mirroring (MIRROR_SPRITE_DATA, also entered by <a href="58326.html">MIRROR_SPRITE</a>) reverses the order of each row's mask and image pairs and the bits of every byte, through <a href="63744.html">REVERSE_TABLE</a>: a row's pairs are read, reversed, onto the stack and popped back in the opposite order.
+</div>
+<div class="paragraph">
+Nothing in the game sets bit 7 of a record's flags. Every write to that byte was read: the records are cleared or copied from templates that hold 0 there; the rest set or clear bits 0, 1 and 5, set bit 6 from the view or the facing, take bits 6 and 7 from a table whose four bytes have bit 7 clear (<a href="56540.html">FACING_LOOKS</a>), or copy another record's flags. So the upside-down half, and the multiply it uses (<a href="57582.html">HL_EQUALS_DE_X_A</a>), never run -- which the build's sessions agree with -- and every sprite's bit 7 stays clear. Knight Lore's objects do turn upside down; Pentagram's routine is the same as this one, and Alien 8's nearly so.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The sprite (its width byte)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE</td>
+<td class="address-2"><span id="58195"></span>E353</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="5">DE = the sprite, kept on the stack</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58198"></span>E356</td>
+<td class="instruction">LD BC,<a href="28318.html">GRAPHICS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58201"></span>E359</td>
+<td class="instruction">CALL <a href="54665.html">TABLE_WORD</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58204"></span>E35C</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58205"></span>E35D</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58206"></span>E35E</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="4">Stored the way up the object wants?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58207"></span>E35F</td>
+<td class="instruction">XOR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58210"></span>E362</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58212"></span>E364</td>
+<td class="instruction">JR Z,<a href="58195.html#58266">TURN_SPRITE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58214"></span>E366</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">No (it never happens): toggle the sprite's upside-down bit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58215"></span>E367</td>
+<td class="instruction">XOR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58217"></span>E369</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58218"></span>E36A</td>
+<td class="instruction">RLCA</td>
+<td class="comment-1" rowspan="3">B = the bytes in a row, twice the width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58219"></span>E36B</td>
+<td class="instruction">AND $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58221"></span>E36D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58222"></span>E36E</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="5">C = the height; DE on to the data</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58223"></span>E36F</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58224"></span>E370</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58225"></span>E371</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58226"></span>E372</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58227"></span>E373</td>
+<td class="instruction">LD E,B</td>
+<td class="comment-1" rowspan="6">DE = the end of the data: the height times a row's bytes on from its start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58228"></span>E374</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58230"></span>E376</td>
+<td class="instruction">CALL <a href="57582.html">HL_EQUALS_DE_X_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58233"></span>E379</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58234"></span>E37A</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58235"></span>E37B</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58236"></span>E37C</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="5">HL = the last byte of the first row, DE the last byte of the last; C = half the height, the pairs of rows to swap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58237"></span>E37D</td>
+<td class="instruction">CALL <a href="58774.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58240"></span>E380</td>
+<td class="instruction">DEC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58241"></span>E381</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58242"></span>E382</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_0</td>
+<td class="address-2"><span id="58244"></span>E384</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="9">Swap a row with its partner, byte for byte from their ends</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_1</td>
+<td class="address-2"><span id="58245"></span>E385</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58246"></span>E386</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58247"></span>E387</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58248"></span>E388</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58249"></span>E389</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58250"></span>E38A</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58251"></span>E38B</td>
+<td class="instruction">DEC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58252"></span>E38C</td>
+<td class="instruction">DJNZ <a href="58195.html#58245">TURN_SPRITE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58254"></span>E38E</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="5">HL on to the end of the next row up; DE is already at the end of the row below its last</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58255"></span>E38F</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58256"></span>E390</td>
+<td class="instruction">CALL <a href="58774.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58259"></span>E393</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58260"></span>E394</td>
+<td class="instruction">CALL <a href="58774.html">ADD_HL_A</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58263"></span>E397</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="2">Until the middle</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58264"></span>E398</td>
+<td class="instruction">JR NZ,<a href="58195.html#58244">TURN_SPRITE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_2</td>
+<td class="address-2"><span id="58266"></span>E39A</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="6">Stored mirrored or not as the object wants?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58267"></span>E39B</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58268"></span>E39C</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58269"></span>E39D</td>
+<td class="instruction">XOR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58272"></span>E3A0</td>
+<td class="instruction">AND $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58274"></span>E3A2</td>
+<td class="instruction">JR Z,<a href="58195.html#58324">TURN_SPRITE_5</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="58276"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="58326.html">MIRROR_SPRITE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MIRROR_SPRITE_DATA</td>
+<td class="address-2"><span id="58276"></span>E3A4</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">No, or entered here (MIRROR_SPRITE_DATA): toggle the sprite's mirrored bit; B and C = the width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58277"></span>E3A5</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58279"></span>E3A7</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58280"></span>E3A8</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58282"></span>E3AA</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58283"></span>E3AB</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58284"></span>E3AC</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="10">A' = the height; HL at the data, and HL' too, with B' the page of <a href="63744.html">REVERSE_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58285"></span>E3AD</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58286"></span>E3AE</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58287"></span>E3AF</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58288"></span>E3B0</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58289"></span>E3B1</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58290"></span>E3B2</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58291"></span>E3B3</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58292"></span>E3B4</td>
+<td class="instruction">LD B,$F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58294"></span>E3B6</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_3</td>
+<td class="address-2"><span id="58295"></span>E3B7</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="12">Read a row's pairs onto the stack, each byte's bits reversed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58296"></span>E3B8</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58297"></span>E3B9</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58298"></span>E3BA</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58299"></span>E3BB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58300"></span>E3BC</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58301"></span>E3BD</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58302"></span>E3BE</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58303"></span>E3BF</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58304"></span>E3C0</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58305"></span>E3C1</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58306"></span>E3C2</td>
+<td class="instruction">DJNZ <a href="58195.html#58295">TURN_SPRITE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58308"></span>E3C4</td>
+<td class="instruction">LD B,C</td>
+<td class="comment-1" rowspan="7">Pop them back over the same row, the last pair first</td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_4</td>
+<td class="address-2"><span id="58309"></span>E3C5</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58310"></span>E3C6</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58311"></span>E3C7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58312"></span>E3C8</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58313"></span>E3C9</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58314"></span>E3CA</td>
+<td class="instruction">DJNZ <a href="58195.html#58309">TURN_SPRITE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58316"></span>E3CC</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="6">The next row, until the height is done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58317"></span>E3CD</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58318"></span>E3CE</td>
+<td class="instruction">JR Z,<a href="58195.html#58324">TURN_SPRITE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58320"></span>E3D0</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58321"></span>E3D1</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58322"></span>E3D2</td>
+<td class="instruction">JR <a href="58195.html#58295">TURN_SPRITE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">TURN_SPRITE_5</td>
+<td class="address-2"><span id="58324"></span>E3D4</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="2">Return the sprite in DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58325"></span>E3D5</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58156.html">E32C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58195">Map</a></td>
+<td class="next">
+Next: <a href="58326.html">E3D6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

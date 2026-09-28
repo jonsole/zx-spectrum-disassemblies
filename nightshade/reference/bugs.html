@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#hum">The villains hum the ROM</a></li>
+<li><a href="#hundred">A hundred per cent prints three wrong characters</a></li>
+<li><a href="#stack">The 157th game crashes</a></li>
+<li><a href="#antibody">Only the first antibody can strike</a></li>
+<li><a href="#split">A split overwrites the first monster</a></li>
+<li><a href="#bonus">The bonus is looked for outside the town</a></li>
+<li><a href="#stray">A monster that may not appear appears in the corner</a></li>
+<li><a href="#speed">The knight never reaches his top speed</a></li>
+<li><a href="#drawlist">A sixteenth thing in one cell would overwrite TURN_CELL</a></li>
+<li><a href="#attrspill">A wall's colour runs one byte past the attribute buffer</a></li>
+<li><a href="#128k">A stray OUT pages a 128K's memory</a></li>
+<li><a href="#pickup">The pick-up sound starts with a byte of code</a></li>
+</ul>
+<div><span id="hum"></span></div>
+<div class="box box-1">
+<div class="box-title">The villains hum the ROM</div>
+<div class="paragraph">
+While a villain is on the screen it hums: <a href="../asm/55631.html">VILLAIN_WANDER</a> calls
+BLIP_FROM_TABLE (in <a href="../asm/49970.html">BLIP_BY_TURN</a>) every turn, which plays twelve waves at a pitch
+picked from sixteen by the turn counter's low four bits. Each villain was
+meant to have its sixteen: the four tables at VILLAIN_PITCHES, between the
+creature's table and the next routine (<a href="../asm/49997.html">BLIP_PITCHES</a>), are exactly four times
+sixteen bytes, patterns between $20 and $90 like the creature's. The code
+misses them twice over. VILLAIN_WANDER loads the
+tables' address into HL, but BLIP_FROM_TABLE builds its address from the turn
+bits in HL plus BC, overwriting HL first; and the offset VILLAIN_WANDER puts
+in BC, the graphic turned left two bits and cut with AND $F0, keeps the
+graphic's bit 5 along with its kind, so it is $80, $90, $A0 or $B0 rather
+than 0, 16, 32 or 48. Every villain's pitches come from the ROM, from
+$0080 to $00BF -- a few bytes of code and the start of the ROM's table of
+BASIC keywords, pitches anywhere from 1 to 254 -- and the four tables
+are never read.
+</div>
+<div class="paragraph">
+Run in the simulator (checked at every build): each villain put in the
+knight's cell a little way off, the pitch read at $C347 came from $00B0 to
+$00BF for the villain of graphics 108-111, $00A0-$00AF for 104-107,
+$0090-$009F for 100-103 and $0080-$008F for 96-99. The only reference to the
+tables in the code is VILLAIN_WANDER's LD HL (searched). Either half mended
+alone would not do; <a href="pokes.html#hum">the poke</a> mends both, and
+the villains then read their own tables. What the hum sounds like is on
+<a href="../Sounds.html">the sounds page</a>.
+</div>
+</div>
+<div><span id="hundred"></span></div>
+<div class="box box-2">
+<div class="box-title">A hundred per cent prints three wrong characters</div>
+<div class="paragraph">
+After every game <a href="../asm/52310.html">GAME_OVER</a> prints the percentage of the game done
+(<a href="../asm/48863.html">PERCENTAGE</a>). Under a hundred <a href="../asm/48950.html">PRINT_PERCENTAGE</a> goes through the whole
+of <a href="../asm/49940.html">PRINT_BCD</a>, which first points FONT_BASE at the digits
+(<a href="../asm/27870.html">FONT</a>). At a hundred it prints three digits instead, and to start with the
+hundreds' lower digit it jumps into the routine at PRINT_BCD_LOW, past that
+line. GAME_OVER has just printed its text, which leaves FONT_BASE 48
+characters lower, where the text font's code 0 would be -- bytes of the
+buildings' definitions -- so the 1, 0 and 0 come out as three meaningless
+characters. A hundred per cent is only reached by finishing the game, and
+the ending follows this screen, so every player who finishes with every
+cell visited sees it.
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/hundred.png" alt="The game-over screen at a hundred per cent: three wrong characters after COMPLETED"/></div>
+Run in the simulator (at every build): a game started from the menu, and at
+the start of a turn every cell a knight can stand in marked visited and the
+four villains' records emptied, which the percentage counts as four
+destroyed. The game went to its game over by its own check (<a href="../asm/55397.html">CHECK_QUEST_DONE</a>), with
+PERCENT holding 1 and 0 and FONT_BASE the text font's as the percentage was
+printed; the picture is the screen when the score has been printed too.
+Watched in the emulator the same way: the screen's bytes were the same, byte
+for byte. With <a href="pokes.html#hundred">the poke</a>, the same run prints
+100.
+</div>
+</div>
+<div><span id="stack"></span></div>
+<div class="box box-1">
+<div class="box-title">The 157th game crashes</div>
+<div class="paragraph">
+Only <a href="../asm/48638.html">START</a> sets the stack pointer. <a href="../asm/52310.html">GAME_OVER</a> is not called
+but jumped to, from routines the main loop calls (<a href="../asm/52140.html">NEW_LIFE</a> when the last life
+is taken, <a href="../asm/55397.html">CHECK_QUEST_DONE</a> when the last villain is gone), and it leaves by jumping to
+<a href="../asm/48655.html">NEW_GAME</a> or, for the ending, to MAIN_LOOP; and the end of the ending
+(<a href="../asm/52496.html">ENDING_PIT_FRONT</a>) jumps to NEW_GAME from inside an update routine. Nothing takes the
+return addresses back off: every game over leaves two bytes on the stack, and
+an ending four. The stack starts at $5E00 and grows down through what is left
+of the BASIC program towards the system variables, where <a href="../asm/23728.html">NMIADD</a>
+holds the JP (HL) that every update goes through (<a href="../asm/54675.html">DISPATCH</a>).
+</div>
+<div class="paragraph">
+Run in the simulator (at every build): games started from the menu and ended
+at once, one after another, with the stack pointer read at the menu after
+each -- down by exactly 2 bytes a game, from
+$5DFE to $5CC6. At the menu after game 156 NMIADD no longer held
+JP (HL), and game 157 never got as far as the knight: its first update jumped
+through the byte the stack had left there. Watched in the emulator too, with
+the same result to the game: NMIADD changed at the 156th menu, and the 157th
+game stopped at $5ED8 with the panel drawn and an empty play area. An ending
+took the stack pointer at the menu down by four (the simulator, a finished
+game staged as in <a href="#hundred">the hundred per cent</a>).
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/stack.png" alt="The 157th game: the panel drawn, the play area empty, and nothing moving"/></div>
+Play goes deeper into the stack than a game over does, so a game that ends
+at a deeper point could fail a game or two sooner. Each game takes minutes,
+so no one is likely to meet this without a script; a reload starts the count
+again.
+</div>
+</div>
+<div><span id="antibody"></span></div>
+<div class="box box-2">
+<div class="box-title">Only the first antibody can strike</div>
+<div class="paragraph">
+Two antibodies can be in flight at once: the knight's throw takes the first
+free of the two antibody records (<a href="../asm/55991.html">KNIGHT_THROWS</a>). <a href="../asm/50488.html">ANTIBODY_STRIKE</a>, which
+the monsters and the creature ask whether an antibody has hit them, means to
+try both records, and loads the size of a record into DE for the step from
+one to the next -- but never adds it to IY. It tries the first record twice.
+An antibody thrown while another is still flying goes in the second record
+and passes through everything.
+</div>
+<div class="paragraph">
+Run in the simulator: two antibodies thrown in quick succession with the
+game's own throw, and a monster of graphic 112 put four of the second's steps
+ahead of it. The second antibody passed through the place the monster stood,
+flew on until it met a wall and burst; the monster walked on and the score
+did not change. The same monster put ahead of a single antibody, in the first
+record, was struck the turn they met, and both burst for 2500 points.
+</div>
+</div>
+<div><span id="split"></span></div>
+<div class="box box-1">
+<div class="box-title">A split overwrites the first monster</div>
+<div class="paragraph">
+When the kinds of a monster of graphics 112-127 and of the antibody that
+strikes it add up to 2, four apart, <a href="../asm/49361.html">MONSTER_HIT_TABLE</a> sends the strike to <a href="../asm/49409.html">HIT_SPLITS</a>,
+for 1500 points. By its shape it means to copy the monster into
+an empty monster record and send the two off in opposite directions, each a
+quarter turn from the way it was going. But its search
+tests IY for an empty record, and IY is the antibody's record and the ones
+after it, while IX, which the nearness test reads, stays on the first monster
+record. So the struck monster is copied over the first monster record --
+whatever is there -- unless that record is within a cell of the knight and
+none of the five records after the antibody's is empty, when nothing is
+copied. A monster in the first record copies itself onto itself, and does not
+split at all.
+</div>
+<div class="paragraph">
+Run in the simulator: a monster of graphic 120 in the fourth monster record
+struck by an antibody of graphic 80, with a monster of graphic 64 two cells
+from the knight in the first record. After the strike the first record held a
+copy of the struck monster, on top of it and walking the other way, and the
+monster of 64 was simply gone -- no burst, no points of its own; the score
+went up by 1500. The same with the creature (graphic 136) in the first
+record.
+</div>
+</div>
+<div><span id="bonus"></span></div>
+<div class="box box-2">
+<div class="box-title">The bonus is looked for outside the town</div>
+<div class="paragraph">
+When there is no bonus <a href="../asm/55148.html">PLACE_BONUS</a> picks a cell for one: the
+knight's column or four to its right, and a row from four above his to three
+below. The column is wrapped round the town's 32 before the cell is looked
+up; the row is wrapped only as it is stored. Near the top or the bottom of
+the town the look-up (TOWN_CELL, in <a href="../asm/57384.html">PLACE_IN_CELL</a>, which checks nothing) reads a
+byte from outside the map -- a row of -4 to -1 is taken as 252 to 255 rows
+of 32 bytes, which lands in the sprites, and rows 32 to 34 in the table after
+the map -- and uses it as
+the cell's type, while the bonus goes into the wrapped row at the other edge
+of the town.
+</div>
+<div class="paragraph">
+Run in the simulator, with the bonus record emptied at the start of each of
+300 turns: with the knight in cell (1,1), 74 of the look-ups were outside the
+map; every one of those bytes let the bonus be placed, in rows 29 to 31, most
+of them solid, and every one was gone at its first update (<a href="../asm/55079.html">SPEED_BONUS</a> keeps a
+bonus only within three cells of him). With him in cell (26,30), 105 look-ups
+fell in the table after the map, and the bonus went to rows 0 and 1, solid
+cells, and vanished the same way. Harmless: at worst there is no bonus near
+him for a turn.
+</div>
+</div>
+<div><span id="stray"></span></div>
+<div class="box box-1">
+<div class="box-title">A monster that may not appear appears in the corner</div>
+<div class="paragraph">
+Every fourth turn <a href="../asm/52712.html">SPAWN_MONSTER</a> brings a monster into the knight's
+cell or one of the eight round it. It copies the monster's first record
+(<a href="../asm/52857.html">MONSTER_RECORD</a>, graphic 128 at U 0, V 0) into a free monster record before it
+looks at the cell it chose, and if that cell is solid it returns -- leaving
+the monster at the very corner of the town, cell (0,0), which is solid. After
+its four turns of appearing (<a href="../asm/49508.html">APPEARING_UPDATE</a>) it becomes a monster like any other.
+Anywhere in the middle of the town its own update then finds it too far from
+the knight and empties its record: it has only kept a record busy for five
+turns.
+</div>
+<div class="paragraph">
+In the town's top left-hand corner it is not so tidy. With the knight in cell
+(1,1), next to the corner, the stray is near enough to live; it walks off the
+map, to column or row 255, and <a href="../asm/49257.html">NEAR_KNIGHT</a>, which compares cells a
+byte at a time, finds 255 two cells from 1 and keeps it. Run in the
+simulator for 1500 turns in cell (1,1): three or four of the six monster
+records held a monster outside the map in all but 37 turns, and every one of
+them had started as a stray at (0,0). They are never drawn and never reach
+him, but they leave only two or three records for the monsters he can see.
+In cell (2,2), whose neighbours are all open, and in (16,16), none left the
+map. Read and run; nothing in the game says this is meant.
+</div>
+</div>
+<div><span id="speed"></span></div>
+<div class="box box-2">
+<div class="box-title">The knight never reaches his top speed</div>
+<div class="paragraph">
+TOP_SPEED is 10, and 18 while the faster walk of the bonus lasts (<a href="../asm/55079.html">SPEED_BONUS</a>).
+With walk held, <a href="../asm/56488.html">WALK_ON</a> takes his speed halfway towards it each turn
+and then clears bit 0 to keep it even. The last step is always too small to
+survive that: from a standstill he goes 4, 6, 8 and stays at 8, and on the
+faster walk 8, 12, 14, 16 and stays at 16. When the faster walk runs out
+(<a href="../asm/55930.html">UPDATE_KNIGHT</a>) his speed is set straight to 8, where he would have been anyway.
+Perhaps the rounding was meant and the numbers were not; either way he walks
+at four-fifths and eight-ninths of the speeds written in the code.
+</div>
+<div class="paragraph">
+Run in the simulator, walk held along an open street: 4, 6, 8, 8, 8 ... and,
+with the bonus just taken, 8, 12, 14, 16, 16 ... (and he still came to rest on
+the eight-unit grid when the key was let go). With TOP_SPEED two higher
+(<a href="pokes.html#speed">the poke</a>) he reaches 10 and 18.
+</div>
+</div>
+<div><span id="drawlist"></span></div>
+<div class="box box-1">
+<div class="box-title">A sixteenth thing in one cell would overwrite TURN_CELL</div>
+<div class="paragraph">
+To draw the things in a cell, <a href="../asm/53167.html">LIST_THINGS_IN_CELL</a> puts the address
+of every record in it on <a href="../asm/53597.html">DRAW_LIST</a> and ends the list with a zero
+word. The list has room for fifteen addresses and the zero; nothing counts
+them. A sixteenth would put the zero over the first two bytes of the next
+routine, <a href="../asm/53629.html">TURN_CELL</a>, turning its LD A,(VIEW) into two NOPs and a
+stray third byte, and from then on it would turn a cell round when A happened
+to be odd rather than when the town is turned round.
+</div>
+<div class="paragraph">
+Staged in the simulator: fourteen records put in the knight's cell beside
+his two. After one turn TURN_CELL's first two bytes were 0, and they stayed so
+after the extra records were taken away; with thirteen, fifteen in all, they
+were untouched. In play the most found in one cell was four (stage 2's
+measure over thirty cells). Sixteen is possible in principle -- his own two
+records, two antibodies just thrown, four finds and six monsters make
+fourteen, and the bonus he has walked up to and an object or two he has
+thrown down there would make sixteen -- but it would take a remarkable crowd.
+Latent.
+</div>
+</div>
+<div><span id="attrspill"></span></div>
+<div class="box box-2">
+<div class="box-title">A wall's colour runs one byte past the attribute buffer</div>
+<div class="paragraph">
+The walls are coloured in the attribute buffer (<a href="../asm/61508.html">ATTR_BUFFER</a>) a strip two cells
+wide at a time, from the row of a wall's foot up to the top of the play area
+(<a href="../asm/54102.html">COLOUR_WALL</a>, <a href="../asm/51337.html">COLOUR_STRIP</a>). A strip whose left cell is the last of its row puts its
+second byte in the next row's first -- the row's hidden margin, which is
+never copied to the screen -- and on the top row, which is the buffer's last,
+one byte past the buffer: <a href="../asm/61844.html">ATTR_SPILL</a>. Nothing reads it; the
+buffer's clearing (<a href="../asm/57856.html">SHOW_PLAY_AREA</a>) starts just below it.
+</div>
+<div class="paragraph">
+Run in the simulator: 1000 turns of walking and turning in 25 cells chosen at
+random, with a marker put in ATTR_SPILL at the start of each: 269 of the turns
+overwrote it, always with one of the walls' four colours, and the bytes after
+it (<a href="../asm/61845.html">UNUSED_F195</a>) never changed. Harmless.
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-1">
+<div class="box-title">A stray OUT pages a 128K's memory</div>
+<div class="paragraph">
+<a href="../asm/57913.html">READ_KEYS</a>, byte for byte Knight Lore's, Alien 8's and Pentagram's,
+does OUT ($FD),A before IN A,($FE), with the half-rows to read in A. OUT
+(n),A puts A on the top half of the address bus, so the port is A * 256 +
+$FD. A 48K ignores it; a 128K takes any port with bits 15 and 1 clear as its
+paging port. Every half-row value with bit 7 clear is a paging write: the menu
+tune's any-key test (<a href="../asm/50749.html">PLAY_TUNE_ONCE</a>) reads with A = 0, which pages in the 128's
+editor ROM -- harmless, but the ROM bytes the game reads for chance and for
+the villains' hum are then that ROM's -- and the pause test (<a href="../asm/58156.html">PAUSE</a>) reads
+$7E at the end of every turn, which puts RAM bank 6 at $C000, where the code
+from $C000 up is, shows the other screen, and locks the paging.
+</div>
+<div class="paragraph">
+Watched in the emulator's 128K, from the loaded game put into a 128K snapshot
+with the 48 BASIC ROM and bank 0 paged in and the paging unlocked, as the
+128's Tape Loader leaves them: the menu worked, and by the first turn the
+paging port held 0; at the end of that turn it held $7E -- bank 6 at the
+top, the second screen, locked -- and the machine ran off into the BASIC ROM
+and stayed there over a blank screen. So on a 128K the game must be run in 48
+mode. Alien 8 and Pentagram go the same way
+(<a href="../../alien8/reference/bugs.html#128k">Alien 8</a>,
+<a href="../../pentagram/reference/bugs.html#128k">Pentagram</a>).
+<a href="pokes.html#128k">The poke</a> that removes the OUT is with the
+pokes.
+</div>
+</div>
+<div><span id="pickup"></span></div>
+<div class="box box-2">
+<div class="box-title">The pick-up sound starts with a byte of code</div>
+<div class="paragraph">
+<a href="../asm/50109.html">EFFECT_NOTE</a> plays a sound effect a note a turn, the last note first:
+an effect of n notes plays the n bytes after its address in <a href="../asm/50136.html">EFFECT_TABLE</a>, counting
+down, and never the byte at the address itself. So each effect starts with
+the next effect's first note. Effect 3, four notes when an object is taken up
+(<a href="../asm/55618.html">OBJECT_LYING</a>), is the last, and its first note is the byte after the table: the
+first byte of <a href="../asm/50164.html">FIRE_SOUND</a>'s code, a half-wave count of 14 where the
+table's run from 48 to 128 -- a click well above the three low notes that
+follow. Pentagram has the same routine, but nothing there starts its effect
+3.
+</div>
+<div class="paragraph">
+Run in the simulator: an object put beside the knight and taken up; the four
+notes were read from $C3F4, $C3F3, $C3F2 and $C3F1.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

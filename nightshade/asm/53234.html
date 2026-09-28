@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CFF2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53167.html">CFAF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53234">Map</a></td>
+<td class="next">
+Next: <a href="53408.html">D0A0</a>
+</td>
+</tr>
+</table>
+<div class="description">CFF2: Draw the listed things, furthest back first</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53000.html">DRAW_CELLS</a>.
+</div>
+<div class="paragraph">
+The second half: the things <a href="53167.html">LIST_THINGS_IN_CELL</a> listed are drawn one at a time, each chosen by a pass along the list. The first entry not yet drawn is the candidate (IX). Every later entry not yet drawn (IY) is compared with it, and the outcome goes through <a href="53408.html">DEPTH_TABLE</a>: either the candidate stays, or IY is further back and becomes the candidate, and the pass carries on from IY. At the end of the list the candidate is drawn (<a href="58329.html">DRAW_SPRITE</a>) and its entry marked drawn by clearing bit 7 of its high byte -- every record's address has it set -- and the next pass starts; DRAW_LIST_AT keeps the place just past the candidate's entry, DRAW_LIST_NEXT just past IY's. The list is empty of undrawn things when a pass finds none, and the routine returns.
+</div>
+<div class="paragraph">
+The comparison is two-dimensional: a record is a box in U and V (its position at +1 and +3, its half-sizes at +8 and +9) and nothing in the town has a height. On each axis each side of the box is worked out as (the low byte of the position plus or minus the half-size) / 2 + 64 -- only the low bytes, since the things listed share a cell, and RRA shifting the carry of the 9-bit sum back in, so a side from 128 below the cell to 128 past it becomes a byte from 0 to 255. Then 0 if the candidate is wholly beyond IY on that axis (its low side at or above IY's high side), 2 if IY is wholly beyond the candidate, 1 if they overlap: U counts once, V three times, and the town turned round adds 9, which reverses what "further back" means. Further back is smaller U and larger V, as in Knight Lore and Alien 8: higher up the screen (<a href="54536.html">PROJECT_CELL</a>).
+</div>
+<div class="paragraph">
+A new candidate is not compared with the entries the pass has already gone by, so an order among three things can come out wrong; but a pass never goes back to the top, so it cannot go round in a circle, and Filmation's chain of candidates is not needed.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS</td>
+<td class="address-2"><span id="53234"></span>CFF2</td>
+<td class="instruction">LD HL,<a href="53597.html">DRAW_LIST</a></td>
+<td class="comment-1" rowspan="1">From the top of the list</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_0</td>
+<td class="address-2"><span id="53237"></span>CFF5</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="7">The next entry; the zero at the end: everything is drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53238"></span>CFF6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53239"></span>CFF7</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53240"></span>CFF8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53241"></span>CFF9</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53242"></span>CFFA</td>
+<td class="instruction">OR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53243"></span>CFFB</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53244"></span>CFFC</td>
+<td class="instruction">BIT 7,D</td>
+<td class="comment-1" rowspan="2">Bit 7 of the high byte clear: drawn already</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53246"></span>CFFE</td>
+<td class="instruction">JR Z,<a href="53234.html#53237">SORT_AND_DRAW_THINGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53248"></span>D000</td>
+<td class="instruction">LD (<a href="48042.html#48068">DRAW_LIST_AT</a>),HL</td>
+<td class="comment-1" rowspan="3">The first thing not yet drawn is the candidate, in IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53251"></span>D003</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53252"></span>D004</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_1</td>
+<td class="address-2"><span id="53254"></span>D006</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="7">The next entry; at the end of the list, draw the candidate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53255"></span>D007</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53256"></span>D008</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53257"></span>D009</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53258"></span>D00A</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53259"></span>D00B</td>
+<td class="instruction">OR E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53260"></span>D00C</td>
+<td class="instruction">JP Z,<a href="53234.html#53396">SORT_AND_DRAW_THINGS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53263"></span>D00F</td>
+<td class="instruction">BIT 7,D</td>
+<td class="comment-1" rowspan="2">Drawn already: pass it by</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53265"></span>D011</td>
+<td class="instruction">JR Z,<a href="53234.html#53254">SORT_AND_DRAW_THINGS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53267"></span>D013</td>
+<td class="instruction">LD (<a href="48042.html#48070">DRAW_LIST_NEXT</a>),HL</td>
+<td class="comment-1" rowspan="3">IY the thing to compare with the candidate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53270"></span>D016</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53271"></span>D017</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53273"></span>D019</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="12">U: 0 if the candidate's low side is at or above IY's high side</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53275"></span>D01B</td>
+<td class="instruction">LD A,(IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53278"></span>D01E</td>
+<td class="instruction">ADD A,(IY+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53281"></span>D021</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53282"></span>D022</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53284"></span>D024</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53285"></span>D025</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53288"></span>D028</td>
+<td class="instruction">SUB (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53291"></span>D02B</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53292"></span>D02C</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53294"></span>D02E</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53295"></span>D02F</td>
+<td class="instruction">JR NC,<a href="53234.html#53321">SORT_AND_DRAW_THINGS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53297"></span>D031</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="13">Otherwise 2 if IY's low side is at or above the candidate's high side, and 1 if they overlap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53300"></span>D034</td>
+<td class="instruction">ADD A,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53303"></span>D037</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53304"></span>D038</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53306"></span>D03A</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53307"></span>D03B</td>
+<td class="instruction">LD A,(IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53310"></span>D03E</td>
+<td class="instruction">SUB (IY+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53313"></span>D041</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53314"></span>D042</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53316"></span>D044</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53317"></span>D045</td>
+<td class="instruction">JR C,<a href="53234.html#53320">SORT_AND_DRAW_THINGS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53319"></span>D047</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_2</td>
+<td class="address-2"><span id="53320"></span>D048</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_3</td>
+<td class="address-2"><span id="53321"></span>D049</td>
+<td class="instruction">LD A,(IY+$03)</td>
+<td class="comment-1" rowspan="12">V the same, adding 0...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53324"></span>D04C</td>
+<td class="instruction">ADD A,(IY+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53327"></span>D04F</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53328"></span>D050</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53330"></span>D052</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53331"></span>D053</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53334"></span>D056</td>
+<td class="instruction">SUB (IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53337"></span>D059</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53338"></span>D05A</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53340"></span>D05C</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53341"></span>D05D</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53342"></span>D05E</td>
+<td class="instruction">JR NC,<a href="53234.html#53371">SORT_AND_DRAW_THINGS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53344"></span>D060</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="14">...3 if they overlap, or 6 if IY is wholly beyond</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53347"></span>D063</td>
+<td class="instruction">ADD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53350"></span>D066</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53351"></span>D067</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53353"></span>D069</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53354"></span>D06A</td>
+<td class="instruction">LD A,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53357"></span>D06D</td>
+<td class="instruction">SUB (IY+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53360"></span>D070</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53361"></span>D071</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53363"></span>D073</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53364"></span>D074</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53365"></span>D075</td>
+<td class="instruction">JR C,<a href="53234.html#53369">SORT_AND_DRAW_THINGS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53367"></span>D077</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_4</td>
+<td class="address-2"><span id="53369"></span>D079</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_5</td>
+<td class="address-2"><span id="53371"></span>D07B</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="7">Plus 9 with the town turned round</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53372"></span>D07C</td>
+<td class="instruction">LD A,(<a href="48042.html#48058">VIEW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53375"></span>D07F</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53377"></span>D081</td>
+<td class="instruction">JR Z,<a href="53234.html#53383">SORT_AND_DRAW_THINGS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53379"></span>D083</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53380"></span>D084</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53382"></span>D086</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_6</td>
+<td class="address-2"><span id="53383"></span>D087</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">The outcome, through DEPTH_TABLE: the candidate stays, or IY takes its place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53384"></span>D088</td>
+<td class="instruction">LD BC,<a href="53408.html">DEPTH_TABLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53387"></span>D08B</td>
+<td class="instruction">CALL <a href="54675.html">DISPATCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53390"></span>D08E</td>
+<td class="instruction">LD HL,(<a href="48042.html#48070">DRAW_LIST_NEXT</a>)</td>
+<td class="comment-1" rowspan="2">On along the list from IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53393"></span>D091</td>
+<td class="instruction">JP <a href="53234.html#53254">SORT_AND_DRAW_THINGS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_THINGS_7</td>
+<td class="address-2"><span id="53396"></span>D094</td>
+<td class="instruction">LD HL,(<a href="48042.html#48068">DRAW_LIST_AT</a>)</td>
+<td class="comment-1" rowspan="3">The end of the list: the candidate's entry marked drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53399"></span>D097</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53400"></span>D098</td>
+<td class="instruction">RES 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53402"></span>D09A</td>
+<td class="instruction">CALL <a href="58329.html">DRAW_SPRITE</a></td>
+<td class="comment-1" rowspan="2">Draw it, and the next pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53405"></span>D09D</td>
+<td class="instruction">JP <a href="53234.html#53234">SORT_AND_DRAW_THINGS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53167.html">CFAF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53234">Map</a></td>
+<td class="next">
+Next: <a href="53408.html">D0A0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

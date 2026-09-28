@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at DE72</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56938.html">DE6A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56946">Map</a></td>
+<td class="next">
+Next: <a href="57043.html">DED3</a>
+</td>
+</tr>
+</table>
+<div class="description">DE72: Trim a step along +V at the walls</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The record's front edge is at V plus its half-size in V (+9), from U less its half-size in U (+8) to U plus it. The cell under each front corner is tested (<a href="57338.html">CUT_STEP_PLUS_V</a>: the record, moved by its step, against the boxes of that cell's type); the second only if it is a different cell from the first. Then, if the step carries the front edge into the next row of cells, the cells it goes into are tested too. The first test to find a box in the way trims the V step to touch it, sets the wall flag, and returns with carry set.
+</div>
+<div class="paragraph">
+Only the cells under the front edge are chosen; which boxes are hit is decided by the whole record against the whole box, so a box reaching into the cell from its side still counts. <a href="57043.html">CLIP_PLUS_U</a> and <a href="57140.html">CLIP_MINUS_V</a> are the same for +U and -V, and <a href="57239.html">CLIP_MINUS_U</a> for -U.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Carry set if a wall trimmed the step</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLIP_PLUS_V</td>
+<td class="address-2"><span id="56946"></span>DE72</td>
+<td class="instruction">LD L,(IX+$01)</td>
+<td class="comment-1" rowspan="7">DE: U less the half-size, the left of the front edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56949"></span>DE75</td>
+<td class="instruction">LD H,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56952"></span>DE78</td>
+<td class="instruction">LD C,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56955"></span>DE7B</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56957"></span>DE7D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56958"></span>DE7E</td>
+<td class="instruction">SBC HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56960"></span>DE80</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56961"></span>DE81</td>
+<td class="instruction">LD L,(IX+$03)</td>
+<td class="comment-1" rowspan="4">HL: V plus the half-size, the front edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56964"></span>DE84</td>
+<td class="instruction">LD H,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56967"></span>DE87</td>
+<td class="instruction">LD C,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56970"></span>DE8A</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56971"></span>DE8B</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="6">Test the cell under the front left corner; done if a wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56972"></span>DE8C</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56973"></span>DE8D</td>
+<td class="instruction">CALL <a href="57338.html">CUT_STEP_PLUS_V</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56976"></span>DE90</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56977"></span>DE91</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56978"></span>DE92</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56979"></span>DE93</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="9">The right corner, U plus the half-size: in the same cell?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56980"></span>DE94</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56981"></span>DE95</td>
+<td class="instruction">LD C,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56984"></span>DE98</td>
+<td class="instruction">SLA C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56986"></span>DE9A</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56988"></span>DE9C</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56989"></span>DE9D</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56990"></span>DE9E</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56991"></span>DE9F</td>
+<td class="instruction">JR Z,<a href="56946.html#57029">CLIP_PLUS_V_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56993"></span>DEA1</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="5">No: test its cell too</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56994"></span>DEA2</td>
+<td class="instruction">CALL <a href="57338.html">CUT_STEP_PLUS_V</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56997"></span>DEA5</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56998"></span>DEA6</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56999"></span>DEA7</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57000"></span>DEA8</td>
+<td class="instruction">LD C,(IX+$0B)</td>
+<td class="comment-1" rowspan="6">Does the step take the front edge into the next row of cells? Done if not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57003"></span>DEAB</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57005"></span>DEAD</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57006"></span>DEAE</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57007"></span>DEAF</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57008"></span>DEB0</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57009"></span>DEB1</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="6">Yes: test the cell the left corner goes into...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57010"></span>DEB2</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57011"></span>DEB3</td>
+<td class="instruction">CALL <a href="57338.html">CUT_STEP_PLUS_V</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57014"></span>DEB6</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57015"></span>DEB7</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57016"></span>DEB8</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57017"></span>DEB9</td>
+<td class="instruction">LD C,(IX+$08)</td>
+<td class="comment-1" rowspan="6">...and the one the right corner goes into</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57020"></span>DEBC</td>
+<td class="instruction">SLA C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57022"></span>DEBE</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57024"></span>DEC0</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57025"></span>DEC1</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57026"></span>DEC2</td>
+<td class="instruction">JP <a href="57338.html">CUT_STEP_PLUS_V</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLIP_PLUS_V_0</td>
+<td class="address-2"><span id="57029"></span>DEC5</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="9">Both corners in one cell: test only the cell the step goes into, if another</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57030"></span>DEC6</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57031"></span>DEC7</td>
+<td class="instruction">LD C,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57034"></span>DECA</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57036"></span>DECC</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57037"></span>DECD</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57038"></span>DECE</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57039"></span>DECF</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57040"></span>DED0</td>
+<td class="instruction">JP <a href="57338.html">CUT_STEP_PLUS_V</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56938.html">DE6A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56946">Map</a></td>
+<td class="next">
+Next: <a href="57043.html">DED3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

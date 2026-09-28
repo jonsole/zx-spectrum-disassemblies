@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C1DB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49593.html">C1B9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49627">Map</a></td>
+<td class="next">
+Next: <a href="49661.html">C1FD</a>
+</td>
+</tr>
+</table>
+<div class="description">C1DB: Stock the buildings with finds, then the third protection check</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48655.html">NEW_GAME</a>.
+</div>
+<div class="paragraph">
+At every new game each cell type from 2 to 35 is given 16-31 finds, the low four bits of bytes read from a random place in the first 4K of the ROM, plus 16 (STOCKS). Types 0, open ground, and 1 get none.
+</div>
+<div class="paragraph">
+Then the third protection check: bit 7 of R must be set. The refresh counter the Z80 keeps in R counts only its low seven bits, so bit 7 changes only when a program loads R, and the loader did (<a href="23424.html">LOADER</a>). A copy started by any other means has it clear, and falls into RESET, which jumps to address 0: the Spectrum starts again as if just switched on. <a href="52140.html">NEW_LIFE</a> jumps to RESET as well when its own check fails.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">STOCK_BUILDINGS</td>
+<td class="address-2"><span id="49627"></span>C1DB</td>
+<td class="instruction">CALL <a href="50612.html">NEXT_TURN</a></td>
+<td class="comment-1" rowspan="1">count a turn, and stir the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49630"></span>C1DE</td>
+<td class="instruction">LD HL,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="4">HL = somewhere in the first 4K of the ROM</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49633"></span>C1E1</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49634"></span>C1E2</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49636"></span>C1E4</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49637"></span>C1E5</td>
+<td class="instruction">LD DE,$BBD0</td>
+<td class="comment-1" rowspan="9">16-31 for each type from 2 to 35</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49640"></span>C1E8</td>
+<td class="instruction">LD B,$22</td>
+</tr>
+<tr>
+<td class="asm-label">STOCK_BUILDINGS_0</td>
+<td class="address-2"><span id="49642"></span>C1EA</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49643"></span>C1EB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49644"></span>C1EC</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49646"></span>C1EE</td>
+<td class="instruction">OR $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49648"></span>C1F0</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49649"></span>C1F1</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49650"></span>C1F2</td>
+<td class="instruction">DJNZ <a href="49627.html#49642">STOCK_BUILDINGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49652"></span>C1F4</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="3">protection check 3: R's bit 7, the loader's mark, still set: carry on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49654"></span>C1F6</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49656"></span>C1F8</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49657"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="52140.html">NEW_LIFE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RESET</td>
+<td class="address-2"><span id="49657"></span>C1F9</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">RESET: start the Spectrum again (never ran in the sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49658"></span>C1FA</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49659"></span>C1FB</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49660"></span>C1FC</td>
+<td class="instruction">JP (HL)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49593.html">C1B9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49627">Map</a></td>
+<td class="next">
+Next: <a href="49661.html">C1FD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

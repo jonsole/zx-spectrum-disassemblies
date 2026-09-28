@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at D3C2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54130.html">D372</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54210">Map</a></td>
+<td class="next">
+Next: <a href="54293.html">D415</a>
+</td>
+</tr>
+</table>
+<div class="description">D3C2: Draw one column of a wall, unless a nearer wall has it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="54130.html">DRAW_WALLS</a>.
+</div>
+<div class="paragraph">
+The screen is taken as sixteen columns 16 pixels wide, x / 16, a bit each in COLUMNS_DRAWN (bit 7 of x picking the byte). Every tile column in a turn lies at the same x within its 16 pixels, since the cells' corners are 128 pixels apart, so a column of wall and a screen column always coincide. The column's bit is patched into the BIT at TEST_COLUMN and the SET at CLAIM_COLUMN. <a href="53000.html">DRAW_CELLS</a> starts each turn with the first column (left of the buffer) and the last three (right of it) already claimed, so walls are clipped at the sides here.
+</div>
+<div class="paragraph">
+An unclaimed column is claimed, then drawn: the lower tile with its bottom row at DRAW_Y (<a href="54309.html">PUT_TILE</a>), its colour up to the top (<a href="54102.html">COLOUR_WALL</a>), and the upper tile 64 lines above it. A column off the screen's 0-255 range in x or y is skipped, and IY moved past its two tiles either way.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the column's pair of tiles in the building definition</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the next column's</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WALL_COLUMN</td>
+<td class="address-2"><span id="54210"></span>D3C2</td>
+<td class="instruction">LD HL,(<a href="48042.html#48054">DRAW_X</a>)</td>
+<td class="comment-1" rowspan="4">x off the 0-255 range: skip it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54213"></span>D3C5</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54214"></span>D3C6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54215"></span>D3C7</td>
+<td class="instruction">JR NZ,<a href="54210.html#54288">DRAW_WALL_COLUMN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54217"></span>D3C9</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="8">The column's bit, bits 4-6 of x, patched into the BIT and the SET below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54218"></span>D3CA</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54219"></span>D3CB</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54220"></span>D3CC</td>
+<td class="instruction">AND $38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54222"></span>D3CE</td>
+<td class="instruction">OR $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54224"></span>D3D0</td>
+<td class="instruction">LD ($D3E3),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54227"></span>D3D3</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54229"></span>D3D5</td>
+<td class="instruction">LD ($D3E7),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54232"></span>D3D8</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">HL = COLUMNS_DRAWN, or its second byte for x of 128 up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54233"></span>D3D9</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54234"></span>D3DA</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54236"></span>D3DC</td>
+<td class="instruction">LD HL,<a href="48042.html#48059">COLUMNS_DRAWN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54239"></span>D3DF</td>
+<td class="instruction">JR Z,<a href="54210.html#54242">TEST_COLUMN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54241"></span>D3E1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">TEST_COLUMN</td>
+<td class="address-2"><span id="54242"></span>D3E2</td>
+<td class="instruction">BIT 0,(HL)</td>
+<td class="comment-1" rowspan="2">Patched BIT: claimed already by a nearer wall, skip it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54244"></span>D3E4</td>
+<td class="instruction">JR NZ,<a href="54210.html#54288">DRAW_WALL_COLUMN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">CLAIM_COLUMN</td>
+<td class="address-1"><span id="54246"></span>D3E6</td>
+<td class="instruction">SET 0,(HL)</td>
+<td class="comment-1" rowspan="1">Patched SET: claim it (before y is looked at)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54248"></span>D3E8</td>
+<td class="instruction">LD HL,(<a href="48042.html#48056">DRAW_Y</a>)</td>
+<td class="comment-1" rowspan="5">y off the 0-255 range: skip it; D = y, E = x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54251"></span>D3EB</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54252"></span>D3EC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54253"></span>D3ED</td>
+<td class="instruction">JR NZ,<a href="54210.html#54288">DRAW_WALL_COLUMN_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54255"></span>D3EF</td>
+<td class="instruction">LD D,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54256"></span>D3F0</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">The lower tile (<a href="54309.html">PUT_TILE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54257"></span>D3F1</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54258"></span>D3F2</td>
+<td class="instruction">CALL <a href="54309.html">PUT_TILE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54261"></span>D3F5</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="3">The wall's colour (<a href="54102.html">COLOUR_WALL</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54262"></span>D3F6</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54263"></span>D3F7</td>
+<td class="instruction">CALL <a href="54102.html">COLOUR_WALL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54266"></span>D3FA</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="2">The upper tile...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54267"></span>D3FB</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54269"></span>D3FD</td>
+<td class="instruction">LD HL,(<a href="48042.html#48056">DRAW_Y</a>)</td>
+<td class="comment-1" rowspan="6">...64 lines up, if that is still in range</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54272"></span>D400</td>
+<td class="instruction">LD BC,$0040</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54275"></span>D403</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54276"></span>D404</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54277"></span>D405</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54278"></span>D406</td>
+<td class="instruction">JR NZ,<a href="54210.html#54284">DRAW_WALL_COLUMN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54280"></span>D408</td>
+<td class="instruction">LD D,L</td>
+<td class="comment-1" rowspan="2">Draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54281"></span>D409</td>
+<td class="instruction">CALL <a href="54309.html">PUT_TILE</a></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WALL_COLUMN_0</td>
+<td class="address-2"><span id="54284"></span>D40C</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">Past the upper tile</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54285"></span>D40D</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54287"></span>D40F</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WALL_COLUMN_1</td>
+<td class="address-2"><span id="54288"></span>D410</td>
+<td class="instruction">INC IY</td>
+<td class="comment-1" rowspan="3">Skipped: past both tiles</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54290"></span>D412</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54292"></span>D414</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54130.html">D372</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54210">Map</a></td>
+<td class="next">
+Next: <a href="54293.html">D415</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

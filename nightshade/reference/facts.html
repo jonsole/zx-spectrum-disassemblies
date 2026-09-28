@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#protection">Four checks, and a poke that resets the machine</a></li>
+<li><a href="#lives">The number of lives is an opcode</a></li>
+<li><a href="#score">The score's last two digits are always nought</a></li>
+<li><a href="#menu">Waiting at the menu deals the town</a></li>
+<li><a href="#rom">The ROM as a table of chance</a></li>
+<li><a href="#filmation">Filmation II, not Filmation I</a></li>
+<li><a href="#shared">What it shares with Knight Lore, Alien 8 and Pentagram</a></li>
+<li><a href="#names">The villains have no names in the game</a></li>
+</ul>
+<div><span id="protection"></span></div>
+<div class="box box-1">
+<div class="box-title">Four checks, and a poke that resets the machine</div>
+<div class="paragraph">
+The tape loads the game scrambled and then three small blocks: 43 bytes of
+loader into the printer buffer (<a href="../asm/23424.html">LOADER</a>), one byte, JP (HL), into
+<a href="../asm/23728.html">NMIADD</a>, and two into FRAMES. The loader sets bit 7 of the refresh
+register, unscrambles the game and starts it with interrupts off, for good --
+there is no EI in the game, so FRAMES never counts again. The game then
+checks all three, each in its own way: <a href="../asm/48638.html">START</a> goes back to BASIC
+unless FRAMES' middle byte is $63; every object update, every table of
+routines, goes through a jump to NMIADD (<a href="../asm/54675.html">DISPATCH</a>); and at every new game
+<a href="../asm/49627.html">STOCK_BUILDINGS</a> checks R's bit 7, which only a program can set, and resets the
+Spectrum if it is clear. A copy made without the small blocks, or started any
+other way, fails one of them.
+</div>
+<div class="paragraph">
+A fourth check is aimed at players. Before each new life <a href="../asm/52140.html">NEW_LIFE</a>
+reads the instruction that takes a life, and if it is not DEC (HL) it jumps to
+address 0: the usual infinite-lives poke resets the machine at the first
+death (run in the simulator; <a href="pokes.html#lives">the pokes</a> have a
+picture, and a poke that gets past it). Knight Lore, Alien 8 and Pentagram
+have nothing of the kind.
+</div>
+<div class="paragraph">
+FRAMES has a second use: <a href="../asm/48655.html">NEW_GAME</a> starts the turn counter from it,
+$6334, at every game, and the menu counts it on once a pass (see
+<a href="#menu">waiting at the menu</a>). The checks read from the code; the
+reset without R's bit 7 run in the simulator (the build's first simulator
+runs did exactly that until they took R from the snapshot).
+</div>
+</div>
+<div><span id="lives"></span></div>
+<div class="box box-2">
+<div class="box-title">The number of lives is an opcode</div>
+<div class="paragraph">
+There is no instruction that loads the number of lives. <a href="../asm/48655.html">NEW_GAME</a>
+reads the byte at LIVES_BYTE -- the opcode of the JR that closes the main
+loop, $18 -- and shifts it right twice: 6. The first life takes one
+as it starts (<a href="../asm/52140.html">NEW_LIFE</a>), so the panel shows five, and a game is six lives in
+all. A search for the number finds nothing, and a poke to the byte breaks the
+main loop. Whether it was meant as a guard is not known; it works as one. Read,
+and run in the simulator: LIVES was 5 in the first life and the sixth death
+was the game over.
+</div>
+</div>
+<div><span id="score"></span></div>
+<div class="box box-1">
+<div class="box-title">The score's last two digits are always nought</div>
+<div class="paragraph">
+The score is printed as seven digits (PRINT_SCORE_AT, in <a href="../asm/49901.html">ADD_SCORE</a>): the
+lower digit of SCORE's
+first byte, its next two bytes, and the byte after them, SCORE_ZEROS, which
+nothing adds to -- <a href="../asm/49901.html">ADD_SCORE</a> adds to the two bytes before it, and a
+new game clears it. So every score ends 00, and the points are really
+hundreds: a monster of graphics 64-79 adds 5 and shows as 500, a strike on
+one of 112-127 adds 10 to 25 (1000 to 2500), and destroying a villain adds 25
+to the middle byte: 250000. Read, and searched: no instruction addresses
+SCORE_ZEROS.
+</div>
+</div>
+<div><span id="menu"></span></div>
+<div class="box box-2">
+<div class="box-title">Waiting at the menu deals the town</div>
+<div class="paragraph">
+The menu (<a href="../asm/51402.html">MENU</a>) goes round its loop about forty times a second, and every
+pass counts the turn counter on and stirs the random number with the refresh
+register (<a href="../asm/50612.html">NEXT_TURN</a>). The random number decides the knight's start cell
+(<a href="../asm/52091.html">RANDOM_START_CELL</a>), where the four objects and the four villains go (<a href="../asm/55438.html">PLACE_OBJECTS</a>,
+<a href="../asm/55527.html">PLACE_VILLAINS</a>, from bytes of the ROM that it picks), how many finds each type of
+building holds (<a href="../asm/49627.html">STOCK_BUILDINGS</a>), and much else; the turn counter decides when
+the creature first comes (every 256th turn) and which monsters head for the
+knight (those born in the first half of each 256). So how long the player
+waits before pressing 0 deals a different town. Run in the simulator:
+starting the first game after one to six passes of the menu gave six
+different start cells and six different sets of places for the villains.
+</div>
+</div>
+<div><span id="rom"></span></div>
+<div class="box box-1">
+<div class="box-title">The ROM as a table of chance</div>
+<div class="paragraph">
+Nightshade reads bytes of the Spectrum's ROM as random numbers, with the
+random number as the address: the objects and the villains are placed by
+pairs of ROM bytes as a column and a row (<a href="../asm/55438.html">PLACE_OBJECTS</a>, <a href="../asm/55527.html">PLACE_VILLAINS</a>), each building
+type's stock of finds comes from the ROM's first 4K (<a href="../asm/49627.html">STOCK_BUILDINGS</a>), and the puff
+of a thing vanishing is pitched by ROM bytes (<a href="../asm/50229.html">PUFF_SOUND</a>). The villains' hum
+reads the ROM too, though that was not meant (see
+<a href="bugs.html#hum">the bugs</a>). Read. On a 128K whose editor ROM has
+been paged in, all of these read other bytes (see
+<a href="bugs.html#128k">the bugs</a>).
+</div>
+</div>
+<div><span id="filmation"></span></div>
+<div class="box box-2">
+<div class="box-title">Filmation II, not Filmation I</div>
+<div class="paragraph">
+Knight Lore, Alien 8 and Pentagram are rooms: a room is built into object
+records -- walls, blocks and doorways as well as what moves -- and every one
+of them is sorted by depth in three dimensions and drawn as a masked sprite;
+the screen flips to the next room at a doorway. Nightshade (Filmation II, as
+Ultimate called it) is a town of 32 by 32 cells (<a href="../asm/24068.html">TOWN</a>), a byte a cell for
+its type, and the view moves with the knight, who stays in the middle. The
+buildings are not objects at all: <a href="../asm/53000.html">DRAW_CELLS</a> picks, from what stands round him,
+which cells to draw and in what order, and draws their walls from tiles, the
+nearest first, each 16-pixel column of the screen taken by the first wall to
+reach it, so nothing behind can show there and nothing needs sorting. Only
+23 records of 16 bytes are left for what moves (Knight Lore's are 32 bytes),
+nothing has a height -- nothing jumps, falls or stands on anything -- and the
+depth sort (<a href="../asm/53234.html">SORT_AND_DRAW_THINGS</a>) orders only the things within one cell, in two
+dimensions. Collision is with boxes kept for each cell type (<a href="../asm/25396.html">BOX_TABLE</a>). Read;
+see <a href="../Architecture.html">how the game is put together</a> and
+<a href="../Drawing.html">the drawing</a>, and, for Filmation I,
+<a href="../../knightlore/DepthSort.html">Knight Lore's depth sort</a>.
+</div>
+</div>
+<div><span id="shared"></span></div>
+<div class="box box-1">
+<div class="box-title">What it shares with Knight Lore, Alien 8 and Pentagram</div>
+<div class="paragraph">
+Little of the engine, and much of the frame round it. Compared routine by
+routine with the three other games' loaded code: <a href="../asm/57913.html">READ_KEYS</a> is byte
+for byte all three's; the tune player (<a href="../asm/50749.html">PLAY_TUNE_ONCE</a>, <a href="../asm/50774.html">PLAY_TUNE</a>, <a href="../asm/50785.html">PLAY_NOTE</a>) is
+instruction for instruction Alien 8's and Pentagram's, and its note table
+(<a href="../asm/50873.html">NOTES</a>, 61 notes of three bytes) is the same bytes as theirs and Knight
+Lore's; the menu (<a href="../asm/51402.html">MENU</a>) is
+Alien 8's with its own tune and random number; the pause (<a href="../asm/58156.html">PAUSE</a>) is Alien
+8's without its beeps; the sprite turning (<a href="../asm/58195.html">TURN_SPRITE</a>) is nearly Alien 8's. The
+sound effects -- <a href="../asm/50109.html">EFFECT_NOTE</a>, <a href="../asm/50164.html">FIRE_SOUND</a>, <a href="../asm/50289.html">CLICK</a>, the ending's note (<a href="../asm/50077.html">ENDING_BEEP</a>) -- are
+Pentagram's, and <a href="../asm/49970.html">BLIP_BY_TURN</a>'s blip and its 80 bytes of pitches are in Pentagram
+too, where the blip is never called: Pentagram, the later game, kept them from
+this one. The town, its drawing, the movement and collision, the monsters and
+the quest are Nightshade's own. See Alien 8's and Pentagram's reference pages
+(<a href="../../alien8/reference/facts.html">Alien 8</a>,
+<a href="../../pentagram/reference/facts.html">Pentagram</a>).
+</div>
+</div>
+<div><span id="names"></span></div>
+<div class="box box-2">
+<div class="box-title">The villains have no names in the game</div>
+<div class="paragraph">
+The game's text -- the menu, the panel's heading and the lines after a game
+(<a href="../asm/52655.html">END_TEXT</a>) -- names none of the game's characters or things: not the four
+villains, not the four objects that destroy them, not the monsters or the
+creature. The listing calls them by
+their pictures and their graphic numbers -- the villain of graphics 108-111,
+say, and the object whose record lies 64 bytes before the villain's, the only
+thing that can destroy it (<a href="../asm/50516.html">OBJECT_STRIKE</a>) (see <a href="../Quest.html">the
+quest</a>).
+The names players know come from outside the game and were not checked
+against it here; which picture goes with which name is left open.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

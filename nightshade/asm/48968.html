@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at BF48</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48950.html">BF36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48968">Map</a></td>
+<td class="next">
+Next: <a href="49045.html">BF95</a>
+</td>
+</tr>
+</table>
+<div class="description">BF48: Mark the knight's cell visited, and sound a new one with a building</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56488.html">WALK_ON</a>.
+</div>
+<div class="paragraph">
+Called by <a href="56488.html">WALK_ON</a> as the knight walks. Nothing happens while he stays in LAST_CELL; in a new cell, it becomes LAST_CELL and its bit in VISITED is set. A cell with anything built on it (a type other than 0) that had not been visited before also starts sound effect 0, four notes. <a href="52140.html">NEW_LIFE</a> enters at ENTER_CELL to mark the cell a life starts in.
+</div>
+<div class="paragraph">
+MARK_VISITED writes the bit number into the BIT and SET instructions that test and set it -- the second byte of each is $46 or $C6 plus eight times the bit -- and returns with Z set if the cell is new: SET leaves the flags as BIT made them.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the knight's legs record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">VISIT_CELL</td>
+<td class="address-2"><span id="48968"></span>BF48</td>
+<td class="instruction">LD HL,(<a href="48042.html#48118">LAST_CELL</a>)</td>
+<td class="comment-1" rowspan="7">still in the cell he was in: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48971"></span>BF4B</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48974"></span>BF4E</td>
+<td class="instruction">CP L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48975"></span>BF4F</td>
+<td class="instruction">JR NZ,<a href="48968.html#48982">ENTER_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48977"></span>BF51</td>
+<td class="instruction">LD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48980"></span>BF54</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48981"></span>BF55</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48982"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="52140.html">NEW_LIFE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ENTER_CELL</td>
+<td class="address-2"><span id="48982"></span>BF56</td>
+<td class="instruction">LD L,(IX+$02)</td>
+<td class="comment-1" rowspan="3">ENTER_CELL: the new cell, column and row, becomes LAST_CELL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48985"></span>BF59</td>
+<td class="instruction">LD H,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48988"></span>BF5C</td>
+<td class="instruction">LD (<a href="48042.html#48118">LAST_CELL</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48991"></span>BF5F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="4">open ground (type 0): just mark it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48992"></span>BF60</td>
+<td class="instruction">CALL <a href="57384.html#57425">TOWN_CELL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48995"></span>BF63</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48996"></span>BF64</td>
+<td class="instruction">JR NZ,<a href="48968.html#49034">VISIT_CELL_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">MARK_VISITED</td>
+<td class="address-2"><span id="48998"></span>BF66</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="14">MARK_VISITED: HL = VISITED + 4 * row + column / 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48999"></span>BF67</td>
+<td class="instruction">LD L,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49000"></span>BF68</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49001"></span>BF69</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49002"></span>BF6A</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49003"></span>BF6B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49004"></span>BF6C</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49005"></span>BF6D</td>
+<td class="instruction">RL L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49007"></span>BF6F</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49008"></span>BF70</td>
+<td class="instruction">RL L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49010"></span>BF72</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49011"></span>BF73</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49013"></span>BF75</td>
+<td class="instruction">LD BC,<a href="48042.html#48142">VISITED</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49016"></span>BF78</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49017"></span>BF79</td>
+<td class="instruction">AND $38</td>
+<td class="comment-1" rowspan="5">write bit (column AND 7) into the next two instructions</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49019"></span>BF7B</td>
+<td class="instruction">OR $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49021"></span>BF7D</td>
+<td class="instruction">LD ($BF86),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49024"></span>BF80</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49026"></span>BF82</td>
+<td class="instruction">LD ($BF88),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49029"></span>BF85</td>
+<td class="instruction">BIT 0,(HL)</td>
+<td class="comment-1" rowspan="1">BIT n,(HL): Z if the cell is new</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49031"></span>BF87</td>
+<td class="instruction">SET 0,(HL)</td>
+<td class="comment-1" rowspan="1">SET n,(HL), the flags as BIT left them</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49033"></span>BF89</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">Z for a new cell</td>
+</tr>
+<tr>
+<td class="asm-label">VISIT_CELL_0</td>
+<td class="address-2"><span id="49034"></span>BF8A</td>
+<td class="instruction">CALL <a href="48968.html#48998">MARK_VISITED</a></td>
+<td class="comment-1" rowspan="2">built on: mark it; visited before, and that is all</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49037"></span>BF8D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49038"></span>BF8E</td>
+<td class="instruction">LD HL,$0004</td>
+<td class="comment-1" rowspan="3">a new one: sound effect 0, four notes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49041"></span>BF91</td>
+<td class="instruction">LD (<a href="48042.html#48121">EFFECT_TIME</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49044"></span>BF94</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48950.html">BF36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48968">Map</a></td>
+<td class="next">
+Next: <a href="49045.html">BF95</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

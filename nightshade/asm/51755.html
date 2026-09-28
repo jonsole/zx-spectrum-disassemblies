@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CA2B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51746.html">CA22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51755">Map</a></td>
+<td class="next">
+Next: <a href="51797.html">CA55</a>
+</td>
+</tr>
+</table>
+<div class="description">CA2B: Draw the menu</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="51402.html">MENU</a>.
+</div>
+<div class="paragraph">
+Prints the menu's eight lines from the three lists at <a href="51554.html">MENU_COLOURS</a> -- a colour, a position and a string each -- and, the first time after MENU_SHOWN was cleared, draws the border round the screen (<a href="51869.html">PRINT_BORDER</a>). Called when the menu starts and on every pass of its loop (<a href="51402.html">MENU</a>); printing the same text over itself changes nothing but the attributes, which is how the flashing lines change. Alien 8's DISPLAY_MENU and its DISPLAY_TEXT_LIST in one, since Nightshade prints no other list.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DISPLAY_MENU</td>
+<td class="address-2"><span id="51755"></span>CA2B</td>
+<td class="instruction">LD DE,<a href="51554.html">MENU_COLOURS</a></td>
+<td class="comment-1" rowspan="2">DE' = the colours</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51758"></span>CA2E</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51759"></span>CA2F</td>
+<td class="instruction">LD HL,<a href="51554.html#51562">MENU_PLACES</a></td>
+<td class="comment-1" rowspan="3">HL = the positions, DE = the strings; eight lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51762"></span>CA32</td>
+<td class="instruction">LD DE,<a href="51578.html">MENU_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51765"></span>CA35</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">DISPLAY_MENU_LINE</td>
+<td class="address-2"><span id="51767"></span>CA37</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="7">L = x, H = y; HL moved on to the next pair and kept</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51768"></span>CA38</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51769"></span>CA39</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51770"></span>CA3A</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51771"></span>CA3B</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51772"></span>CA3C</td>
+<td class="instruction">LD H,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51773"></span>CA3D</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51774"></span>CA3E</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">this line's colour into A', from DE'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51775"></span>CA3F</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51776"></span>CA40</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51777"></span>CA41</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51778"></span>CA42</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51779"></span>CA43</td>
+<td class="instruction">CALL <a href="51695.html">PRINT_TEXT_SINGLE_COLOUR</a></td>
+<td class="comment-1" rowspan="3">print it, and loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51782"></span>CA46</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51783"></span>CA47</td>
+<td class="instruction">DJNZ <a href="51755.html#51767">DISPLAY_MENU_LINE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51785"></span>CA49</td>
+<td class="instruction">LD A,(<a href="48042.html#48063">MENU_SHOWN</a>)</td>
+<td class="comment-1" rowspan="3">the border has been drawn already</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51788"></span>CA4C</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51789"></span>CA4D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51790"></span>CA4E</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="3">the first time: say so, and draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51791"></span>CA4F</td>
+<td class="instruction">LD (<a href="48042.html#48063">MENU_SHOWN</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51794"></span>CA52</td>
+<td class="instruction">JP <a href="51869.html">PRINT_BORDER</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51746.html">CA22</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51755">Map</a></td>
+<td class="next">
+Next: <a href="51797.html">CA55</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

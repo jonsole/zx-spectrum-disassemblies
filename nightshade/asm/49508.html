@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at C164</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49490.html">C152</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49508">Map</a></td>
+<td class="next">
+Next: <a href="49564.html">C19C</a>
+</td>
+</tr>
+</table>
+<div class="description">C164: The update routine for a monster appearing (graphics 128-131)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Four turns of appearing, with a note that rises each turn it is on the screen (<a href="50261.html">APPEAR_SOUND</a>). Then it becomes a monster of the kind of the villain nearest it (<a href="49564.html">NEAREST_VILLAIN</a>): of graphics 112-127 or, as often, of 64-79 -- the random number decides. Graphic 76, the monster of the first villain's kind, is given a half-size of 24 in V.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">APPEARING_UPDATE</td>
+<td class="address-2"><span id="49508"></span>C164</td>
+<td class="instruction">BIT 1,(IX+$07)</td>
+<td class="comment-1" rowspan="3">the note, if it was drawn last turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49512"></span>C168</td>
+<td class="instruction">RES 1,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49516"></span>C16C</td>
+<td class="instruction">CALL NZ,<a href="50261.html">APPEAR_SOUND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49519"></span>C16F</td>
+<td class="instruction">INC (IX+$00)</td>
+<td class="comment-1" rowspan="4">the next frame; after the fourth, a monster</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49522"></span>C172</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49525"></span>C175</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49527"></span>C177</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49528"></span>C178</td>
+<td class="instruction">LD A,(<a href="48042.html">RANDOM</a>)</td>
+<td class="comment-1" rowspan="3">which sort, by the random number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49531"></span>C17B</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49533"></span>C17D</td>
+<td class="instruction">JR C,<a href="49508.html#49553">APPEARING_UPDATE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49535"></span>C17F</td>
+<td class="instruction">CALL <a href="49564.html">NEAREST_VILLAIN</a></td>
+<td class="comment-1" rowspan="5">one of 64-79, of the nearest villain's kind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49538"></span>C182</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49539"></span>C183</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49540"></span>C184</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49542"></span>C186</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49545"></span>C189</td>
+<td class="instruction">CP $4C</td>
+<td class="comment-1" rowspan="4">graphic 76 is 24 deep in V</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49547"></span>C18B</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49548"></span>C18C</td>
+<td class="instruction">LD (IX+$09),$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49552"></span>C190</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">APPEARING_UPDATE_0</td>
+<td class="address-2"><span id="49553"></span>C191</td>
+<td class="instruction">CALL <a href="49564.html">NEAREST_VILLAIN</a></td>
+<td class="comment-1" rowspan="6">one of 112-127, of the nearest villain's kind</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49556"></span>C194</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49557"></span>C195</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49558"></span>C196</td>
+<td class="instruction">OR $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49560"></span>C198</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49563"></span>C19B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49490.html">C152</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49508">Map</a></td>
+<td class="next">
+Next: <a href="49564.html">C19C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>

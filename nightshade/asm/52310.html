@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nightshade: Routine at CC56</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../nightshade.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html">Nightshade</a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52278.html">CC36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52310">Map</a></td>
+<td class="next">
+Next: <a href="52452.html">CCE4</a>
+</td>
+</tr>
+</table>
+<div class="description">CC56: Game over: the percentage and the score, then the menu, or the ending if the villains are gone</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="52140.html">NEW_LIFE</a> and <a href="55397.html">CHECK_QUEST_DONE</a>.
+</div>
+<div class="paragraph">
+Reached when the last life is taken (<a href="52140.html">NEW_LIFE</a>) and when the fourth villain's sparkles have finished (<a href="55397.html">CHECK_QUEST_DONE</a>). Works out the percentage (<a href="48863.html">PERCENTAGE</a>), clears the screen, draws the border round it (<a href="51869.html">PRINT_BORDER</a>) and prints the four lines of <a href="52655.html">END_TEXT</a>, the percentage after the third and the score after the fourth, then plays the game-over tune and waits half a second.
+</div>
+<div class="paragraph">
+If any of the four villains is still alive (graphics 96-111) it is back to the menu, by way of <a href="48655.html">NEW_GAME</a>. If none is, the ending: every object record is emptied (<a href="52482.html">CLEAR_OBJECTS</a>), ten are filled from <a href="52452.html">ENDING_RECORDS</a>, the screen is cleared again, ENDING is set and the main loop is entered; with ENDING set the main loop only updates the records, and the ending's routines (<a href="52496.html">ENDING_PIT_FRONT</a>, <a href="52568.html">ENDING_VILLAIN</a>) do the rest.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER</td>
+<td class="address-2"><span id="52310"></span>CC56</td>
+<td class="instruction">CALL <a href="48863.html">PERCENTAGE</a></td>
+<td class="comment-1" rowspan="1">the percentage</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52313"></span>CC59</td>
+<td class="instruction">CALL <a href="58781.html">CLEAR_SCREEN</a></td>
+<td class="comment-1" rowspan="2">a clear screen, and the border round it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52316"></span>CC5C</td>
+<td class="instruction">CALL <a href="51869.html">PRINT_BORDER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52319"></span>CC5F</td>
+<td class="instruction">LD HL,$8758</td>
+<td class="comment-1" rowspan="3">the first line at (88, 135), in its own colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52322"></span>CC62</td>
+<td class="instruction">LD DE,<a href="52655.html">END_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52325"></span>CC65</td>
+<td class="instruction">CALL <a href="51708.html">PRINT_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52328"></span>CC68</td>
+<td class="instruction">LD HL,<a href="28318.html#28472">$6F38</a></td>
+<td class="comment-1" rowspan="6">the next three, each at its place, DE running on through the text</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52331"></span>CC6B</td>
+<td class="instruction">CALL <a href="51708.html">PRINT_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52334"></span>CC6E</td>
+<td class="instruction">LD HL,$5F48</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52337"></span>CC71</td>
+<td class="instruction">CALL <a href="51708.html">PRINT_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52340"></span>CC74</td>
+<td class="instruction">LD HL,$4748</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52343"></span>CC77</td>
+<td class="instruction">CALL <a href="51708.html">PRINT_TEXT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52346"></span>CC7A</td>
+<td class="instruction">LD HL,$4894</td>
+<td class="comment-1" rowspan="4">the percentage after COMPLETED, at row 12, column 20, in cyan</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52349"></span>CC7D</td>
+<td class="instruction">LD A,$45</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52351"></span>CC7F</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52352"></span>CC80</td>
+<td class="instruction">CALL <a href="48950.html">PRINT_PERCENTAGE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52355"></span>CC83</td>
+<td class="instruction">LD HL,$48F0</td>
+<td class="comment-1" rowspan="4">the score after SCORE, at row 15, column 16, in yellow</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52358"></span>CC86</td>
+<td class="instruction">LD A,$46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52360"></span>CC88</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52361"></span>CC89</td>
+<td class="instruction">CALL <a href="49901.html#49925">PRINT_SCORE_AT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52364"></span>CC8C</td>
+<td class="instruction">LD DE,<a href="51203.html">TUNE_GAME_OVER</a></td>
+<td class="comment-1" rowspan="2">the game-over tune</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52367"></span>CC8F</td>
+<td class="instruction">CALL <a href="50774.html">PLAY_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52370"></span>CC92</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="2">a pause (the B it sets is not used)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52372"></span>CC94</td>
+<td class="instruction">CALL <a href="52703.html">GAME_OVER_PAUSE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52375"></span>CC97</td>
+<td class="instruction">LD HL,<a href="48042.html#48478">VILLAINS</a></td>
+<td class="comment-1" rowspan="9">a villain still alive (96-111): the menu and a new game</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52378"></span>CC9A</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52381"></span>CC9D</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER_0</td>
+<td class="address-2"><span id="52383"></span>CC9F</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52384"></span>CCA0</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52386"></span>CCA2</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52388"></span>CCA4</td>
+<td class="instruction">JP C,<a href="48655.html">NEW_GAME</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52391"></span>CCA7</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52392"></span>CCA8</td>
+<td class="instruction">DJNZ <a href="52310.html#52383">GAME_OVER_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52394"></span>CCAA</td>
+<td class="instruction">CALL <a href="52482.html">CLEAR_OBJECTS</a></td>
+<td class="comment-1" rowspan="5">the ending: every record empty, then ten from the ending's list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52397"></span>CCAD</td>
+<td class="instruction">LD IX,<a href="48042.html#48270">KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52401"></span>CCB1</td>
+<td class="instruction">LD HL,<a href="52452.html">ENDING_RECORDS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52404"></span>CCB4</td>
+<td class="instruction">LD DE,$0010</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52407"></span>CCB7</td>
+<td class="instruction">LD B,$0A</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_OVER_1</td>
+<td class="address-2"><span id="52409"></span>CCB9</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="9">the graphic, and the screen x and y in the step bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52410"></span>CCBA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52411"></span>CCBB</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52414"></span>CCBE</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52415"></span>CCBF</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52416"></span>CCC0</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52419"></span>CCC3</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52420"></span>CCC4</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52421"></span>CCC5</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52424"></span>CCC8</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="6">no flags, no drawing offset</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52425"></span>CCC9</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52428"></span>CCCC</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52431"></span>CCCF</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52434"></span>CCD2</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52436"></span>CCD4</td>
+<td class="instruction">DJNZ <a href="52310.html#52409">GAME_OVER_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52438"></span>CCD6</td>
+<td class="instruction">CALL <a href="58781.html">CLEAR_SCREEN</a></td>
+<td class="comment-1" rowspan="4">a clear screen; ENDING set; a clear buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52441"></span>CCD9</td>
+<td class="instruction">LD A,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52443"></span>CCDB</td>
+<td class="instruction">LD (<a href="48042.html#48127">ENDING</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52446"></span>CCDE</td>
+<td class="instruction">CALL <a href="57856.html#57862">CLEAR_BUFFER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52449"></span>CCE1</td>
+<td class="instruction">JP <a href="48655.html#48753">MAIN_LOOP</a></td>
+<td class="comment-1" rowspan="1">and the main loop, which with ENDING set only updates the records</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+It is jumped to from inside routines the main loop calls, and ends by jumping to <a href="48655.html">NEW_GAME</a> or to MAIN_LOOP in it, which never set the stack pointer again (only <a href="48638.html">START</a> does): every game over leaves two bytes on the stack, and every ending four. Measured over four games and an ending, the stack pointer at the menu went down by exactly that each time. It would take about 150 games in one sitting for the stack to grow down through the rest of the BASIC program into the system variables and over NMIADD, the JP (HL) every update goes through.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52278.html">CC36</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52310">Map</a></td>
+<td class="next">
+Next: <a href="52452.html">CCE4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1985 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_nightshade.py</code>.</div>
+</footer>
+</body>
+</html>
