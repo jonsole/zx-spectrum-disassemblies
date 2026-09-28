@@ -15,6 +15,7 @@
       in place of VS Code's or room_designer.py's;
     room_editor.js, which tells the games apart, reads a snapshot, paints
       the sprite sheet out of it, decodes the castle and packs it back;
+    the user guide, docs/room-editor-guide.md, as HTML for Help;
     each game's sprites.json and graphics.json -- from its Filmation remake,
       or for Alien 8 from room_editor_art.py: names, rectangles, boxes and
       pixel nudges, and not one byte of the game. Every pixel, room and template comes from the copy of the game
@@ -79,6 +80,34 @@
   #status.bad { color: var(--bad); }
   iframe { display: none; flex: 1 1 auto; border: 0; width: 100%; background: var(--bg); }
   input[type=file] { display: none; }
+
+  /* --- the user guide, over whatever is showing --- */
+  #help { position: fixed; inset: 0; z-index: 10; display: flex; justify-content: center;
+          align-items: flex-start; padding: 28px 16px; box-sizing: border-box;
+          background: rgba(0, 0, 0, 0.6); }
+  #help[hidden] { display: none; }
+  #help .sheet { width: 100%; max-width: 780px; max-height: 100%; display: flex;
+                 flex-direction: column; background: var(--panel); border: 1px solid var(--edge);
+                 border-radius: 6px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); }
+  #help .head { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 24px;
+                border-bottom: 1px solid var(--edge); }
+  #help .head h1 { flex: 1; font-size: 16px; margin: 0; }
+  .guide { overflow: auto; padding: 8px 24px 28px; line-height: 1.6; }
+  .guide .contents { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 8px 0 12px;
+                     border-bottom: 1px solid var(--edge); font-size: 13px; }
+  .guide h2 { font-size: 18px; font-weight: 600; margin: 30px 0 8px; }
+  .guide h3 { font-size: 15px; font-weight: 600; margin: 22px 0 6px; }
+  .guide p, .guide ul { margin: 8px 0; }
+  .guide ul { padding-left: 20px; }
+  .guide li { margin: 4px 0; }
+  .guide strong { color: #e6e6e6; }
+  .guide code { font: 12px Consolas, monospace; background: #333337; padding: 1px 4px;
+                border-radius: 3px; }
+  .guide table { border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  .guide th, .guide td { border: 1px solid var(--edge); padding: 5px 9px; text-align: left;
+                         vertical-align: top; }
+  .guide th { background: #2d2d30; }
+  .guide td:first-child { min-width: 9em; }
 </style>
 </head>
 <body>
@@ -89,7 +118,8 @@
     <p class="lede">Rearrange the castle of Ultimate&rsquo;s Knight Lore (1984), the starship of
       Alien 8 (1985) or the world of Pentagram (1986), and play it: open a snapshot of your own copy
       of the game, edit its rooms, and download the game again with your rooms in it. Nothing leaves
-      this page &mdash; there is no server.</p>
+      this page &mdash; there is no server. New to it? Read the
+      <button class="link" id="help-landing">user guide</button>.</p>
     <div id="drop" tabindex="0">
       <strong>Open a snapshot of Knight Lore, Alien 8 or Pentagram</strong>
       <span>Drop a 48K <code>.sna</code> or <code>.z80</code> here, or click to choose one.
@@ -123,7 +153,8 @@
         <li>In Pentagram every doorway has to lead to a room that is there: the game looks for a
           room by walking the list, and one that is not there sends it through the rest of
           memory.</li>
-        <li>Eight objects a group, 32 kinds of object, and a room has to have something in it.</li>
+        <li>Eight objects a group, and a room has to have something in it; 32 kinds of object in
+          Knight Lore, 31 in Pentagram, 60 in Alien 8.</li>
       </ul>
       <h2>Keeping your work</h2>
       <ul>
@@ -152,10 +183,132 @@
   <button id="export">Export</button>
   <button id="import">Import</button>
   <button id="close">Close</button>
+  <button id="help-bar" title="the user guide">Help</button>
   <div id="status" aria-live="polite"></div>
 </div>
 <iframe id="rooms-frame" title="Rooms"></iframe>
 <iframe id="templates-frame" title="Templates"></iframe>
+
+<div id="help" hidden role="dialog" aria-modal="true" aria-labelledby="help-title">
+  <div class="sheet">
+    <div class="head">
+      <h1 id="help-title">Room editor: user guide</h1>
+      <button id="help-close" title="close (Esc)">Close</button>
+    </div>
+    <div class="guide" id="guide" tabindex="-1">
+<nav class="contents"><a href="#getting-started">Getting started</a><a href="#the-screen">The screen</a><a href="#templates">Templates</a><a href="#shapes">Shapes</a><a href="#playing-your-version">Playing your version</a><a href="#limits">Limits</a><a href="#carrying-on-later">Carrying on later</a><a href="#good-to-know">Good to know</a><a href="#something-went-wrong">Something went wrong</a></nav>
+<p>The room editor lets you rearrange the rooms of three of Ultimate's Filmation games &mdash; <strong>Knight Lore</strong> (1984), <strong>Alien 8</strong> (1985) and <strong>Pentagram</strong> (1986) &mdash; and then play them. You open a snapshot of your own copy of the game, change its rooms, and download the game again with your changes in it. The result runs in any ZX Spectrum emulator.</p>
+<p>It is a single web page: <a href="https://jonsole.github.io/zx-spectrum-disassemblies/room-editor.html" target="_blank" rel="noopener">jonsole.github.io/zx-spectrum-disassemblies/room-editor.html</a>. Everything happens in your browser. Nothing is uploaded, and the page contains none of the games themselves: every room and picture you see comes from the copy you open.</p>
+<h2 id="getting-started">Getting started</h2>
+<h3 id="what-you-need">What you need</h3>
+<p>A <strong>snapshot</strong> of the game, taken at its menu, before a game has started: a 48K <code>.sna</code> or <code>.z80</code> file. The editor takes snapshots rather than tapes because a tape's contents are only the game once it has loaded &mdash; Knight Lore's tape is even scrambled until its loader has run.</p>
+<p>To make one, load your copy of the game in an emulator, wait for the menu, and save a snapshot. In Fuse it is <strong>File &gt; Save Snapshot</strong>; in the <a href="https://github.com/jonsole/zx-spectrum-emulator" target="_blank" rel="noopener">ZX Spectrum emulator for VS Code</a> the command <strong>ZX Spectrum: Save Snapshot...</strong> does it. Most emulators have something similar.</p>
+<p>Use the <strong>original</strong> game. A snapshot the editor has already changed can only be opened again if its tables did not move; if they did, it is refused (see <a href="#carrying-on-later">Carrying on later</a> for how to keep working instead).</p>
+<h3 id="opening-a-game">Opening a game</h3>
+<p>Drop the snapshot onto the page, or click the box and choose it. The editor tells which of the three games it is and opens it. The bar across the top then says which game you are editing and which file.</p>
+<p>If you have saved work in this browser before, the first screen offers to <strong>Continue</strong> with it. <strong>Forget it</strong> clears it.</p>
+<h2 id="the-screen">The screen</h2>
+<p>The bar at the top has everything that is not about one room:</p>
+<table>
+<tr><td><strong>Rooms</strong> / <strong>Templates</strong></td><td>The two editors: the rooms, and the templates they are built from.</td></tr>
+<tr><td><strong>Undo</strong> / <strong>Redo</strong></td><td>Step back and forward through your changes, in either editor. Ctrl+Z and Ctrl+Shift+Z do the same.</td></tr>
+<tr><td><strong>Save</strong></td><td>Keep your work in this browser (Ctrl+S).</td></tr>
+<tr><td><strong>Download .sna</strong></td><td>Build the game with your changes and download it.</td></tr>
+<tr><td><strong>Export</strong> / <strong>Import</strong></td><td>Save your work to a file, and load it back.</td></tr>
+<tr><td><strong>Close</strong></td><td>Go back to the first screen.</td></tr>
+</table>
+<p>Messages from Save and Download appear under the bar, in green when all is well and red when something needs fixing. The word <strong>unsaved</strong> appears beside the buttons when you have changes you have not saved.</p>
+<h3 id="the-map">The map</h3>
+<p>On the left is the map of every room. Knight Lore's and Alien 8's rooms sit where their numbers put them, on a 16 by 16 grid. Pentagram's numbers are not places, so its map is laid out by following the doorways from the first room; any room the doorways never reach is listed under the map. The room you are editing is highlighted.</p>
+<ul>
+<li><strong>Click a room</strong> to go to it.</li>
+<li><strong>Click an empty square</strong> (Knight Lore and Alien 8) to pick it, then <strong>Add room</strong> to make a new, empty room there. In Pentagram, type a number and press <strong>Add room</strong>.</li>
+<li><strong>Delete room</strong> removes the room you are on. It first says what would be left pointing nowhere &mdash; doorways that lead in, collectables that start there. The last room, and a starting room, cannot be deleted. Undo brings a deleted room back.</li>
+</ul>
+<p><strong>Starting rooms</strong> lists the rooms a game can begin in &mdash; each game picks one of four at random. Click one to go there. To change one, go to it, press <strong>Change</strong>, then click the room on the map to use instead; rooms that cannot be a starting room are dimmed, and hovering over one says why. <strong>Cancel</strong> or Esc stops choosing. A starting room needs the middle of its floor clear, because that is where the player appears.</p>
+<p><strong>Ways out</strong> lists the room's doorways. In Knight Lore and Alien 8 the room a doorway leads to follows from where the room is on the map, so each is a button that goes there. In Pentagram each doorway says which room it leads to, and you can change that number; <strong>go</strong> goes there.</p>
+<h3 id="the-room">The room</h3>
+<p>In the middle is the room, drawn as the game draws it.</p>
+<ul>
+<li><strong>Click</strong> anything to select it; the tab where you edit it opens on the right.</li>
+<li><strong>Drag</strong> an object to move it across the floor. Collectables can be dragged too.</li>
+<li>With an object selected, the <strong>arrow keys</strong> move it a square, <strong>Ctrl+Up</strong> and <strong>Ctrl+Down</strong> (or <strong>[</strong> and <strong>]</strong>) lift and lower it a level, and <strong>Delete</strong> removes it.</li>
+<li>With a collectable selected, the arrows move it one step (eight with Shift), and Ctrl+Up and Ctrl+Down change its height.</li>
+</ul>
+<p>A selected object or collectable is marked on the floor beneath it, with a dotted line up to it when it is above the floor, and anything in front of it is drawn see-through.</p>
+<p>Under the picture:</p>
+<ul>
+<li><strong>Ink</strong> &mdash; the room's colour.</li>
+<li><strong>Shape</strong> &mdash; which floor shape the room stands on (see <a href="#shapes">Shapes</a>).</li>
+<li><strong>Floor</strong>, <strong>Boxes</strong>, <strong>Scenery</strong> &mdash; show the floor grid, the box each piece takes up, and the walls and arches.</li>
+<li><strong>Zoom</strong> &mdash; the size of the picture.</li>
+<li><strong>pool</strong> &mdash; how many of the game's object records the fullest room uses, out of how many the game has, and which room that is.</li>
+</ul>
+<h3 id="checks">Checks</h3>
+<p>Under the room, <strong>Checks</strong> lists anything wrong with the castle. An error (red) would stop the game being built &mdash; a room with too many pieces, a doorway to a room that is not there, a starting room with something in the middle. A warning (yellow) builds, but is worth knowing about &mdash; a doorway with no way back, or walls that no longer match a room's floor. Each one names its room; click the room number to go there.</p>
+<h3 id="the-panel-on-the-right">The panel on the right</h3>
+<p><strong>Objects</strong> lists the room's objects in groups: one kind of object, and the squares it stands on. Change a group's kind with its dropdown, and click a square's coordinates to select that object. To add objects, choose a kind in the bottom dropdown and press <strong>Place</strong>; the new object appears in the middle of the floor, ready to drag. Clicking an object in the room sets the dropdown to its kind, so Place adds another of the same. A group holds up to eight.</p>
+<p>In <strong>Alien 8</strong>, each group also has a <strong>raise</strong>: the game can lift a group of objects up by a number of units, and 48 &mdash; four levels &mdash; is what it uses.</p>
+<p><strong>Scenery</strong> lists the room's walls, arches and other fixed pieces. Change one with its dropdown, remove one with <strong>×</strong>, and add one from the dropdown at the bottom with <strong>Add</strong>.</p>
+<p><strong>Collectables</strong> (Knight Lore and Alien 8) lists the things that start in this room &mdash; Knight Lore's charms, Alien 8's valves &mdash; with their position and room, which you can type in. <strong>Show as kind</strong> only changes how they are drawn: the game decides at random which kind each one is when a game starts. A room shows at most two.</p>
+<p><strong>Shapes</strong> lists the floor shapes every room stands on: how far the floor reaches from the middle across and along, and how high it is. Changing a shape changes every room that uses it. See <a href="#shapes">Shapes</a>.</p>
+<h2 id="templates">Templates</h2>
+<p>Rooms are not built piece by piece. Each is a list of <strong>templates</strong> &mdash; "a north arch", "a wall", "a block" &mdash; and a template is a set of pieces. Change a template and every room that uses it changes too.</p>
+<p>Press <strong>Templates</strong> in the bar to edit them. The list on the left has every scenery and object template, with how many rooms use each. Pick one to see it:</p>
+<ul>
+<li><strong>Rename</strong>, <strong>Duplicate</strong> and <strong>Delete</strong> at the top. A template in use cannot be deleted.</li>
+<li>The picture shows the template on its own, or in a room using it (<strong>show it</strong>).</li>
+<li><strong>Pieces</strong> lists what it is made of: each piece's graphic, and for scenery its position; whether it is <strong>mirrored</strong>; and whether things can pass through it (<strong>passable</strong>; Knight Lore only). The arrows reorder pieces and <strong>✕</strong> removes one. <strong>Add piece</strong> adds one with the graphic chosen beside it.</li>
+<li>Drag a piece in the picture, or use the arrow keys, to move it; Ctrl+Up and Ctrl+Down (or <strong>[</strong> and <strong>]</strong>) lift it, Shift makes the steps bigger, and Delete removes it.</li>
+<li><strong>Placed in</strong> lists the rooms using the template; click one to go to it in the Rooms editor.</li>
+</ul>
+<p><strong>New</strong> at the foot of each list makes a new, empty template.</p>
+<h2 id="shapes">Shapes</h2>
+<p>A room's <strong>shape</strong> is its floor: how far it reaches from the middle in each direction, and its height. Every game has three: square, and narrow each way. The <strong>Shapes</strong> tab lets you change them and add more &mdash; up to 32 in Knight Lore and Pentagram, and 4 in Alien 8.</p>
+<p>Changing a shape changes where the game stops you walking and where you arrive through a doorway &mdash; but not the walls and arches you see, which are scenery. If they no longer line up, Checks warns you about each room, and the fix is to move or add wall pieces (see <a href="#templates">Templates</a>).</p>
+<h2 id="playing-your-version">Playing your version</h2>
+<p>Press <strong>Download .sna</strong>. If the castle is fine, a <code>.sna</code> file downloads and the message under the bar says how much space is used and free. Open that file in any Spectrum emulator and start a game from the menu as usual: choose your controls with the number keys the menu lists, then press <strong>0</strong>.</p>
+<p>If something is wrong, nothing downloads and the message says what &mdash; see <a href="#limits">Limits</a>.</p>
+<h2 id="limits">Limits</h2>
+<p>The editor puts your rooms back into the game's own memory, which has no room to spare. Download refuses anything the game could not cope with, and says why.</p>
+<ul>
+<li><strong>Space.</strong> The games' room tables are completely full: 3,498 bytes in Knight Lore, 4,739 in Alien 8 and 4,048 in Pentagram. Anything you add has to be paid for by removing something else &mdash; an object costs one or two bytes, a new room at least four. The Download message says how many bytes are free.</li>
+<li><strong>Pieces in a room.</strong> A room can hold 36 pieces in Knight Lore, 52 in Alien 8 and 48 in Pentagram, counting every piece of every template it places. The <strong>pool</strong> under the picture shows the fullest room, and Checks names any room over the limit.</li>
+<li><strong>Starting rooms</strong> need the middle of the floor clear.</li>
+<li><strong>In Pentagram</strong> every doorway has to lead to a room that exists: the game would crash looking for one that does not.</li>
+<li><strong>Groups</strong> hold up to eight objects, and a room has to have something in it.</li>
+<li><strong>Templates</strong>: up to 32 object templates in Knight Lore, 31 in Pentagram and 60 in Alien 8.</li>
+</ul>
+<p>The game itself does not check most of these &mdash; a room with one piece too many overwrites other parts of the game &mdash; so the editor does.</p>
+<h2 id="carrying-on-later">Carrying on later</h2>
+<ul>
+<li><strong>Save</strong> keeps everything &mdash; rooms, templates, collectables &mdash; in this browser. Next time you open the page, it offers to <strong>Continue</strong>. Private windows, and browsers set to clear site data, do not keep it.</li>
+<li><strong>Export</strong> writes your castle to a <code>.json</code> file, to keep, share or move to another computer. <strong>Import</strong> reads one back into an open game; it has to be the same game.</li>
+</ul>
+<p>To carry on from a castle you have downloaded, open your <strong>original</strong> snapshot again and <strong>Import</strong> the castle you exported &mdash; the downloaded game itself cannot always be opened again.</p>
+<h2 id="good-to-know">Good to know</h2>
+<ul>
+<li><strong>Undo</strong> covers everything in both editors, in the order you did it.</li>
+<li>The editor shows the <strong>starting position</strong> of things. Once a game is running, some move, some are picked up, and the collectables' kinds are dealt at random.</li>
+<li><strong>Pentagram's</strong> unused scenery slots appear as templates with no pieces. Leave them be: the game points them at its own tables.</li>
+<li>In <strong>Alien 8</strong>, the end-of-game count of cryogenic chambers recognises a chamber by its first object templates being the frozen crew. Deleting an object template that comes before them in the list upsets that count.</li>
+<li>Downloads are <code>.sna</code> snapshots; the editor does not make tapes.</li>
+</ul>
+<h2 id="something-went-wrong">Something went wrong</h2>
+<table>
+<tr><th>Message</th><th>What to do</th></tr>
+<tr><td><em>This is not an original copy of ... that the editor knows</em></td><td>Use a snapshot of the original game, taken at the menu. Other releases and hacked copies are not recognised.</td></tr>
+<tr><td><em>This copy ... has had its rooms changed already</em></td><td>Open the original snapshot, and Import your castle.</td></tr>
+<tr><td><em>Not built: ... needs N bytes and the original has M</em></td><td>Remove something &mdash; objects, scenery, template pieces &mdash; to free the bytes it says.</td></tr>
+<tr><td><em>Not built: room ... fills N object records</em></td><td>That room has too many pieces; remove some.</td></tr>
+<tr><td><em>Not built: ... is a starting room, and ... stands in the middle</em></td><td>Move what stands in the middle, or choose another starting room.</td></tr>
+<tr><td><em>Not built: ... leads to room N, which there is not</em></td><td>Point the doorway at a room that exists (Pentagram).</td></tr>
+<tr><td><em>This browser would not keep it</em></td><td>Your browser is not letting the page save. Use <strong>Export</strong> instead.</td></tr>
+</table>
+<p>For how the editor works inside &mdash; the tables it rewrites and how it was checked against each game &mdash; see <a href="https://github.com/jonsole/zx-spectrum-disassemblies/blob/master/docs/room-editor.md" target="_blank" rel="noopener">docs/room-editor.md</a>.</p>
+    </div>
+  </div>
+</div>
 
 <input type="file" id="pick-snapshot" accept=".sna,.z80">
 <input type="file" id="pick-castle" accept=".json,application/json">
@@ -1556,7 +1709,8 @@ if (typeof module !== 'undefined') {
                     'resume-forget', 'problem', 'bar', 'file', 'status', 'unsaved', 'save',
                     'download', 'export', 'import', 'close', 'undo', 'redo',
                     'view-rooms', 'view-templates', 'rooms-frame', 'templates-frame', 'game-name',
-                    'pick-snapshot', 'pick-castle']) {
+                    'pick-snapshot', 'pick-castle', 'help', 'help-landing', 'help-bar',
+                    'help-close', 'guide']) {
     el[id] = document.getElementById(id);
   }
 
@@ -1992,6 +2146,35 @@ if (typeof module !== 'undefined') {
       event.preventDefault();
       save();
     }
+  });
+  // The guide: docs/room-editor-guide.md, made HTML by room_editor.py. It
+  // opens over whatever is showing and closes back to it, so reading it in
+  // the middle of an edit loses nothing.
+  function openHelp() {
+    el.help.hidden = false;
+    el.guide.focus();
+  }
+  function closeHelp() {
+    el.help.hidden = true;
+  }
+  el['help-landing'].addEventListener('click', openHelp);
+  el['help-bar'].addEventListener('click', openHelp);
+  el['help-close'].addEventListener('click', closeHelp);
+  el.help.addEventListener('click', function (event) {
+    if (event.target === el.help) closeHelp();
+  });
+  // A link to one of the guide's own sections scrolls the guide to it rather
+  // than going through the page's address, which would scroll the page.
+  el.guide.addEventListener('click', function (event) {
+    const link = event.target.closest && event.target.closest('a[href^="#"]');
+    if (!link) return;
+    const target = document.getElementById(link.getAttribute('href').slice(1));
+    if (!target || !el.guide.contains(target)) return;
+    event.preventDefault();
+    target.scrollIntoView({ block: 'start' });
+  });
+  window.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !el.help.hidden) closeHelp();
   });
   window.addEventListener('beforeunload', function (event) {
     if (!unsaved()) return;
