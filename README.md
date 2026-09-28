@@ -121,10 +121,8 @@ shapes and starting rooms -- and Knight Lore's collectables and Alien 8's
 valves -- in the room designer from the
 [emulator](https://github.com/jonsole/zx-spectrum-emulator)'s Filmation
 remakes, and downloads the game again with them packed into its own tables. It
-holds none of any game's bytes, and it is on the site beside each game as
-[knightlore/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/knightlore/room-editor.html),
-[pentagram/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/pentagram/room-editor.html)
-and [alien8/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/alien8/room-editor.html).
+holds none of any game's bytes, and it is on the site, one page for all three,
+as [room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/room-editor.html).
 Alien 8's sprite layout and graphic table, which Knight Lore and Pentagram
 take from their remakes, are `scripts/room_editor_art.py`'s.
 [docs/room-editor.md](docs/room-editor.md) says what each original can hold

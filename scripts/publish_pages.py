@@ -64,21 +64,19 @@ GAMES = {
 # of the loaded game, not a tape; --tape passes it on under its own name.
 SOURCE_OPTION = {"knightlore": "--snapshot"}
 
-# Pages a game's directory carries besides its disassembly, each written fresh
-# by a command as it is published: the directory is replaced whole, so a page
-# put there any other way is gone the next time the game is published -- which
-# is how the room editor was lost once. The command is run from ROOT with
-# "{out}" standing for where the page goes. The room editor holds none of any
-# game's bytes; it is made from scripts and the emulator repository's room
-# designer, it serves every game it knows, and each game's directory has a
-# copy so that each game's pages can link to their own.
-ROOM_EDITOR = ("room-editor.html",
-               [sys.executable, "scripts/room_editor.py", "page", "--out", "{out}"])
-EXTRA_PAGES = {
-    "knightlore": [ROOM_EDITOR],
-    "pentagram": [ROOM_EDITOR],
-    "alien8": [ROOM_EDITOR],
-}
+# Pages at the top of the site, beside the landing page, written fresh by a
+# command every time any game is published, so that none is left out of date
+# or lost: a page put on gh-pages any other way is only as safe as whatever
+# publishes next -- which is how the room editor was lost once, from inside a
+# game's directory, which a publish replaces whole. The command is run from
+# ROOT with "{out}" standing for where the page goes. The room editor holds
+# none of any game's bytes; it is made from scripts and the emulator
+# repository's room designer, and one page serves every game it knows, so each
+# game's entry on the landing page links to it here.
+ROOT_PAGES = [
+    ("room-editor.html",
+     [sys.executable, "scripts/room_editor.py", "page", "--out", "{out}"]),
+]
 
 
 def git(*args: str, cwd: Path = ROOT, capture: bool = True) -> str:
@@ -133,16 +131,15 @@ def main() -> None:
             shutil.rmtree(target)
         shutil.copytree(html, target)
         shutil.copy2(asm, target / asm.name)
-        for leaf, command in EXTRA_PAGES.get(args.game, []):
-            out = target / leaf
+        for leaf, command in ROOT_PAGES:
+            out = site / leaf
             done = subprocess.run([str(out) if part == "{out}" else part for part in command],
                                   cwd=ROOT, text=True, capture_output=True)
             # The landing page links to it, so publishing without it would be
             # publishing a dead link.
             if done.returncode != 0 or not out.exists():
-                sys.exit(f"error: could not write {args.game}/{leaf}:\n"
-                         f"{done.stdout}{done.stderr}")
-            print(f"Wrote {args.game}/{leaf}", flush=True)
+                sys.exit(f"error: could not write {leaf}:\n{done.stdout}{done.stderr}")
+            print(f"Wrote {leaf}", flush=True)
         shutil.copy2(LANDING, site / "index.html")
         (site / ".nojekyll").touch()
 

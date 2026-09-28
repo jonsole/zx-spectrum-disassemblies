@@ -27,7 +27,8 @@ What it is made of:
 
 None of it is a byte of any game. Every pixel, room and template on the page
 comes from the copy the person using it gives it, so the page can be shared
-as it is; publish_pages.py puts it on the site beside each game it serves.
+as it is; publish_pages.py puts it at the top of the site, as room-editor.html,
+every time it publishes a game, and each game's entry links to it there.
 """
 from __future__ import annotations
 
