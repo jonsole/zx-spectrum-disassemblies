@@ -159,6 +159,12 @@ SPECTRUM_BRIGHT = [(0, 0, 0), (0, 0, 0xFF), (0xFF, 0, 0), (0xFF, 0, 0xFF),
 INK_NAMES = ["black", "blue", "red", "magenta", "green", "cyan", "yellow", "white"]
 MAP_GROUND = (7, 7, 28)     # aticatac.css's page colour
 MAP_GRID = (30, 30, 70)     # the cells' outlines on the ground: the page's, not the game's
+# The solid cells -- the ring round the town and the blocks inside it -- are
+# types 1 and 2, whose boxes close all four sides: no knight, villain or
+# object is ever in one. The town map leaves their walls out, which would
+# otherwise bury the town in cyan, and shows them as black ground.
+SOLID_TYPES = (1, 2)
+MAP_SOLID = (0, 0, 0)
 MAP_MARGIN = 24
 OVERVIEW_SCALE = 4          # the overview is a quarter of the full size
 
@@ -696,14 +702,17 @@ def town_picture(memory, sprites: dict, view: int):
         for column in range(32):
             x, y = _corner(column, row)
             x, y = x + origin[0], y + origin[1]
-            draw.polygon([(x, y), (x + 128, y + 64), (x + 256, y), (x + 128, y - 64)],
-                         outline=MAP_GRID)
+            diamond = [(x, y), (x + 128, y + 64), (x + 256, y), (x + 128, y - 64)]
+            if view_cell(memory, view, column, row) in SOLID_TYPES:
+                draw.polygon(diamond, fill=MAP_SOLID)
+            else:
+                draw.polygon(diamond, outline=MAP_GRID)
     # Back to front: further back is smaller U and larger V (#R$CFF2), which
     # is higher up the page.
     cells = sorted(((c, r) for r in range(32) for c in range(32)), key=lambda cr: cr[0] - cr[1])
     for column, row in cells:
         kind = view_cell(memory, view, column, row)
-        if not kind:
+        if not kind or kind in SOLID_TYPES:
             continue
         x, y = _corner(column, row)
         sprite = sprites[(kind, view)]
@@ -787,7 +796,7 @@ def build(snapshot: Path, html_dir: Path, log=print) -> dict[str, str]:
             cells_of.setdefault(kind, []).append((column, row))
 
     def solid(column: int, row: int) -> bool:
-        return nd.cell(memory, column, row) in (1, 2)
+        return nd.cell(memory, column, row) in SOLID_TYPES
 
     standable = [(c, r) for r in range(32) for c in range(32) if not solid(c, r)]
 
@@ -1256,6 +1265,10 @@ def _town_page(memory, ref, maps, counts, cells_of, standable, start_counts, pla
              "the cells round the knight, and draws only the walls behind him: the ones in front "
              "are reduced to their line on the ground, so as not to hide him "
              f"({ref(DRAW_CELLS)}). The faint outlines of the cells on the ground are the page's. "
+             "The solid cells, types 1 and 2 -- the ring round the town and the blocks inside "
+             "it, which nothing can ever be in -- are shown as black ground without their "
+             "walls, which would bury the town; the game draws them like any other cell, and "
+             '<a href="CellTypes.html#type1">cell types</a> shows them. '
              "This is the usual view, north on the panel's compass, the viewer at the high-U, "
              "low-V corner; the view turned round is below. Click a cell for its type, or "
              '<a href="images/world/town0.png">see the whole town at full size</a>. Tick a box '
