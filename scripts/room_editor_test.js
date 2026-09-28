@@ -1,6 +1,7 @@
-// Tests for knightlore_rooms.js, against the Python it follows.
+// Tests for room_editor.js: Knight Lore against the Python it follows, and each
+// game against its own original.
 //
-//   node scripts/knightlore_rooms_test.js
+//   node scripts/room_editor_test.js
 //
 // Needs a snapshot of the game, which is never committed: the castle
 // knightlore_rooms.py extract leaves in game_disassembly/knightlore/rooms/.
@@ -13,14 +14,21 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
-const kl = require('./knightlore_rooms.js');
+const kl = require('./room_editor.js');
 
 const ROOT = path.resolve(__dirname, '..');
 const CASTLE = path.join(ROOT, 'game_disassembly', 'knightlore', 'rooms');
 const REMAKE = path.resolve(ROOT, '..', 'examples', 'filmation', 'knightlore');
 
 let failed = 0;
+// Each game's tests need that game's snapshot, which is never committed; the
+// ones without it say so and are skipped, and the rest still run.
+let skipping = null;
 function test(name, fn) {
+  if (skipping) {
+    console.log('skip ' + name + ' (' + skipping + ')');
+    return;
+  }
   try {
     fn();
     console.log('ok   ' + name);
@@ -31,14 +39,17 @@ function test(name, fn) {
 }
 
 const snaPath = path.join(CASTLE, 'original.sna');
-if (!fs.existsSync(snaPath) || !fs.existsSync(REMAKE)) {
-  console.log('skipped: no ' + snaPath + ' (run knightlore_rooms.py extract) or no ' + REMAKE);
-  process.exit(0);
-}
-const original = kl.readSnapshot(fs.readFileSync(snaPath), 'original.sna');
 const read = function (dir, leaf) { return JSON.parse(fs.readFileSync(path.join(dir, leaf), 'utf8')); };
-const graphics = read(REMAKE, 'graphics.json');
-const sheet = read(REMAKE, 'sprites.json');
+let original = null;
+let graphics = null;
+let sheet = null;
+if (!fs.existsSync(snaPath) || !fs.existsSync(REMAKE)) {
+  skipping = 'no ' + snaPath + ' -- run knightlore_rooms.py extract -- or no ' + REMAKE;
+} else {
+  original = kl.readSnapshot(fs.readFileSync(snaPath), 'original.sna');
+  graphics = read(REMAKE, 'graphics.json');
+  sheet = read(REMAKE, 'sprites.json');
+}
 
 function merged(castle) {
   const atlas = JSON.parse(JSON.stringify(castle.rooms));
@@ -359,6 +370,150 @@ test('a .z80 is read as the .sna it holds', function () {
   squeezed.set(h);
   squeezed.set(packed, 30);
   assert.deepStrictEqual(kl.readSnapshot(squeezed, 'k.z80'), original);
+});
+
+// --- Pentagram -----------------------------------------------------------
+//
+// Against the snapshot build_pentagram.py leaves, and the Filmation remake's
+// carried castle, sprites.json, graphics.json and sprites.png, which were made
+// from the same original.
+
+const PG_SNA = path.join(ROOT, 'game_disassembly', 'pentagram', 'pentagram.z80');
+const PG_REMAKE = path.resolve(ROOT, '..', 'examples', 'filmation', 'pentagram');
+skipping = fs.existsSync(PG_SNA) && fs.existsSync(PG_REMAKE) ? null
+  : 'no ' + PG_SNA + ' -- run build_pentagram.py -- or no ' + PG_REMAKE;
+const pg = skipping ? null : {
+  sna: kl.readSnapshot(fs.readFileSync(PG_SNA), 'pentagram.z80'),
+  graphics: read(PG_REMAKE, 'graphics.json'),
+  sheet: read(PG_REMAKE, 'sprites.json')
+};
+const PG = kl.PENTAGRAM;
+function pgBuild(atlas) {
+  const packed = kl.packCastle(pg.sna, atlas, null, pg.graphics, PG);
+  return Object.assign(kl.applyWrites(pg.sna, packed.writes), { report: packed.report });
+}
+
+test('Pentagram: the snapshot is told apart from Knight Lore’s, and the other way round', function () {
+  assert.strictEqual(kl.identify(pg.sna).id, 'pentagram');
+  if (original) assert.strictEqual(kl.identify(original).id, 'knightlore');
+  assert.throws(function () { kl.checkOriginal(pg.sna, kl.KNIGHT_LORE); }, /not look like the original Knight Lore/);
+});
+
+test('Pentagram: decoding gives the remake’s castle, but for the four unused scenery slots', function () {
+  const castle = kl.decodeCastle(pg.sna, pg.graphics, PG);
+  const rooms = read(PG_REMAKE, 'rooms.json');
+  const templates = read(PG_REMAKE, 'templates.json');
+  assert.deepStrictEqual(castle.rooms.rooms, rooms.rooms);
+  assert.deepStrictEqual(castle.rooms.roomDimensions, rooms.roomDimensions);
+  assert.deepStrictEqual(castle.rooms.startRooms, [51, 92, 100, 12]);
+  assert.deepStrictEqual(Object.keys(castle.templates.sceneryTemplates), Object.keys(templates.sceneryTemplates));
+  assert.deepStrictEqual(castle.templates.objectTemplates, templates.objectTemplates);
+  // Slots 18, 19, 22 and 23 point at the scenery table itself: the remake
+  // reads the table's own bytes as their pieces; here they are empty.
+  for (const name of Object.keys(templates.sceneryTemplates)) {
+    const unused = ['scenery_18', 'scenery_19', 'scenery_22', 'scenery_23'].indexOf(name) >= 0;
+    assert.deepStrictEqual(castle.templates.sceneryTemplates[name], unused ? [] : templates.sceneryTemplates[name], name);
+  }
+  assert.strictEqual(castle.specials, null);
+});
+
+test('Pentagram: the castle as decoded packs back but for two headers the rooms cut short', function () {
+  const castle = kl.decodeCastle(pg.sna, pg.graphics, PG);
+  const built = pgBuild(merged(castle));
+  // Rooms 13 and 108 end partway through their last group: the header asks
+  // for three and the record holds two. The game builds the two; a header
+  // written from the castle asks for two. Nothing else moves.
+  const moved = [];
+  for (let i = 27; i < built.sna.length; i++) if (built.sna[i] !== pg.sna[i]) moved.push(i - 27 + 0x4000);
+  assert.deepStrictEqual(moved, [0x5F67, 0x66D3]);
+  assert.strictEqual(built.sna[27 + 0x5F67 - 0x4000], pg.sna[27 + 0x5F67 - 0x4000] - 1);
+  assert.strictEqual(built.report.free, 0);
+  assert.deepStrictEqual(built.report.fullest, [43, 87]);
+  assert.deepStrictEqual(kl.decodeCastle(built.sna, pg.graphics, PG).rooms.rooms, castle.rooms.rooms);
+});
+
+test('Pentagram: the sheet painted from the snapshot is sprites.png, sprite for sprite', function () {
+  const painted = kl.sheetPixels(pg.sna, pg.sheet, pg.graphics, PG);
+  const png = readPng(path.join(PG_REMAKE, 'sprites.png'));
+  const drawn = new Set(Object.values(pg.graphics.graphics).map(function (e) { return e.sprite; }));
+  let checked = 0;
+  (function walk(node, trail) {
+    for (const key of Object.keys(node.sprites || {})) {
+      const s = node.sprites[key];
+      if (!drawn.has(trail.concat([key]).join('.'))) continue;
+      for (let y = s.y; y < s.y + s.h; y++) {
+        for (let x = s.x; x < s.x + s.w; x++) {
+          for (let k = 0; k < 4; k++) {
+            if (png.pixels[(y * png.width + x) * 4 + k] !== painted.pixels[(y * painted.width + x) * 4 + k]) {
+              assert.fail(trail.concat([key]).join('.') + ' differs at ' + x + ',' + y);
+            }
+          }
+        }
+      }
+      checked++;
+    }
+    for (const g of Object.keys(node.group || {})) walk(node.group[g], trail.concat([g]));
+  })(pg.sheet, []);
+  assert.ok(checked > 80, checked + ' sprites');
+});
+
+test('Pentagram: an edited castle packs, moves its tables, and decodes back as edited', function () {
+  const castle = kl.decodeCastle(pg.sna, pg.graphics, PG);
+  const atlas = merged(castle);
+  const by = new Map(atlas.rooms.map(function (r) { return [r.number, r]; }));
+  // A fourth shape for room 100, paid for by room 87's objects; the first
+  // room with its middle clear in room 12's starting slot; and an object
+  // template made taller.
+  by.get(87).objects = [];
+  atlas.roomDimensions.small = { u: 48, v: 48, z: 128 };
+  by.get(100).dimensions = 'small';
+  let clear = null;
+  for (const room of atlas.rooms) {
+    if ([51, 92, 100, 12].indexOf(room.number) >= 0) continue;
+    atlas.startRooms = [51, 92, 100, room.number];
+    try { pgBuild(atlas); clear = room.number; break; } catch (err) { if (!/starting room/.test(err.message)) throw err; }
+  }
+  assert.ok(clear !== null, 'some room has its middle clear');
+  const first = Object.keys(atlas.objectTemplates)[0];
+  // A box of its own, which is all three sizes or none.
+  Object.assign(atlas.objectTemplates[first][0], { sizeU: 7, sizeV: 7, sizeZ: 30 });
+  const built = pgBuild(atlas);
+  assert.strictEqual(kl.word(built.sna, PG.operands.rooms[0]), 0x5E10 + 3);
+  for (const table of ['sceneryTable', 'objectTable']) {
+    for (const addr of PG.operands[table]) assert.strictEqual(kl.word(built.sna, addr), built.report[table]);
+  }
+  const back = kl.decodeCastle(built.sna, pg.graphics, PG);
+  const renamed = JSON.parse(JSON.stringify(atlas));
+  renamed.roomDimensions = { square: atlas.roomDimensions.square, narrowU: atlas.roomDimensions.narrowU,
+                             narrowV: atlas.roomDimensions.narrowV, shape_3: atlas.roomDimensions.small };
+  renamed.rooms.find(function (r) { return r.number === 100; }).dimensions = 'shape_3';
+  assert.deepStrictEqual(back.rooms.rooms, renamed.rooms);
+  assert.deepStrictEqual(back.rooms.startRooms, [51, 92, 100, clear]);
+  assert.deepStrictEqual(back.templates.objectTemplates[first], atlas.objectTemplates[first]);
+  assert.deepStrictEqual(back.templates.sceneryTemplates, castle.templates.sceneryTemplates);
+});
+
+test('Pentagram: what the original cannot hold is refused, saying why', function () {
+  const refused = function (edit, pattern) {
+    const atlas = merged(kl.decodeCastle(pg.sna, pg.graphics, PG));
+    edit(atlas, new Map(atlas.rooms.map(function (r) { return [r.number, r]; })));
+    assert.throws(function () { pgBuild(atlas); },
+                  function (err) { return err instanceof kl.CastleError && pattern.test(err.message); });
+  };
+  // A doorway to a room that is not there: the walk would run on.
+  refused(function (a, by) {
+    const door = by.get(0).scenery.find(function (s) { return /^door_/.test(s.template); });
+    door.destination = 200;
+  }, /leads to room 200, which there is not; the game would look for it through the rest of memory/);
+  // Room 87 is at 43 of 48; six more blocks is 49.
+  refused(function (a, by) {
+    by.get(87).objects.push({ template: 'object_00',
+      positions: [0, 1, 2, 3, 4, 5].map(function (i) { return { u: i, v: 0, z: 3 }; }) });
+  }, /room \$57 \(87\) fills 49 object records; the game has 48 for a room, and one more runs down over the bolts/);
+  // An unused slot placed in a room, and a nudge Pentagram has no byte for.
+  refused(function (a, by) { by.get(0).scenery.push({ template: 'scenery_18', destination: 0 }); },
+          /places scenery_18, which has no pieces/);
+  refused(function (a) { a.objectTemplates.object_00[0].offsets.halfU = true; }, /placement nudge/);
 });
 
 console.log(failed ? failed + ' failed' : 'all passed');

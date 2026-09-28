@@ -65,14 +65,15 @@ SOURCE_OPTION = {"knightlore": "--snapshot"}
 # by a command as it is published: the directory is replaced whole, so a page
 # put there any other way is gone the next time the game is published -- which
 # is how the room editor was lost once. The command is run from ROOT with
-# "{out}" standing for where the page goes. Knight Lore's room editor holds
-# none of the game's bytes; it is made from scripts and the emulator
-# repository's room designer, and the landing page links to it.
+# "{out}" standing for where the page goes. The room editor holds none of any
+# game's bytes; it is made from scripts and the emulator repository's room
+# designer, it serves every game it knows, and each game's directory has a
+# copy so that each game's pages can link to their own.
+ROOM_EDITOR = ("room-editor.html",
+               [sys.executable, "scripts/room_editor.py", "page", "--out", "{out}"])
 EXTRA_PAGES = {
-    "knightlore": [
-        ("room-editor.html",
-         [sys.executable, "scripts/knightlore_rooms.py", "page", "--out", "{out}"]),
-    ],
+    "knightlore": [ROOM_EDITOR],
+    "pentagram": [ROOM_EDITOR],
 }
 
 

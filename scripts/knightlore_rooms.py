@@ -12,12 +12,10 @@ original's room tables into JSON, and its room designer draws them the way the
 game does. Neither ever goes back: the remake builds its own engine from the
 JSON. This is the way back, into Ultimate's own code.
 
-  page     writes the standalone editor: one HTML file, no server and no
-           Python, that opens a snapshot you give it, edits the rooms in the
-           designer, and downloads the patched game. knightlore_rooms.js is its
-           half of this script, knightlore_rooms.html its page; it carries the
-           remake's sprites.json and graphics.json, which are names, rectangles
-           and numbers, and no byte of the game.
+  page     writes the standalone editor, which serves Pentagram too and so is
+           room_editor.py's now; this runs that. room_editor.js is the same
+           decoding and packing in JavaScript, and room_editor_test.js holds
+           the two to agreeing for Knight Lore.
 
   extract  reads a snapshot of the game you own -- by default the one
            build_knightlore.py leaves in game_disassembly/knightlore -- and
@@ -83,7 +81,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import shutil
 import subprocess
 import sys
@@ -96,9 +93,6 @@ DEFAULT_SNAPSHOT = OUT_DIR / "knightlore.sna"
 BASE = CASTLE / "original.sna"
 PATCHED = CASTLE / "knightlore_rooms.sna"
 BUILD_STUB = CASTLE / "build.py"
-PAGE_TEMPLATE = Path(__file__).resolve().parent / "knightlore_rooms.html"
-PAGE_MODULE = Path(__file__).resolve().parent / "knightlore_rooms.js"
-PAGE_OUT = OUT_DIR / "knightlore_room_editor.html"
 
 # This repository is a submodule of the emulator's, and the designer and the
 # Filmation remake's decoders live there. They are used as they stand rather
@@ -733,50 +727,12 @@ def build(out: Path) -> None:
          f"different from the original.")
 
 
-def script_json(value) -> str:
-    """A value as JSON that can sit inside a <script>: the designer's page is
-    itself HTML, and its own </script> would end the one it is carried in."""
-    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
+def page(out: Path | None) -> None:
+    """The standalone editor, which is room_editor.py's: it serves every game."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import room_editor                                          # noqa: E402
 
-
-def page(out: Path) -> None:
-    """The standalone editor, from its template and the two designer pages.
-
-    Each page is inlined the way its hosts inline it: every /*@name.js@*/
-    marker it holds is that file from the designer's directory, so a model a
-    page comes to need is picked up without this knowing. Each is left with
-    its /*@host@*/ marker, for the editor to fill in once a snapshot is open.
-    """
-    filmation()
-    vscode = DESIGNER.parent
-
-    def inlined(leaf):
-        html = (vscode / leaf).read_text(encoding="utf-8")
-        for name in sorted(set(re.findall(r"/\*@([a-z_]+\.js)@\*/", html))):
-            source = (vscode / name).read_text(encoding="utf-8")
-            html = html.replace("/*@%s@*/" % name, source)
-        if html.count("/*@host@*/") != 1:
-            sys.exit(f"{leaf} has no single /*@host@*/ marker to put a host into")
-        return html
-
-    carried = {}
-    for leaf in ("sprites.json", "graphics.json"):
-        carried[leaf] = json.loads((REMAKE / leaf).read_text(encoding="utf-8"))
-
-    html = PAGE_TEMPLATE.read_text(encoding="utf-8")
-    for marker, value in (
-            ("/*@knightlore_rooms.js@*/", PAGE_MODULE.read_text(encoding="utf-8")),
-            ('/*@designer@*/""', script_json(inlined("room_view.html"))),
-            ('/*@templates@*/""', script_json(inlined("templates_view.html"))),
-            ("/*@sprites@*/null", script_json(carried["sprites.json"])),
-            ("/*@graphics@*/null", script_json(carried["graphics.json"]))):
-        if html.count(marker) != 1:
-            sys.exit(f"{PAGE_TEMPLATE.name} has {html.count(marker)} of {marker}, not one")
-        html = html.replace(marker, value, 1)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(html, encoding="utf-8")
-    _log(f"Wrote {out} ({len(html.encode('utf-8')) // 1024} KB). Open it in a "
-         f"browser and give it a snapshot of the game; nothing else runs.")
+    room_editor.page(out or room_editor.OUT)
 
 
 def design(port, no_browser: bool) -> None:
@@ -798,7 +754,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     commands = parser.add_subparsers(dest="command", required=True)
     p = commands.add_parser("page", help="write the standalone editor page")
-    p.add_argument("--out", type=Path, default=PAGE_OUT)
+    p.add_argument("--out", type=Path)
     p = commands.add_parser("extract", help="write the castle from a snapshot")
     p.add_argument("--snapshot", type=Path, default=DEFAULT_SNAPSHOT,
                    help=f"a snapshot of Knight Lore you own (default: "

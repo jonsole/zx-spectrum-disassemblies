@@ -106,17 +106,19 @@ log of everything the game says -- including what the other characters do
 where the player cannot see, and what they only try out before deciding. It
 reads it all from the running game; its README says how to install it.
 
-### Knight Lore, rearranged
+### Knight Lore and Pentagram, rearranged
 
-`python scripts/knightlore_rooms.py page` writes a room editor for the original
-Knight Lore: one HTML file that opens a snapshot of your copy of the game, edits
-its rooms, templates, collectables and starting rooms in the room designer from
+`python scripts/room_editor.py page` writes a room editor for the original
+Knight Lore and Pentagram: one HTML file that opens a snapshot of your copy of
+either, tells which it is, edits its rooms, templates, floor shapes and
+starting rooms -- and Knight Lore's collectables -- in the room designer from
 the [emulator](https://github.com/jonsole/zx-spectrum-emulator)'s Filmation
-remake, and downloads the game again with them packed into its own tables. It
-holds none of the game's bytes, and it is on the site as
-[knightlore/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/knightlore/room-editor.html).
-[docs/knightlore-rooms.md](docs/knightlore-rooms.md) says what the original
-can hold and how it was checked.
+remakes, and downloads the game again with them packed into its own tables. It
+holds none of either game's bytes, and it is on the site beside each game as
+[knightlore/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/knightlore/room-editor.html)
+and [pentagram/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/pentagram/room-editor.html).
+[docs/room-editor.md](docs/room-editor.md) says what each original can hold
+and how it was checked.
 
 ## How it is put together
 

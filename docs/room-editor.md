@@ -1,10 +1,12 @@
-# Editing Knight Lore's rooms
+# The room editor: Knight Lore and Pentagram
 
-The Knight Lore room editor is one HTML page. Open it in a browser and give
-it a snapshot of your own copy of the game, a 48K `.sna` or `.z80` taken at the
-menu. You can then rearrange the castle in the Filmation room designer and
-**Download .sna**: Ultimate's own game, with your rooms in it. There is no
-server and nothing to install, and nothing leaves the page.
+The room editor is one HTML page. Open it in a browser and give it a snapshot
+of your own copy of Knight Lore or Pentagram, a 48K `.sna` or `.z80` taken at
+the menu; it tells which game it is. You can then rearrange the castle in the
+Filmation room designer and **Download .sna**: Ultimate's own game, with your
+rooms in it. There is no server and nothing to install, and nothing leaves the
+page. Most of what follows is the same for both games, told for Knight Lore;
+[Pentagram](#pentagram) says where it differs.
 
 Write the page once, from the checkout of
 [zx-spectrum-emulator](https://github.com/jonsole/zx-spectrum-emulator) this
@@ -12,13 +14,15 @@ repository is a submodule of -- the designer lives there, in
 `examples/filmation/vscode/`:
 
 ```
-python scripts/knightlore_rooms.py page       # -> game_disassembly/knightlore/knightlore_room_editor.html
+python scripts/room_editor.py page       # -> game_disassembly/room-editor.html
 ```
 
-The page carries the designer and `knightlore_rooms.js`, which reads the
-snapshot, paints the sprite sheet out of it, decodes the castle and packs it
-back. It also carries the remake's `sprites.json` and `graphics.json`. Those
-two are names, rectangles, boxes and pixel nudges, not bytes of the game.
+The page carries the designer and `room_editor.js`, which tells the games
+apart, reads the snapshot, paints the sprite sheet out of it, decodes the
+castle and packs it back -- a profile a game, holding where its tables are,
+what names them and what a room's record holds. It also carries each game's
+`sprites.json` and `graphics.json` from its Filmation remake. Those are names,
+rectangles, boxes and pixel nudges, not bytes of the game.
 Every pixel and every room comes from the copy you give it, so the page itself
 holds nothing of Ultimate's and could be shared or published as it is.
 
@@ -71,9 +75,10 @@ python scripts/knightlore_rooms.py build
 | `build` | Packs the castle into the original's tables and writes `game_disassembly/knightlore/rooms/knightlore_rooms.sna`. |
 
 All of that is under `game_disassembly/`, which is gitignored, like every
-other byte of the game here. `knightlore_rooms.js` follows the Python function
-for function, and `node scripts/knightlore_rooms_test.js` holds the two to
-agreeing (it needs the extracted castle, and skips without it).
+other byte of the game here. `room_editor.js` follows the Python function
+for function, and `node scripts/room_editor_test.js` holds the two to
+agreeing (it needs the extracted castle, and skips without it). The Python
+route is Knight Lore's only; Pentagram is edited in the page.
 
 The castle is the same one the remake in `examples/filmation/knightlore`
 carries, with the same names, and it is edited the same way; see
@@ -168,7 +173,7 @@ edit it. The rest of each row stays the original's.
   switched to that room, drawn with the arch raised. Download gave a `.sna`
   differing from the original in that piece's height alone ($6D15, $80 to
   $88), and the edit survived Save and a reload.
-- `knightlore_rooms_test.js`: the JavaScript decodes the castle to exactly what
+- `room_editor_test.js`: the JavaScript decodes the castle to exactly what
   `extract` writes, packs it back byte for byte, paints all 103 sprites pixel
   for pixel as `sprites.png` has them, and reads `.z80` files, compressed or
   not. The edit that was played in the emulator, packed by the JavaScript,
@@ -178,3 +183,63 @@ Not done: it writes a `.sna` only, not a tape; the VS Code editor for `rooms.jso
 `examples/filmation/*/`; and nothing stops you building a room the game cannot
 reach or leave. Knight Lore's exits are arithmetic on the room number, and
 the designer's map and checks show which doorways lead nowhere.
+
+## Pentagram
+
+Pentagram keeps its world the way Knight Lore keeps its castle, and the page
+edits it the same way; `room_editor.js`'s profile for it is taken from the
+disassembly's `BUILD_ROOM` ($C92C) and
+[`notes/pentagram/room-building.md`](../notes/pentagram/room-building.md).
+Where it differs:
+
+- **The tables** are at $5E07-$6DD6: `ROOM_SIZES`, the rooms (`ROOMS`), the
+  scenery table and its templates, then the object table and its templates
+  -- 4,048 bytes, full, with the graphic table straight after. The operands
+  naming them are `LD HL,ROOMS` ($C940), `LD BC,SCENERY_TABLE` twice ($C93D,
+  $C98E) and `LD HL,OBJECT_TABLE` ($C930); a build moves the tables and
+  patches all four, as it does Knight Lore's.
+- **A doorway carries the room it leads to**, a byte after the template in
+  the room's record, edited under Ways out. The walk that finds a room has no
+  end check: a room that is not there sends it on through the rest of memory.
+  So Download refuses a doorway to a room that is not there -- and a starting
+  room that is not there.
+- **48 object records a room**, filled from the top down; the quest things
+  go in from the bottom up and give up if none is free, but the builder does
+  not stop, and one more record runs down over the bolts and the player's own.
+  The fullest room, $57, has 43.
+- **Object templates are five bytes**, with no placement nudge, and a group's
+  template 31 is the switch to a second page of templates, so there are 31 at
+  most. The flags' passable bit is not known, and a piece marked passable is
+  refused.
+- **Four scenery slots are unused** -- 18, 19, 22 and 23 point at the scenery
+  table itself -- and the page shows them as templates with no pieces. A
+  build points an empty one at the table again, and refuses a room that
+  places one.
+- **The starting rooms** are `START_ROOMS` at $C2E8, four picked from by
+  `RANDOM`, with the player put in the middle of the floor as in Knight Lore.
+- **No collectables tab**: Pentagram's quest things are placed by its own
+  code, from tables the page does not edit.
+- **The sprites** are in four runs, and the game turns them upside down as
+  well as left to right as it draws them; the page turns both back before it
+  paints the sheet. Three sprites no graphic draws are left blank.
+
+Two bytes of the castle as shipped do not come back: rooms 13 and 108 end
+partway through their last group, whose header asks for three objects where
+the record holds two. The game builds the two, and so does the castle; a
+header written from it asks for two. An unedited castle downloads with those
+two bytes different ($5F67 and $66D3) and nothing else.
+
+**Checked.** Against `game_disassembly/pentagram/pentagram.z80` from
+`build_pentagram.py`, in `room_editor_test.js`: the snapshot is told apart
+from Knight Lore's; decoding gives the remake's castle
+(`examples/filmation/pentagram`) room for room and template for template, but
+for the four unused slots; the castle packs back but for the two headers; the
+sheet painted from the snapshot is the remake's `sprites.png`, sprite for
+sprite; an edited castle -- a fourth shape, a starting room changed, an
+object template's box -- packs with its tables moved and decodes back as
+edited; and a doorway to a missing room, a 49th record, an unused slot placed
+and a nudge are each refused, saying why. In the page, the snapshot opened as
+Pentagram's, and a recoloured room downloaded with three bytes different: its
+ink and the two headers. In the emulator, a castle with room 100 on a new 48
+by 48 shape, recoloured and made every starting slot, started a game in room
+100 with half-sizes of 48 and red ink, the rooms moved to $5E13.
