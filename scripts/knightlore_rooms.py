@@ -174,7 +174,7 @@ HALF_U, HALF_V, RAISE_Z = 0x01, 0x02, 0xFC
 # What a castle this script writes says about itself, for the designer: the
 # grid and the scenery count are Knight Lore's own already, and the pool is
 # what the game's object table holds.
-RULES = {"poolLimit": POOL_LIMIT, "shapeLimit": ROOM_SIZE_LIMIT}
+RULES = {"poolLimit": POOL_LIMIT, "shapeLimit": ROOM_SIZE_LIMIT, "objectTemplateLimit": 32}
 
 
 class CastleError(Exception):

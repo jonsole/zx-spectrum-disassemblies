@@ -77,9 +77,15 @@ const SHAPE_NAMES = ['square', 'narrowU', 'narrowV'];
 //                  lone zero), or at its table, as Pentagram's unused ones do
 //   pool           the object records a room may fill, and what one more hits
 //   startRooms     the table a game's starting room is picked from
-//   specials       Knight Lore's collectables, or none
+//   specials       the collectables -- Knight Lore's charms, Alien 8's valves
+//                  -- or none
 //   sprites        the graphic table, and the runs of sprite records the game
 //                  may have mirrored in place as it drew them
+//   attr           where a room's attribute byte keeps its ink and its shape
+//   startSpot      where the player is put, whichever starting room
+//   yOrigin        the designer's projection origin: rules.yOrigin
+//   pages          Alien 8's two pages of object templates, or none
+//   nudgeHeader    Alien 8's header that sets the placement nudge, or none
 
 const KNIGHT_LORE = {
   id: 'knightlore',
@@ -103,6 +109,12 @@ const KNIGHT_LORE = {
   startRooms: { at: 0xD1E2, count: 4 },
   specials: { table: 0x6FF2, rows: 32, stride: 9, wanted: 0xC27D, wantedCount: 14, kinds: 8 },
   sprites: { table: 0x7112, count: 256, runs: [[0x728C, 0xAF6C]], leftRight: 0x40, upsideDown: 0 },
+  attr: { inkShift: 0, shapeShift: 3, shapes: 32 },
+  startSpot: START_SPOT,
+  yOrigin: 296,
+  objectLimit: 32,
+  pages: null,
+  nudgeHeader: null,
   sceneryNames: [
     'arch_n', 'arch_e', 'arch_s', 'arch_w',
     'tree_arch_n', 'tree_arch_e', 'tree_arch_s', 'tree_arch_w',
@@ -151,6 +163,13 @@ const PENTAGRAM = {
   sprites: { table: 0x6DD7, count: 172,
              runs: [[0x6F2F, 0x8355], [0x8547, 0x9395], [0x9397, 0xA709], [0x84AD, 0x853F]],
              leftRight: 0x40, upsideDown: 0x80 },
+  attr: { inkShift: 0, shapeShift: 3, shapes: 32 },
+  startSpot: START_SPOT,
+  yOrigin: 296,
+  // A header's template 31 switches to a second page Pentagram never uses.
+  objectLimit: 31,
+  pages: null,
+  nudgeHeader: null,
   sceneryName: function (i) {
     return PENTAGRAM_DOORS[i] || 'scenery_' + String(i).padStart(2, '0');
   },
@@ -160,7 +179,55 @@ const PENTAGRAM = {
   isDoorway: function (index) { return PENTAGRAM_DOORS[index] !== undefined; }
 };
 
-const GAMES = [KNIGHT_LORE, PENTAGRAM];
+// Alien 8, from its disassembly: BUILD_ROOM at $CCA7 and
+// notes/alien8/room-building.md. Knight Lore's grid and exits, Pentagram's
+// builder, and two things of its own in a room's groups: a header of template
+// 0 sets the placement nudge for the groups after it (the byte after it), and
+// template 31 moves on to a second page of object templates (the byte after it
+// skipped). Its rooms' inks are in bits 3-5 of the attribute byte -- bits 0-2
+// are zero on the tape, and RESET_ROOM_COLOURS copies 3-5 into them every
+// game, since an activated chamber turns them white -- and its sizes in 6-7.
+const ALIEN8_DOORS = { 0: 'door_n', 1: 'door_e', 2: 'door_s', 3: 'door_w',
+                       10: 'door_high_e', 11: 'door_high_s' };
+const ALIEN8 = {
+  id: 'alien8',
+  title: 'Alien 8',
+  roomSizes: 0x6460,                    // ROOM_SIZES
+  regionEnd: 0x76E3,                    // PLACES, where the valves can lie
+  operands: {
+    rooms: [0xAC74, 0xCAD3, 0xCCBB],    // SUMMARISE_CHAMBERS, RESET_ROOM_COLOURS, BUILD_ROOM
+    objectTable: [0xAC81, 0xCAD6, 0xCCA8, 0xCCB8],   // the walks' ends, and TEMPLATES_AT
+    sceneryTable: [0xCD19]              // BUILD_NEXT_BACKGROUND's LD BC,BACKGROUND_TABLE
+  },
+  original: { rooms: 0x6469, objectTable: 0x73C8, sceneryTable: 0x7519,
+              objectCount: 40, sceneryCount: 14 },
+  after: ['objectTable', 'sceneryTable'],
+  walkBounded: true,
+  destinations: false,
+  objectStride: 5,
+  passableBit: null,
+  emptyAt: 'body',
+  pool: { limit: 52, overrun: 'is past the records, and the loop that clears them after a room ' +
+                             'stops only at their end exactly, so it would never stop' },
+  startRooms: { at: 0xCA9E, count: 4 },   // START_ROOMS
+  specials: { table: 0x76E3, rows: 36, stride: 9, wanted: null, wantedCount: 0, kinds: 8 },
+  sprites: { table: 0x7827, count: 132, runs: [[0x792F, 0xA631]], leftRight: 0x40, upsideDown: 0x80 },
+  attr: { inkShift: 3, shapeShift: 6, shapes: 4 },
+  // START_TEMPLATE: U and V 128, the legs at Z 64 and the top at 76, half-sizes
+  // 7 and heights 12 and 11 -- a box from 64 to 87.
+  startSpot: { u: 0x80, v: 0x80, z: 0x40, sizeU: 7, sizeV: 7, sizeZ: 23 },
+  yOrigin: 232,
+  objectLimit: 60,
+  pages: { slots: 32, perPage: 30, escape: [0xF8, 0x00] },
+  nudgeHeader: 0x00,
+  sceneryName: function (i) {
+    return ALIEN8_DOORS[i] || 'background_' + String(i).padStart(2, '0');
+  },
+  objectName: function (slot) { return 'object_' + String(slot).padStart(2, '0'); },
+  doorways: { door_n: 'n', door_e: 'e', door_s: 's', door_w: 'w', door_high_e: 'e', door_high_s: 's' }
+};
+
+const GAMES = [KNIGHT_LORE, PENTAGRAM, ALIEN8];
 
 function sceneryNameOf(game, i) {
   if (game.sceneryName) return game.sceneryName(i);
@@ -482,6 +549,17 @@ function sheetPixels(sna, sheet, graphics, game) {
   return { width: width, height: height, pixels: pixels };
 }
 
+// The rules a decoded castle states in its meta, for the room designer: the
+// limits the original puts on it, and for Alien 8 where it draws and starts.
+function rulesFor(game) {
+  const rules = { poolLimit: game.pool.limit, shapeLimit: game.attr.shapes,
+                  objectTemplateLimit: game.objectLimit };
+  if (game.yOrigin !== 296) rules.yOrigin = game.yOrigin;
+  if (game.startSpot !== START_SPOT) rules.startSpot = Object.assign({}, game.startSpot);
+  if (game.nudgeHeader !== null) rules.groupNudge = true;
+  return rules;
+}
+
 // --- the castle, decoded --------------------------------------------------
 
 // The graphics that draw something, by number -> name, as graphics.py names():
@@ -608,14 +686,20 @@ function decodeCastle(sna, graphics, game) {
     sceneryTemplates[sceneryNameOf(game, i)] =
       at === sceneryTbl ? [] : decodeTemplate(sna, at, SCENERY_STRIDE, known, sizes, game);
   }
+  // A slot is a template's place in its table: the index a header names, and
+  // in Alien 8 the page times 32 plus it. Its reserved slots -- 0 and 31 of
+  // each page, the nudge and the page switch -- hold zero and are not
+  // templates.
   const objectTemplates = {};
+  const objectAt = new Map();
   for (let i = 0; i < tableLength(sna, objectTbl); i++) {
     const at = word(sna, objectTbl + 2 * i);
-    objectTemplates[objectNameOf(game, i)] =
-      at === objectTbl ? [] : decodeTemplate(sna, at, game.objectStride, known, sizes, game);
+    if (game.pages && (i % game.pages.slots === 0 || i % game.pages.slots === game.pages.slots - 1)) continue;
+    const name = objectNameOf(game, i);
+    objectTemplates[name] = at === objectTbl ? [] : decodeTemplate(sna, at, game.objectStride, known, sizes, game);
+    objectAt.set(i, name);
   }
   const sceneryKeys = Object.keys(sceneryTemplates);
-  const objectKeys = Object.keys(objectTemplates);
 
   // The shapes run up to the rooms: a castle given more has moved them.
   const shapeNames = [];
@@ -624,6 +708,7 @@ function decodeCastle(sna, graphics, game) {
   }
 
   const rooms = [];
+  const shapeMask = game.attr.shapes - 1;
   for (let p = roomsAt; p < walkEnd; p += peek(sna, p + 1) + 1) {
     const number = peek(sna, p);
     const length = peek(sna, p + 1);
@@ -642,21 +727,28 @@ function decodeCastle(sna, graphics, game) {
     const objects = [];
     // A group asks for its count of positions, but the record's byte count
     // ends the build wherever it runs out: Pentagram's rooms 13 and 108 cut
-    // their last group short, and the game builds what is there.
+    // their last group short, and the game builds what is there. In Alien 8 a
+    // header of template 0 sets the nudge the groups after it carry, and 31
+    // moves to the next page; each is followed by one byte.
+    let page = 0;
+    let nudge = 0;
     while (i < body.length) {
+      const t = (body[i] >> 3) & 0x1F;
+      if (game.nudgeHeader !== null && t === 0) { nudge = body[i + 1]; i += 2; continue; }
+      if (game.pages && t === 31) { page += 1; i += 2; continue; }
       const count = (body[i] & 7) + 1;
-      objects.push({
-        template: objectKeys[(body[i] >> 3) & 0x1F],
-        positions: body.slice(i + 1, i + 1 + count).map(function (x) {
-          return { u: x & 7, v: (x >> 3) & 7, z: (x >> 6) & 3 };
-        })
+      const group = { template: objectAt.get(game.pages ? page * game.pages.slots + t : t) };
+      if (nudge) group.nudge = nudge;
+      group.positions = body.slice(i + 1, i + 1 + count).map(function (x) {
+        return { u: x & 7, v: (x >> 3) & 7, z: (x >> 6) & 3 };
       });
+      objects.push(group);
       i += 1 + count;
     }
     rooms.push({
       number: number,
-      ink: attr & 7,
-      dimensions: shapeNames[attr >> 3],
+      ink: (attr >> game.attr.inkShift) & 7,
+      dimensions: shapeNames[(attr >> game.attr.shapeShift) & shapeMask],
       scenery: scenery,
       objects: objects
     });
@@ -681,7 +773,7 @@ function decodeCastle(sna, graphics, game) {
                  'into the original’s own tables.',
         sprites: { sheet: 'sprites.png', atlas: 'sprites.json', graphics: 'graphics.json' },
         templates: 'templates.json',
-        rules: { poolLimit: game.pool.limit, shapeLimit: ROOM_SIZE_LIMIT }
+        rules: rulesFor(game)
       },
       roomDimensions: roomDimensions,
       startRooms: Array.from(peekBytes(sna, game.startRooms.at, game.startRooms.count)),
@@ -699,6 +791,7 @@ function decodeCastle(sna, graphics, game) {
     },
     specials: null
   };
+  if (game.doorways) castle.templates.meta.doorways = Object.assign({}, game.doorways);
 
   const sp = game.specials;
   if (sp) {
@@ -707,19 +800,31 @@ function decodeCastle(sna, graphics, game) {
       const at = sp.table + row * sp.stride;
       collectables.push({ room: peek(sna, at + 4), u: peek(sna, at + 1), v: peek(sna, at + 2), z: peek(sna, at + 3) });
     }
-    castle.specials = {
-      comment: 'The thirty-two collectables: where each one lies at the start of a game, and ' +
-               'the order the wizard asks for them in -- the positions from bytes 1-4 of every ' +
-               'nine-byte row of special_objs_tbl at $6FF2, and the wanted list from ' +
-               'objects_required at $C27D. Which KIND each row is dealt is not here: ' +
-               'special_init deals those at the start of every game.',
-      game: game.id,
-      collectables: collectables,
-      wantedComment: 'The fourteen kinds the wizard wants, in order, each 0 to 7. special_init ' +
-                     'turns this list round four to seven places before a game, so the order ' +
-                     'here is only where the turning starts.',
-      wanted: Array.from(peekBytes(sna, sp.wanted, sp.wantedCount))
-    };
+    if (sp.wanted === null) {
+      castle.specials = {
+        comment: 'The places a valve can lie at the start of a game: U, V, Z and the room from ' +
+                 'bytes 1-4 of every nine-byte row of PLACES at $76E3. Which kind each is dealt ' +
+                 '-- a valve of one of four, or now and then an extra life -- is the game\u2019s ' +
+                 'at every new game.',
+        game: game.id,
+        rows: sp.rows,
+        collectables: collectables
+      };
+    } else {
+      castle.specials = {
+        comment: 'The thirty-two collectables: where each one lies at the start of a game, and ' +
+                 'the order the wizard asks for them in -- the positions from bytes 1-4 of every ' +
+                 'nine-byte row of special_objs_tbl at $6FF2, and the wanted list from ' +
+                 'objects_required at $C27D. Which KIND each row is dealt is not here: ' +
+                 'special_init deals those at the start of every game.',
+        game: game.id,
+        collectables: collectables,
+        wantedComment: 'The fourteen kinds the wizard wants, in order, each 0 to 7. special_init ' +
+                       'turns this list round four to seven places before a game, so the order ' +
+                       'here is only where the turning starts.',
+        wanted: Array.from(peekBytes(sna, sp.wanted, sp.wantedCount))
+      };
+    }
   }
   return castle;
 }
@@ -727,8 +832,8 @@ function decodeCastle(sna, graphics, game) {
 // What stands where the player starts in a room: the first solid piece whose
 // box meets START_SPOT's, as a name to say, or null. The room designer's
 // startBlockers makes the same test.
-function startBlocker(atlas, room, known, sizes) {
-  const s = START_SPOT;
+function startBlocker(atlas, room, known, sizes, game) {
+  const s = (game || KNIGHT_LORE).startSpot;
   const floorZ = (atlas.roomDimensions[room.dimensions] || {}).z;
   const meets = function (u, v, z, box) {
     return Math.abs(u - s.u) < box.u + s.sizeU && Math.abs(v - s.v) < box.v + s.sizeV &&
@@ -749,7 +854,9 @@ function startBlocker(atlas, room, known, sizes) {
     for (const entry of atlas.objectTemplates[group.template] || []) {
       if (!solid(entry, group.template)) continue;
       const box = boxOf(sizes, entry, group.template);
-      const nudge = entry.offsets || {};
+      const own = entry.offsets || {};
+      const g = group.nudge || 0;
+      const nudge = { halfU: own.halfU || (g & 1), halfV: own.halfV || (g & 2), raiseZ: (own.raiseZ || 0) + (g & Z_MASK) };
       for (const p of group.positions) {
         const u = p.u * CELL + (nudge.halfU ? HALF_CELL : 0) + CELL_ORIGIN;
         const v = p.v * CELL + (nudge.halfV ? HALF_CELL : 0) + CELL_ORIGIN;
@@ -832,15 +939,15 @@ function bodyOrder(count, originalPointers) {
 // already laid, or the tail of one, shares it -- the way Pentagram's template
 // at $6ABD, with no zero of its own, runs on into the next -- and an empty one
 // (null) points at the table itself.
-function layTable(at, bodies, order) {
-  const list = Array.from(bodies.values());
+function layTable(at, bodies, order, nullAt) {
+  const list = Array.isArray(bodies) ? bodies : Array.from(bodies.values());
   const table = new Array(2 * list.length).fill(0);
   const data = [];
   const ends = [];                      // [start in data, bytes] of each body laid
   for (const i of order) {
     let where = null;
     if (list[i] === null) {
-      where = at;
+      where = nullAt === undefined ? at : nullAt;
     } else {
       const body = list[i];
       for (const [start, laid] of ends) {
@@ -871,18 +978,22 @@ function packCastle(original, atlas, specials, graphics, game) {
   const sizes = graphicSizes(graphics);
   const scenery = templateBodies(atlas.sceneryTemplates, known, sizes, SCENERY_STRIDE, game);
   const objects = templateBodies(atlas.objectTemplates, known, sizes, game.objectStride, game);
-  // A group's header holds the template in five bits, and 31 in them is
-  // Pentagram's switch to a second page of templates, not a template.
-  const objectLimit = game.id === 'pentagram' ? 31 : 32;
-  if (objects.size > objectLimit) {
-    throw new CastleError(objects.size + ' object templates; a room names one in five bits, which holds ' +
-                          objectLimit + ' in ' + game.title);
+  // A group's header holds the template in five bits. In Pentagram 31 is the
+  // switch to a second page, not a template; in Alien 8 0 and 31 of each of
+  // its two pages are the nudge and the switch.
+  if (objects.size > game.objectLimit) {
+    throw new CastleError(objects.size + ' object templates; ' + game.title + '\u2019s rooms can name ' +
+                          game.objectLimit);
   }
   if (scenery.size >= SCENERY_END) {
     throw new CastleError(scenery.size + ' scenery templates; $FF ends a room’s list, so 255 is the most');
   }
   const sceneryIndex = new Map(Array.from(scenery.keys()).map(function (n, i) { return [n, i]; }));
-  const objectIndex = new Map(Array.from(objects.keys()).map(function (n, i) { return [n, i]; }));
+  // Each object template's slot: its place in the file, or in Alien 8 its
+  // page and place on it, 1 to 30.
+  const objectIndex = new Map(Array.from(objects.keys()).map(function (n, i) {
+    return [n, game.pages ? Math.floor(i / game.pages.perPage) * game.pages.slots + i % game.pages.perPage + 1 : i];
+  }));
   const piecesOf = new Map();
   for (const n of Object.keys(atlas.sceneryTemplates)) piecesOf.set(n, atlas.sceneryTemplates[n].length);
   for (const n of Object.keys(atlas.objectTemplates)) piecesOf.set(n, atlas.objectTemplates[n].length);
@@ -891,9 +1002,10 @@ function packCastle(original, atlas, specials, graphics, game) {
   // shape more is three bytes more before the rooms, and the operand naming
   // where they start moves with them.
   const shapes = Object.keys(atlas.roomDimensions);
-  if (shapes.length < 1 || shapes.length > ROOM_SIZE_LIMIT) {
-    throw new CastleError(shapes.length + ' floor shapes; a room names one in five bits, so 1 to ' +
-                          ROOM_SIZE_LIMIT);
+  if (shapes.length < 1 || shapes.length > game.attr.shapes) {
+    const bits = ['', 'one', 'two', 'three', 'four', 'five'][Math.round(Math.log2(game.attr.shapes))];
+    throw new CastleError(shapes.length + ' floor shapes; a room names one in ' + bits + ' bits, so 1 to ' +
+                          game.attr.shapes);
   }
   const region = [];
   for (const s of shapes) {
@@ -945,7 +1057,20 @@ function packCastle(original, atlas, specials, graphics, game) {
       used += piecesOf.get(ref.template);
     }
     if (room.objects.length) body.push(SCENERY_END);
-    for (const group of room.objects) {
+    // In Alien 8 the groups go in page order -- the builder only ever moves
+    // on a page -- each page begun with a switch, and a nudge header wherever
+    // the next group's nudge differs from the one in force.
+    let groups = room.objects;
+    if (game.pages) {
+      groups = groups.map(function (g, k) { return [g, k]; }).sort(function (a, b) {
+        const pa = objectIndex.has(a[0].template) ? Math.floor(objectIndex.get(a[0].template) / game.pages.slots) : 0;
+        const pb = objectIndex.has(b[0].template) ? Math.floor(objectIndex.get(b[0].template) / game.pages.slots) : 0;
+        return pa - pb || a[1] - b[1];
+      }).map(function (pair) { return pair[0]; });
+    }
+    let page = 0;
+    let nudge = 0;
+    for (const group of groups) {
       const name = group.template;
       if (!objectIndex.has(name)) throw new CastleError(where + ' names the object template ' + name + ', which there is not');
       if (objects.get(name) === null) {
@@ -955,7 +1080,26 @@ function packCastle(original, atlas, specials, graphics, game) {
       if (spots.length < 1 || spots.length > GROUP_LIMIT) {
         throw new CastleError(where + ' has a group of ' + spots.length + ' ' + name + '; a group holds one to eight');
       }
-      body.push(objectIndex.get(name) << 3 | (spots.length - 1));
+      const want = group.nudge || 0;
+      if (want && game.nudgeHeader === null) {
+        throw new CastleError(where + '\u2019s group of ' + name + ' has a nudge of its own, which ' +
+                              game.title + '\u2019s rooms have no header for');
+      }
+      if (!isByte(want)) throw new CastleError(where + '\u2019s group of ' + name + ' has a nudge that is not a byte');
+      if (want !== nudge) {
+        body.push(game.nudgeHeader, want);
+        nudge = want;
+      }
+      let slot = objectIndex.get(name);
+      if (game.pages) {
+        const on = Math.floor(slot / game.pages.slots);
+        while (page < on) {
+          body.push.apply(body, game.pages.escape);
+          page += 1;
+        }
+        slot -= on * game.pages.slots;
+      }
+      body.push(slot << 3 | (spots.length - 1));
       for (const p of spots) {
         if (!(p.u >= 0 && p.u < CELLS && p.v >= 0 && p.v < CELLS && p.z >= 0 && p.z < LEVELS)) {
           throw new CastleError(where + ' places ' + name + ' off the grid');
@@ -975,7 +1119,7 @@ function packCastle(original, atlas, specials, graphics, game) {
     const skip = 2 + body.length;
     if (skip > RECORD_LIMIT) throw new CastleError(where + ' is ' + skip + ' bytes; the skip byte holds 255');
     if (used > fullest[0] || (used === fullest[0] && n > fullest[1])) fullest = [used, n];
-    region.push(n, skip, room.ink | shape << 3);
+    region.push(n, skip, room.ink << game.attr.inkShift | shape << game.attr.shapeShift);
     region.push.apply(region, body);
     roomBytes += 3 + body.length;
   }
@@ -987,8 +1131,19 @@ function packCastle(original, atlas, specials, graphics, game) {
     for (let i = 0; i < count; i++) out.push(word(original, game.original[table] + 2 * i));
     return out;
   };
+  // In Alien 8 the object table is slots: a full page is 32 words, the last
+  // page as many as it uses, and the reserved ones hold zero.
+  let objectSlots = objects;
+  let objectNull;
+  if (game.pages) {
+    const bodies = Array.from(objects.values());
+    const last = bodies.length ? Math.max.apply(null, Array.from(objectIndex.values())) : 0;
+    objectSlots = new Array(last + 1).fill(null);
+    Array.from(objects.keys()).forEach(function (name, i) { objectSlots[objectIndex.get(name)] = bodies[i]; });
+    objectNull = 0;
+  }
   const parts = {
-    objectTable: { bodies: objects, old: originalPointers('objectTable', game.original.objectCount) },
+    objectTable: { bodies: objectSlots, old: originalPointers('objectTable', game.original.objectCount), nullAt: objectNull },
     sceneryTable: { bodies: scenery, old: originalPointers('sceneryTable', game.original.sceneryCount) }
   };
   const at = {};
@@ -996,7 +1151,9 @@ function packCastle(original, atlas, specials, graphics, game) {
   const bytesOf = {};
   for (const table of game.after) {
     at[table] = next;
-    const laid = layTable(next, parts[table].bodies, bodyOrder(parts[table].bodies.size, parts[table].old));
+    const bodies = parts[table].bodies;
+    const size = Array.isArray(bodies) ? bodies.length : bodies.size;
+    const laid = layTable(next, bodies, bodyOrder(size, parts[table].old), parts[table].nullAt);
     bytesOf[table] = laid.length;
     region.push.apply(region, laid);
     next += laid.length;
@@ -1028,7 +1185,7 @@ function packCastle(original, atlas, specials, graphics, game) {
     }
     for (const n of starts) {
       if (!seen.has(n)) throw new CastleError('the game can start in room ' + n + ', which is not a room');
-      const blocker = startBlocker(atlas, atlas.rooms.find(function (r) { return r.number === n; }), known, sizes);
+      const blocker = startBlocker(atlas, atlas.rooms.find(function (r) { return r.number === n; }), known, sizes, game);
       if (blocker) {
         throw new CastleError('room ' + hex(n, 2) + ' is a starting room, and ' + blocker +
                               ' stands in the middle of the floor, where the player starts');
@@ -1040,7 +1197,7 @@ function packCastle(original, atlas, specials, graphics, game) {
   const sp = game.specials;
   if (sp && specials) {
     const rows = specials.collectables;
-    const wanted = specials.wanted;
+    const wanted = sp.wanted === null ? [] : (specials.wanted || []);
     if (rows.length !== sp.rows || wanted.length !== sp.wantedCount) {
       throw new CastleError('specials has ' + rows.length + ' collectables and ' + wanted.length +
                             ' wanted; the game has ' + sp.rows + ' and ' + sp.wantedCount);
@@ -1055,7 +1212,7 @@ function packCastle(original, atlas, specials, graphics, game) {
       throw new CastleError('the wanted list holds kinds 0 to ' + (sp.kinds - 1));
     }
     writes.push([sp.table, table]);
-    writes.push([sp.wanted, wanted.slice()]);
+    if (sp.wanted !== null) writes.push([sp.wanted, wanted.slice()]);
   }
 
   return {
@@ -1122,7 +1279,7 @@ if (typeof module !== 'undefined') {
   module.exports = {
     SNA_SIZE, POOL_LIMIT, REGION_END, ROOM_SIZE_TBL, BLOCK_TYPE_TBL, BACKGROUND_TYPE_TBL,
     BLOCK_TYPE_OPERANDS, BACKGROUND_TYPE_OPERANDS, LOCATION_OPERAND,
-    GAMES, KNIGHT_LORE, PENTAGRAM, gameNamed, identify, patchedGame, originalProblems,
+    GAMES, KNIGHT_LORE, PENTAGRAM, ALIEN8, gameNamed, identify, patchedGame, originalProblems, rulesFor,
     CastleError, readSnapshot, checkOriginal, word, peek,
     sheetPixels, decodeCastle, packCastle, applyWrites, describe, startBlocker
   };

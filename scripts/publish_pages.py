@@ -74,6 +74,7 @@ ROOM_EDITOR = ("room-editor.html",
 EXTRA_PAGES = {
     "knightlore": [ROOM_EDITOR],
     "pentagram": [ROOM_EDITOR],
+    "alien8": [ROOM_EDITOR],
 }
 
 

@@ -106,17 +106,21 @@ log of everything the game says -- including what the other characters do
 where the player cannot see, and what they only try out before deciding. It
 reads it all from the running game; its README says how to install it.
 
-### Knight Lore and Pentagram, rearranged
+### Knight Lore, Pentagram and Alien 8, rearranged
 
 `python scripts/room_editor.py page` writes a room editor for the original
-Knight Lore and Pentagram: one HTML file that opens a snapshot of your copy of
-either, tells which it is, edits its rooms, templates, floor shapes and
-starting rooms -- and Knight Lore's collectables -- in the room designer from
-the [emulator](https://github.com/jonsole/zx-spectrum-emulator)'s Filmation
+Knight Lore, Pentagram and Alien 8: one HTML file that opens a snapshot of your
+copy of any of them, tells which it is, edits its rooms, templates, floor
+shapes and starting rooms -- and Knight Lore's collectables and Alien 8's
+valves -- in the room designer from the
+[emulator](https://github.com/jonsole/zx-spectrum-emulator)'s Filmation
 remakes, and downloads the game again with them packed into its own tables. It
-holds none of either game's bytes, and it is on the site beside each game as
-[knightlore/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/knightlore/room-editor.html)
-and [pentagram/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/pentagram/room-editor.html).
+holds none of any game's bytes, and it is on the site beside each game as
+[knightlore/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/knightlore/room-editor.html),
+[pentagram/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/pentagram/room-editor.html)
+and [alien8/room-editor.html](https://jonsole.github.io/zx-spectrum-disassemblies/alien8/room-editor.html).
+Alien 8's sprite layout and graphic table, which Knight Lore and Pentagram
+take from their remakes, are `scripts/room_editor_art.py`'s.
 [docs/room-editor.md](docs/room-editor.md) says what each original can hold
 and how it was checked.
 

@@ -3,7 +3,7 @@
 
     python scripts/room_editor.py page [--out FILE]
 
-The page opens a snapshot of your own copy of Knight Lore or Pentagram, tells
+The page opens a snapshot of your own copy of Knight Lore, Pentagram or Alien 8, tells
 which game it is, draws the castle in the Filmation room designer and
 templates editor, and downloads the game again with your rooms packed into
 its own tables. Nothing runs behind it: this writes it once, and a browser is
@@ -19,9 +19,11 @@ What it is made of:
   the designer       room_view.html and templates_view.html from the emulator
                      repository's examples/filmation/vscode, with their models
                      inlined, run unchanged with a host of the page's own
-  each game's art    sprites.json and graphics.json from the game's Filmation
-                     remake in examples/filmation/<game>: names, rectangles,
-                     boxes and pixel nudges
+  each game's art    sprites.json and graphics.json: Knight Lore's and
+                     Pentagram's from their Filmation remakes in
+                     examples/filmation/<game>, Alien 8's from
+                     room_editor_art.py -- names, rectangles, boxes and pixel
+                     nudges
 
 None of it is a byte of any game. Every pixel, room and template on the page
 comes from the copy the person using it gives it, so the page can be shared
@@ -46,9 +48,16 @@ OUT = ROOT / "game_disassembly" / "room-editor.html"
 FILMATION = ROOT.parent / "examples" / "filmation"
 DESIGNER = FILMATION / "vscode"
 
-# The games the page serves, by the id room_editor.js gives them, and the
-# remake whose sprite layout and graphic table it carries for each.
-GAMES = ("knightlore", "pentagram")
+# The games the page serves, by the id room_editor.js gives them, and where
+# the sprite layout and graphic table it carries for each come from: the
+# Filmation remakes' own, or -- Alien 8 has no remake -- what
+# room_editor_art.py harvests from the disassembly.
+ART = {
+    "knightlore": FILMATION / "knightlore",
+    "pentagram": FILMATION / "pentagram",
+    "alien8": SCRIPTS / "room_editor_art" / "alien8",
+}
+GAMES = tuple(ART)
 
 
 def script_json(value) -> str:
@@ -79,7 +88,7 @@ def page(out: Path) -> None:
                  f"zx-spectrum-emulator checkout this repository is a submodule of.")
     art = {}
     for game in GAMES:
-        remake = FILMATION / game
+        remake = ART[game]
         art[game] = {key: json.loads((remake / leaf).read_text(encoding="utf-8"))
                      for key, leaf in (("sprites", "sprites.json"), ("graphics", "graphics.json"))}
 

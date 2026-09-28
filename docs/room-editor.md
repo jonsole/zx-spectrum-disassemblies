@@ -1,12 +1,13 @@
-# The room editor: Knight Lore and Pentagram
+# The room editor: Knight Lore, Pentagram and Alien 8
 
 The room editor is one HTML page. Open it in a browser and give it a snapshot
-of your own copy of Knight Lore or Pentagram, a 48K `.sna` or `.z80` taken at
-the menu; it tells which game it is. You can then rearrange the castle in the
-Filmation room designer and **Download .sna**: Ultimate's own game, with your
-rooms in it. There is no server and nothing to install, and nothing leaves the
-page. Most of what follows is the same for both games, told for Knight Lore;
-[Pentagram](#pentagram) says where it differs.
+of your own copy of Knight Lore, Pentagram or Alien 8, a 48K `.sna` or `.z80`
+taken at the menu; it tells which game it is. You can then rearrange the
+castle in the Filmation room designer and **Download .sna**: Ultimate's own
+game, with your rooms in it. There is no server and nothing to install, and
+nothing leaves the page. Most of what follows is the same for every game,
+told for Knight Lore; [Pentagram](#pentagram) and [Alien 8](#alien-8) say
+where they differ.
 
 Write the page once, from the checkout of
 [zx-spectrum-emulator](https://github.com/jonsole/zx-spectrum-emulator) this
@@ -21,8 +22,10 @@ The page carries the designer and `room_editor.js`, which tells the games
 apart, reads the snapshot, paints the sprite sheet out of it, decodes the
 castle and packs it back -- a profile a game, holding where its tables are,
 what names them and what a room's record holds. It also carries each game's
-`sprites.json` and `graphics.json` from its Filmation remake. Those are names,
-rectangles, boxes and pixel nudges, not bytes of the game.
+`sprites.json` and `graphics.json`: Knight Lore's and Pentagram's from their
+Filmation remakes, Alien 8's from `room_editor_art.py` (see
+[Alien 8](#alien-8)). Those are names, rectangles, boxes and pixel nudges, not
+bytes of the game.
 Every pixel and every room comes from the copy you give it, so the page itself
 holds nothing of Ultimate's and could be shared or published as it is.
 
@@ -243,3 +246,77 @@ Pentagram's, and a recoloured room downloaded with three bytes different: its
 ink and the two headers. In the emulator, a castle with room 100 on a new 48
 by 48 shape, recoloured and made every starting slot, started a game in room
 100 with half-sizes of 48 and red ink, the rooms moved to $5E13.
+
+## Alien 8
+
+Alien 8 keeps its starship the way Knight Lore keeps its castle -- the same 16
+by 16 grid, the exits worked out from the room number, the collectables'
+table -- with Pentagram's room builder and three things of its own. Its
+profile is the disassembly's `BUILD_ROOM` ($CCA7) and
+[`notes/alien8/room-building.md`](../notes/alien8/room-building.md).
+
+- **The tables** are at $6460-$76E2: `ROOM_SIZES`, the rooms, the object
+  table and its templates, then the background table and its -- 4,739 bytes,
+  full, with `PLACES`, where the valves can lie, straight after. Three
+  routines walk the rooms -- `BUILD_ROOM`, `RESET_ROOM_COLOURS` and
+  `SUMMARISE_CHAMBERS` -- so the operands a build patches are seven: the rooms'
+  at $CCBB, $CAD3 and $AC74, the object table's at $CCA8, $CCB8, $CAD6 and
+  $AC81 (the walks stop at it), and the background table's at $CD19.
+- **Two pages of object templates.** A group's header names a template in
+  five bits, and 0 and 31 are not templates: 0 sets the placement nudge for
+  the groups after it (the byte after it is the nudge), and 31 moves on to a
+  second page (the byte after it is skipped). The table holds 32 words for the
+  first page and as many as the second uses; slots 0 and 31 of each are zero.
+  In the castle the templates are named by their slot -- `object_01` to
+  `object_30`, then `object_33` on -- and a build puts them back in the order
+  the file has them, thirty a page, 60 at most. A room's groups are written
+  in page order, each page begun with a switch.
+- **A group's nudge.** The rooms use the nudge 42 times, 41 of them $30,
+  raising the objects after the header by 48. The castle keeps it on each
+  group it applies to, as `nudge`, and the designer draws it and offers it
+  as the group's **raise**; a build writes a header wherever the next group's
+  nudge differs from the one in force.
+- **The ink** is in bits 3-5 of a room's attribute byte, and its size in bits
+  6-7, so four shapes at most. Bits 0-2 are zero on the tape:
+  `RESET_ROOM_COLOURS` copies 3-5 into them at every new game, because an
+  activated chamber turns its room white.
+- **52 object records a room**; the loop that clears the rest stops only at
+  their end exactly, so a 53rd would never let it stop. The fullest room,
+  $74, has 49.
+- **The starting rooms** are `START_ROOMS` at $CA9E, and the robot starts on
+  a floor at 64, in a box 7 either way and 23 high -- the castle says so in
+  its rules (`startSpot`), with the projection's origin (`yOrigin`, 232: the
+  game subtracts 40 where Knight Lore subtracts 104, its floors 64 lower).
+- **The valves** lie in `PLACES`, 36 nine-byte rows with the place in bytes
+  1-4, as Knight Lore's collectables do; the Collectables tab edits them.
+  There is no wizard's list.
+- **The sprites and graphic table** come from `room_editor_art.py`, since
+  Alien 8 has no remake: the layout is each sprite's own rectangle, and each
+  graphic's pixel nudge is harvested by running its update routine in
+  SkoolKit's simulator, facing each way, until it reaches `SET_PIXEL_ADJ`
+  ($BF77). They agree with the table in
+  [`notes/alien8/graphic-numbers.md`](../notes/alien8/graphic-numbers.md).
+  Its box is the commonest the templates give it.
+
+Every byte comes back: the castle as shipped downloads unchanged.
+
+Not done: `SUMMARISE_CHAMBERS` counts a room as a chamber by its first groups
+being object templates 21 and 22, the frozen crew, by slot. Deleting a
+template before them in the templates editor renumbers them, and the summary
+after a game would count wrongly; nothing warns of it.
+
+**Checked.** Against `game_disassembly/alien8/alien8.z80` from
+`build_alien8.py`, in `room_editor_test.js`: the snapshot is told apart from
+the other two; the castle decodes to what the notes count -- 128 rooms, 14
+backgrounds and 37 object templates on two pages, the inks 3 to 6 in 32, 28,
+34 and 34 rooms, 36 valve places -- and packs back byte for byte; every
+sprite the graphic table reaches is painted; an edited castle -- a
+second-page template with a raise and a first-page one after it, a fourth
+shape, a valve moved -- packs with its tables moved and the groups in page
+order, and decodes back as edited; a fifth shape and a 53rd record are
+refused. In the page, room $12 is drawn as the disassembly's own picture of
+it, drawn by the game's code, has it. In the emulator, a castle with room $4E
+on a new 48 by 48 shape, red, a raised second-page object in it, and every
+starting slot, started a game in $4E with half-sizes of 48, its floor at 64
+and its ink 2 -- which `RESET_ROOM_COLOURS`, walking the moved rooms, copied
+into place.

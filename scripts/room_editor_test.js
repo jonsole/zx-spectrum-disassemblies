@@ -516,5 +516,144 @@ test('Pentagram: what the original cannot hold is refused, saying why', function
   refused(function (a) { a.objectTemplates.object_00[0].offsets.halfU = true; }, /placement nudge/);
 });
 
+// --- Alien 8 -------------------------------------------------------------
+//
+// Against the snapshot build_alien8.py leaves, and the sprite layout and
+// graphic table room_editor_art.py writes. Alien 8 has no remake to compare
+// the decoded castle with, so the checks are the round trip, the game's own
+// counts from notes/alien8/room-building.md, and edits that decode back.
+
+const A8_SNA = path.join(ROOT, 'game_disassembly', 'alien8', 'alien8.z80');
+const A8_ART = path.join(ROOT, 'scripts', 'room_editor_art', 'alien8');
+skipping = fs.existsSync(A8_SNA) ? null : 'no ' + A8_SNA + ' -- run build_alien8.py';
+const a8 = skipping ? null : {
+  sna: kl.readSnapshot(fs.readFileSync(A8_SNA), 'alien8.z80'),
+  graphics: read(A8_ART, 'graphics.json'),
+  sheet: read(A8_ART, 'sprites.json')
+};
+const A8 = kl.ALIEN8;
+function a8Build(atlas, specials) {
+  const packed = kl.packCastle(a8.sna, atlas, specials, a8.graphics, A8);
+  return Object.assign(kl.applyWrites(a8.sna, packed.writes), { report: packed.report });
+}
+
+test('Alien 8: the snapshot is told apart from the other two', function () {
+  assert.strictEqual(kl.identify(a8.sna).id, 'alien8');
+  if (pg) assert.strictEqual(kl.identify(pg.sna).id, 'pentagram');
+});
+
+test('Alien 8: the castle decodes to what its notes count', function () {
+  const castle = kl.decodeCastle(a8.sna, a8.graphics, A8);
+  assert.strictEqual(castle.rooms.rooms.length, 128);
+  assert.deepStrictEqual(castle.rooms.startRooms, [0x13, 0x4E, 0x88, 0xD7]);
+  // Three sizes, floors at 64.
+  assert.deepStrictEqual(Object.values(castle.rooms.roomDimensions),
+                         [{ u: 64, v: 64, z: 64 }, { u: 32, v: 64, z: 64 }, { u: 64, v: 32, z: 64 }]);
+  // Fourteen backgrounds, six of them doorways; thirty object templates on
+  // the first page and seven on the second, their slots 1-30 and 33-39.
+  assert.strictEqual(Object.keys(castle.templates.sceneryTemplates).length, 14);
+  assert.deepStrictEqual(castle.templates.meta.doorways,
+    { door_n: 'n', door_e: 'e', door_s: 's', door_w: 'w', door_high_e: 'e', door_high_s: 's' });
+  const objects = Object.keys(castle.templates.objectTemplates);
+  assert.strictEqual(objects.length, 37);
+  assert.strictEqual(objects[0], 'object_01');
+  assert.strictEqual(objects[29], 'object_30');
+  assert.strictEqual(objects[30], 'object_33');
+  // Forty-one nudge headers set $30 and one sets 0: the groups after them.
+  const nudged = [];
+  for (const room of castle.rooms.rooms) for (const g of room.objects) if (g.nudge) nudged.push(g.nudge);
+  assert.ok(nudged.length >= 41 && nudged.every(function (n) { return n === 0x30; }), nudged.length + ' nudged');
+  // The inks are bits 3-5: 3 to 6, 32, 28, 34 and 34 rooms.
+  const inks = {};
+  for (const room of castle.rooms.rooms) inks[room.ink] = (inks[room.ink] || 0) + 1;
+  assert.deepStrictEqual(inks, { 3: 32, 4: 28, 5: 34, 6: 34 });
+  assert.strictEqual(castle.specials.collectables.length, 36);
+  assert.strictEqual(castle.specials.wanted, undefined);
+  assert.deepStrictEqual(castle.rooms.meta.rules, { poolLimit: 52, shapeLimit: 4, objectTemplateLimit: 60,
+    yOrigin: 232, startSpot: { u: 128, v: 128, z: 64, sizeU: 7, sizeV: 7, sizeZ: 23 }, groupNudge: true });
+});
+
+test('Alien 8: the castle as decoded packs back into the original byte for byte', function () {
+  const castle = kl.decodeCastle(a8.sna, a8.graphics, A8);
+  const built = a8Build(merged(castle), castle.specials);
+  assert.strictEqual(built.changed, 0);
+  assert.strictEqual(built.report.free, 0);
+  assert.deepStrictEqual(built.report.fullest, [49, 0x74]);
+});
+
+test('Alien 8: the sheet paints every sprite the graphic table reaches', function () {
+  const painted = kl.sheetPixels(a8.sna, a8.sheet, a8.graphics, A8);
+  let empty = [];
+  (function walk(node, trail) {
+    for (const key of Object.keys(node.sprites || {})) {
+      const s = node.sprites[key];
+      let ink = 0;
+      for (let y = s.y; y < s.y + s.h; y++) {
+        for (let x = s.x; x < s.x + s.w; x++) ink += painted.pixels[(y * painted.width + x) * 4 + 3] ? 1 : 0;
+      }
+      if (!ink) empty.push(trail.concat([key]).join('.'));
+    }
+    for (const g of Object.keys(node.group || {})) walk(node.group[g], trail.concat([g]));
+  })(a8.sheet, []);
+  assert.deepStrictEqual(empty, []);
+});
+
+test('Alien 8: an edited castle packs, with its pages and nudges, and decodes back as edited', function () {
+  const castle = kl.decodeCastle(a8.sna, a8.graphics, A8);
+  const atlas = merged(castle);
+  const by = new Map(atlas.rooms.map(function (r) { return [r.number, r]; }));
+  // Room $74, the fullest, gives up its objects; room $4E gets a second-page
+  // template with a raise, then a first-page one without -- which the build
+  // writes back in page order -- a fourth shape, and red; one valve moves.
+  by.get(0x74).objects = [];
+  by.get(0x4E).objects.push({ template: 'object_35', nudge: 0x30, positions: [{ u: 6, v: 6, z: 0 }] });
+  by.get(0x4E).objects.push({ template: 'object_02', positions: [{ u: 1, v: 6, z: 0 }] });
+  atlas.roomDimensions.small = { u: 48, v: 48, z: 64 };
+  by.get(0x4E).dimensions = 'small';
+  by.get(0x4E).ink = 2;
+  const specials = JSON.parse(JSON.stringify(castle.specials));
+  specials.collectables[0] = { room: 0x4E, u: 100, v: 110, z: 64 };
+  const built = a8Build(atlas, specials);
+  for (const table of ['rooms', 'objectTable', 'sceneryTable']) {
+    const want = table === 'rooms' ? built.report.roomsAt : built.report[table];
+    for (const addr of A8.operands[table]) assert.strictEqual(kl.word(built.sna, addr), want, table);
+  }
+  assert.strictEqual(built.report.roomsAt, 0x6469 + 3);
+  const back = kl.decodeCastle(built.sna, a8.graphics, A8);
+  const room = back.rooms.rooms.find(function (r) { return r.number === 0x4E; });
+  assert.strictEqual(room.dimensions, 'shape_3');
+  assert.strictEqual(room.ink, 2);
+  const tail = room.objects.slice(-2);
+  assert.deepStrictEqual(tail, [
+    { template: 'object_02', positions: [{ u: 1, v: 6, z: 0 }] },
+    { template: 'object_35', nudge: 0x30, positions: [{ u: 6, v: 6, z: 0 }] }]);
+  assert.deepStrictEqual(back.specials.collectables[0], { room: 0x4E, u: 100, v: 110, z: 64 });
+  assert.deepStrictEqual(back.templates.objectTemplates, castle.templates.objectTemplates);
+});
+
+test('Alien 8: what the original cannot hold is refused, saying why', function () {
+  const refused = function (edit, pattern) {
+    const castle = kl.decodeCastle(a8.sna, a8.graphics, A8);
+    const atlas = merged(castle);
+    edit(atlas, new Map(atlas.rooms.map(function (r) { return [r.number, r]; })));
+    assert.throws(function () { a8Build(atlas, castle.specials); },
+                  function (err) { return err instanceof kl.CastleError && pattern.test(err.message); });
+  };
+  refused(function (a) {
+    a.roomDimensions.a = { u: 8, v: 8, z: 64 };
+    a.roomDimensions.b = { u: 8, v: 8, z: 64 };
+  }, /5 floor shapes; a room names one in two bits, so 1 to 4/);
+  refused(function (a, by) {
+    by.get(0x74).objects.push({ template: 'object_01', positions: [0, 1, 2, 3].map(function (i) { return { u: i, v: 7, z: 3 }; }) });
+  }, /room \$74 \(116\) fills 53 object records; the game has 52 for a room/);
+  // And a group nudge where a game has no header for one.
+  if (original) {
+    const castle = kl.decodeCastle(original, graphics);
+    const atlas = merged(castle);
+    atlas.rooms[0].objects[0].nudge = 0x30;
+    assert.throws(function () { build(atlas, castle.specials); }, /has a nudge of its own/);
+  }
+});
+
 console.log(failed ? failed + ' failed' : 'all passed');
 process.exit(failed ? 1 : 0);
