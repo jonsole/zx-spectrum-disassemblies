@@ -1775,11 +1775,16 @@ if (typeof module !== 'undefined') {
     return canvas.toDataURL('image/png');
   }
 
-  // A snapshot, and optionally the castle to open it with instead of its own
-  // -- a saved or imported one. A castle saved before templates could be
-  // edited has none of its own, and takes the snapshot's.
-  function open(name, bytes, kept) {
-    const sna = readSnapshot(bytes, name);
+  // A snapshot, as a .sna, and optionally the castle to open it with instead
+  // of its own -- a saved or imported one. A castle saved before templates
+  // could be edited has none of its own, and takes the snapshot's.
+  //
+  // It takes the .sna rather than the file, because that is what is stored:
+  // a saved session keeps the snapshot converted, under the file's own name,
+  // and reading it back by that name took a .sna for the .z80 it was made
+  // from -- its header has zeros where a version 1 .z80 has PC, so it read
+  // as a later version, of whatever machine a stray byte said.
+  function open(name, sna, kept) {
     let game;
     try {
       game = identify(sna);
@@ -1902,7 +1907,7 @@ if (typeof module !== 'undefined') {
   function openFile(file) {
     el.problem.textContent = '';
     file.arrayBuffer().then(function (buffer) {
-      open(file.name, new Uint8Array(buffer));
+      open(file.name, readSnapshot(new Uint8Array(buffer), file.name));
       store();
       session.savedText = JSON.stringify(castleNow());
       renderBar();
@@ -2120,7 +2125,7 @@ if (typeof module !== 'undefined') {
     const kept = stored();
     if (!kept) { offerResume(); return; }
     try {
-      open(kept.name, fromBase64(kept.sna), kept);
+      open(kept.name, readSnapshot(fromBase64(kept.sna), 'stored.sna'), kept);
     } catch (err) {
       el.problem.textContent = err.message;
     }
