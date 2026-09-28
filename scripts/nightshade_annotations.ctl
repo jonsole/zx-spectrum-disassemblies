@@ -1,0 +1,2868 @@
+# Hand-written annotations for the Nightshade disassembly.
+#
+# scripts/build_nightshade.py generates a control file from a code-execution
+# map (sna2ctl), puts the level data laid out by scripts/nightshade_data.py in
+# place of what sna2ctl guessed for those bytes, and layers THIS file on top.
+# Never edit game_disassembly/nightshade/*.ctl or *.asm by hand -- the next
+# build overwrites both. Add what you learn here.
+#
+# Stage 1 (2026-09-28): the pipeline. What is here is thin on purpose: the
+# areas outside the game, the variables and the object records with labels
+# for what the code names, the entry points of the main routines, and the
+# tables of routines. Stage 2 describes every routine. A title here is a
+# claim: each rests on a reading of the code, or on the game run in the
+# simulator (the build's sessions), and nothing is named from a guess at
+# intent. A variable read but not yet understood is UNKNOWN_<address>.
+#
+# Nightshade is Filmation II, not Knight Lore's engine: the menu, the text
+# printer, the tune player, the sprite format, the key reading and the pause
+# are the earlier games' (game_disassembly/nightshade/matches.txt, the build's
+# cross-match, not committed, says which routine matches which), but the
+# world, its drawing, the object record and the variables are its own.
+#
+# How far the code map can be trusted: see
+# game_disassembly/nightshade/nightshade-coverage.txt for the instructions no
+# session executed, which were found by following branches out of what ran.
+#
+# Format (SkoolKit control file):
+#   @ $ADDR label=NAME     give the routine a name
+#   c $ADDR Title          one-line title for the routine
+#   D $ADDR Paragraph.     description under the title
+#   R $ADDR HL What it is  an input/output register
+#     $ADDR,N Comment      comment on the instruction(s) at $ADDR
+#   E $ADDR Paragraph.     closing note under the routine
+#   ; span $ADDR,LENGTH    a block that must stay whole (see the build)
+#
+# Draft instruction comments as ranges ("  $A-$B Comment") and let
+# scripts/ctl_tools.py ranges fill in the lengths; never count them by hand.
+# Never end a label with an underscore and a digit: skool2asm names jump
+# targets NAME_0, NAME_1... and an explicit label of that shape collides.
+#
+# THE OBJECT RECORD. 23 records of 16 bytes at KNIGHT ($BC8E), updated in
+# turn by the main loop through UPDATES ($D599), by graphic:
+#   +0 graphic (0: an empty record)   +1 +2 U (the high byte is the column
+#   of the town map)   +3 +4 V (the high byte is the row)   +5 speed (in
+#   a find, the cell type it came from)   +6 facing (bits 6-7) and turn
+#   count (bits 0-2; in a monster, bits 0-5 are a timer)   +7 flags (bit 6
+#   mirrored, bit 7 upside down -- nothing sets it; bit 5 homes in on the
+#   knight, set only by the monster spawner; bit 0 stopped by a wall; bit 1
+#   drawn)   +8 +9 half-sizes in U and V: how far it reaches from its centre
+#   +A +B the step in U and V this turn   +C +D the drawing offset
+#   +E +F where it was drawn on the screen
+# (from reading the update routines, the drawing at $E3D9 and the collision
+# code, and measured in the simulator; the routines say which bits each uses).
+
+# --------------------------------------------------------------------------
+# Blocks that must stay whole: sna2ctl's guesses inside them are dropped
+# (see declared_spans in build_nightshade.py).
+# --------------------------------------------------------------------------
+
+
+# --------------------------------------------------------------------------
+# Below the game: the printer buffer, the system variables and the BASIC
+# --------------------------------------------------------------------------
+
+# Tables and buffers that must stay whole: sna2ctl's guesses inside them
+# are dropped (see declared_spans in build_nightshade.py).
+; span $5B00,128
+; span $5BAB,85
+; span $5C00,176
+; span $5CB1,26
+; span $5CCB,309
+; span $BBAA,596
+; span $C065,4
+; span $C34D,80
+; span $C3D8,28
+; span $C52F,9
+; span $D0A0,36
+; span $D15D,32
+; span $D4EF,4
+; span $E5C4,60
+; span $E600,512
+; span $E800,2116
+; span $F044,336
+; span $F194,1
+; span $F195,107
+; span $F200,1536
+; span $F800,256
+; span $F900,256
+; span $FA00,1536
+
+# Operands that only look like addresses.
+@ $5BA0 nowarn
+@ $BE04 nowarn
+@ $BE50 nowarn
+@ $BE89 nowarn
+@ $C41B nowarn
+@ $C430 nowarn
+@ $C9F0 nowarn
+@ $C9FD nowarn
+@ $CBB1 nowarn
+@ $CC68 nowarn
+@ $CF7D nowarn
+@ $CFE2 nowarn
+@ $D1B8 nowarn
+@ $D266 nowarn
+@ $DA04 nowarn
+@ $E550 nowarn
+
+# --------------------------------------------------------------------------
+# Outside the game, the variables, the start and the first code
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Range 1, $5B00-$C6B8 (stage 2): what sits below the game, the entry, the
+# variables and the object records, and the code from the start to the tune
+# player. The level data in $5E04-$BBA9 is all generated by
+# scripts/nightshade_data.py (nightshade-data.ctl) and has no lines here, and
+# neither has the panel's heading text at $C2E7 (SCORE_TEXT), also generated.
+#
+# Spans this range needs (restore in the annotations' span list):
+#   ; span $5B00,128   ; span $5BAB,85   ; span $5C00,176   ; span $5CB1,26
+#   ; span $5CCB,309   ; span $BBAA,596
+#   ; span $C065,4     (KNIGHT_COLOURS: sna2ctl's text, now bytes)
+#   ; span $C34D,80    (BLIP_PITCHES: sna2ctl cut it into eleven blocks)
+#   ; span $C3D8,28    (EFFECT_TABLE: sna2ctl cut it into three)
+#   ; span $C52F,9     (THING_COLOURS: sna2ctl's DEFS and text, now one table)
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Below the game: the printer buffer, the system variables and the BASIC
+# --------------------------------------------------------------------------
+
+@ $5B00 label=PRINTER_BUFFER
+u $5B00 The printer buffer, unused
+D $5B00 Zeros, as the ROM left them. The loader's routine sits in the middle of the buffer (#R$5B80); nothing else uses it.
+
+@ $5B80 label=LOADER
+c $5B80 The loader's routine: unscramble the game and start it
+D $5B80 Loaded from the tape into the printer buffer and run by the BASIC loader's PRINT USR. It sets bit 7 of the R register, which the refresh count never changes and which the game checks at every new game (#R$C1DB); unscrambles the game block, which the tape loaded 512 bytes higher, a pair of bytes at a time -- RLD with the second byte swaps a nibble between the two; moves it all down to #R$5E00; and jumps there. The build does the same to the tape's block and checks the result is the snapshot's (check_loader in scripts/build_nightshade.py).
+D $5B80 The DI here is for good: nothing in the game enables interrupts again, so FRAMES, which the interrupt counts, keeps the value the tape gave it for as long as the game runs (#R$5C00).
+  $5B80,1 interrupts off, never to come back on
+  $5B81,6 set bit 7 of R, the mark #R$C1DB looks for; the refresh counts only the low seven bits
+  $5B87,9 DE and HL on the first pair of the loaded block; 17408 pairs
+  $5B90,4 the first byte becomes its own high nibble and the second's; the second, its own low nibble and the first's
+  $5B94,9 on to the next pair, until all are done
+  $5B9D,11 move the whole block down 512 bytes, to where it runs
+  $5BA8,3 and start it
+
+@ $5BAB label=PRINTER_BUFFER_END
+u $5BAB The rest of the printer buffer, unused
+D $5BAB Zeros, as the ROM left them.
+
+@ $5C00 label=SYSTEM_VARIABLES
+b $5C00 The system variables
+D $5C00 The ROM's system variables, as the BASIC loader left them. The game reads only two of them, and both were loaded from the tape rather than set by the ROM. FRAMES, from the tape's last block: the game checks its middle byte (#R$BDFE, the first of the three protection checks) and starts its turn counter from it at every new game (#R$BE0F); since interrupts stay off from the loader on, FRAMES never counts on, and every game starts its counter from the same value. And NMIADD (#R$5CB0), where the tape put the JP (HL) the game dispatches through.
+B $5C00,120,8 KSTATE to SEED
+@ $5C78 label=FRAMES
+B $5C78,1 FRAMES, low byte: $34 from the tape, counted on by the interrupts that ran before the loader turned them off
+@ $5C79 label=FRAMES_MIDDLE
+B $5C79,1 FRAMES, middle byte: $63 from the tape; the game's start returns to BASIC unless it still is (#R$BDFE)
+B $5C7A,54,8 FRAMES' high byte to ERR_SP
+
+@ $5CB0 label=NMIADD
+c $5CB0 The dispatcher's jump
+D $5CB0 The system variable NMIADD, which the tape loaded with this one byte, JP (HL): the second protection check. #R$D593 ends with a jump here, so every object's update routine (#R$D599), and the routines of the five smaller tables (#R$C0D1 among them), are reached through it. Without the tape's byte the jump would run the system variables' own bytes as code, and the game would crash at its first update (read, not run; a copy loaded without the small blocks is stopped earlier anyway, by #R$BDFE). The game's stack, which leaks two bytes at each game over, reaches this byte after 156 of them and overwrites it (see #R$BDFE).
+  $5CB0,1 on to the routine the table gave
+
+@ $5CB1 label=NMIADD_HIGH
+b $5CB1 The rest of the system variables
+B $5CB1,26,8 NMIADD's high byte to the end of the system variables
+
+@ $5CCB label=BASIC_PROGRAM
+b $5CCB The BASIC loader, and the game's stack
+D $5CCB What is left of the BASIC loader: the game block was moved down over its last 46 bytes. The game's stack grows down from #R$5E00 into the top of it (#R$BDFE sets SP); in a measured run it went no deeper than 24 bytes.
+B $5CCB,309,16
+
+# --------------------------------------------------------------------------
+# The entry
+# --------------------------------------------------------------------------
+
+@ $5E00 label=ENTRY
+c $5E00 Where the loader enters the game
+D $5E00 The loader jumps here once the game is in place. Interrupts are already off; the game keeps them so, and starts at #R$BDFE.
+  $5E00,1 interrupts off (the loader has done it already)
+  $5E01,3 to the start
+
+# --------------------------------------------------------------------------
+# The variables and the object records
+# --------------------------------------------------------------------------
+
+@ $BBAA label=RANDOM
+g $BBAA Game variables and the object records
+D $BBAA Cleared from here at the first start (#R$BDFE), and from CELL_LOOKED_UP at every new game (#R$BE0F), so only the random number, the font base, the saved stack pointer and the two control bytes survive from one game to the next; the turn counter is outside the cleared part too, but is set again from FRAMES at every new game. The snapshot's bytes here are what the tape's block held: none of them is ever read before it is written.
+D $BBAA The 23 object records from KNIGHT on are 16 bytes each, updated in turn every turn by the main loop through #R$D599: +0 the graphic, which picks the update routine (0 an empty record); +1 and +2 U, a word whose high byte is the town's column and low byte the place across the cell; +3 and +4 V the same, the high byte the row; +5 the speed (for a find, the type of cell it came from, #R$C5CE); +6 the facing in bits 6 and 7 (bit 6 along U rather than V, bit 7 backwards), and in the low bits a count -- for the knight bits 0-2, his turning; for a monster or a find bits 0-5, the turns before it next changes direction (#R$DDCF, #R$DD28); +7 the flags -- bit 0 stopped by a wall this turn (#R$DE59), bit 1 drawn this turn (#R$E3D9, cleared by the sound routines that play only for things on the screen), bit 5 a monster that makes for the knight when it turns (#R$DD28), bit 6 its sprite mirrored and bit 7 upside down (#R$E353); +8 and +9 the half-size in U and V, centre to edge; +A and +B this turn's step in U and V, signed; +C and +D the drawing offset, added to where it projects on the screen; +E and +F where it was last drawn.
+B $BBAA,2,2 The random number, stirred with R and the turn counter after every record's update and at every random choice (#R$C5B4)
+@ $BBAC label=FONT_BASE
+B $BBAC,2,2 The address of character code 0 for the printer (#R$CB19): each routine that prints sets it first -- but see #R$BF36
+@ $BBAE label=SAVED_SP
+B $BBAE,2,2 The stack pointer, kept while the drawing and the clearing of the buffers borrow SP (#R$E200)
+@ $BBB0 label=CONTROL
+B $BBB0,1 Control method: bits 1-2 keyboard, Kempston, cursor, Interface II; bit 3 directional control (#R$C8CA)
+@ $BBB1 label=LAST_CONTROL
+B $BBB1,1 The control method before the last key on the menu
+@ $BBB2 label=TURNS
+B $BBB2,2,2 The turn counter: FRAMES at every new game (#R$BE0F), one more each turn (#R$C5B4); its low byte paces the finds (#R$C5CE), the monsters (#R$CDE8) and the creature (#R$BF95)
+@ $BBB4 label=CELL_LOOKED_UP
+B $BBB4,2,2 The column and row last looked up on the map (#R$D564)
+@ $BBB6 label=DRAW_X
+B $BBB6,2,2 Where on the screen a thing or a building is drawn: x
+@ $BBB8 label=DRAW_Y
+B $BBB8,2,2 ...and y
+@ $BBBA label=VIEW
+B $BBBA,1 Bit 0: the town is seen turned round, from the other side (Z or SYMBOL SHIFT, #R$DB68); the panel's heading says south instead of north (#R$C29A)
+@ $BBBB label=COLUMNS_DRAWN
+B $BBBB,2,2 A bit for each column of the screen a building has been drawn in this turn (#R$D3C2)
+@ $BBBD label=KEY_LATCH
+B $BBBD,1 Set while a key that acts once a press is held
+@ $BBBE label=TOP_SPEED
+B $BBBE,1 The knight's top speed: 10, and 18 while a bonus's faster walk lasts (#R$D727)
+@ $BBBF label=MENU_SHOWN
+B $BBBF,1 Set once the menu's frame has been drawn (#R$CA2B)
+@ $BBC0 label=CELL_TYPE
+B $BBC0,1 The type of the cell being drawn (#R$D372)
+@ $BBC1 label=TUNE_PLAYED
+B $BBC1,1 Set once the menu's tune has played (#R$C63D); cleared with the rest at every new game, so it plays again after each
+@ $BBC2 label=SPRITE_WIDTH
+B $BBC2,1 The width of the sprite being drawn
+@ $BBC3 label=SPRITE_ROWS
+B $BBC3,1 The rows of it that are drawn
+@ $BBC4 label=DRAW_LIST_AT
+B $BBC4,2,2 Pointers into the list of things to draw (#R$CFF2)
+@ $BBC6 label=DRAW_LIST_NEXT
+B $BBC6,2,2
+@ $BBC8 label=FIRE_DELAY
+B $BBC8,1 Turns before the knight can throw again (#R$DAB7)
+@ $BBC9 label=SCORE
+B $BBC9,1 The score, BCD, highest first: the top two digits, of which only the lower is printed (#R$C2ED)
+B $BBCA,1 The next two, where a villain's 250000 goes
+@ $BBCB label=SCORE_LOW
+B $BBCB,1 The next two, the hundreds and thousands, where everything else scores
+@ $BBCC label=SCORE_ZEROS
+B $BBCC,1 Printed as the score's last two digits, and never written: so every score ends 00
+@ $BBCD label=LIVES
+B $BBCD,1 Lives in hand besides the one being played: six at a new game, from the code at LIVES_BYTE (#R$BE0F), and one taken as each life starts, the first included; none left to take is game over (#R$CBAC)
+@ $BBCE label=STOCKS
+B $BBCE,36,6 How many more finds the cells of each type have, by type, shared by every cell of it: types 2 on get 16-31 at every new game (#R$C1DB), types 0 and 1 none; one is taken as a find appears (#R$C5CE) and put back if it is left behind (#R$D9A3)
+@ $BBF2 label=DRAW_PASS
+B $BBF2,1 Which of a building's two faces is being drawn
+@ $BBF3 label=HITS
+B $BBF3,1 Hits the knight can still take in this life: 3 at each life and at the cure (#R$D74C), one fewer for each monster or creature that touches him (#R$CE89); his colour shows them (#R$C065)
+@ $BBF4 label=THROW_TOGGLE
+B $BBF4,1 Which antibody record the next throw replaces (#R$DAB7)
+@ $BBF5 label=SPEED_TIME
+B $BBF5,1 Turns left of the faster walk a bonus gives (#R$D727, #R$DA7A)
+@ $BBF6 label=LAST_CELL
+B $BBF6,2,2 The cell the knight was last in, column and row (#R$BF48)
+@ $BBF8 label=FOOTSTEPS
+B $BBF8,1 Counts the knight's footsteps (#R$C400)
+@ $BBF9 label=EFFECT_TIME
+B $BBF9,1 Notes left of the sound effect under way, one a turn (#R$C3BD); in the ending, a count the ending's note rises from (#R$C39D)
+@ $BBFA label=EFFECT
+B $BBFA,1 Which sound effect (#R$C3D8): 0 a new cell with a building, 1 the faster walk, 2 the cure, 3 an object taken up
+@ $BBFB label=FLASH
+B $BBFB,1 The paper colour of the play area, flashed when a villain dies (#R$D847), and back to black at the end of every turn (#R$BE0F)
+@ $BBFC label=LAST_FLASH
+B $BBFC,1 The paper this turn's play area was cleared to: FLASH as the last turn ended, which the knight's and the buildings' colours keep (#R$C898)
+@ $BBFD label=PERCENT
+B $BBFD,1 The percentage of the game done, BCD: the hundreds (#R$BEDF)
+@ $BBFE label=PERCENT_LOW
+B $BBFE,1 ...and the tens and units
+@ $BBFF label=ENDING
+B $BBFF,1 Set while the ending plays (#R$CC56): the main loop then only updates the records
+@ $BC00 label=ENDING_COLOUR
+B $BC00,1 The colour the ending's pictures are drawn in
+@ $BC01 label=CONTROLS
+B $BC01,1 What the controls say this turn: bits 0-1 turn, 2 walk, 3 throw, 4 down, 5 turn the town round (#R$E241)
+@ $BC02 label=ARRIVING
+B $BC02,1 Counts up by two a turn from 40 while the knight appears at a new life, and is $70 once he has (#R$DA7A): until then nothing touches him and no find or monster comes (#R$C55F)
+@ $BC03 label=CARRIED
+B $BC03,10,5 The things carried, in the order taken up: 1-4 the four objects, 5-8 the four kinds of antibody, 0 an empty place (#R$C489); each has its place on the panel, from the bottom up (#R$C4DC)
+@ $BC0D label=CARRIED_LAST
+B $BC0D,1 The eleventh; the knight throws the last thing he took up first (#R$DAB7)
+@ $BC0E label=VISITED
+B $BC0E,128,4 A bit for each cell of the town the knight has been in, a row of the town to a line: a byte for eight columns, the column's low three bits the bit (#R$BF48); counted for the percentage (#R$BEDF)
+@ $BC8E label=KNIGHT
+B $BC8E,1 The knight's legs, +0: graphics 16-21 and 24-29 as he walks, 12-15 as he vanishes, and 0 for a new life (#R$CBAC)
+@ $BC8F label=KNIGHT_U
+B $BC8F,1 +1: U within the cell
+@ $BC90 label=KNIGHT_COLUMN
+B $BC90,1 +2: the column
+@ $BC91 label=KNIGHT_V
+B $BC91,1 +3: V within the cell
+@ $BC92 label=KNIGHT_ROW
+B $BC92,1 +4: the row
+@ $BC93 label=KNIGHT_SPEED
+B $BC93,1 +5: speed, up to TOP_SPEED
+@ $BC94 label=KNIGHT_FACING
+B $BC94,1 +6: facing, bits 6-7
+@ $BC95 label=KNIGHT_FLAGS
+B $BC95,1 +7: flags
+B $BC96,8,2 +8 to +F: half-sizes in U and V; this turn's steps; the drawing offset; where he was drawn
+@ $BC9E label=KNIGHT_TOP
+B $BC9E,16,8 The knight's top half (graphics 22, 30 and 32-47), kept on his legs by #R$D9EB
+@ $BCAE label=ANTIBODIES
+B $BCAE,16,8 The first antibody in flight (graphics 80-95): the only one that can strike anything (#R$C538)
+B $BCBE,16,8 The second, used while the first is busy (#R$DAB7)
+@ $BCCE label=FINDS
+B $BCCE,16,8 A find in a building (graphics 48-63, #R$C5CE); when a villain dies all four records hold its sparkles instead (140-143, drawn with the finds' sprites, #R$D6D6)
+B $BCDE,16,8 A second find, or sparkles
+B $BCEE,16,8 A third
+B $BCFE,16,8 A fourth
+@ $BD0E label=BONUS
+B $BD0E,16,8 A bonus (#R$D76C): graphic 2 a faster walk, 3 the hits back
+@ $BD1E label=OBJECTS
+B $BD1E,16,8 The object that kills the villain in record 0: graphic 7 lying, 11 thrown (#R$D88E)
+B $BD2E,16,8 The object for villain 1: graphic 6 lying, 10 thrown
+B $BD3E,16,8 For villain 2: 5 and 9
+B $BD4E,16,8 For villain 3: 4 and 8
+@ $BD5E label=VILLAINS
+B $BD5E,16,8 Villain 0 (graphics 108-111), panel colour cyan (#R$D8E7); every villain is 132-135 as it dies, drawn as a puff
+B $BD6E,16,8 Villain 1 (104-107), green
+B $BD7E,16,8 Villain 2 (100-103), magenta
+B $BD8E,16,8 Villain 3 (96-99), red
+@ $BD9E label=MONSTERS
+B $BD9E,16,8 A monster (#R$CDE8): appearing (128-131), then of graphics 64-79 or 112-127; or the creature (136-139, #R$BF95), which always takes the first record it can
+B $BDAE,16,8 A second monster
+B $BDBE,16,8 A third
+B $BDCE,16,8 A fourth
+B $BDDE,16,8 A fifth
+B $BDEE,16,8 A sixth
+
+# --------------------------------------------------------------------------
+# The start and the main loop
+# --------------------------------------------------------------------------
+
+@ $BDFE label=START
+c $BDFE The start: the first protection check, and every variable cleared
+D $BDFE Entered from #R$5E00. The first of the game's three protection checks: FRAMES' middle byte must still be $63, as the tape's last block left it, or the RET goes back to BASIC -- the loader's PRINT USR is what called it. A copy that loads the code some other way, without that block, or lets the interrupts run on for a few seconds before starting it, gets no further. Then the stack is put below the game, the variables and all 23 object records are cleared, and the set-up of a new game follows (#R$BE0F).
+D $BDFE This is the only place SP is set. #R$CC56 is jumped into from routines that were called, and leaves by jumping to NEW_GAME or MAIN_LOOP, so every game over leaves two bytes on the stack and every ending four. The stack creeps down through the BASIC program towards the system variables, and after 156 game overs in one sitting it has overwritten NMIADD: the next game's first update jumps into the screen and the machine crashes. Measured: 156 games started and ended at once in the simulator left SP at the menu two bytes lower after each, until after the 156th NMIADD held part of a return address; the 157th game ran off into the screen and the printer buffer (the loader's code ran again) and hung.
+  $BDFE,6 protection check 1: back to BASIC unless FRAMES' middle byte is $63
+  $BE04,3 the stack below the game, growing into the BASIC program
+  $BE07,8 clear all 596 bytes from RANDOM to the last monster's record, and join the new game
+
+@ $BE0F label=NEW_GAME
+c $BE0F Set up a new game, then run the main loop
+D $BE0F Entered from #R$BDFE the first time and from #R$CC56 after each game and after the ending (#R$CD10). The variables from CELL_LOOKED_UP on are cleared, the turn counter taken from FRAMES, the screen cleared and the lookup tables built, and the menu run until a game is started (#R$C8CA); then the start tune, the panel (the frame, the heading over the score, the score, the compass and the heading of the view), six lives, a random cell to start in, the first life, the villains and the objects placed, the villains drawn on the panel, and the buildings stocked -- with the third protection check at the end of that (#R$C1DB).
+D $BE0F The number of lives is not written in the code as a number. It is the opcode of the JR that closes the main loop, at LIVES_BYTE: $18, shifted right twice, is six. A search for a load of six finds nothing, and a poke to that byte breaks the loop; whether it was meant as a guard is not known, but it works as one.
+D $BE0F MAIN_LOOP is one turn. Every object record, knight first, is updated by the routine #R$D599 gives for its graphic, through the dispatcher and NMIADD; the random number is stirred after each. Then the turn is counted, and unless the ending is under way: a find may appear, a monster, the creature, a bonus; this turn's note of the sound effect; the carried things coloured on the panel; the town and everything in it drawn into the buffer; the knight coloured by his hits; a new life if his record has emptied; the ending if the villains are gone. At END_OF_TURN the buffers go to the screen and are cleared, the flash is kept for the next turn and ended, and the pause key is read.
+  $BE0F,6 clear from CELL_LOOKED_UP to the last monster's record
+  $BE15,3 clear
+  $BE18,6 the turn counter starts from FRAMES, which never changes once the game runs
+  $BE1E,3 clear the screen, border black
+  $BE21,3 build the tables for drawing mirrored and shifted
+  $BE24,3 the menu, until 0 starts a game
+  $BE27,6 the tune as a game starts
+  $BE2D,3 clear the screen again
+  $BE30,6 the border and the panel's frame
+  $BE36,9 the heading over the score (#R$C2E7)
+  $BE3F,3 the score
+  $BE42,3 the compass
+  $BE45,3 north, or south
+  $BE48,3 clear the play area's buffers
+  $BE4B,5 top speed 10
+  $BE50,10 six lives: the JR's opcode at LIVES_BYTE, $18, shifted right twice
+  $BE5A,3 a random cell to start in, anything but solid
+  $BE5D,5 facing along U, forward
+  $BE62,3 the first life: the knight's records, and a life taken
+  $BE65,3 the villains
+  $BE68,3 the objects
+  $BE6B,3 the villains on the panel
+  $BE6E,3 stock the buildings, and protection check 3
+@ $BE71 label=MAIN_LOOP
+  $BE71,4 MAIN_LOOP: from the knight's legs
+@ $BE75 label=NEXT_OBJECT
+  $BE75,9 update the record, by its graphic, through NMIADD
+  $BE7E,3 stir the random number after every record
+  $BE81,16 on to the next, until past the last monster's
+  $BE91,3 count the turn
+  $BE94,7 while the ending plays, nothing else
+  $BE9B,3 a find, every sixteenth turn
+  $BE9E,3 a monster, every fourth
+  $BEA1,3 the creature, every 256th
+  $BEA4,3 a bonus, when there is none
+  $BEA7,3 this turn's note of the sound effect
+  $BEAA,3 colour the carried things on the panel
+  $BEAD,3 draw the town round the knight, and what is in it
+  $BEB0,23 colour the knight by his hits (#R$C065): four rows of two cells in the middle of the play area
+  $BEC7,3 a new life, if his record is empty
+  $BECA,3 the ending, if the villains are gone
+@ $BECD label=END_OF_TURN
+  $BECD,3 END_OF_TURN: the buffers to the screen, and cleared with this turn's flash
+  $BED0,10 keep the flash for the colours of the next turn, and end it
+  $BEDA,3 the pause
+@ $BEDD label=LIVES_BYTE
+  $BEDD,2 LIVES_BYTE: round again; this JR's opcode is also the number of lives
+
+# --------------------------------------------------------------------------
+# The percentage, and the visited cells
+# --------------------------------------------------------------------------
+
+@ $BEDF label=PERCENTAGE
+c $BEDF Work out the percentage of the game done
+D $BEDF Called by #R$CC56 after every game. A unit for every cell the knight has been in (every set bit of VISITED) and three for every villain record not holding a live villain (graphics 96-111): a destroyed villain's record is empty or dying. Each unit adds 10288 to a 16-bit fraction of which 65536 is one per cent, the carries counted in BCD; at the end 144 more, exactly what 637 units need to make 100. The town has 625 cells a knight can stand in, and three for each of four villains makes 637.
+D $BEDF The carries are counted with DAA, which wraps from 99 to 0 and leaves its own carry to be lost: past 637 units the count starts again. A knight cannot be in more than 625 cells, so it never does in play; setting every bit of VISITED (1024) gave 62% (measured, stage 1).
+  $BEDF,21 HL = how many cells he has been in: the set bits of VISITED
+  $BEF4,26 three more for each villain record without a live villain
+  $BF0E,21 add 10288 for each unit, the carries counted in BCD in A
+  $BF23,8 144 more, rounding 637 units up to exactly a hundred
+  $BF2B,11 the tens and units, and the hundreds from the last carry
+
+@ $BF36 label=PRINT_PERCENTAGE
+c $BF36 Print the percentage
+D $BF36 Called by #R$CC56 with HL the screen address and the attribute in A'. Under a hundred it prints the two digits a column in, through the whole of #R$C314. At a hundred it prints three, but by jumping into that routine past the instructions that point FONT_BASE at the digits (#R$6CDE); #R$CC56 has just printed text, which leaves FONT_BASE at the text font's base, 384 bytes lower, where codes 0 and 1 are bytes of a building's graphics. So a game finished at 100% shows three meaningless characters where the figure should be. Measured: the build's quest session run to the moment after this call, with PERCENT holding 1 and 0 and FONT_BASE the text font's, left three characters on the screen that match no digit; the same call with FONT_BASE at the digits printed 100.
+R $BF36 HL the screen address
+R $BF36 A' the attribute
+  $BF36,9 one byte of digits; is the hundreds byte zero?
+  $BF3F,4 a hundred: three digits from the hundreds' low one -- in whatever font was last used
+  $BF43,5 under a hundred: a column in, and the tens and units
+
+@ $BF48 label=VISIT_CELL
+c $BF48 Mark the knight's cell visited, and sound a new one with a building
+D $BF48 Called by #R$DCA8 as the knight walks. Nothing happens while he stays in LAST_CELL; in a new cell, it becomes LAST_CELL and its bit in VISITED is set. A cell with anything built on it (a type other than 0) that had not been visited before also starts sound effect 0, four notes. #R$CBAC enters at ENTER_CELL to mark the cell a life starts in.
+D $BF48 MARK_VISITED writes the bit number into the BIT and SET instructions that test and set it -- the second byte of each is $46 or $C6 plus eight times the bit -- and returns with Z set if the cell is new: SET leaves the flags as BIT made them.
+R $BF48 IX the knight's legs record
+  $BF48,14 still in the cell he was in: nothing to do
+@ $BF56 label=ENTER_CELL
+  $BF56,9 ENTER_CELL: the new cell, column and row, becomes LAST_CELL
+  $BF5F,7 open ground (type 0): just mark it
+@ $BF66 label=MARK_VISITED
+  $BF66,19 MARK_VISITED: HL = VISITED + 4 * row + column / 8
+  $BF79,12 write bit (column AND 7) into the next two instructions
+  $BF85,2 BIT n,(HL): Z if the cell is new
+  $BF87,2 SET n,(HL), the flags as BIT left them
+  $BF89,1 Z for a new cell
+  $BF8A,4 built on: mark it; visited before, and that is all
+  $BF8E,7 a new one: sound effect 0, four notes
+
+# --------------------------------------------------------------------------
+# The creature of graphics 136-139
+# --------------------------------------------------------------------------
+
+@ $BF95 label=SPAWN_CREATURE
+c $BF95 Every 256 turns, bring the creature into the knight's cell
+D $BF95 When the low byte of TURNS comes round to zero, the first monster record that is not in the knight's cell or next to it becomes the creature (graphic 136) -- empty or not: a monster further off is simply replaced. It is put in the knight's cell, at a random place 64-191 across it each way, with a half-size of 16 each way; if that place already touches him (#R$C55F) it is a puff (graphic 12) instead, and harmless. If all six records are within a cell of him, the first becomes the creature wherever it is, with only its graphic changed.
+D $BF95 Measured: in a game left to run, a monster record held the creature every time the turn counter's low byte was zero; and with all six records empty and so at cell (0,0), next to a knight in cell (1,1), the first record got graphic 136 and nothing else.
+  $BF95,5 not the 256th turn: nothing
+  $BF9A,20 the first monster record not within a cell of the knight
+  $BFAE,6 all six are: the first becomes the creature where it is
+  $BFB4,32 in the knight's cell, at a random place in it
+  $BFD4,16 half-size 16 each way; the drawing offset
+  $BFE4,13 touching him already? a puff (12); otherwise the creature (136)
+
+@ $BFF1 label=CREATURE_UPDATE
+c $BFF1 The update routine for the creature (graphics 136-139)
+D $BFF1 It makes for the knight, two units a turn along U and along V (#R$C02C), blipping while on the screen (#R$C332). A wall stops it dead: it bursts, for 1000 points -- the reward for leading it into one. More than two cells from the knight in column or row, it is left behind: the record is emptied. An antibody strikes it for 1000, both bursting (but only the first antibody record can, #R$C538); touching the knight, it bursts and takes one of his hits (#R$CE89).
+R $BFF1 IX the creature's record
+  $BFF1,3 the blip, if it was drawn last turn
+  $BFF4,3 steps of two towards the knight
+  $BFF7,3 is the way clear, along U and then V? (#R$DE0D)
+  $BFFA,6 a wall: it bursts, for 1000
+  $C000,3 move by the steps
+  $C003,3 the next frame of the four
+  $C006,7 three cells or more from him: left behind
+  $C00D,5 struck by an antibody?
+  $C012,7 touching him: it bursts, and he loses a hit
+  $C019,5 left behind: the record emptied (never ran in the sessions)
+  $C01E,4 the antibody bursts...
+  $C022,4 ...and so does the creature
+  $C026,6 1000
+
+@ $C02C label=STEER_AT_KNIGHT
+c $C02C Step the thing at IX two units towards the knight along each axis
+D $C02C The creature's homing (#R$BFF1): its steps, +A and +B, become 2 or -2 by the side of the knight it is on, comparing the whole 16-bit positions; level with him on an axis it still steps forward along it.
+R $C02C IX the record
+  $C02C,21 +A: 2 if he is further along U, or level; otherwise -2
+  $C041,22 +B the same along V
+
+@ $C057 label=CLEAR_MONSTERS
+c $C057 Empty the six monster records
+D $C057 #R$CBAC does this at every new life, so no monster, and no creature, is waiting where he appears.
+  $C057,14 graphic 0 in all six
+
+@ $C065 label=KNIGHT_COLOURS
+b $C065 The knight's colour by his hits
+D $C065 Attributes indexed by HITS, which the main loop gives the four rows of two cells where the knight always stands, in the middle of the play area (#R$BE0F, through #R$C898). All bright on black: green at one hit, yellow at two, white at three; the byte for none is seen only in the turn he dies. sna2ctl took the four bytes for text.
+B $C065,4,1 No hits left, one, two, three: green, green, yellow, white
+
+@ $C069 label=NEAR_KNIGHT
+c $C069 Is the thing at IX less than C cells from the knight?
+D $C069 Compares cells only, the columns and the rows: carry if both differences are less than C. Used with C = 2 (his own cell or a neighbour), 3, 4 and 5, to decide what is near enough to matter -- and what is far enough to be forgotten.
+R $C069 IX the record
+R $C069 C the limit, in cells
+R $C069 O:F carry if near
+  $C069,13 the columns: not near, no carry
+  $C076,13 the rows: carry if near
+
+# --------------------------------------------------------------------------
+# The monsters of graphics 112-127, and what an antibody does to them
+# --------------------------------------------------------------------------
+
+@ $C083 label=MONSTER112_UPDATE
+c $C083 The update routine for a monster of graphics 112-127
+D $C083 It walks at its speed the way it faces, warbling if it walks into a wall while on the screen (#R$C3AA), turning when it is stopped and every so often -- a monster with bit 5 of its flags set turns towards the knight (#R$DD28) -- and takes its frame from its facing (#R$D978). Three cells or more from the knight it is forgotten: its record is emptied. Touching him it scores 2500 and takes one of his hits, bursting (#R$CE89).
+D $C083 Struck by an antibody (#R$C538), its fate depends on the two kinds together: a monster's kind is bits 2-3 of its graphic (112, 116, 120 or 124 on), an antibody's the same bits of its (80, 84, 88 or 92 on), and their sum, four apart, picks a routine from #R$C0D1: destroyed, changed into the next kind, split in two, or turned into a monster of 64-79. A monster's kind is that of the villain nearest where it appeared (#R$C164), so each villain's monsters are destroyed by one kind of antibody.
+R $C083 IX the monster's record
+  $C083,9 its steps, from its speed and facing; is the way clear?
+  $C08C,7 a wall: the warble, if it is on the screen
+  $C093,4 not yet drawn this turn
+  $C097,9 move; perhaps turn; its frame
+  $C0A0,7 three cells or more from the knight: forgotten
+  $C0A7,5 struck by an antibody?
+  $C0AC,13 touching the knight: 2500, it bursts, and he loses a hit
+@ $C0B9 label=STRIKE_OUTCOME
+  $C0B9,24 STRIKE_OUTCOME: the two kinds added, four apart, pick what happens
+
+@ $C0D1 label=MONSTER_HIT_TABLE
+w $C0D1 What an antibody does to a monster of graphics 112-127
+D $C0D1 By the monster's kind plus the antibody's, four apart (#R$C083). Reached through the dispatcher, so through NMIADD.
+W $C0D1,2 0: destroyed, 2500 (#R$C0DE)
+W $C0D3,2 1: changed into the next kind, 2000 (#R$C0ED)
+W $C0D5,2 2: split in two, 1500 (#R$C101)
+W $C0D7,2 3: turned into a monster of 64 or 68, 1000 (#R$C152)
+
+@ $C0D9 label=MONSTER_TOO_FAR
+c $C0D9 Forget a monster that is too far from the knight
+D $C0D9 The end of #R$C083 when the monster is three cells or more away: its record is emptied, silently.
+  $C0D9,5 graphic 0
+
+@ $C0DE label=HIT_DESTROYS
+c $C0DE An antibody's strike that destroys the monster: 2500 points
+R $C0DE IX the monster
+R $C0DE IY the antibody
+  $C0DE,4 the monster bursts (graphic 12)
+  $C0E2,6 2500
+@ $C0E8 label=ANTIBODY_SPENT
+  $C0E8,4 ANTIBODY_SPENT: the antibody bursts too
+
+@ $C0ED label=HIT_CHANGES
+c $C0ED An antibody's strike that changes the monster into the next kind: 2000 points
+D $C0ED Four graphics on, round from 124-127 to 112-115, its frame kept: a monster that needs another kind of antibody.
+  $C0ED,12 the next kind round
+  $C0F9,6 2000
+  $C0FF,2 the antibody bursts
+
+@ $C101 label=HIT_SPLITS
+c $C101 An antibody's strike that splits the monster in two: 1500 points
+D $C101 Meant, by the look of it, to copy the monster into an empty monster record and send the two off at right angles. What it does: the search loop tests IY for an empty record, but IY is the antibody's record (just made to burst) and then the records after it -- the second antibody, the finds, the bonus -- while IX, which the nearness test reads, stays on the first monster record. So the monster is copied into the first monster record, whatever is there -- another monster, the creature -- either when that record is not within a cell of the knight or, if it is, when the second antibody record or a find record is empty; only when none is does no split happen. A monster in the first record copies itself onto itself and its facing is turned one way and back: no split.
+D $C101 Measured, calling it with a monster in the fourth record: with a monster far off in the first, that monster was replaced by the copy; with one beside the knight in the first and the second antibody record empty, the same; with it beside him and the five records after the antibody's all busy, no copy, and 1500 all the same (the only run of that branch: no session reached it).
+R $C101 IX the monster
+R $C101 IY the antibody
+  $C101,4 the antibody bursts
+  $C105,11 IX = the first monster record (the struck one saved); six tries
+  $C110,6 IY empty? split -- but IY is the antibody's record and those after it
+  $C116,7 IX, the first monster record, not beside the knight? split
+  $C11D,4 the record after IY
+  $C121,8 no split: 1500 (never ran in the sessions)
+  $C129,15 the struck monster copied over the first monster record: IY the copy, IX the original
+  $C138,20 a quarter turn each way, with 31 turns before either turns again
+  $C14C,6 1500
+
+@ $C152 label=HIT_DEMOTES
+c $C152 An antibody's strike that turns the monster into one of graphics 64-79: 1000 points
+D $C152 Graphic 64 or 68, by bit 2 of its own: kinds 0 and 2 become the first, 1 and 3 the second, whatever villain they came from. Those are the monsters of #R$CE89, which any antibody destroys.
+  $C152,10 graphic 64 or 68
+  $C15C,6 1000
+  $C162,2 the antibody bursts
+
+@ $C164 label=APPEARING_UPDATE
+c $C164 The update routine for a monster appearing (graphics 128-131)
+D $C164 Four turns of appearing, with a note that rises each turn it is on the screen (#R$C455). Then it becomes a monster of the kind of the villain nearest it (#R$C19C): of graphics 112-127 or, as often, of 64-79 -- the random number decides. Graphic 76, the monster of the first villain's kind, is given a half-size of 24 in V.
+R $C164 IX the record
+  $C164,11 the note, if it was drawn last turn
+  $C16F,9 the next frame; after the fourth, a monster
+  $C178,7 which sort, by the random number
+  $C17F,10 one of 64-79, of the nearest villain's kind
+  $C189,8 graphic 76 is 24 deep in V
+  $C191,11 one of 112-127, of the nearest villain's kind
+
+@ $C19C label=NEAREST_VILLAIN
+c $C19C Which villain is nearest the thing at IX?
+D $C19C Nearest by the columns and the rows apart added together (#R$C1B9); the first found wins a tie. Returns 3 for the villain in the first record down to 0 for the last: the kind of the monsters that villain brings (#R$C164). With no villain left, 3.
+R $C19C IX the record
+R $C19C O:A 3 - the nearest villain's record number
+  $C19C,9 IY = the first villain; the nearest so far none, at 255
+  $C1A5,8 nearer? keep its distance, and B
+  $C1AD,9 the next villain
+  $C1B6,3 3 for the first record, 0 for the last
+
+@ $C1B9 label=VILLAIN_DISTANCE
+c $C1B9 How far is the villain at IY from the thing at IX?
+R $C1B9 IX the thing
+R $C1B9 IY the villain's record
+R $C1B9 O:A the columns apart plus the rows apart; 255 for an empty record
+  $C1B9,9 an empty record is 255 away
+  $C1C2,12 the columns apart
+  $C1CE,13 plus the rows apart
+
+# --------------------------------------------------------------------------
+# The finds' stock, and the third protection check
+# --------------------------------------------------------------------------
+
+@ $C1DB label=STOCK_BUILDINGS
+c $C1DB Stock the buildings with finds, then the third protection check
+D $C1DB At every new game each cell type from 2 to 35 is given 16-31 finds, the low four bits of bytes read from a random place in the first 4K of the ROM, plus 16 (STOCKS). Types 0, open ground, and 1 get none.
+D $C1DB Then the third protection check: bit 7 of R must be set. The refresh counter the Z80 keeps in R counts only its low seven bits, so bit 7 changes only when a program loads R, and the loader did (#R$5B80). A copy started by any other means has it clear, and falls into RESET, which jumps to address 0: the Spectrum starts again as if just switched on. #R$CBAC jumps to RESET as well when its own check fails.
+  $C1DB,3 count a turn, and stir the random number
+  $C1DE,7 HL = somewhere in the first 4K of the ROM
+  $C1E5,15 16-31 for each type from 2 to 35
+  $C1F4,5 protection check 3: R's bit 7, the loader's mark, still set: carry on
+@ $C1F9 label=RESET
+  $C1F9,4 RESET: start the Spectrum again (never ran in the sessions)
+
+# --------------------------------------------------------------------------
+# The panel: the villains, the heading, the compass, the score
+# --------------------------------------------------------------------------
+
+@ $C1FD label=DRAW_VILLAINS
+c $C1FD Draw the four villains on the panel
+D $C1FD At a new game and whenever a villain is destroyed (#R$D80C). Each is drawn from the sprite of its first standing graphic -- 108, 104, 100 and 96 for records 0 to 3 -- upwards from the bottom of the screen, three columns apart from column 15. A villain still about is drawn as the first byte of each of its sprite's pairs less the second, which comes out as its outline, in the panel's white; a destroyed one as the second bytes, its picture, coloured from #R$C52F -- the colour of the object that kills it. A sprite stored mirrored is turned back first (#R$E3D6).
+D $C1FD Measured: after a game starts, the four outlines in bright white; with record 0 emptied and this called again, that villain's picture, in bright cyan, three columns wide and six rows high.
+  $C1FD,9 IY = the first villain; DE = the bottom line of the screen, column 15
+  $C206,13 HL = the sprite for graphic 108, 104, 100 or 96, the first record first
+  $C213,12 stored mirrored? turn it back
+  $C21F,7 B = its width in bytes, C its height in lines; HL its rows
+  $C226,9 destroyed (not graphics 96-111)?
+  $C22F,20 still about: the first byte of each pair less the second, line by line upwards
+  $C243,15 three columns on, and the next villain
+  $C252,17 destroyed: the second bytes, its picture
+  $C263,12 C = its colour (#R$C52F), by B
+  $C26F,12 HL = the attribute of the cell at the bottom
+  $C27B,15 three wide and six high, upwards
+
+@ $C28A label=SCREEN_LINE_UP
+c $C28A Move a screen address up one pixel line
+D $C28A Within a character cell the high byte goes down one. Out of the top of a cell the low byte goes up a character row, and the eight the high byte borrowed are put back -- unless that takes the address out of the top of a third of the screen, when the borrow is just what is needed.
+R $C28A DE a screen address
+R $C28A O:DE the one a line above
+  $C28A,6 within the cell: done
+  $C290,5 up a character row; out of the top of the third: done
+  $C295,5 still in the third: the high byte back up by eight
+
+@ $C29A label=PRINT_HEADING
+c $C29A Print the heading on the panel: north, or south with the town turned round
+D $C29A Four characters, a word, from the panel's icons (#R$7A6F): north in cyan, or while VIEW's bit 0 is set south in magenta, which way the town is seen from. At a new game, and whenever it is turned round (#R$DB68).
+  $C29A,13 which word, and its colour
+  $C2A7,22 its four characters in a row, bottom right of the panel
+  $C2BD,7 south
+
+@ $C2C4 label=HEADING_ORDER
+b $C2C4 The heading's characters, in the order printed
+D $C2C4 0, 1, 2 and 3: the order they are stored in (#R$C29A).
+B $C2C4,4,4
+
+@ $C2C8 label=PRINT_COMPASS
+c $C2C8 Draw the compass on the panel
+D $C2C8 Eight characters from the panel's icons (#R$7A6F), in yellow, as two blocks of two by two (#R$CB3E). The characters are stored as the compass's two rows of four, so #R$C2DF picks them out a block at a time. Drawn once, at a new game.
+  $C2C8,15 the compass's characters; where; yellow
+  $C2D7,8 the left half, and then the right
+
+@ $C2DF label=COMPASS_ORDER
+b $C2DF The compass's characters, a block of two by two at a time
+B $C2DF,8,4 The left half, characters 0 and 1 over 4 and 5; then the right, 2 and 3 over 6 and 7
+
+@ $C2ED label=ADD_SCORE
+c $C2ED Add BC to the score, and print it
+D $C2ED In BCD: B goes to the middle byte of SCORE and C to SCORE_LOW, carrying up. The score printed is seven digits: the lower digit of SCORE's first byte, the four of the next two, and the two zeros of SCORE_ZEROS, which nothing writes -- so what is shown is a hundred times what is added: C = $25 shows as 2500. Measured: from nothing, BC = $0025 printed 0002500 and BC = $2500 printed 0250000.
+D $C2ED What scores (from the callers): a villain destroyed, 250000 (#R$D80C); a monster of 112-127 destroyed by an antibody 2500, changed 2000, split 1500, turned into one of 64-79 1000 (#R$C0D1); the creature struck or run into a wall, 1000 (#R$BFF1); a monster of 64-79 struck, 500 (#R$CE89). And a monster that touches the knight scores too, as it takes his hit: 2500 for one of 112-127, 500 for one of 64-79.
+D $C2ED PRINT_SCORE prints it where it stays on the panel, in yellow; #R$CC56 uses PRINT_SCORE_AT to print it after a game in its own place and colour.
+R $C2ED BC the points, BCD: B in tens of thousands, C in hundreds
+  $C2ED,18 add, in BCD, carrying up
+@ $C2FF label=PRINT_SCORE
+  $C2FF,6 PRINT_SCORE: yellow, at the bottom of the panel
+@ $C305 label=PRINT_SCORE_AT
+  $C305,15 PRINT_SCORE_AT: four bytes from SCORE, in the digits' font, from the first byte's lower digit
+
+@ $C314 label=PRINT_BCD
+c $C314 Print B bytes of BCD from DE, two digits a byte
+D $C314 With the digits' font (#R$6CDE), whose first character is 0, so a digit's value is its code. Each digit's cell is coloured with A' (#R$CB5B). PRINT_BCD_LOW starts with the first byte's lower digit, for an odd number of digits -- and without setting the font (see #R$BF36).
+R $C314 DE the first byte
+R $C314 B how many bytes
+R $C314 HL the screen address
+R $C314 A' the attribute
+  $C314,8 the digits' font
+  $C31C,11 the higher digit
+@ $C327 label=PRINT_BCD_LOW
+  $C327,7 PRINT_BCD_LOW: the lower digit
+  $C32E,4 the next byte
+
+# --------------------------------------------------------------------------
+# Sound: the blips, the effects, the footsteps and the rest
+# --------------------------------------------------------------------------
+
+@ $C332 label=BLIP_BY_TURN
+c $C332 The creature's blip: a note chosen by the turn counter
+D $C332 Twelve waves at a pitch from #R$C34D picked by the turn counter's low four bits, if the record was drawn last turn; the flag is cleared, so it sounds once for each time the thing is on the screen. The creature's update calls it (#R$BFF1). Pentagram has the same bytes, unused.
+D $C332 The villains' update (#R$D94F) enters at BLIP_FROM_TABLE, meaning to give each villain its own sixteen pitches from VILLAIN_PITCHES, and misses twice. It loads the table's address into HL, which this routine overwrites with the turn's four bits before adding BC; and the offset it puts in BC, the graphic turned left two bits and cut to its top four, keeps graphic bit 5 as well as the kind, so it is $80, $90, $A0 or $B0 rather than 0 to 48. So a villain's blip is pitched by bytes of the ROM, from $0080 to $00BF, and the four villains' tables are never read (range 4's simulator run saw the villains read their pitches at ROM addresses in each of those four sixteens).
+R $C332 IX the record
+  $C332,3 the creature's pitches
+@ $C335 label=BLIP_FROM_TABLE
+  $C335,9 BLIP_FROM_TABLE: not drawn last turn, silent; the flag cleared either way
+  $C33E,15 twelve waves at the pitch for this turn of sixteen
+
+@ $C34D label=BLIP_PITCHES
+b $C34D Pitches for the blips: the creature's, and four for the villains that are never read
+D $C34D Five tables of sixteen half-wave counts for #R$C471, multiples of 16 (the larger, the lower), one for each turn of sixteen (#R$C332). The creature's, counts rising in three steps over and over -- a falling figure in pitch, since larger counts are lower notes -- is the only one read. VILLAIN_PITCHES starts the villains', one for each kind of villain in graphic order, 96-99 first, described by their counts (in pitch each is the other way up): a climb from $20 to $90, the same falling back, a zigzag fall from $90 to $20, and a pattern of eight twice. The villains' code loads the address and then loses it (see #R$C332), so none of the four sounds.
+D $C34D The same 80 bytes as Pentagram's, where they were read, as there, as the first sixteen and then data no code reached. sna2ctl took some of them for text.
+B $C34D,80,8 The creature's; then villains 96-99, 100-103, 104-107 and 108-111 (two lines each)
+@ $C35D label=VILLAIN_PITCHES
+
+@ $C39D label=ENDING_BEEP
+c $C39D A note for the ending, a little lower each time
+D $C39D Played by the update routine of the ending's pictures (#R$CD58), which resets EFFECT_TIME when a picture has finished. EFFECT_TIME counts up one each time and the pitch is it plus 64: twelve waves, lower as the count grows. The same bytes as Pentagram's pause beep, put to another use; Nightshade's pause (#R$E32C) is silent.
+  $C39D,8 one more on the count; the pitch 64 on from it
+  $C3A5,5 twelve waves
+
+@ $C3AA label=BUMP_SOUND
+c $C3AA The bump: a warble as something walks into a wall
+D $C3AA Sixteen single waves whose half-wave count is scrambled from the step count, (C XOR $A5) + C: the same routine as Pentagram's jump warble. Only if the record was drawn last turn (the flag is left for the caller): a monster of 112-127 meeting a wall (#R$C083), and the knight (#R$D9EB).
+R $C3AA IX the record
+  $C3AA,5 not on the screen: silent
+  $C3AF,14 for C = 16 down to 1: one wave at (C XOR $A5) + C
+
+@ $C3BD label=EFFECT_NOTE
+c $C3BD Play this turn's note of the sound effect under way
+D $C3BD Called by the main loop every turn. EFFECT_TIME is how many notes are left, EFFECT which effect. While the count is not zero, this takes one off and plays twelve waves at the pitch found at the effect's address in #R$C3D8 plus the count before it was taken: the notes run backwards from the end, and the byte at the effect's address is never played. The same routine as Pentagram's.
+  $C3BD,6 nothing under way: done
+  $C3C3,2 one note fewer; keep the count before
+  $C3C5,8 HL = the effect's notes
+  $C3CD,11 twelve waves at the note the count points to
+
+@ $C3D8 label=EFFECT_TABLE
+b $C3D8 The sound effects
+D $C3D8 The addresses of the four effects' notes, then the notes: half-wave counts for #R$C471. An effect of n notes plays the n bytes after its address, the last first (#R$C3BD), so the byte at each effect's address is the previous effect's first note. Effect 0, four notes, a new cell with a building in it (#R$BF48); 1, five, the faster walk (#R$D727); 2, seven, the hits back (#R$D74C); 3, four, an object taken up (#R$D942) -- whose first note is read from past the table, the first byte of #R$C3F4's code, a very short half-wave (14, about 7850 Hz where the table's own notes run from 48 to 128): a squeak before three ordinary notes. Pentagram has the same table but starts only effects 0 and 1; here effects 2 and 3 are played, so the squeak is heard.
+W $C3D8,8 Where each effect's notes start: effects 0 to 3
+B $C3E0,20,4 The notes: effect 0 plays the four after the first byte, 1 the five after the fifth, 2 the seven after the tenth, 3 the three after the seventeenth and the first byte of code
+
+@ $C3F4 label=FIRE_SOUND
+c $C3F4 The sound of a throw
+D $C3F4 32 single waves; each half-wave count is the step count less the one before, so the counts alternate between a short one and a long one: a high note and a low one, interleaved. #R$DAB7 plays it as an antibody or an object leaves the knight's hand, B being 11 less the place on the panel it came from, counted from the bottom place as 0 (measured for the sounds page). Pentagram's bolt firing.
+R $C3F4 B the count to start from
+  $C3F4,12 for C = 32 down to 1: one wave at C less the last count
+
+@ $C400 label=FOOTSTEP
+c $C400 A footstep
+D $C400 #R$DCA8 calls this for every step of the knight's walk; FOOTSTEPS counts them. Walking (speed under 12) every fourth plays four waves, at a half-wave count of 64 and 96 by turns; at the faster speed a bonus gives, every second, so the steps come twice as often. Pentagram's footstep plays two waves, and has no faster half.
+R $C400 IX the knight's legs
+  $C400,11 one more step; how fast is he going?
+  $C40B,13 walking: every fourth step, four waves at 64...
+  $C418,8 ...or at 96
+  $C420,13 faster: every second, at 64...
+  $C42D,8 ...or at 96
+
+@ $C435 label=PUFF_SOUND
+c $C435 The sound of a puff
+D $C435 Sixteen single waves at pitches read from the ROM, as Pentagram's puff and Knight Lore's crashes are: the random number with its high byte cut to five bits is an address in the first 8K, and each byte there, less its top bit, is a half-wave count. #R$D7D8 plays it as a puff (graphics 12-15) ends, if it was drawn last turn; the flag is cleared.
+R $C435 IX the record
+  $C435,9 not drawn last turn: silent; the flag cleared either way
+  $C43E,9 HL = somewhere in the first 8K of the ROM; sixteen waves
+  $C447,14 each at the next ROM byte, less its top bit
+
+@ $C455 label=APPEAR_SOUND
+c $C455 A monster appearing: a note pitched by its graphic
+D $C455 Six waves, the half-wave count the complement of the graphic turned right three bits, the top three kept: $E0, $C0, $A0 and $80 for graphics 128-131, so the note rises as the monster appears (#R$C164). Pentagram has these bytes left over as data.
+R $C455 IX the record
+  $C455,10 the pitch from the graphic
+  $C45F,4 six waves
+
+@ $C463 label=ARRIVE_SOUND
+c $C463 The knight appearing: a note that rises
+D $C463 Eight waves, the half-wave count the complement of ARRIVING, which climbs by two a turn while he appears (#R$DA7A): the note rises with it. BEEP, the rest, plays C waves at one pitch for most of the sounds here. The same code as the second half of Pentagram's unused beeps, which pitch it from a spare byte.
+R $C463 B (at BEEP) the half-wave count
+R $C463 C (at BEEP) the number of waves
+  $C463,7 the pitch from ARRIVING; eight waves
+@ $C46A label=BEEP
+  $C46A,7 BEEP: C waves at half-wave count B
+
+@ $C471 label=CLICK
+c $C471 One wave
+D $C471 Speaker bit on for B turns of a 13 T-state loop, then off for as long, with the border black throughout. The same routine as Knight Lore's, Alien 8's and Pentagram's.
+R $C471 B the half-wave count, kept
+  $C471,8 speaker on; wait
+  $C479,8 speaker off; wait; B back
+
+# --------------------------------------------------------------------------
+# The carried things
+# --------------------------------------------------------------------------
+
+@ $C481 label=PICK_UP_FIND
+c $C481 Taking up a find: which kind of antibody it gives
+D $C481 Part of #R$C489: a find of graphics 48-63 is carried as thing 5-8, by bits 2-3 of its graphic -- the low two bits of the type of cell it was found in (#R$C5CE).
+  $C481,6 things 5-8
+  $C487,2 carried as an object is
+
+@ $C489 label=PICK_UP_THING
+c $C489 Take up a thing the knight touches, if he has room
+D $C489 Called by the update routines of an object lying in the street (#R$D942) and of a find (#R$D9A3) when it touches him. The thing goes into the first empty place of the eleven in CARRIED -- an object as 1-4, its graphic less 3, a find as 5-8 -- its record is emptied, and its icon is drawn in its place on the panel, the first place at the bottom and each above the last. With all eleven full nothing is taken, and the thing stays where it is.
+D $C489 #R$DAB7 enters at DRAW_CARRIED to draw a place again after a throw, with 0, the blank icon, for an empty place.
+R $C489 IX the thing's record
+  $C489,13 the first empty place; none: nothing is taken
+  $C496,9 an object (graphics 4-7) is thing 1-4; a find goes to #R$C481
+  $C49F,5 carried; the record emptied
+@ $C4A4 label=DRAW_CARRIED
+  $C4A4,7 DRAW_CARRIED: DE = the place; the icons' characters (#R$7571)
+  $C4AB,19 the place's number (11 - B) sets the height: 16 pixels a place up from the bottom, 16 in
+  $C4BE,30 the thing's four characters, two over two
+
+@ $C4DC label=COLOUR_CARRIED
+c $C4DC Colour the carried things on the panel, flashing an object near its villain
+D $C4DC Every turn. Each carried thing's icon is given its colour from #R$C52F, two by two, from the bottom of the panel up to the first empty place: an object in the colour its villain is drawn in once destroyed (#R$C1FD), the four kinds of antibody magenta, green, cyan and yellow. An object whose villain is less than five cells from the knight in column and row flashes through the antibody colours instead, one a turn: the game's sign that the villain it kills is near.
+  $C4DC,7 in the second register set: the colours, and the attribute of the lowest place
+  $C4E3,8 the eleven places, as far as the first empty one
+  $C4EB,4 an object? is its villain near?
+  $C4EF,7 the thing's colour
+  $C4F6,12 two attributes, and the two above; HL on up to the next place
+  $C502,5 the next place
+  $C507,25 IX = the villain object n kills: record 4 - n; less than five cells away?
+  $C520,4 no: its own colour
+  $C524,11 yes: an antibody's colour, a different one each turn
+
+@ $C52F label=THING_COLOURS
+b $C52F Colours of the carried things and of the destroyed villains
+D $C52F An attribute for each thing by its number, all bright on black: 1-4 the objects, red, magenta, green and cyan; 5-8 the antibodies, magenta, green, cyan and yellow. #R$C1FD colours the picture of the villain in record n with the byte for thing 4 - n, the object that kills it, so the two share a colour. The first byte, for thing 0, is never read. sna2ctl took the first byte for spare space and the rest for text.
+B $C52F,1 Thing 0: never read
+B $C530,8,4 Things 1-4, the objects; 5-8, the antibodies
+
+# --------------------------------------------------------------------------
+# Touching
+# --------------------------------------------------------------------------
+
+@ $C538 label=ANTIBODY_STRIKE
+c $C538 Is the thing at IX struck by an antibody?
+D $C538 Meant to try both antibody records against the thing at IX, returning with carry set and IY on the antibody that touches it. But the loop loads the size of a record into DE and never adds it to IY, so it tries the first record twice and never the second: an antibody thrown while another is still in flight goes through monsters and the creature without harming them. Used by the creature (#R$BFF1), the monsters of 112-127 (#R$C083) and those of 64-79 (#R$CE89).
+D $C538 Measured: with an antibody on a monster in the first record, carry; the same antibody in the second record, no carry, IY still on the first.
+R $C538 IX the thing
+R $C538 O:F carry if struck
+R $C538 O:IY the first antibody record
+  $C538,6 IY = the first antibody record; two tries
+  $C53E,6 touching? carry
+  $C544,5 the step to the next record is loaded, but never added
+
+@ $C54A label=ANTIBODY_TOUCHING
+c $C54A Does the antibody at IY touch the thing at IX?
+R $C54A IX the thing
+R $C54A IY an antibody record
+R $C54A O:F carry if it does
+  $C54A,8 not an antibody in flight (graphics 80-95): no
+  $C552,2 the overlap test
+
+@ $C554 label=OBJECT_STRIKE
+c $C554 Does a thrown object touch its villain?
+D $C554 For #R$D80C, the update routine of a thrown object. Its villain is the record 64 bytes on from its own -- the object and villain records are in the same order (#R$BBAA) -- and this is the only test made, so an object passes through the other three villains harmlessly.
+R $C554 IX the object's record
+R $C554 O:F carry if it touches its villain
+  $C554,11 IY = its villain; the overlap test
+
+@ $C55F label=TOUCHING_KNIGHT
+c $C55F Does the thing at IX touch the knight?
+D $C55F Never while he is appearing (ARRIVING short of $70), nor unless his legs are standing or walking (graphics 16-47): not while he vanishes. TOUCH_TEST, the rest, is the overlap test every touching test in the game ends with, IX against IY: along U the distance between them, the whole 16-bit positions, must be less than IX's half-size plus half of IY's; the same along V; carry if both. The positions carry the cell, so things in neighbouring cells meet across the line between them.
+R $C55F IX the thing
+R $C55F O:F carry if touching
+  $C55F,7 still appearing: no
+  $C566,12 IY = his legs; not standing or walking: no
+@ $C572 label=TOUCH_TEST
+  $C572,11 TOUCH_TEST: C = half IY's half-size in U, plus IX's
+  $C57D,18 HL = how far apart they are along U, made positive
+  $C58F,4 not closer than C: no
+  $C593,33 the same along V; carry if closer
+
+# --------------------------------------------------------------------------
+# The turn counter and the random number; the finds
+# --------------------------------------------------------------------------
+
+@ $C5B4 label=NEXT_TURN
+c $C5B4 Count a turn, and stir the random number
+D $C5B4 NEXT_TURN adds one to TURNS, once a turn in the main loop and at a few points of a new game's set-up. STIR_RANDOM, the rest, is called after every record's update and before most random choices. The random number's low byte becomes R plus itself plus the turn counter's low byte, with the carry; its high byte just adds the turn counter's high byte, with no carry from the low. R counts the instructions run, which depends on all the game has done, so the low byte is hard to predict; the high byte is not -- a fixed step, the same for 256 turns at a time, added once a stir.
+  $C5B4,7 one more turn
+@ $C5BB label=STIR_RANDOM
+  $C5BB,15 STIR_RANDOM: the low byte from R, itself and the counter's low byte; the high byte plus the counter's high byte
+  $C5CA,4 kept
+
+@ $C5CE label=SPAWN_FIND
+c $C5CE Every sixteen turns, a find in the knight's cell if its type has any left
+D $C5CE Not while he is appearing. If a find record is free and the type of cell he stands in still has finds in STOCKS, one is taken from the stock and a find (graphic 48, 52, 56 or 60, by the type's low two bits) put in his cell at a random place 64-191 across it each way, half-size 8. The stock is shared by every cell of the type, and the find keeps the type at +5 so that #R$D9A3 can put it back if he leaves it behind. Open ground, type 0, has no stock: finds come only in cells with buildings.
+  $C5CE,6 not while he appears
+  $C5D4,6 one turn in sixteen
+  $C5DA,20 the first empty find record; none: no find
+  $C5EE,13 his cell, and its type from the map
+  $C5FB,10 none left of that type: no find
+  $C605,10 one fewer; the find in his cell, its type kept at +5
+  $C60F,10 graphic 48, 52, 56 or 60 by the type's low two bits
+  $C619,19 a random place in the cell, 64-191 each way
+  $C62C,17 half-size 8 each way; the drawing offset
+
+# --------------------------------------------------------------------------
+# The tune player
+# --------------------------------------------------------------------------
+
+@ $C63D label=PLAY_TUNE_ONCE
+c $C63D Play the menu's tune at DE, once, until a key is pressed
+D $C63D The menu (#R$C8CA) calls this every time round its loop. TUNE_PLAYED remembers that the tune has been played, so it plays only the first time; a new game clears it with the rest of the variables, so it plays again when the menu comes back. Before each note the whole keyboard is read, and any key stops the tune at once. The same routine as Alien 8's and Pentagram's.
+R $C63D DE the tune
+  $C63D,6 played already: done
+  $C643,2 not again
+  $C645,7 A = 0 reads every half-row at once: any key stops it
+  $C64C,10 $FF ends the tune; play a note, and look at the keys again
+
+@ $C656 label=PLAY_TUNE
+c $C656 Play the tune at DE
+D $C656 Plays the whole tune and returns; nothing else happens meanwhile. Used by #R$BE0F as a game starts, #R$CBAC at each new life after the first, #R$CC56 after a game and #R$CD10 at the end of the ending.
+R $C656 DE the tune
+  $C656,10 $FF ends it; play the note, and the next
+  $C660,1 DE is left at the $FF
+
+@ $C661 label=PLAY_NOTE
+c $C661 Play one note
+D $C661 A note byte's low six bits index #R$C6B9, with 0 a rest; its top two bits are its length less one, one to four units. The note's three bytes are two loop counts that time each half of a wave and how many waves make one unit, and the wave count rises with the pitch, which keeps every unit close to the same length whatever the note. The speaker is driven directly, off for one half-wave and on for the other, with the border black.
+D $C661 The routine and #R$C6B9 are byte for byte Knight Lore's (play_note there), Alien 8's and Pentagram's, at other addresses.
+R $C661 A the note byte
+R $C661 DE the address of the note byte; on exit, the next one
+  $C661,4 index 0 is a rest
+  $C665,11 HL = #R$C6B9 + 3 * index
+  $C670,7 B and C time the half-wave; HL = the number of waves in one unit
+  $C677,6 the top two bits: the length, one to four units
+  $C67D,9 HL = the waves in one unit times the length
+  $C686,1 the tune pointer back in DE
+  $C687,9 speaker off, border black; wait
+  $C690,11 speaker on; wait
+  $C69B,6 until all the waves are done
+  $C6A1,2 on to the next note byte
+@ $C6A3 label=NOTE_REST
+  $C6A3,7 NOTE_REST: a rest, one to four units...
+  $C6AA,15 ...each 17163 turns of a 26 T-state loop, about 0.127 seconds (no tune has a rest, and this never ran)
+
+# Instructions whose operands only look like addresses (carried from the
+# stage 1 annotations for this range).
+
+# --------------------------------------------------------------------------
+# The menu, the printer, lives, game over and the drawing order
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Stage 2, range 2 ($C6B9-$CFAE): the notes and tunes, the menu, the frames
+# and the printer, the start cell, the new life and its check, game over and
+# the ending, the monsters' spawning, the monsters of graphics 64-79, and the
+# walk round the drawing order.
+# --------------------------------------------------------------------------
+
+# The notes and the tunes: laid out per record by scripts/nightshade_data.py,
+# which also gives their labels; only the titles and the format here.
+
+b $C6B9 The notes: two loop counts and a length for each
+D $C6B9 Three bytes a note, looked up by #R$C661 at three times the note number: B and C, the two counts of the timing loop that holds the speaker off and then on for half a cycle each, and the number of cycles one unit of the note lasts. A half cycle is B + 256 * (C - 1) passes of the loop, so note 1 is the lowest; each note's count is the one before's divided by very nearly the twelfth root of two (2548 and 2405 for notes 1 and 2), so the sixty notes are semitones, five octaves. The third byte grows as the pitch rises, so that a unit lasts about the same time whatever the note -- about forty-one thousand passes of the loop, a little under a sixth of a second.
+D $C6B9 Note 0 is a rest: #R$C661 goes to a fixed delay instead and never reads its three zeros.
+
+b $C770 Tune: the menu's tune
+D $C770 A byte a note: bits 0-5 the note in #R$C6B9 (0 would be a rest, and no tune has one), bits 6-7 its length in units less one; $FF ends the tune. #R$C656 plays a tune through; #R$C63D plays this one, the first time the menu comes up after the start or a game, and stops at a key.
+
+b $C7F4 Tune: a control method chosen
+D $C7F4 Played by #R$C8CA when a key on the menu changes the control method or directional control; Alien 8's menu beeps there instead.
+
+b $C7F8 Tune: a game starting
+D $C7F8 Played by #R$BE0F when 0 is pressed on the menu, before the play screen is drawn.
+
+b $C803 Tune: game over
+D $C803 Played by #R$CC56 once the percentage and the score are on the screen.
+
+b $C81A Tune: the end of the ending
+D $C81A Played by #R$CD10 when the last villain has sunk into the pit, before the menu.
+
+b $C839 Tune: a new life
+D $C839 Played by #R$CBAC when a life ends and there is another; not for the first life of a game, and not when none are left.
+
+@ $C83F label=DRAW_PANEL_FRAME
+c $C83F Draw the frame round the carried things
+D $C83F The panel down the left of the screen: two uprights in character columns 1 and 4, from the top row to the bottom, joined along the bottom row, in bright magenta. The eleven things the knight carries are drawn between them, a picture two characters square each, one above the other (#R$C489). The five pieces are the characters at #R$6CB6, in this order: 0 the top of an upright, 1 an upright, 2 the bottom left corner, 3 the bar, 4 the bottom right corner -- so the foot is printed 2, 3, 3, 4. Called once a game, by #R$BE0F.
+  $C83F,3 bright magenta into A'
+  $C842,6 the five pieces are codes 0-4
+  $C848,10 column 1: its top, on the top row
+  $C852,7 then 22 uprights, down to row 22
+  $C859,23 row 23: the left corner, two lengths of bar, the right corner
+  $C870,10 column 4: its top
+  $C87A,4 and 22 uprights, by running into the loop
+@ $C87E label=PANEL_UPRIGHTS
+  $C87E,11 B pieces A, one below the other
+
+@ $C889 label=COLOUR_STRIP
+c $C889 Colour a strip two cells wide in the play area's attributes
+R $C889 A the colour
+R $C889 HL the first cell in the attribute buffer (#R$F044)
+R $C889 B how many rows
+D $C889 Writes the colour, with the play area's paper this turn (LAST_FLASH) mixed in, into two neighbouring cells of each of B rows of the attribute buffer, 24 bytes a row. #R$D356 colours the buildings' walls with it; running a strip down to the bottom row of the buffer writes one byte beyond it (#R$F194).
+  $C889,5 the colour with this turn's paper
+  $C88E,10 two cells a row, B rows
+
+@ $C898 label=COLOUR_KNIGHT
+c $C898 Colour the knight by the hits he has left
+R $C898 A the colour (from the list at #R$C065, by HITS)
+R $C898 HL his place in the attribute buffer
+R $C898 B how many rows (4)
+D $C898 Called every turn by #R$BE0F with the knight's place in the middle of the play area: bright white with three hits left, yellow with two, green with one. Four rows of two cells: the left one of each row bright and the right one not, with the play area's paper this turn mixed into both. Nothing is coloured while his record is empty, between one life and the next.
+  $C898,7 nothing while his legs' record is empty
+  $C89F,8 the colour with this turn's paper
+  $C8A7,11 each row: the left cell bright, the right one not bright and not flashing
+
+@ $C8B2 label=FILL_ATTR_RECT
+c $C8B2 Fill a rectangle of the play area's attributes
+R $C8B2 A the colour
+R $C8B2 HL the top-left cell's address in the attribute buffer
+R $C8B2 B the width, in cells
+R $C8B2 C the height, in rows
+D $C8B2 As Pentagram's FILL_RECT, but for the attribute buffer, 24 bytes a row, and with the play area's paper this turn (LAST_FLASH) mixed into the colour. The ending's pictures are coloured with it (#R$CD10).
+  $C8B2,5 the colour with this turn's paper
+  $C8B7,8 DE = 24 - B, from the end of one row to the start of the next
+  $C8BF,11 B cells a row, C rows
+
+@ $C8CA label=MENU
+c $C8CA The menu
+D $C8CA Called by #R$BE0F before every game, after the screen has been cleared. It clears MENU_SHOWN, so that the first time the text is printed the border is drawn round it, stops every line's flash, clears the play area's buffers (the second half of #R$E200), draws the menu (#R$CA2B) and flashes the lines chosen (#R$C949). Then round a loop: print the text again (which rewrites the attributes, and so the flashing), play the menu's tune the first time round (#R$C63D, which a key cuts short), and read the keys.
+D $C8CA Keys 1 to 4 set bits 1 and 2 of CONTROL to 0 keyboard, 1 Kempston, 2 cursor, 3 Interface II; if several are held the highest wins, since each is applied in turn. Key 5 toggles bit 3, directional control, once a press (KEY_LATCH). A change to CONTROL plays a short tune (#R$C7F4). Key 0 starts the game. Every pass counts the turn counter on and stirs the random number with R (#R$C5B4), so the time spent on the menu decides where the knight starts (#R$CB7B).
+D $C8CA Alien 8's MENU, key 5 and all, but for the tune where Alien 8 beeps, the random number where Alien 8 counts a seed, and the clearing of the buffers.
+  $C8CA,4 no text printed yet: the first printing draws the border
+  $C8CE,10 no line flashing: all eight colours in #R$C962
+  $C8D8,9 a clear buffer; the menu and its border; the lines chosen
+@ $C8E1 label=MENU_LOOP
+  $C8E1,9 the text again; the tune, once
+  $C8EA,5 E = keys 1-5, key 1 in bit 0
+  $C8EF,7 A = CONTROL, and as it was into LAST_CONTROL
+  $C8F6,6 1: keyboard
+  $C8FC,8 2: Kempston
+  $C904,8 3: cursor keys
+  $C90C,6 4: Interface II
+  $C912,3 the new method
+  $C915,7 key 5 not held: clear its latch (at the end)
+  $C91C,4 still held since the last pass: nothing
+  $C920,10 a new press: latch it, and toggle directional control
+@ $C92A label=MENU_TUNE_IF_CHANGED
+  $C92A,10 A is the new CONTROL whichever way this is reached: the tune if it has changed
+  $C934,8 key 0 (bit 0 of the 6-0 half-row): start the game
+  $C93C,3 the turn counter on, and the random number stirred
+  $C93F,6 flash the choice; round again
+@ $C945 label=MENU_KEY5_RELEASED
+  $C945,4 key 5 is up: clear the latch
+
+@ $C949 label=FLASH_MENU
+c $C949 Flash the chosen lines on the menu
+D $C949 Sets the FLASH bit on the colour of the line for the method in bits 1-2 of CONTROL and clears it on the other three (#R$CA1B), then sets or clears it on the next colour -- the directional-control line's -- to match bit 3 of CONTROL. The colours are #R$C962's, from the second; the title's is left alone. As Knight Lore's, Alien 8's and Pentagram's, instruction for instruction.
+  $C949,14 the four method lines: flash the one for bits 1-2
+  $C957,11 HL is now on the directional-control line's colour: flash it if bit 3 is set
+
+b $C962 The menu: colours, places and text
+D $C962 The positions are x and y in pixels, y counting up from the bottom of the screen, as #R$E556 takes them. The layout is Alien 8's and Pentagram's: the title, the four control methods and directional control, the start line and the copyright line. The colours: bright magenta for the title, bright green for the methods, bright cyan for directional control, bright white for the last two.
+
+t $C97A The menu's text
+D $C97A ASCII from the font's first character (code $30), with bit 7 set on each string's last character. The copyright line reads on the screen as a copyright sign, 1985 and A.C.G. with full stops: the font draws a copyright sign for the semicolon's code and a full stop for the colon's (drawn from the font's bytes, #R$6CDE).
+
+@ $C9EF label=PRINT_TEXT_SINGLE_COLOUR
+c $C9EF Print a string in one colour
+R $C9EF HL the position: L = x, H = y, in pixels, y counting up from the bottom of the screen
+R $C9EF DE the string, ASCII with bit 7 set on the last character
+R $C9EF A' the colour
+R $C9EF O:DE the byte after the string
+D $C9EF Prints straight onto the screen in the font (#R$6CDE), colouring each character's cell as it goes (#R$CB5B). The rest is in #R$C9FC. The menu's lines are printed with it (#R$CA2B). Unlike Alien 8's printer, which draws into its screen buffer, Nightshade's text goes straight to the display: the play area is the only part of the screen it buffers.
+  $C9EF,8 the text font: FONT_BASE 384 bytes below the font, so that a letter's code lands on its character
+  $C9F7,5 HL = the screen address of the position (#R$E556); print
+
+@ $C9FC label=PRINT_TEXT
+c $C9FC Print a string whose first byte is its colour
+R $C9FC HL the position: L = x, H = y, in pixels, y counting up from the bottom
+R $C9FC DE the colour byte, then the string, bit 7 set on its last character
+R $C9FC O:DE the byte after the string
+D $C9FC As #R$C9EF, but the colour is the string's own first byte. The panel's heading (#R$C2E7) and the four lines after a game (#R$CDAF) are printed with it.
+  $C9FC,11 the text font; HL = the screen address
+  $CA07,3 the colour, from the string's first byte, into A'
+@ $CA0A label=PRINT_TEXT_CHAR
+  $CA0A,6 bit 7 marks the last character
+  $CA10,6 print it and colour its cell; one cell right
+@ $CA16 label=PRINT_TEXT_LAST
+  $CA16,5 the last character, without its end marker
+
+@ $CA1B label=TOGGLE_SELECTED
+c $CA1B Flash one of B attributes, and steady the rest
+R $CA1B HL the first attribute
+R $CA1B B how many
+R $CA1B A which one flashes, counting from 0
+D $CA1B Sets bit 7, FLASH, on the A'th of B attribute bytes from HL and clears it on the others; HL comes back just past the last. #R$C949 marks the chosen control method with it. This entry deals with the first byte; the loop is #R$CA22. Alien 8's and Pentagram's TOGGLE_SELECTED.
+  $CA1B,3 not the first
+@ $CA1E label=FLASH_THIS_ONE
+  $CA1E,4 flash this one
+
+@ $CA22 label=FLASH_NEXT_ONE
+c $CA22 The rest of #R$CA1B
+D $CA22 Counts A down a byte at a time, flashing the byte where it reaches zero.
+  $CA22,3 this is the one
+@ $CA25 label=UNFLASH_THIS_ONE
+  $CA25,2 steady
+@ $CA27 label=FLASH_LIST_STEP
+  $CA27,4 the next byte, until B runs out
+
+@ $CA2B label=DISPLAY_MENU
+c $CA2B Draw the menu
+D $CA2B Prints the menu's eight lines from the three lists at #R$C962 -- a colour, a position and a string each -- and, the first time after MENU_SHOWN was cleared, draws the border round the screen (#R$CA9D). Called when the menu starts and on every pass of its loop (#R$C8CA); printing the same text over itself changes nothing but the attributes, which is how the flashing lines change. Alien 8's DISPLAY_MENU and its DISPLAY_TEXT_LIST in one, since Nightshade prints no other list.
+  $CA2B,4 DE' = the colours
+  $CA2F,8 HL = the positions, DE = the strings; eight lines
+@ $CA37 label=DISPLAY_MENU_LINE
+  $CA37,7 L = x, H = y; HL moved on to the next pair and kept
+  $CA3E,5 this line's colour into A', from DE'
+  $CA43,6 print it, and loop
+  $CA49,5 the border has been drawn already
+  $CA4E,7 the first time: say so, and draw it
+
+@ $CA55 label=DRAW_PLAY_FRAME
+c $CA55 Draw the frame round the play area
+D $CA55 Yellow on red, in the border's pieces (#R$BB0A) as #R$CAE5 arranges them: corners two characters square at rows 0 and 16 and columns 5 and 29; eleven lengths of edge along the top and the bottom between them, from column 7; seven lengths of side down each side, from row 2. The play area is what it encloses, character rows 2-15 and columns 7-28. Called once a game, by #R$BE0F.
+  $CA55,12 yellow on red; the border's pieces; the frame's layout
+  $CA61,24 the four corners, taking four codes each
+  $CA79,16 the top and the bottom, the same four codes for every length
+  $CA89,4 past the edges' codes to the sides'
+  $CA8D,16 the left and the right side
+
+@ $CA9D label=PRINT_BORDER
+c $CA9D Draw the border round the screen
+D $CA9D Bright yellow on blue, in the same pieces and layout as the play area's frame (#R$CA55), but round the whole screen: corners at rows 0 and 22 and columns 0 and 30, fourteen lengths of edge along the top and the bottom from column 2, ten lengths of side down each side from row 2. Round the menu (#R$CA2B) and the screen after a game (#R$CC56).
+  $CA9D,12 bright yellow on blue; the border's pieces; the layout
+  $CAA9,24 the four corners
+  $CAC1,16 the top and the bottom
+  $CAD1,4 past the edges' codes to the sides'
+  $CAD5,16 the left and the right side
+
+@ $CAE5 label=FRAME_PIECES
+b $CAE5 The layout of the frames, in the border's characters
+D $CAE5 Codes into the border's characters (#R$BB0A), four to a piece two characters square: the top row's left and right, then the bottom row's. Read in this order by #R$CA55 and #R$CA9D, a piece at a time with #R$CB3E.
+B $CAE5,16,4 The corners: top left, top right, bottom left, bottom right
+B $CAF5,8,4 A length of the top or the bottom edge; a length of a side
+
+@ $CAFD label=PRINT_BLOCK_ROW
+c $CAFD Print a piece several times along a row
+R $CAFD HL the screen address of the first
+R $CAFD DE its four codes
+R $CAFD B how many
+R $CAFD A' the colour
+R $CAFD O:HL two characters past the last
+D $CAFD Each two characters to the right of the one before, with the same four codes.
+  $CAFD,12 a piece; two characters right; the same codes again
+
+@ $CB09 label=PRINT_BLOCK_COLUMN
+c $CB09 Print a piece several times down a column
+R $CB09 HL the screen address of the first
+R $CB09 DE its four codes
+R $CB09 B how many
+R $CB09 A' the colour
+D $CB09 Each two character rows below the one before, with the same four codes.
+  $CB09,16 a piece; two rows down; the same codes again
+
+@ $CB19 label=PRINT_CHAR
+c $CB19 Print a character on the screen
+R $CB19 A the code
+R $CB19 HL the screen address of its top row
+D $CB19 Copies the character's eight bytes, from FONT_BASE plus eight times the code, onto the eight pixel rows of the cell, and gives HL back as it was. A space is printed as code $3C, a blank character in the font; the icons come in at PRINT_CODE, where a code of $20 is a character like any other. Alien 8's PRINT_CHAR drew into a buffer and moved HL on; this one draws on the screen and does not.
+  $CB19,6 a space is $3C, blank in the font
+@ $CB1F label=PRINT_CODE
+  $CB1F,15 DE = FONT_BASE + 8 * the code
+  $CB2E,9 eight rows, each 256 bytes on in the screen's layout
+  $CB37,7 back up to the top row
+
+@ $CB3E label=PRINT_BLOCK
+c $CB3E Print four characters as a piece two characters square
+R $CB3E HL the screen address of the top-left
+R $CB3E DE the four codes: top left, top right, bottom left, bottom right
+R $CB3E A' the colour
+R $CB3E O:DE past the four codes
+D $CB3E Each character is coloured as it is printed (#R$CB5B). HL comes back as it was. The frames are made of these (#R$CAE5), and so are the compass (#R$C2C8) and the lives (#R$CC1D).
+  $CB3E,12 the top row's two
+  $CB4A,4 back to the left, a character row down
+  $CB4E,13 the bottom row's two
+
+@ $CB5B label=PRINT_CHAR_COLOURED
+c $CB5B Print a character and colour its cell
+R $CB5B A the code
+R $CB5B HL the screen address of its top row
+R $CB5B A' the colour
+D $CB5B Prints with #R$CB19 and writes A' into the cell's attribute byte, which is at the same column and row in the attribute file: the third of the screen (bits 3-4 of H) picks the attribute page, and L is the same in both. A' is kept for the next character.
+  $CB5B,3 print it
+  $CB5E,13 HL = the attribute address: page $58 plus the third
+  $CB6B,3 colour it, keeping the colour in A'
+
+@ $CB71 label=NEXT_CHAR_ROW
+c $CB71 Move a screen address down a character row
+R $CB71 HL the screen address
+D $CB71 32 on, and into the next third of the screen (8 pages on) when that carries out of L.
+
+@ $CB7B label=RANDOM_START_CELL
+c $CB7B Choose the cell a new game starts in
+D $CB7B Called by #R$BE0F at every new game. The random number, stirred (#R$C5B4), gives a cell of the town map at random; if it is solid (types 1 and 2) the next cell in the map is tried, and the next, until one is not. Its column and row go into the start records (#R$CC36), where #R$CBAC takes them from; he starts in the middle of the cell. Only the cells a knight can stand in are chosen, but not all equally: a cell just after a run of solid ones in the map is chosen for the whole run as well as for itself.
+  $CB7B,3 stir the random number with R
+  $CB7E,8 DE = a cell, 0-1023: the row in bits 5-9, the column in bits 0-4
+  $CB86,10 is it solid, type 1 or 2?
+  $CB90,3 then the next one
+  $CB93,6 the column
+  $CB99,18 and the row, from bits 5-9
+
+@ $CBAC label=NEW_LIFE
+c $CBAC Start a new life when the knight's record is empty
+D $CBAC Called every turn by #R$BE0F; it does nothing until the knight's legs' record is empty, which happens when a life ends and his vanishing (graphic 12) has run its four turns.
+D $CBAC Then it checks its own code. The byte at TAKE_LIFE, the instruction that takes a life, must still be $35, DEC (HL); if it is anything else the game jumps to RESET (in #R$C1DB), address 0, and the Spectrum starts again from its copyright message. So the obvious infinite-lives poke -- a NOP over that DEC -- resets the machine at the first death instead. It is the fourth of the game's protections, and the only one aimed at a player rather than a copier.
+D $CBAC With lives left it plays the new-life tune (#R$C839), copies the start records (#R$CC36) over the knight's two records -- at a new game #R$BE0F comes in at FIRST_LIFE, without the tune -- sets him appearing (ARRIVING) with three hits, and takes a life: with none to take, the game is over (#R$CC56). Otherwise the monsters are cleared away (#R$C057), his cell is marked visited (#R$BF48), and the lives are drawn on the panel: five places at character row 18 from column 5, a bright white knight for each life left and a blue one for each lost.
+E $CBAC LIVES counts the lives besides the one being played. A new game sets it to 6, from the opcode of the JR at LIVES_BYTE (in #R$BE0F), and the first life takes one, so the panel starts with five.
+  $CBAC,5 his legs' record still in use: nothing to do
+  $CBB1,8 the check: DEC (HL) at TAKE_LIFE, or reset the machine
+  $CBB9,12 a life to come: the new-life tune
+@ $CBC5 label=FIRST_LIFE
+  $CBC5,11 the start records over the knight's legs and top
+  $CBD0,5 appearing: ARRIVING counts up from here to $70, when he is there
+  $CBD5,5 three hits
+  $CBDA,3 the lives
+@ $CBDD label=TAKE_LIFE
+  $CBDD,1 take one (the instruction the check reads)
+  $CBDE,3 none left: game over
+  $CBE1,3 no monsters
+  $CBE4,7 his cell visited, with IX on his record
+  $CBEB,9 the life picture's eight characters, 16 into #R$7A6F; bright white
+  $CBF4,6 codes 0-7; row 18, column 5
+  $CBFA,9 B = lives left, C = 5 - B lost
+  $CC03,11 B white knights, two columns apart
+  $CC0E,6 then blue
+  $CC14,9 for the C lost
+
+@ $CC1D label=PRINT_LIFE_ICON
+c $CC1D Print a life's picture on the panel
+R $CC1D HL the screen address of its top-left
+R $CC1D DE its eight codes (#R$CC2E)
+R $CC1D A' the colour
+D $CC1D Two pieces two characters square (#R$CB3E), one above the other: a knight two characters wide and four tall. HL and DE come back as they were.
+  $CC1D,17 the top half; two rows down; the bottom half
+
+@ $CC2E label=LIFE_ICON_CODES
+b $CC2E The codes of a life's picture
+D $CC2E The eight characters from the life picture in the panel's icons (#R$7A6F), in the order #R$CC1D prints them.
+B $CC2E,8,4 The top half's four, then the bottom half's
+
+b $CC36 The knight's two records at a new life
+D $CC36 He starts in the middle of the cell, U and V's low bytes 128. At a new game #R$BE0F turns him to face $40 (START_FACING) and #R$CB7B writes a random cell; at a death #R$CE89 writes the cell he died in and the facing and flags he had, so the next life starts where the last ended. The top's position is left at 0 here and set by its own update.
+
+@ $CC56 label=GAME_OVER
+c $CC56 Game over: the percentage and the score, then the menu, or the ending if the villains are gone
+D $CC56 Reached when the last life is taken (#R$CBAC) and when the fourth villain's sparkles have finished (#R$D865). Works out the percentage (#R$BEDF), clears the screen, draws the border round it (#R$CA9D) and prints the four lines of #R$CDAF, the percentage after the third and the score after the fourth, then plays the game-over tune and waits half a second.
+D $CC56 If any of the four villains is still alive (graphics 96-111) it is back to the menu, by way of #R$BE0F. If none is, the ending: every object record is emptied (#R$CD02), ten are filled from #R$CCE4, the screen is cleared again, ENDING is set and the main loop is entered; with ENDING set the main loop only updates the records, and the ending's routines (#R$CD10, #R$CD58) do the rest.
+E $CC56 It is jumped to from inside routines the main loop calls, and ends by jumping to #R$BE0F or to MAIN_LOOP in it, which never set the stack pointer again (only #R$BDFE does): every game over leaves two bytes on the stack, and every ending four. Measured over four games and an ending, the stack pointer at the menu went down by exactly that each time. It would take about 150 games in one sitting for the stack to grow down through the rest of the BASIC program into the system variables and over NMIADD, the JP (HL) every update goes through.
+  $CC56,3 the percentage
+  $CC59,6 a clear screen, and the border round it
+  $CC5F,9 the first line at (88, 135), in its own colour
+  $CC68,18 the next three, each at its place, DE running on through the text
+  $CC7A,9 the percentage after COMPLETED, at row 12, column 20, in cyan
+  $CC83,9 the score after SCORE, at row 15, column 16, in yellow
+  $CC8C,6 the game-over tune
+  $CC92,5 a pause (the B it sets is not used)
+  $CC97,19 a villain still alive (96-111): the menu and a new game
+  $CCAA,15 the ending: every record empty, then ten from the ending's list
+  $CCB9,15 the graphic, and the screen x and y in the step bytes
+  $CCC8,14 no flags, no drawing offset
+  $CCD6,11 a clear screen; ENDING set; a clear buffer
+  $CCE1,3 and the main loop, which with ENDING set only updates the records
+
+b $CCE4 The ending's ten records
+D $CCE4 The x and y go into each record's step bytes (+A and +B), which the ending's routines use as a place in the play area, y counting up from its bottom. Records 0-4 are the back of a pit, five pictures side by side (graphics 153-157, drawn in white by #R$CD10); records 5-8 are the four villains (graphics 144, 146, 148 and 150, the pictures of the villains of 96, 100, 104 and 108), waiting at the left and right edges (#R$CD58); record 9 is the front of the pit (graphic 152), updated last and so drawn over whatever is sinking into it.
+
+@ $CD02 label=CLEAR_OBJECTS
+c $CD02 Empty all 23 object records
+D $CD02 Writes 0, the empty graphic, into the first byte of each; the rest of each record is left as it was. Before the ending (#R$CC56).
+  $CD02,14 23 records, 16 bytes apart
+
+@ $CD10 label=ENDING_PIT_FRONT
+c $CD10 The ending: the front of the pit (graphic 152), and the end of the ending
+R $CD10 IX the record (the tenth)
+D $CD10 The update routine for graphic 152 (#R$D599), in the ending's last record. While the record before it -- the last villain's -- is in use, the picture is drawn in white; when that empties, the last villain has sunk out of sight, and the tune for the end plays (#R$C81A) and it is back to the menu by way of #R$BE0F.
+D $CD10 ENDING_PICTURE is the update routine for graphics 153-157, the back of the pit, drawn in white every turn. DRAW_ENDING_PICTURE draws any of the ending's pictures: the screen position from the step bytes, the sprite (#R$E3D9), and a rectangle of attributes over it in the colour in ENDING_COLOUR (#R$C8B2).
+  $CD10,6 the last villain gone: the end
+@ $CD16 label=ENDING_PICTURE
+  $CD16,5 white
+@ $CD1B label=DRAW_ENDING_PICTURE
+  $CD1B,12 where to draw it: the step bytes, which hold its place in the ending
+  $CD27,3 draw it
+  $CD2A,9 HL = its place in the attribute buffer (#R$E579)
+  $CD33,18 C = the character rows it covers, from its height and y
+  $CD45,10 B = its width; colour them
+@ $CD4F label=ENDING_OVER
+  $CD4F,9 the tune for the end, and the menu
+
+@ $CD58 label=ENDING_VILLAIN
+c $CD58 The ending: a villain carried over the pit and sunk into it (graphics 144-151)
+R $CD58 IX the record
+D $CD58 Each of the four waits, unseen, while the record before it holds a villain still on its way (144-151), so they go one at a time. Then it moves across, at most four a turn, to four to the right of the pit's front picture (record 9's x), and then sinks four a turn until its y is below 48, when it is gone and its record emptied. It swaps between its two frames every turn, and is drawn in its own colour -- red, magenta, green and cyan for the villains of 96, 100, 104 and 108 -- with a rising sound (#R$C39D) all the while it moves.
+  $CD58,8 the other of its two frames
+  $CD60,8 the one before still on its way: wait
+  $CD68,3 the sound, a little higher each turn
+  $CD6B,8 how far across from four right of the pit's front, at most four
+  $CD73,9 not there yet: across
+@ $CD7C label=DRAW_ENDING_VILLAIN
+  $CD7C,14 its colour, $42 to $45 by bits 1-2 of the graphic, and draw it
+@ $CD8A label=SINK_ENDING_VILLAIN
+  $CD8A,12 over the pit: down four, and drawn until y is below 48
+  $CD96,8 gone: the sound off, the record empty
+
+@ $CD9E label=STEP_TOWARDS_X
+c $CD9E How far an ending picture should move across this turn
+R $CD9E A where it is going (x)
+R $CD9E IX its record
+R $CD9E O:A the difference from its x, kept to -4..4
+  $CD9E,11 at or to the right of it: 0-4
+  $CDA9,6 to the left: -4 to -1
+
+t $CDAF The text after a game
+D $CDAF The four lines' places are in #R$CC56: GAME OVER at the top, the percentage line, then COMPLETED with the percentage after it, and SCORE with the score after it.
+
+@ $CDDF label=GAME_OVER_PAUSE
+c $CDDF Wait about half a second
+D $CDDF Counts HL down through all its values, some sixty-five thousand passes of 26 T-states. #R$CC56 sets B to 4 before calling, perhaps meaning four of these, but nothing here reads it.
+
+@ $CDE8 label=SPAWN_MONSTER
+c $CDE8 Bring a monster into a cell next to the knight's
+D $CDE8 Called by #R$BE0F every turn but during the ending. Once the knight has finished appearing, every fourth turn (bits 0-1 of TURNS both set), the first empty monster record (MONSTERS) gets #R$CE79, a monster appearing (graphic 128). Its cell is the knight's or one of the eight round it, a column and a row each chosen from a third of the random number's range. It goes at a random place in that cell, at least 32 from each edge; one that appears in the first half of every 256 turns gets bit 5 of its flags, which makes a monster of 112-127 turn towards the knight when it chooses a way to go (#R$DD28). After four turns #R$C164 makes it a monster of 64-79 or 112-127.
+D $CDE8 If the cell chosen is solid (types 1 and 2) the routine returns there -- but the record has already been filled, so it keeps its monster, in the corner of the town, cell 0,0, which is solid. Measured: a spawn with the knight's cell set to the corner, where every cell round it is solid, left graphic 128 at U 0 and V 0. Away from the corner it does no harm: after its four turns of appearing its own update finds it more than two cells from the knight and empties the record (#R$CE89, #R$C083), so it only keeps the record from a real monster for those turns. Near the top-left corner it lives: with the knight in cell 1,1 the strays walk off the map to column or row 255, which the byte subtraction of the nearness test counts as close, and for 1463 of 1500 turns three or four of the six monster records held them (measured for the bugs page). Only types 1 and 2 are refused, so a monster is often put inside a building's cell, where it is never drawn and walks on the spot; with the knight standing still the six records fill with these and no new monster appears (measured for the animations page).
+  $CDE8,6 the knight still appearing: none
+  $CDEE,7 only when bits 0-1 of TURNS are both set
+  $CDF5,20 the first empty monster record; none, none
+  $CE09,11 a monster appearing, in it
+  $CE14,8 HL = the knight's column and row
+  $CE1C,14 the random number's low byte: below $55 the same column, below $AA the next, else the one before
+  $CE2A,14 its high byte chooses the row the same way
+  $CE38,8 in the town, 0-31
+  $CE40,9 a solid cell: leave it (the record keeps its monster, at the corner)
+  $CE49,6 its cell
+  $CE4F,3 stir the random number
+  $CE52,14 U within the cell: 32-223
+  $CE60,14 V the same, from the high byte
+  $CE6E,11 born in the first half of 256 turns: bit 5, heading for the knight
+
+b $CE79 What a monster starts as
+D $CE79 Copied into a free monster record by #R$CDE8, which writes the cell and the place in it: graphic 128, a monster appearing, speed 6, 16 by 16 units.
+
+@ $CE89 label=WANDERING_MONSTER
+c $CE89 The monsters of graphics 64-79: wander, and hurt the knight
+R $CE89 IX the record
+D $CE89 The update routine for graphics 64-79 (#R$D599): four kinds of four frames, the kind chosen when it appears by the villain nearest to it (#R$C164). It wanders: a new random step at random times (#R$DDCF, each way up to 14 a turn), turned to face its step and tested against the walls (#R$DE0D), moved (#R$DD01), and its frame stepped on (#R$CEF8); drawn mirrored when the town is turned round. More than two cells from the knight either way, it is gone.
+D $CE89 An antibody that touches it (#R$C538) vanishes with it, and 5 goes on the score. If it touches the knight (#R$C55F, not while he is appearing) the score gets 5 as well and the monster vanishes, but it takes one of his hits; at the last, his life ends. Monsters of 112-127 (#R$C083) and the creature of 136-139 (#R$BFF1) come in at MONSTER_HITS_KNIGHT, and a villain (#R$D94F) at KNIGHT_KILLED, whatever his hits.
+E $CE89 The score's digits end in two that nothing adds to (the byte after SCORE_LOW, cleared at each game and printed with the rest by #R$C2ED), so 5 shows as 500.
+  $CE89,5 a new step now and then, up to 14 each way
+  $CE8E,9 face it, against the walls; move; the next frame
+  $CE97,17 bit 6 of its flags, drawn mirrored, set when the town is turned round
+  $CEA8,7 more than two cells from the knight: gone
+  $CEAF,5 struck by an antibody
+  $CEB4,4 not touching the knight
+  $CEB8,3 touching him: 5 on the score, and...
+@ $CEBB label=MONSTER_HITS_KNIGHT
+  $CEBB,9 ...it vanishes, and he loses a hit; with some left, that is all
+@ $CEC4 label=KNIGHT_KILLED
+  $CEC4,24 his life ends: his cell, facing and flags into the start records, so the next life starts here
+  $CEDC,9 both his records vanish; #R$CBAC starts the next life when that has run
+@ $CEE5 label=MONSTER_SHOT
+  $CEE5,8 the antibody and the monster both vanish
+@ $CEED label=MONSTER_SCORE
+  $CEED,6 5 on the score
+@ $CEF3 label=MONSTER_OUT_OF_RANGE
+  $CEF3,5 the record empty
+
+@ $CEF8 label=NEXT_FRAME_MOD4
+c $CEF8 Step an object through four frames
+R $CEF8 IX the record
+D $CEF8 Counts bits 0-1 of the graphic round 0-3, leaving the rest: the four frames of a monster's or the creature's walk (#R$CE89, #R$BFF1), the sparkles (#R$D70A) and others. Knight Lore's next_graphic_no_mod_4 and Alien 8's NEXT_FRAME_MOD4 do the same.
+
+@ $CF08 label=DRAW_CELLS
+c $CF08 Draw the cells round the knight, back to front
+D $CF08 Called every turn by #R$BE0F. The view shows the knight's cell and the eight round it; they are drawn back to front, the back ones in an order that depends on which of them are built on. Everything here is in the view's coordinates: with the town turned round (VIEW) his cell is turned round first (#R$D17D), and the map is read through the view (#R$D564), so U-1 is always further back.
+D $CF08 Five cells lie behind or beside his: U-1 V+1, U-1, V+1, U-1 V-1 and U+1 V+1. A bit for each that is not open ground, bits 0 to 4 in that order, picks one of 32 records of five steps in #R$6204. Each step byte gives a cell as an offset from his -- bits 4-5 for U, bits 6-7 for V: bit 5 (or 7) the same, bit 4 (or 6) one more, neither one less -- and in bits 0-1 what to draw there: 0 the things in it (#R$CFAF, #R$CFF2), 1 its walls (#R$D372), 2 its walls by #R$D19D, 3 nothing.
+D $CF08 Every record gives the five cells, each with action 1 if it is built on and 0 if not: actions 2 and 3 are in no record, and their instructions never ran. Last come his own cell and the three in front of it, V-1, U+1 and U+1 V-1, each with its walls by #R$D19D -- the routine action 2 would have used -- and then the things in it.
+  $CF08,6 no columns drawn yet this turn (#R$D3C2)
+  $CF0E,11 HL = his cell, as the view sees it
+  $CF19,1 kept, for every step
+  $CF1A,11 bit 0: U-1 V+1 not open
+  $CF25,10 bit 1: U-1
+  $CF2F,10 bit 2: V+1
+  $CF39,11 bit 3: U-1 V-1
+  $CF44,11 bit 4: U+1 V+1
+  $CF4F,16 DE = the drawing order's record for them, five bytes each; five steps
+@ $CF5F label=DRAW_STEP
+  $CF5F,4 his cell again; the step's byte
+  $CF63,11 U: bit 5 the same, bit 4 one more, neither one less
+  $CF6E,11 V: bit 7 the same, bit 6 one more, neither one less
+  $CF79,8 the action; the count and the record kept, and DRAW_STEP_DONE to return to
+  $CF81,3 0: the things in it
+  $CF84,4 1: its walls
+  $CF88,4 2: its outline on the ground by #R$D19D (no record has it; never ran)
+  $CF8C,1 3: nothing -- the return address dropped (never ran either)
+@ $CF8D label=DRAW_STEP_DONE
+  $CF8D,4 the next step
+  $CF91,5 his own cell
+  $CF96,6 V-1
+  $CF9C,6 U+1
+  $CFA2,3 U+1 V-1, whose RET ends the routine
+@ $CFA5 label=DRAW_FRONT_CELL
+  $CFA5,5 a front cell: its walls by #R$D19D, if it is built on...
+@ $CFAA label=DRAW_CELL_THINGS
+  $CFAA,5 ...then the things in it: listed (#R$CFAF), and drawn in depth order (#R$CFF2)
+
+# --------------------------------------------------------------------------
+# The depth sort, the town's drawing and the dispatcher
+# --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Range 3 ($CFAF-$D709): the things in a cell and their depth sort, the
+# town's walls, outlines, tiles and colours, the projection, the map
+# look-up, the dispatcher, the update table and a villain's sparkles.
+# --------------------------------------------------------------------------
+
+@ $CFAF label=LIST_THINGS_IN_CELL
+c $CFAF List the things in a cell
+D $CFAF The first half of drawing the things in one cell of the town (the drawing order at #R$CF08 calls it for every cell whose things are drawn, and #R$CFF2 follows it). Every object record from KNIGHT to the end of the records whose graphic is not 0 and whose column and row -- the high bytes of U and V, +2 and +4 -- are this cell's has its address put on #R$D15D, which a zero word then ends.
+D $CFAF The cell comes in the drawing order's terms, which are turned round with the town (#R$D17D), and the records keep the town's own; #R$D17D is its own inverse, so it turns the cell back. Nothing counts the entries: the list has room for fifteen, and the most measured in the simulator, at 1748 stops here over thirty random cells of play, was four.
+R $CFAF HL the cell as the drawing order sees it: L the column, H the row
+  $CFAF,8 IY at the start of the list, IX at the first record
+  $CFB7,4 The cell in the town's own terms, into DE: E the column, D the row
+  $CFBB,6 An empty record is not drawn
+  $CFC1,12 Is the record in this cell: its U's high byte this column, its V's this row?
+  $CFCD,13 It is: its address onto the list
+  $CFDA,16 The next record, until the end of the records at #R$BDFE
+  $CFEA,8 A zero word ends the list
+
+@ $CFF2 label=SORT_AND_DRAW_THINGS
+c $CFF2 Draw the listed things, furthest back first
+D $CFF2 The second half: the things #R$CFAF listed are drawn one at a time, each chosen by a pass along the list. The first entry not yet drawn is the candidate (IX). Every later entry not yet drawn (IY) is compared with it, and the outcome goes through #R$D0A0: either the candidate stays, or IY is further back and becomes the candidate, and the pass carries on from IY. At the end of the list the candidate is drawn (#R$E3D9) and its entry marked drawn by clearing bit 7 of its high byte -- every record's address has it set -- and the next pass starts; DRAW_LIST_AT keeps the place just past the candidate's entry, DRAW_LIST_NEXT just past IY's. The list is empty of undrawn things when a pass finds none, and the routine returns.
+D $CFF2 The comparison is two-dimensional: a record is a box in U and V (its position at +1 and +3, its half-sizes at +8 and +9) and nothing in the town has a height. On each axis each side of the box is worked out as (the low byte of the position plus or minus the half-size) / 2 + 64 -- only the low bytes, since the things listed share a cell, and RRA shifting the carry of the 9-bit sum back in, so a side from 128 below the cell to 128 past it becomes a byte from 0 to 255. Then 0 if the candidate is wholly beyond IY on that axis (its low side at or above IY's high side), 2 if IY is wholly beyond the candidate, 1 if they overlap: U counts once, V three times, and the town turned round adds 9, which reverses what "further back" means. Further back is smaller U and larger V, as in Knight Lore and Alien 8: higher up the screen (#R$D508).
+D $CFF2 A new candidate is not compared with the entries the pass has already gone by, so an order among three things can come out wrong; but a pass never goes back to the top, so it cannot go round in a circle, and Filmation's chain of candidates is not needed.
+  $CFF2,3 From the top of the list
+  $CFF5,7 The next entry; the zero at the end: everything is drawn
+  $CFFC,4 Bit 7 of the high byte clear: drawn already
+  $D000,6 The first thing not yet drawn is the candidate, in IX
+  $D006,9 The next entry; at the end of the list, draw the candidate
+  $D00F,4 Drawn already: pass it by
+  $D013,6 IY the thing to compare with the candidate
+  $D019,24 U: 0 if the candidate's low side is at or above IY's high side
+  $D031,24 Otherwise 2 if IY's low side is at or above the candidate's high side, and 1 if they overlap
+  $D049,23 V the same, adding 0...
+  $D060,27 ...3 if they overlap, or 6 if IY is wholly beyond
+  $D07B,12 Plus 9 with the town turned round
+  $D087,7 The outcome, through DEPTH_TABLE: the candidate stays, or IY takes its place
+  $D08E,6 On along the list from IY
+  $D094,6 The end of the list: the candidate's entry marked drawn
+  $D09A,6 Draw it, and the next pass
+
+@ $D0A0 label=DEPTH_TABLE
+w $D0A0 Routines for the depth sort's outcomes
+D $D0A0 Indexed by #R$CFF2's comparison of the candidate with another thing: the U outcome (0 the candidate wholly at larger U, 1 overlapping, 2 wholly at smaller U), plus three times the V outcome (0 the candidate at larger V, 1 overlapping, 2 at smaller V), plus 9 with the town turned round. In the usual view smaller U and larger V are further back; turned round, larger U and smaller V. #R$D0C4 keeps the candidate, #R$D0C5 makes the other thing the candidate, and #R$D0D0 settles boxes that overlap on both axes. Where each box is further back along one axis and nearer along the other (0, 8, 9 and 17), the order does not matter, and the candidate stays.
+W $D0A0,2 0: the candidate at larger U and larger V -- no order: it stays
+W $D0A2,2 1: the same U, the candidate at larger V, so further back: it stays
+W $D0A4,2 2: the candidate at smaller U and larger V, further back on both: it stays
+W $D0A6,2 3: the candidate at larger U, the same V: the other is further back
+W $D0A8,2 4: overlapping on both axes: by their nearest corners
+W $D0AA,2 5: the candidate at smaller U, the same V: it stays
+W $D0AC,2 6: the candidate at larger U and smaller V: the other is further back on both
+W $D0AE,2 7: the same U, the candidate at smaller V: the other is further back
+W $D0B0,2 8: the candidate at smaller U and smaller V -- no order: it stays
+W $D0B2,2 9: turned round, the candidate at larger U and larger V -- no order: it stays
+W $D0B4,2 10: turned round, the same U, the candidate at larger V: the other is further back
+W $D0B6,2 11: turned round, the candidate at smaller U and larger V: the other is further back on both
+W $D0B8,2 12: turned round, the candidate at larger U, the same V: it stays
+W $D0BA,2 13: turned round, overlapping on both axes: by their nearest corners
+W $D0BC,2 14: turned round, the candidate at smaller U, the same V: the other is further back
+W $D0BE,2 15: turned round, the candidate at larger U and smaller V, further back on both: it stays
+W $D0C0,2 16: turned round, the same U, the candidate at smaller V: it stays
+W $D0C2,2 17: turned round, the candidate at smaller U and smaller V -- no order: it stays
+
+@ $D0C4 label=DEPTH_KEEP
+c $D0C4 The candidate stays
+D $D0C4 Reached through #R$D0A0 when the candidate is further back than the thing it was compared with, or when neither has to go first: on to the next entry.
+
+@ $D0C5 label=DEPTH_SWAP
+c $D0C5 The other thing becomes the candidate
+D $D0C5 Reached through #R$D0A0, and from #R$D0D0, when the thing compared (IY) is further back than the candidate: it becomes the candidate, and DRAW_LIST_AT moves to just past its entry, which is the one #R$CFF2 will mark drawn.
+R $D0C5 IY the thing further back
+  $D0C5,11 DRAW_LIST_AT = DRAW_LIST_NEXT; IX = IY
+
+@ $D0D0 label=DEPTH_BY_CORNERS
+c $D0D0 Order two things whose boxes overlap on both axes
+D $D0D0 Index 4 (13 turned round) of #R$D0A0. With the boxes overlapping in U and in V, neither is simply behind the other, so each is placed by its nearest corner -- in the usual view the corner at the high side of U and the low side of V -- and how far back that corner is, which is how high up the screen it is: V less U. The candidate stays if its nearest corner is as far back as the other's, or further; otherwise the other becomes the candidate (#R$D0C5). Turned round, the nearest corner is at the low side of U and the high side of V, and the test the other way about.
+D $D0D0 The sides are the half-unit bytes of #R$CFF2; each difference has 256 added and is halved, to keep it positive, which does not change the order.
+R $D0D0 IX the candidate
+R $D0D0 IY the other thing
+  $D0D0,7 Turned round: the other corners
+  $D0D7,36 DE = how far back the other thing's nearest corner is: its low V side less its high U side
+  $D0FB,18 The candidate's the same...
+  $D10D,17 ...into HL
+  $D11E,4 The candidate's corner as far back or further: it stays
+  $D122,3 Otherwise the other takes its place
+  $D125,36 Turned round: DE = the candidate's high V side less its low U side
+  $D149,20 The other's the same, into HL; the candidate stays if the other's corner is as near as its own or nearer
+
+@ $D15D label=DRAW_LIST
+s $D15D The things in a cell, to be drawn
+D $D15D The addresses of the object records in one cell of the town, filled by #R$CFAF and ended by a zero word; #R$CFF2 sorts and draws them, clearing bit 7 of each entry's high byte as it draws it. 32 bytes: fifteen addresses and the zero. Nothing checks the count -- a sixteenth thing in one cell would put the zero over the first bytes of #R$D17D -- but the most measured was four (#R$CFAF). sna2ctl took the zeros on the tape for an unused gap.
+
+@ $D17D label=TURN_CELL
+c $D17D Turn a cell round with the town
+D $D17D With the town turned round (bit 0 of VIEW) it is seen from the other side, which is the same as the map read from its far corner: column c becomes 31 - c and row r becomes 31 - r. Doing it twice gives the cell back, so the same routine turns a cell from the town's terms to the view's (#R$CF08) and back again (#R$CFAF). In the usual view, nothing.
+R $D17D L the column
+R $D17D H the row
+R $D17D O:HL the column and row, turned if the town is
+  $D17D,6 The usual view: as they are
+  $D183,11 Otherwise each complemented, within 0-31
+
+@ $D18E label=TURN_POSITION
+c $D18E Turn a position round with the town
+D $D18E The same for a position along U or V, whose high byte is the cell and low byte the place in it: turned round, it becomes the distance from the far edge of the town, 8191 less it. Used by #R$D4F3 for a thing's U and V.
+R $D18E HL a U or a V
+R $D18E O:HL the same, turned if the town is
+  $D18E,6 The usual view: as it is
+  $D194,9 Otherwise both bytes complemented, the high one within 0-31
+
+@ $D19D label=DRAW_OUTLINE
+@ $D1B5 label=OUTLINE_FAR_FACES
+c $D19D Draw a building's outline on the ground
+D $D19D What stands in front of the knight is not drawn as walls, which would hide him: the drawing order (#R$CF08) calls this for his own cell and the three nearer the viewer -- one less in V, one more in U, and both -- and for those only the line where the building's walls meet the ground is drawn, all the way round. The two near faces come from the building definition for this view (#R$D1FA), and the two far ones from the definition for the other view, which describes those same walls seen from the other side: from the right-hand corner leftwards, up the screen along one face and down along the other, each column's edge through #R$D273 with C set to 1. Each tile has an edge picture under it (#R$6542): a plain line for a wall, or a stub at one end for a tile with an archway, and C = 1 swaps which end's stub, since those faces are seen from behind. An archway in a wall so leaves a gap in its outline.
+D $D19D Open ground (type 0) has no building. Drawn with OR, and not through the column claims of #R$D372's walls. Measured: with this routine made to return at once, the white lines on the ground in front of the knight were gone, and with #R$D372 returning at once instead, the walls behind him.
+R $D19D HL the cell, as the drawing order sees it
+  $D19D,4 The cell's type; open ground: nothing
+  $D1A1,7 The type times two, the building table's index for the usual view; DRAW_X and DRAW_Y the cell's corner on the screen (#R$D508)
+  $D1A8,7 Which way round?
+  $D1AF,6 The usual way: the near faces from the usual view's definition, and then the far ones from the turned one's (index plus 1)
+  $D1B5,10 A column back to the left: the far faces start from the right-hand corner, where the near faces ended
+  $D1BF,9 IY = the other view's definition (#R$62A4)
+  $D1C8,15 Its first face, unmirrored: eight columns leftwards and up the screen, C = 1
+  $D1D7,10 Down 8 lines for the second face, which slopes the other way
+  $D1E1,16 The second face, mirrored: eight columns leftwards and down
+  $D1F2,8 Turned round: the turned definition's faces are the near ones, and the usual view's the far ones
+
+@ $D1FA label=OUTLINE_NEAR_FACES
+c $D1FA Draw the edges of a building definition's two faces
+D $D1FA The two faces of a building definition, eight columns each, drawn left to right from the cell's corner at DRAW_X and DRAW_Y -- the first down the screen, the second, mirrored, up it -- as edge pictures only (#R$D273, with C = 0). Used by #R$D19D for a building's near faces. Leaves DRAW_X and DRAW_Y at the right-hand corner.
+R $D1FA A the building table's index: the cell's type times two, plus 1 for the turned view
+  $D1FA,9 IY = the definition (#R$62A4)
+  $D203,7 The first face, unmirrored, C = 0
+  $D20A,8 Eight columns' edges, rightwards and down the screen
+  $D212,10 Up 8 lines for the second face, which slopes the other way
+  $D21C,8 Mirrored
+  $D224,9 Eight columns, rightwards and up
+
+@ $D22D label=STEP_RIGHT_UP
+c $D22D Move the drawing position a column right and up
+D $D22D Sixteen pixels right and 8 lines up the screen: along a building's second face, the way #R$D372 steps. The pair of tiles is moved past by #R$D3C2 itself.
+  $D22D,5 8 lines up; the column across
+
+@ $D232 label=EDGE_RIGHT_UP
+@ $D239 label=STEP_ACROSS
+c $D232 Move the drawing position a column right and up, past the column's tiles
+D $D232 The same with IY moved past the column's two tiles (#R$D273 does not), for a face's edges in #R$D1FA. STEP_ACROSS, the common tail, moves DRAW_Y by DE and DRAW_X 16 pixels right.
+  $D232,3 8 lines up
+  $D235,4 Past the column's two tiles
+  $D239,7 DRAW_Y moved by DE
+  $D240,11 DRAW_X 16 pixels right
+
+@ $D24B label=EDGE_RIGHT_DOWN
+c $D24B Move the drawing position a column right and down, past the column's tiles
+D $D24B Along a first face's edges (#R$D1FA).
+  $D24B,5 8 lines down; past the tiles, and across
+
+@ $D250 label=STEP_RIGHT_DOWN
+c $D250 Move the drawing position a column right and down
+D $D250 Along a building's first face, the way #R$D372 steps.
+  $D250,5 8 lines down; across
+
+@ $D255 label=EDGE_LEFT_UP
+@ $D258 label=STEP_BACK
+c $D255 Move the drawing position a column left and up, past the column's tiles
+D $D255 For the far faces of an outline, drawn from right to left (#R$D19D). STEP_BACK, the common tail, moves IY past the column's tiles, DRAW_Y by DE and DRAW_X 16 pixels left.
+  $D255,3 8 lines up
+  $D258,4 Past the column's two tiles
+  $D25C,7 DRAW_Y moved by DE
+  $D263,11 DRAW_X 16 pixels left
+
+@ $D26E label=EDGE_LEFT_DOWN
+c $D26E Move the drawing position a column left and down, past the column's tiles
+D $D26E For the second far face of an outline (#R$D19D).
+  $D26E,5 8 lines down; past the tiles, and back
+
+@ $D273 label=DRAW_EDGE
+c $D273 Draw the edge picture under one column of a building
+D $D273 The column's lower tile (the number at IY) picks its edge picture from #R$6542 -- 0 a whole line, 2 and 3 a stub at one end or the other of a tile with an archway -- and C, 1 for a face seen from behind, is XORed in to swap the stubs; #R$6FDC gives the picture, and #R$D2B2 ORs it into the buffer at DRAW_X and DRAW_Y, mirrored on a second face (DRAW_PASS). Only a column that starts inside the buffer's width (x from 17 to 207) and at a y from 0 to 255 is drawn.
+R $D273 IY the column's pair of tiles in a building definition
+R $D273 C 0, or 1 to swap the stubs at an archway
+  $D273,17 x from 17 to 207, or nothing
+  $D284,7 y from 0 to 255, or nothing; D = y, E = x
+  $D28B,12 The tile's edge number, XOR C
+  $D297,6 HL = the picture (#R$6FDC)
+  $D29D,5 ORed into the buffer
+
+@ $D2A2 label=CLIP_EDGE
+c $D2A2 Draw an edge picture that starts below the play area
+D $D2A2 The start of #R$D2B2 when the picture's bottom row is below the bottom of the play area (line $48, counting up the screen): its rows below it are skipped, and the rest drawn from the bottom line up. All of it below: nothing.
+R $D2A2 A the picture's y less $48, negative
+R $D2A2 E its x
+R $D2A2 HL the picture
+  $D2A2,8 C = the rows below the play area; A = the rows above it, if any
+  $D2AA,8 Past the rows below; from the bottom line
+
+@ $D2B2 label=PUT_EDGE
+c $D2B2 OR a 16-pixel picture into the buffer
+D $D2B2 Draws an edge picture -- a height byte, then two bytes a row, the bottom row first -- at a pixel x and a line y, ORed into the screen buffer (#R$E5C4). The buffer's lines run up the screen, 24 bytes apiece: line $48 is the bottom of the play area and $B7 its top, and #R$E53A turns x and y into an address. Rows above the top are cut; rows below the bottom are skipped by #R$D2A2.
+D $D2B2 SP reads the picture, a row a POP, the real stack pointer kept in SAVED_SP; the game never enables interrupts. Four cases: x a multiple of 8 or not (bits 1 and 2 of x; bit 0 is ignored, so things move in steps of two pixels), and the first face or the second (DRAW_PASS), which is drawn mirrored. A shifted row covers three buffer bytes, through a pair of pages built by #R$E0FB: the part of each picture byte that stays in its buffer byte and the part that falls into the next. The pages at #R$FA00 shift; the ones at #R$F200 reverse a byte and shift it, for the mirrored face, which also takes the row's two bytes the other way round. An aligned mirrored row reverses each byte through #R$F900.
+R $D2B2 D the y of its bottom row
+R $D2B2 E its x
+R $D2B2 HL the picture
+  $D2B2,5 Starting below the play area: #R$D2A2
+  $D2B7,3 At or above its top: nothing
+  $D2BA,7 A = the rows: the height, or as many as fit below the top
+  $D2C1,6 The count into A'; DE = the buffer address (#R$E53A)
+  $D2C7,5 SP onto the picture's rows
+  $D2CC,7 Aligned: the plain cases
+  $D2D3,3 H = $F2, $F4 or $F6, the reversing and shifting pages for a shift of 2, 4 or 6 pixels
+  $D2D6,6 The second face is mirrored
+  $D2DC,3 The first: H = $FA, $FC or $FE, the shifting pages
+  $D2DF,7 A row: the first byte's part that stays, into the first buffer byte
+  $D2E6,7 The part that falls out of it and the second byte's part that stays, into the second
+  $D2ED,6 The part that falls out of the second, into the third
+  $D2F3,10 Up a line, 24 bytes on from the first; until the rows run out
+  $D2FD,5 The real stack pointer back
+  $D302,33 Mirrored: the same, with the row's second byte first, through the reversing pages
+  $D323,27 Aligned: the two bytes ORed in as they are
+  $D33E,24 Aligned and mirrored: each byte reversed (#R$F900), the second first
+
+@ $D356 label=COLOUR_WALL
+c $D356 Colour a column of wall up to the top of the play area
+D $D356 A wall hides everything above it on the screen, so its colour runs from the attribute row holding its bottom line to the top of the play area: two attribute bytes a row, filled by #R$C889 in the attribute buffer (#R$F044, 24 bytes a row, the bottom row first). The ink is bright green, cyan, yellow or white by the two low bits of the cell's type (CELL_TYPE); the paper is this turn's, LAST_FLASH, which a dying villain flashes. Nothing for a wall standing at or above line $B8.
+D $D356 The pair of bytes runs one past the end of a row when the column's x is in the last byte of the row: into the first byte of the next row, part of the two-byte margin at the left of the buffer that is never copied to the screen (#R$E1AD shows 22 of each row's 24 bytes), and on the top row one past the attribute buffer altogether, into #R$F194. Measured: 28 of 752 fills in a random tour reached it, each at the right-hand edge; and over 877 calls the lowest wall bottom was line 126, so a fill never starts below the attribute buffer.
+R $D356 D the y of the wall's bottom line
+R $D356 E its x
+  $D356,4 At or above line $BF: nothing
+  $D35A,9 The attribute rows from its own up to the top: (191 - y) / 8; none, nothing
+  $D363,5 B = the rows; HL = the attribute byte (#R$E579)
+  $D368,7 Bright, with the ink from the cell type
+  $D36F,3 Fill the rows, with this turn's paper (#R$C889)
+
+@ $D372 label=DRAW_WALLS
+c $D372 Draw a building's walls
+D $D372 For a cell behind the knight -- the five the drawing order (#R$CF08) draws walls for, one less in U or one more in V -- the building on it is drawn as two walls standing on its near edges: the definition for the cell's type and the view (#R$62A4, type times two plus VIEW) gives each face eight columns of a lower and an upper tile, and #R$D3C2 draws each column from the cell's corner (#R$D508) rightwards, down the screen along the first face and then, mirrored, up it along the second.
+D $D372 Walls are drawn nearest first among themselves, and each claims the screen columns it covers (COLUMNS_DRAWN): a tile is written over what is under it, and a wall and its colour reach from its bottom to the top of the play area, so nothing behind it in the same column could show. A wall further back only fills the columns still unclaimed, and as soon as all sixteen are claimed the routine stops. The drawing order puts the things in an open cell after the walls that stand behind it and before those in front of it, which cover them.
+R $D372 HL the cell, as the drawing order sees it
+  $D372,4 The cell's type (#R$D564); open ground: nothing
+  $D376,3 Kept for the colour (#R$D356)
+  $D379,14 IY = the building definition: the type times two, plus 1 turned round
+  $D387,3 DRAW_X and DRAW_Y = the cell's corner on the screen
+  $D38A,6 The first face, unmirrored: eight columns
+  $D390,11 A column; with every screen column claimed, stop
+  $D39B,5 Right and down the screen to the next
+  $D3A0,10 Up 8 lines for the second face, which slopes the other way
+  $D3AA,7 Mirrored: eight columns
+  $D3B1,16 The same, rightwards and up
+
+@ $D3C2 label=DRAW_WALL_COLUMN
+@ $D3E2 label=TEST_COLUMN
+@ $D3E6 label=CLAIM_COLUMN
+@ $D3D0 isub=LD (TEST_COLUMN+1),A
+@ $D3D5 isub=LD (CLAIM_COLUMN+1),A
+c $D3C2 Draw one column of a wall, unless a nearer wall has it
+D $D3C2 The screen is taken as sixteen columns 16 pixels wide, x / 16, a bit each in COLUMNS_DRAWN (bit 7 of x picking the byte). Every tile column in a turn lies at the same x within its 16 pixels, since the cells' corners are 128 pixels apart, so a column of wall and a screen column always coincide. The column's bit is patched into the BIT at TEST_COLUMN and the SET at CLAIM_COLUMN. #R$CF08 starts each turn with the first column (left of the buffer) and the last three (right of it) already claimed, so walls are clipped at the sides here.
+D $D3C2 An unclaimed column is claimed, then drawn: the lower tile with its bottom row at DRAW_Y (#R$D425), its colour up to the top (#R$D356), and the upper tile 64 lines above it. A column off the screen's 0-255 range in x or y is skipped, and IY moved past its two tiles either way.
+R $D3C2 IY the column's pair of tiles in the building definition
+R $D3C2 O:IY the next column's
+  $D3C2,7 x off the 0-255 range: skip it
+  $D3C9,15 The column's bit, bits 4-6 of x, patched into the BIT and the SET below
+  $D3D8,10 HL = COLUMNS_DRAWN, or its second byte for x of 128 up
+  $D3E2,4 Patched BIT: claimed already by a nearer wall, skip it
+  $D3E6,2 Patched SET: claim it (before y is looked at)
+  $D3E8,8 y off the 0-255 range: skip it; D = y, E = x
+  $D3F0,5 The lower tile (#R$D425)
+  $D3F5,5 The wall's colour (#R$D356)
+  $D3FA,3 The upper tile...
+  $D3FD,11 ...64 lines up, if that is still in range
+  $D408,4 Draw it
+  $D40C,4 Past the upper tile
+  $D410,5 Skipped: past both tiles
+
+@ $D415 label=CLIP_TILE
+c $D415 Draw a tile that starts below the play area
+D $D415 The start of #R$D425 when the tile's bottom row is below the bottom of the play area (line $48): its rows below it are skipped, and the rest drawn from the bottom line up. All of it below: nothing. #R$D2A2 is the same for an edge picture.
+R $D415 A the tile's y less $48, negative
+R $D415 E its x
+R $D415 HL the tile
+  $D415,8 C = the rows below the play area; A = the rows above it, if any
+  $D41D,8 Past the rows below; from the bottom line
+
+@ $D425 label=PUT_TILE
+@ $D47B label=TILE_MASK_FIRST
+@ $D489 label=TILE_MASK_LAST
+@ $D4A2 label=TILE_MASK_FIRST_TURNED
+@ $D4B1 label=TILE_MASK_LAST_TURNED
+@ $D451 isub=LD (TILE_MASK_FIRST+1),A
+@ $D454 isub=LD (TILE_MASK_FIRST_TURNED+1),A
+@ $D458 isub=LD (TILE_MASK_LAST+1),A
+@ $D45B isub=LD (TILE_MASK_LAST_TURNED+1),A
+c $D425 Draw a tile of wall
+D $D425 The number at IY picks the tile from #R$6E36: a height byte, then two bytes a row, the bottom row first. It is drawn at DRAW_X and the line in D exactly as #R$D2B2 draws an edge picture -- the same four cases, the same pages, the second face mirrored -- except that a tile is solid: its 16 pixels are written over what is under them rather than ORed in. A shifted row covers three buffer bytes; the middle one is wholly the tile's, and in the first and the last the pixels outside the tile are kept by AND masks. The masks come from #R$D4EF by the shift and are patched into the four ANDs (TILE_MASK_FIRST, TILE_MASK_LAST, and the same in the mirrored run), the first byte's mask keeping the pixels to the left of the tile and its complement those to the right.
+R $D425 IY the tile's number in a building definition
+R $D425 D the y of its bottom row
+R $D425 E its x
+  $D425,9 HL = the tile (#R$6E36)
+  $D42E,5 Starting below the play area: #R$D415
+  $D433,10 At or above its top, nothing; A = the rows, the height or as many as fit below the top
+  $D43D,6 The count into A'; DE = the buffer address (#R$E53A)
+  $D443,13 The shift's mask from #R$D4EF: x / 2, bits 0-1
+  $D450,7 Into the first byte's two ANDs...
+  $D457,7 ...and its complement into the last byte's
+  $D45E,6 SP onto the tile's rows, the real one in SAVED_SP
+  $D464,7 Aligned: the plain cases
+  $D46B,11 H = the shift's pages: $F2, $F4 or $F6 mirrored (the second face), $FA, $FC or $FE not
+  $D476,9 A row: the first buffer byte kept left of the tile (patched mask), the tile's first part put in
+  $D47F,7 The middle byte wholly the tile's
+  $D486,8 The last kept right of the tile (patched mask), the tile's last part put in
+  $D48E,10 Up a line, until the rows run out
+  $D498,5 The real stack pointer back
+  $D49D,37 Mirrored: the same, the row's second byte first, through the reversing pages
+  $D4C2,23 Aligned: the two bytes written in as they are
+  $D4D9,22 Aligned and mirrored: each reversed (#R$F900), the second first
+
+@ $D4EF label=TILE_MASKS
+b $D4EF Masks for a shifted tile's first byte
+D $D4EF By the tile's shift in pixels (#R$D425): the pixels of the buffer's first byte that lie to the left of the tile, and so are kept. The complement keeps those right of it in the last byte. An aligned tile needs neither.
+B $D4EF,4,4 Shifts of 0, 2, 4 and 6 pixels
+
+@ $D4F3 label=PROJECT_THING
+c $D4F3 Where a thing is on the screen
+D $D4F3 Projects an object record's U and V (+1 to +4) onto the screen at DRAW_X and DRAW_Y, turned round with the town if it is (#R$D18E), by #R$D508's formula. Used by the sprite drawing (#R$E3D9).
+R $D4F3 IX the object record
+  $D4F3,10 Its V, turned if the town is, saved
+  $D4FD,11 Its U, the same; on to the projection
+
+@ $D508 label=PROJECT_CELL
+@ $D515 label=PROJECT_POINT
+c $D508 Where a cell's corner is on the screen
+D $D508 The projection, and the scrolling: everything is placed relative to the knight, who therefore stays at the middle of the screen while the town moves under him. For a point at U and V, with dU and dV its distance from the knight's U and V (both turned round with the town if it is): DRAW_X = (dU + dV + $F0) / 2 and DRAW_Y = (dV - dU + $1B0) / 4, signed. So U runs right and down the screen and V right and up, 256 units a cell: a cell is a diamond 256 pixels wide and 128 lines high, bigger than the play area, and the knight's own point is at x 120, the middle of the part of the buffer that is shown, and line 108. DRAW_Y counts up the screen, as the buffer's lines do. It is Filmation's projection, x from U + V and y from V - U, at half the scale and with no height.
+D $D508 PROJECT_CELL projects the corner of the cell last looked up (CELL_LOOKED_UP, in the view's terms): its lowest U and V, where the wall along its first face starts. PROJECT_POINT, entered from #R$D4F3 with a U in HL and a V pushed, both turned already if the town is, projects any point.
+  $D508,7 V = the cell's row times 256, saved
+  $D50F,6 U = its column times 256
+  $D515,19 The knight's U, turned if the town is
+  $D528,4 DE = dU
+  $D52C,20 The knight's V, the same
+  $D540,4 HL = dV
+  $D544,12 DRAW_X = (dU + dV + $F0) / 2
+  $D550,19 DRAW_Y = (dV - dU + $1B0) / 4
+
+@ $D564 label=LOOK_UP_CELL
+@ $D582 isub=LD BC,TOWN+$0400
+c $D564 The type of a cell of the town
+D $D564 Reads a cell from the map (#R$5E04, 32 rows of 32 bytes) and keeps its column and row in CELL_LOOKED_UP for #R$D508. The cell comes in the view's terms: with the town turned round the offset into the map is complemented and added to the address one past its end, which reads the map backwards from its last byte -- the same as turning the cell round with #R$D17D. The listing would otherwise call that address DRAW_ORDER, the table that follows the map.
+R $D564 L the column
+R $D564 H the row
+R $D564 O:A the cell's type: 0 open ground, 1 and 2 solid, 3 up built on
+R $D564 O:F Z for open ground
+  $D564,3 Kept for the projection
+  $D567,11 HL = the row times 32, plus the column
+  $D572,10 Turned round?
+  $D57C,9 The offset complemented, from one past the map's end: the map read backwards
+  $D585,4 The type; Z if open
+
+@ $D589 label=TABLE_WORD
+c $D589 Look up a word in a table
+D $D589 HL = the word at BC + 2 * A. As Pentagram's TABLE_WORD.
+R $D589 A the index
+R $D589 BC the table
+R $D589 O:HL the word
+  $D589,5 HL = BC + 2 * A
+  $D58E,5 The word there
+
+@ $D593 label=DISPATCH
+c $D593 Jump to the routine a table gives for A
+D $D593 The second piece of the tape's protection. Every table of routines in the game is reached through here -- the main loop's update of each object record by its graphic (#R$D599), the depth sort's outcomes (#R$D0A0), a monster struck by an antibody (#R$C0D1), and three small tables by the knight's facing (#R$DC71, #R$DD6A, #R$DE6A) -- and the jump is not made here: the routine's address goes into HL and the game jumps to #R$5CB0, the system variable NMIADD, which holds JP (HL) only because the tape loaded that one byte there.
+D $D593 The ROM leaves NMIADD at zero. Without the tape's byte the jump would run the system variables' own bytes as code, and the game would crash at the first update of its first turn: a copy that got past the check at #R$BDFE but left out the byte would still not play.
+D $D593 The routine returns to DISPATCH's caller, or, where DISPATCH was jumped to, to its caller's caller.
+R $D593 A the index
+R $D593 BC the table
+  $D593,3 HL = the routine (#R$D589)
+  $D596,3 JP (HL), by way of the tape's byte in NMIADD
+
+w $D599 Update routines, by graphic
+D $D599 158 words, a routine for each graphic number, laid out by scripts/nightshade_data.py: the main loop (#R$BE0F) takes each object record's graphic (+0) and calls the routine the table gives through #R$D593, with IX on the record. The graphics come in runs for one kind of thing, four frames or directions apiece, and a run shares its routine: 0 and 1, an empty record, and 23 and 31 do nothing (#R$D6D5); 2 and 3 the two bonuses (#R$D727, #R$D74C); 4-7 an object lying (#R$D942) and 8-11 thrown (#R$D80C); 12-15 something vanishing (#R$D7D8); 16-21 and 24-29 the knight's legs (#R$DA7A), 22 and 30 his top (#R$D9EB) and 32-47 his top as well, entered 21 bytes into it; 48-63 what is found in buildings (#R$D9A3); 64-79 one kind of monster (#R$CE89), 80-95 antibodies in flight (#R$D7ED), 96-111 the villains (#R$D94F), 112-127 the other monsters (#R$C083), 128-131 a monster appearing (#R$C164), 132-135 a villain dying (#R$D847), drawn with the pictures of 12-15, 136-139 the creature (#R$BFF1), 140-143 a dead villain's sparkles (#R$D70A), drawn with the first pictures of the four kinds of find, those of 48, 52, 56 and 60; 144-157 the ending's pictures (#R$CD58, #R$CD10, the last five entered six bytes into it).
+
+@ $D6D5 label=NO_UPDATE
+c $D6D5 An update routine that does nothing
+D $D6D5 For graphics 0 and 1 -- an empty record, and the empty sprite -- and 23 and 31 (#R$D599). As Alien 8's NO_UPDATE.
+
+@ $D6D6 label=VILLAIN_SPARKLES
+c $D6D6 Send four sparkles out from a villain destroyed
+D $D6D6 Called by the thrown object's update (#R$D80C) when it strikes its villain. The four records at FINDS become sparkles, graphic 140 (#R$D70A moves them), at the villain's U and V, each facing a different way so that they fly apart: a speed of 12, half-sizes of 16 and the drawing offset things of that size have. Graphics 140-143 share their sprites with the first frames of the four kinds of find (48, 52, 56 and 60), so the sparkles show the finds' pictures. Whatever the four records held -- things found in buildings and not yet picked up -- is lost. The flags (+7), the step (+A, +B) and where each was drawn (+E, +F) are left as they were. The ending waits for the sparkles to finish (#R$D865).
+R $D6D6 IY the villain's record
+  $D6D6,5 The four records at FINDS
+  $D6DB,2 Graphic 140
+  $D6DD,14 U and V (+1 to +4), the villain's
+  $D6EB,2 Speed (+5) 12
+  $D6ED,8 Facing (+6, bits 6-7): 3, 2, 1 and 0 for the four records, so they fly apart
+  $D6F5,7 Half-sizes (+8, +9) 16 and 16
+  $D6FC,8 Drawing offset (+C, +D): 12 left and 4 up
+  $D704,6 On to the next record
+
+# --------------------------------------------------------------------------
+# The update routines and movement
+# --------------------------------------------------------------------------
+
+# Nightshade, range 4: $D70A-$DF96. The update routines reached through
+# UPDATES -- the sparkles, the vanishing, the bonuses, the objects, the
+# villains, the finds, the knight's top and legs, his controls, turning,
+# walking and throwing -- and movement: the step, the steering, the random
+# wander and the clipping of a step against the boxes of the town's cells.
+#
+# Facing, in bits 6-7 of a record's +6 throughout: $00 +V, $40 +U, $80 -V,
+# $C0 -U. Adding $40 is a turn to the right, as the right-hand key does
+# (#R$DB89); subtracting it a turn to the left.
+
+@ $D70A label=SPARKLE_FLY
+c $D70A The update routine for a sparkle from a destroyed villain (graphics 140-143)
+D $D70A The four records at FINDS become sparkles when a villain is struck by its object (#R$D6D6 sets them up: each at the villain's place, speed 12, one facing each way). Each flies straight on at its speed, cycling through its four pictures -- the four kinds of antibody's first frames, which the graphic table gives graphics 140-143 -- until it meets a wall, where it vanishes. The quest ends only when no sparkle is still on the screen (#R$D865).
+R $D70A IX The sparkle's record
+  $D70A,4 Clear the drawn flag: the drawing sets it again if the sparkle is still on the screen, which #R$D865 waits for
+  $D70E,12 Take the step from the speed and the facing, trim it against the town's walls and move
+  $D71A,3 Next picture of the four
+  $D71D,5 Done unless the move was stopped by a wall...
+  $D722,5 ...in which case it vanishes (#R$D7D8)
+
+@ $D727 label=SPEED_BONUS
+c $D727 The update routine for the bonus of graphic 2: a faster walk
+D $D727 A bonus lies only while the knight is within three cells of it, in both directions; further away it is gone, and #R$D76C will place another. Touched, it gives him a top speed of 18 for 255 of his turns (SPEED_TIME, counted down by #R$DA7A) and sound effect 1 for five turns.
+R $D727 IX The bonus's record (BONUS)
+  $D727,7 Is the knight within three cells of it (fewer than four columns and four rows away)?
+  $D72E,5 No: the bonus is gone, without a trace
+  $D733,4 Yes: done unless he is touching it
+  $D737,4 Touched: it vanishes (#R$D7D8)
+  $D73B,5 The faster walk lasts 255 turns
+  $D740,5 Top speed 18 instead of 10
+  $D745,7 Sound effect 1, for five turns
+
+@ $D74C label=HITS_BONUS
+c $D74C The update routine for the bonus of graphic 3: all three hits back
+D $D74C The same as #R$D727, except that touching it gives the knight back all three hits of this life (HITS), with sound effect 2 for seven turns. Drawn by the build, the picture is a flask.
+R $D74C IX The bonus's record (BONUS)
+  $D74C,7 Is the knight within three cells of it?
+  $D753,5 No: the bonus is gone
+  $D758,4 Yes: done unless he is touching it
+  $D75C,4 Touched: it vanishes (#R$D7D8)
+  $D760,5 Three hits again
+  $D765,7 Sound effect 2, for seven turns
+
+@ $D76C label=PLACE_BONUS
+c $D76C Put a bonus near the knight when there is none
+D $D76C Called by the main loop every turn (#R$BE0F). When the bonus record is empty it picks a cell: the knight's own column or the one four to its right (the random number's bits 0-2 masked with $FC leave only 0 or 4), and a row from four above his to three below. If that cell is not solid (types 1 and 2) and is not within one cell of the knight, the bonus goes there, at a random place in the middle half of the cell, as graphic 2 or 3 by whether the turn count is even or odd.
+D $D76C So a bonus is almost always about: the moment one is taken, or left behind by more than three cells (#R$D727), the next turn tries again. One placed four columns to the right is outside the three cells #R$D727 keeps it within, so it goes again on its first update, unless the knight has moved towards it; so does one placed four rows up. Measured in the simulator with the knight standing in cell (16,16): of 330 placements only those in his own column two or three rows away outlasted their first update, and a bonus was there in every one of 300 turns left alone.
+D $D76C The column is wrapped to the town's 32 but the row is looked up before it is wrapped, so a knight in the top four or bottom three rows has the bonus's cell looked up outside the map (#R$E028, from offset 41, adds the row times 32 to the map's address as it is); only the stored row is wrapped.
+  $D76C,9 Nothing to do while there is a bonus (or its vanishing)
+  $D775,3 Stir the random number
+  $D778,8 L=the knight's column, H=his row
+  $D780,14 Column: his own or four to the right, wrapped to 0-31
+  $D78E,14 Row: four above his to three below; the stored row is wrapped, H is not
+  $D79C,7 Look the cell up (L column, H row); no bonus in a solid cell (type 1 or 2)
+  $D7A3,6 None within one cell of the knight, either
+  $D7A9,10 Graphic 2 on an even turn, 3 on an odd one
+  $D7B3,20 A random place in the middle half of the cell, U and V 64-191
+  $D7C7,8 Half-size 16 each way
+  $D7CF,9 The drawing offset
+
+@ $D7D8 label=VANISHING
+c $D7D8 The update routine for something vanishing (graphics 12-15)
+D $D7D8 Whatever is taken up, destroyed or killed -- a bonus, a find, an object thrown at nothing, the knight himself -- becomes graphic 12, a small cloud, and goes through graphics 12 to 15 one a turn; after 15 its record is empty. If the last frame was on the screen, #R$C435 makes the crackle of its going.
+R $D7D8 IX The record
+  $D7D8,10 Next frame; after 15 the low two bits come round to 0...
+  $D7E2,6 ...and the record is emptied (A is 0), with the crackle if it was seen
+  $D7E8,5 Clear the drawn flag, which the drawing sets again
+
+@ $D7ED label=ANTIBODY_FLIGHT
+c $D7ED The update routine for an antibody in flight (graphics 80-95)
+D $D7ED An antibody thrown by the knight (#R$DAB7) flies straight on at speed 12, moving twice a turn, and vanishes at the first wall. It does not look for its targets: the monsters' own routines test for an antibody touching them (#R$C083, #R$CE89, #R$BFF1). Its four frames animate through the low two bits of the graphic.
+D $D7ED The second move is made from #R$DE59's second entry, which does not clear the wall flag, so a wall met on the first move still ends it.
+R $D7ED IX The antibody's record (ANTIBODIES)
+  $D7ED,6 The step from the speed and the facing
+  $D7F3,3 Next frame
+  $D7F6,6 Move, trimmed at a wall...
+  $D7FC,6 ...and again, keeping the wall flag
+  $D802,5 Done unless it met a wall...
+  $D807,5 ...where it vanishes
+
+@ $D80C label=OBJECT_FLIGHT
+c $D80C The update routine for a thrown object (graphics 8-11)
+D $D80C An object the knight has thrown (#R$DAB7) flies straight on at speed 12, twice a turn like an antibody, until it strikes a villain or a wall. The only villain it can strike is the one in the record 64 bytes on from its own (#R$C554): the object in record n of OBJECTS and the villain in record n of VILLAINS are a pair, and the other three pass through each other. A wall leaves the object lying where it stopped (graphics 4-7, the same object), to be taken up again.
+D $D80C A strike turns the villain into graphic 132, dying (#R$D847), and the object into the vanishing cloud; scores 250000 (BC = $2500, shown with the score's two dead zeros); lets out the four sparkles from the villain's place (#R$D6D6); and redraws the villains on the panel (#R$C1FD), where the dead one is now drawn as a picture in the colour of the object that killed it, not an outline (seen in the quest run: the skeleton in cyan after the first kill).
+R $D80C IX The object's record (OBJECTS)
+  $D80C,6 The step from the speed and the facing
+  $D812,12 Move twice, trimmed at a wall, the wall flag kept from the first
+  $D81E,5 Is it touching its own villain, four records on? (IY points to that record)
+  $D823,5 No: done unless it met a wall
+  $D828,11 At a wall it falls: graphic 8-11 becomes 4-7, the same object lying
+  $D833,4 Struck: the villain is dying
+  $D837,4 The object vanishes
+  $D83B,6 250000 points as shown
+  $D841,3 Four sparkles from where the villain was
+  $D844,3 Redraw the panel's villains, the dead one blanked
+
+@ $D847 label=VILLAIN_DYING
+c $D847 The update routine for a dying villain (graphics 132-135)
+D $D847 Flashes the play area's paper through all eight colours, one a turn, for as long as it lasts (FLASH is cleared at the end of every turn, so the flash stops when this does), and steps through its four frames on odd turns only: struck on an even turn it shows 132 and then two turns each of 133-135, seven turns; struck on an odd one it goes straight to 133, six (measured in both parities). The record is empty the turn after. The graphic table draws 132-135 with the vanishing cloud's pictures.
+R $D847 IX The villain's record (VILLAINS)
+  $D847,11 The paper colour from the turn count's low three bits
+  $D852,6 A new frame only on odd turns
+  $D858,9 Next frame; after 135 the low two bits come round to 0...
+  $D861,4 ...and the record is emptied
+
+@ $D865 label=CHECK_QUEST_DONE
+c $D865 End the game when the four villains are gone and their sparkles have left the screen
+D $D865 Called by the main loop every turn (#R$BE0F). Returns while any villain record is in use (a dying villain counts), or while any sparkle (#R$D70A) was drawn this turn; otherwise the game is over with the quest done, and #R$CC56 plays the ending. A sparkle off the screen is not waited for.
+  $D865,14 Any of the four villain records in use? Then not yet
+  $D873,6 Look through the four sparkle records
+  $D879,9 Is this one a sparkle, graphic 140-143?
+  $D882,5 Still on the screen: not yet
+  $D887,4 Next record
+  $D88B,3 The villains are gone: game over, with the ending
+
+@ $D88E label=PLACE_OBJECTS
+c $D88E Put the four objects in random cells at a new game
+D $D88E Called at a new game (#R$BE0F). The random number's low 12 bits give an address in the ROM, and the bytes from there are read in pairs as a column and a row (each masked to 0-31) until one is a cell a knight can stand in -- not type 1 or 2. Each object gets a copy of #R$D8D7, the cell, and its graphic: 7, 6, 5 and 4 for records 0 to 3, so that thing 1 (#R$C489 takes graphic 4 as thing 1) is the object in record 3. Nothing stops two objects, or an object and a villain, sharing a cell.
+  $D88E,3 Advance the turn count and stir the random number
+  $D891,6 Four records from OBJECTS
+  $D897,8 DE: an address in the ROM, from the random number
+  $D89F,10 Read a column and a row from it
+  $D8A9,12 Look the cell up; try the next pair if it is solid (type 1 or 2)
+  $D8B5,16 Copy #R$D8D7 into the record, and point IY at the next one
+  $D8C5,9 Graphic 3 plus the count: 7 for record 0 down to 4 for record 3
+  $D8CE,6 The cell's column and row, at its middle (the low bytes are 128 from the copy)
+  $D8D4,3 Next record
+
+b $D8D7 What each of the four objects starts as
+D $D8D7 Copied into each object's record by #R$D88E, which then gives it its graphic and cell: the middle of the cell, standing still, half-size 8 each way. A thrown object is a copy of the knight's legs' record instead (#R$DAB7).
+
+@ $D8E7 label=PLACE_VILLAINS
+c $D8E7 Put the four villains in random cells at a new game
+D $D8E7 The same as #R$D88E, with #R$D932 and the villains' graphics: 108, 104, 100 and 96 for records 0 to 3 (four pictures each, #R$D978). Called just before it, and each call advances the turn count and stirs the random number, so the two start from different places in the ROM. A villain can be placed in the knight's first cell; he then dies there as he appears, as often as he comes back.
+  $D8E7,3 Advance the turn count and stir the random number
+  $D8EA,6 Four records from VILLAINS
+  $D8F0,8 DE: an address in the ROM, from the random number
+  $D8F8,10 Read a column and a row from it
+  $D902,12 Look the cell up; try the next pair if it is solid (type 1 or 2)
+  $D90E,16 Copy #R$D932 into the record, and point IY at the next one
+  $D91E,11 Graphic 4 times the count plus 92: 108 for record 0 down to 96 for record 3
+  $D929,6 The cell's column and row
+  $D92F,3 Next record
+
+b $D932 What each of the four villains starts as
+D $D932 Copied into each villain's record by #R$D8E7, which then gives it its graphic and cell: the middle of the cell, speed 4, facing +V, half-size 16 each way. Its flags are 0 and nothing sets bit 5, so no villain ever homes in on the knight (#R$DD28).
+
+@ $D942 label=OBJECT_LYING
+c $D942 The update routine for an object lying in the town (graphics 4-7)
+D $D942 Waits to be touched. Touched, it makes sound effect 3 for four turns and is taken up (#R$C489) into the first free place of the eleven the knight carries; with all eleven full, #R$C489 returns without taking it and it stays where it lies.
+R $D942 IX The object's record (OBJECTS)
+  $D942,4 Done unless the knight is touching it
+  $D946,6 Sound effect 3, for four turns
+  $D94C,3 Take it up
+
+@ $D94F label=VILLAIN_WANDER
+c $D94F The update routine for a villain (graphics 96-111)
+D $D94F A villain walks at speed 4, turning left or right at random when it meets a wall and every so often besides (#R$DD28), and kills the knight at a touch: not a hit off his three but the whole life (#R$CE89 from offset 59, which also keeps his cell for the next life). Only its own object destroys it (#R$D80C).
+D $D94F While it is on the screen it hums (#R$C332, from offset 3): twelve pulses a turn at a pitch read from a 16-byte table by the turn count. The table was meant to be one of the four that follow the creature's (#R$C34D), one per villain, but that routine builds the address from BC alone and throws away the table's address loaded into HL here; and the offset in BC is not 0, 16, 32 or 48 but 128, 144, 160 or 176, since the graphic's bit 5 lands in bit 7, which the AND $F0 keeps (AND $30 would have been right). So the pitches come from the ROM's bytes $0080-$00BF, and the four tables are never read. Measured in the simulator: with each villain put beside the knight, the pitch was read from $00BB, $00AD, $009F and $0081 for the villains of graphics 108, 104, 100 and 96.
+R $D94F IX The villain's record (VILLAINS)
+  $D94F,10 BC: the graphic's bits 2-3 times 16, plus 128 from its bit 5 (meant as an offset into the villains' tables)
+  $D959,6 The hum, if it was drawn last turn; the table's address in HL is overwritten there, so BC alone is the address: the ROM
+  $D95F,12 The step from the speed and the facing; trim it at a wall; move
+  $D96B,3 Decide whether to turn
+  $D96E,3 Its picture for the facing
+  $D971,4 Done unless it touches the knight...
+  $D975,3 ...who dies, and will start his next life where he stands
+
+@ $D978 label=FACING_PICTURE
+c $D978 Set a villain's or a monster's picture for its facing
+D $D978 A villain has two pictures, one for facing +V or -U and one for +U or -V (bit 1 of its graphic), and each is mirrored for the U facings (bit 6 of +7, from the facing's bit 6); bit 0 is toggled every turn, the walking frame. With the town turned round (VIEW) bit 1 is flipped, since the knight then sees the villain's other side. Used for the monsters of graphics 112-127 too (#R$C083).
+R $D978 IX The record
+  $D978,5 B: 2 if the town is turned round
+  $D97D,10 C: 2 for facing +V or -U, 0 for +U or -V
+  $D987,12 Bit 1 of the graphic from C, flipped by the view; bit 0 toggled
+  $D993,16 Mirrored when facing along U
+
+@ $D9A3 label=FIND_WANDER
+c $D9A3 The update routine for a find in a building (graphics 48-63)
+D $D9A3 A find is one of the four kinds of antibody (#R$C5CE makes it, from the cell's type), and is there only while the knight is in its cell. It wanders at random (#R$DDCF, steps of up to 8 each way) and, touched, is taken up (#R$C489) as thing 5-8 and vanishes -- even with all eleven places full, when it is simply lost.
+D $D9A3 If the knight leaves the cell, or dies, it vanishes and is given back to its cell type's stock (STOCKS), so it can be found there again. Its +5 holds the cell type, not a speed, and +6 its turns to the next change of course.
+R $D9A3 IX The find's record (FINDS)
+  $D9A3,9 Is the knight alive (graphics 16-47)?
+  $D9AC,16 And still in its cell?
+  $D9BC,5 Yes: now and then a new random step, of up to 8 each way
+  $D9C1,6 Move along U and then V, trimmed at walls
+  $D9C7,3 Next frame
+  $D9CA,4 Done unless the knight touches it
+  $D9CE,8 Take it up, and it vanishes (full or not)
+  $D9D6,6 The knight is dead: vanish, from the second frame...
+  $D9DC,4 He has left the cell: vanish
+  $D9E0,11 Either way, one more to be found in a cell of its type
+
+@ $D9EB label=UPDATE_TOP
+@ $DA00 label=TOP_FOLLOWS
+c $D9EB The update routine for the knight's top (graphics 22, 30, 32-47)
+D $D9EB The knight is two records: his legs (KNIGHT), which walk and turn (#R$DA7A), and his top here (KNIGHT_TOP), drawn over them. The top follows the legs: it takes their place each turn, and a picture matching theirs -- graphic 32-37 for the walking frames 16-21 seen from behind, 40-45 for the ones from the front, 24-29, face showing. Now and then (one turn in 32 while he is not turning) it shows one of two other poses instead for two to nine turns: 38 or 39 from behind, 46 or 47 from the front.
+D $D9EB When his legs meet a wall the top shows graphic 22 or 30, arms thrown out, with the bump sound (#R$C3AA), and stays where it is. From graphic 22 or 30 the table enters at the start and checks the wall first; from 32-47 it enters at offset 21 (TOP_FOLLOWS), which copies the place first.
+R $D9EB IX The top's record; IX-16 the legs'
+  $D9EB,7 Did the legs meet a wall this turn?
+  $D9F2,14 Yes: the legs' flags, and graphic 22 or 30 by the legs' view (from behind or the front); stay put
+  $DA00,13 Copy the legs' place and speed (+1 to +5): from 16 bytes before the top's own +1
+  $DA0D,7 Is he turning (the legs' turn delay)? If not, perhaps a pose
+  $DA14,10 The picture that matches the legs' frame: 16-21 to 32-37, 24-29 to 40-45
+  $DA1E,10 No pose running; the legs' flags (the mirror)
+  $DA28,5 Done unless the legs met a wall
+  $DA2D,10 The bump, unless the top already had its arms out
+  $DA37,15 Arms out: graphic 22 or 30
+  $DA46,6 A pose running?
+  $DA4C,7 None: one turn in 32 start one, otherwise follow the legs
+  $DA53,14 Pose 38 or 39 from behind, 46 or 47 from the front
+  $DA61,9 For two to nine turns
+  $DA6A,8 The legs' flags
+  $DA72,8 A pose running: count it down, and follow the legs again at the end
+
+@ $DA7A label=UPDATE_KNIGHT
+c $DA7A The update routine for the knight's legs (graphics 16-21, 24-29)
+D $DA7A The knight's own routine. At a new life ARRIVING counts up from 40 by two a turn while he appears; at 76 it is set to 112 and he is here. Until then he cannot move, and the sound of his arrival (#R$C463) plays. Once here: the faster walk counts down, and when it runs out his top speed is 10 again and his speed 8; then the controls are read (#R$E241) and acted on in turn -- turning the town round (#R$DB68), turning (#R$DB89), walking or coming to a stop (#R$DC60) and throwing (#R$DAB7). E holds the controls through all of it.
+R $DA7A IX The legs' record (KNIGHT)
+  $DA7A,4 Clear the wall flag
+  $DA7E,11 Still appearing?
+  $DA89,2 He is here
+  $DA8B,10 Count the faster walk down, if there is one
+  $DA95,9 Run out: top speed 10, speed 8
+  $DA9E,4 E: the controls
+  $DAA2,3 Turn the town round?
+  $DAA5,3 Turn, or with directional control face the stick's way
+  $DAA8,5 Walk, or come to a stop on the grid
+  $DAAD,4 Throw?
+  $DAB1,6 Appearing: his picture for his facing, and the sound
+
+@ $DAB7 label=KNIGHT_THROWS
+c $DAB7 Throw the last thing taken up
+D $DAB7 Fire throws what the knight took up last: the carried things (CARRIED) are searched from the eleventh back. An antibody (thing 5-8) goes into a free antibody record (ANTIBODIES) as graphic 80, 84, 88 or 92; with both in use, the record THROW_TOGGLE points at is ended instead if it is still an antibody in flight, and the throw waits for the next press. An object (thing 1-4) goes into its own record, record 4 minus the thing (so the pairs of #R$D80C hold), as graphic 8-11. Either way the thrown thing is a copy of the legs' record -- his place, facing and flags -- given speed 12, half-size 16 and a drawing offset; the thing's place on the panel is redrawn empty, and the throw's sound plays. Two turns must pass before the next throw.
+R $DAB7 E The controls (bit 3 fire)
+  $DAB7,9 Still waiting after the last throw: count down
+  $DAC0,3 Fire?
+  $DAC3,13 Find the last thing carried; B: its place plus one
+  $DAD0,4 Things 1-4 are the objects
+  $DAD4,20 An antibody: a free antibody record?
+  $DAE8,12 Both in use: the one THROW_TOGGLE points at...
+  $DAF4,6 ...if it is still flying (graphic 80-95)...
+  $DAFA,3 ...vanishes; the thing is kept for the next press
+  $DAFD,8 Flip which record a full pair loses next
+  $DB05,5 Take the thing out of its place
+  $DB0A,11 The antibody record: a copy of the legs'
+  $DB15,4 Graphic 4 times the thing plus 60: 80, 84, 88, 92
+  $DB19,3 The graphic; shared with the objects
+  $DB1C,4 Speed 12
+  $DB20,8 Half-size 16 each way
+  $DB28,8 The drawing offset
+  $DB30,5 Two turns before the next throw
+  $DB35,11 Redraw the place it was carried in, now empty (#R$C489 counts the places from the other end)
+  $DB40,3 The throw's sound
+  $DB43,5 An object: take it out of its place
+  $DB48,14 Its own record: OBJECTS plus 16 times (4 minus the thing)
+  $DB56,13 A copy of the legs' record
+  $DB63,5 Graphic the thing plus 7: 8-11, and on as for an antibody
+
+@ $DB68 label=TURN_TOWN
+c $DB68 Turn the town round when its key is let go
+D $DB68 Z or SYMBOL SHIFT (bit 5 of the controls) turns the town round, to be seen from the other side, once a press: the key sets KEY_LATCH while held, and the turn happens when it is let go. The knight's facing gets a turn delay of two or three turns (bit 1 of +6), so a turn key held at the same time does not spin him while the view changes, and the panel's heading and compass are redrawn (#R$C29A).
+R $DB68 E The controls
+  $DB68,10 Held: remember it and wait
+  $DB72,5 Not held: done unless it was last turn
+  $DB77,7 Turn the town round
+  $DB7E,8 A turn delay for the knight
+  $DB86,3 Redraw the heading and the compass
+
+@ $DB89 label=TURN_KNIGHT
+@ $DC14 label=SET_KNIGHT_LOOK
+c $DB89 Turn the knight, by the controls
+D $DB89 The low three bits of his facing (+6) are a turn delay: while it is not 0 it counts down and he cannot turn. A turn sets it to 1, so a turn key held down turns him a quarter every other turn.
+D $DB89 With the keyboard, or a stick with rotational control, left and right turn him a quarter (left subtracts $40 from the facing, right adds it) and walking is left to #R$DC60. With a stick and directional control (CONTROL bits 1-2 not 0, bit 3 set), the stick's direction is a facing -- up +V, right +U, down -V, left -U, turned round with the town (#R$DC43) -- and he turns a quarter towards it, a random way if it is behind him, walking (bit 2 of E) only once he faces it. The stick is read as up (unless left is held too), then right, down and left, so a diagonal counts as one of its two directions.
+D $DB89 Then, from offset 139 (SET_KNIGHT_LOOK, also the entry while he appears), his picture: #R$DCDC gives the mirror bit and whether he is seen from the front, by his facing and the view.
+R $DB89 IX The legs' record
+R $DB89 E The controls: bits 0-1 left and right, 2 walk (up), 3 fire, 4 down, 5 turn the town round
+R $DB89 O:E Bit 2 set if he walks this turn
+  $DB89,12 Turning delay still running: count it, and only set his picture
+  $DB95,12 A stick with directional control?
+  $DBA1,8 Its directions turned round with the town
+  $DBA9,8 Up, unless left too
+  $DBB1,4 Right
+  $DBB5,4 Down
+  $DBB9,4 Left
+  $DBBD,3 None: stand
+  $DBC0,3 Up: +V, the facing itself
+  $DBC3,6 A: the facing less the stick's; no walking unless it is 0
+  $DBC9,4 A quarter to the right of it: turn left
+  $DBCD,4 A quarter to the left: turn right
+  $DBD1,7 Behind him: either way, at random
+  $DBD8,7 Turn left
+  $DBDF,7 Turn right
+  $DBE6,7 Right: +U
+  $DBED,7 Down: -V
+  $DBF4,7 Left: -U
+  $DBFB,3 Facing it already: walk
+  $DBFE,7 Rotational control: left?
+  $DC05,4 Turn left, with a turn's delay
+  $DC09,6 Right? Turn right
+  $DC0F,2 A turn's delay
+  $DC11,3 The new facing
+  $DC14,16 Index #R$DCDC by the facing, flipped with the town
+  $DC24,17 Its bits 6-7 into the flags: the mirror
+  $DC35,14 Its bit 3 into the graphic: from behind (16-21) or the front (24-29)
+
+@ $DC43 label=SWAP_STICK
+c $DC43 Turn a stick's directions round with the town
+D $DC43 With the town turned round the stick's directions are swapped end for end -- left for right, up for down -- so that pushing it still means the same way on the screen. Fire is kept; the town-turning bit is dropped, having been used.
+R $DC43 E The controls
+R $DC43 O:E The same, turned round
+  $DC43,3 Keep fire
+  $DC46,6 Left becomes right
+  $DC4C,6 Right becomes left
+  $DC52,6 Up becomes down
+  $DC58,6 Down becomes up
+  $DC5E,2 The new controls
+
+@ $DC60 label=KNIGHT_WALKS
+c $DC60 Walk, or come to a stop on the grid
+D $DC60 With the walk control (bit 2 of E, after #R$DB89) he walks on (#R$DCA8). Without it he does not stop dead: #R$DC71's routine for his facing keeps him stepping until his place along it is a multiple of 8, so he always comes to rest on an eight-unit grid.
+R $DC60 E The controls
+  $DC60,4 Walking?
+  $DC64,13 No: come to a stop, by the facing
+
+@ $DC71 label=COAST_TABLE
+w $DC71 Routines for coming to a stop, by facing (#R$DC60)
+W $DC71,2 Facing +V
+W $DC73,2 Facing +U
+W $DC75,2 Facing -V
+W $DC77,2 Facing -U
+
+@ $DC79 label=COAST_PLUS_V
+@ $DC7C label=COAST_TO_GRID
+c $DC79 Come to a stop facing +V
+D $DC79 The distance on to the next multiple of 8 along his facing is taken from the low three bits of V (here), U, or their negatives (#R$DC92, #R$DC97, #R$DC9E); 0 and he stands (#R$DCA3). Otherwise he steps 4 if it is 4 or more, 2 if 2 or 3, and 1 if 1, and walks the step as usual (#R$DCA8 from offset 13), so he slows down 4, 2, 1 into place.
+R $DC79 IX The legs' record
+  $DC79,3 V's low byte
+  $DC7C,4 On the grid: stand
+  $DC80,4 A: how far to the next multiple of 8, 1-7
+  $DC84,5 4 or more: step 4
+  $DC89,5 2 or 3: step 2
+  $DC8E,1 The last 1
+  $DC8F,3 Walk that step
+
+@ $DC92 label=COAST_PLUS_U
+c $DC92 Come to a stop facing +U
+D $DC92 As #R$DC79, along U.
+  $DC92,5 U's low byte
+
+@ $DC97 label=COAST_MINUS_V
+@ $DC9A label=COAST_BACKWARDS
+c $DC97 Come to a stop facing -V
+D $DC97 As #R$DC79, with V negated, so the distance is back to the multiple of 8 below.
+  $DC97,3 V's low byte
+  $DC9A,4 Negated
+
+@ $DC9E label=COAST_MINUS_U
+c $DC9E Come to a stop facing -U
+D $DC9E As #R$DC97, along U.
+  $DC9E,5 U's low byte, negated
+
+@ $DCA3 label=STAND_ON_GRID
+c $DCA3 Stand still, on the grid
+D $DCA3 Speed 0; the walking frame stays as it was.
+  $DCA3,5 Speed 0
+
+@ $DCA8 label=WALK_ON
+@ $DCB5 label=WALK_STEP
+c $DCA8 Walk on, speeding up
+D $DCA8 His speed goes halfway to his top speed (TOP_SPEED) each turn, rounded down to an even number -- which means it never reaches it: from 0 with top speed 10 it goes 4, 6, 8 and stays at 8; with the bonus's 18 it goes 8, 12, 14, 16 and stays at 16 (both measured in the simulator, walking held).
+D $DCA8 From offset 13 (WALK_STEP, also where he comes to a stop, #R$DC79): the step from the speed and the facing, trimmed at walls, and moved; the visited cell and the percentage (#R$BF48); a footstep (#R$C400); and the next of six walking frames.
+R $DCA8 IX The legs' record
+  $DCA8,13 Halfway to the top speed, even
+  $DCB5,3 The speed
+  $DCB8,9 Step, trimmed at walls, and move
+  $DCC1,3 A new cell visited?
+  $DCC4,3 A footstep
+  $DCC7,12 The next walking frame, 0-5 in the low three bits
+  $DCD3,9 Keep the rest of the graphic (bit 3, from behind or the front)
+
+@ $DCDC label=FACING_LOOKS
+b $DCDC How the knight looks for each facing
+D $DCDC Indexed by the facing (0-3) with bit 1 flipped when the town is turned round (#R$DB89, from offset 139). Bits 6-7 go into the flags -- bit 6 mirrors the picture; bit 7, upside down, is never set -- and bit 3 into the graphic, the view from the front, his face showing (24-29 rather than 16-21, seen from behind). Facing +U or -V he comes towards the viewer, since further back is smaller U and larger V (#R$D0A0); drawn by the game's own code, those two show his face.
+B $DCDC,4,1 By facing: +V from behind, mirrored ($40); +U from the front ($08); -V from the front, mirrored ($48); -U from behind ($00)
+
+@ $DCE0 label=SET_STEP
+c $DCE0 Set a record's step from its speed and facing
+D $DCE0 The step (+A, +B) is the speed along the one axis the record faces: U if bit 6 of the facing is set, V if not, negative if bit 7 is set. Only four directions; the random wanderers set their steps themselves (#R$DDCF).
+R $DCE0 A The speed
+R $DCE0 IX The record
+  $DCE0,12 H (V) or L (U) the speed, the other 0
+  $DCEC,14 Facing -V or -U: negate both
+  $DCFA,7 The step
+
+@ $DD01 label=APPLY_STEP
+c $DD01 Move a record by its step
+D $DD01 Adds the step, two signed bytes, to U and V. Called after the step has been trimmed at the walls (#R$DE59).
+R $DD01 IX The record
+  $DD01,19 U plus the U step, sign-extended
+  $DD14,20 V plus the V step
+
+@ $DD28 label=STEER
+c $DD28 Decide whether a walker turns: at a wall, when its count runs out, or towards the knight
+D $DD28 Used by the villains (#R$D94F) and the monsters of graphics 112-127 (#R$C083). Stopped by a wall, it turns a quarter left or right at random and starts a new count of up to 63 turns. Otherwise the count (the low bits of the facing byte) goes down each turn, and when its low five bits reach 0: with bit 5 of the flags clear it turns at random the same way; with it set it turns towards the knight (#R$DD99, #R$DD6A) and starts a count of 1-16.
+D $DD28 Bit 5 is set only for a monster spawned in the first half of a 256-turn cycle (#R$CDE8); the villains never have it, so they wander and never chase. The counts are set from the random number's high byte and tested on only five bits, so a count of 32-63 runs out after the count less 32.
+R $DD28 IX The record
+  $DD28,6 Stopped by a wall: turn
+  $DD2E,9 Count down; done unless the low five bits are 0
+  $DD37,6 A chaser turns towards the knight
+  $DD3D,10 Turn left or right at random
+  $DD47,2 Right
+  $DD49,11 A new count, the random number's high byte's low six bits ORed with what was left of the old one
+  $DD54,4 Left
+  $DD58,4 A: the knight's direction, 0-3
+  $DD5C,8 Where it is compared with the facing: 0 ahead, 1 to the left, 2 behind, 3 to the right
+  $DD64,6 Turn by it (#R$DD6A)
+
+@ $DD6A label=TURN_TO_KNIGHT_TABLE
+w $DD6A Routines to turn a chaser towards the knight, by where he is (#R$DD28)
+D $DD6A Indexed by the knight's direction from the chaser (#R$DD99) less its facing. Three of the four enter #R$DD72 part way.
+W $DD6A,2 Ahead: keep on
+W $DD6C,2 A quarter to the left: turn left
+W $DD6E,2 Behind: either way, at random
+W $DD70,2 A quarter to the right: turn right
+
+@ $DD72 label=STEER_EITHER
+@ $DD79 label=STEER_LEFT
+@ $DD81 label=STEER_ON
+@ $DD92 label=STEER_RIGHT
+c $DD72 Turn a chaser towards the knight
+D $DD72 Four entries, reached through #R$DD6A: here (the knight behind it) a quarter left or right at random; at offset 7 (STEER_LEFT) a quarter left; at offset 15 (STEER_ON) no turn; at offset 32 (STEER_RIGHT) a quarter right. Each then starts a new count of 1-16 turns in the facing's low bits.
+R $DD72 IX The record
+  $DD72,7 Behind: left or right at random
+  $DD79,5 Turn left (facing less $40)
+  $DD7E,3 The new facing
+  $DD81,17 A new count of 1-16, from the random number
+  $DD92,7 Turn right (facing plus $40)
+
+@ $DD99 label=KNIGHT_DIRECTION
+c $DD99 Which way is the knight from a record?
+D $DD99 The facing that points most nearly at the knight: along V if he is at least as far away in V as in U, along U if further in U, the sign from the difference.
+R $DD99 IX The record
+R $DD99 O:A 0 +V, 1 +U, 2 -V, 3 -U: the facing towards him, divided by $40
+  $DD99,18 His U less its U; DE its size
+  $DDAB,19 His V less its V; HL its size
+  $DDBE,7 Further in V (or as far)? A=0, HL the V difference
+  $DDC7,2 Further in U: A=1, HL the U difference
+  $DDC9,6 Negative: 2 on
+
+@ $DDCF label=WANDER_STEP
+c $DDCF Now and then give a wanderer a new random step
+D $DDCF For the finds (#R$D9A3, B=4) and the monsters of graphics 64-79 (#R$CE89, B=7). The low six bits of +6 count turns down; when they run out, or when the step has become 0 both ways, a new step is drawn for U and V from the random number's two bytes (#R$DDFC: up to twice B either way, those near B likeliest) and a new count of 0-63 from R. The facing's top two bits are set again from the step by #R$DE0D, which follows.
+R $DDCF B The number of random bits to a step
+R $DDCF IX The record
+  $DDCF,10 Count down; a new step when the count runs out...
+  $DDD9,7 ...or when the old one is 0 both ways
+  $DDE0,10 The U step, from the random number's low byte
+  $DDEA,10 The V step, from its high byte
+  $DDF4,8 A new count of 0-63
+
+@ $DDFC label=RANDOM_STEP
+c $DDFC A random step from the bits of a byte
+D $DDFC Two for each 0 among the low B bits of C, negative if the next bit is 0: a step of 0 to twice B either way, those near B likeliest, as the count of zeros among B random bits is.
+R $DDFC B The number of bits
+R $DDFC C Random bits
+R $DDFC O:A The step
+  $DDFC,2 A=0
+  $DDFE,8 Two for each 0 bit
+  $DE06,7 The next bit: 1 positive, 0 negative
+
+@ $DE0D label=MOVE_SPLIT
+c $DE0D Trim a two-way step at the walls, one axis at a time
+D $DE0D The clipping routines (#R$DE6A) handle a step along the facing only, so a wanderer's step, which can go both ways at once, is taken in two: the U part, facing +U or -U by its sign, with the V part set aside; then the V part, facing +V or -V, with the U part set aside. The facing ends as the V part's, if there is one. The second clip does not clear the wall flag, so it says whether either part met a wall.
+R $DE0D IX The record
+  $DE0D,6 Any U step?
+  $DE13,17 Face +U, or -U if it is negative
+  $DE24,15 Trim the U step, with the V step put aside
+  $DE33,5 Any V step?
+  $DE38,17 Face +V, or -V if it is negative
+  $DE49,16 Trim the V step, with the U step put aside, keeping the wall flag
+
+@ $DE59 label=MOVE_CLIPPED
+@ $DE5D label=MOVE_CLIPPED_AGAIN
+c $DE59 Trim a record's step at the town's walls
+D $DE59 Clears the wall flag (bit 0 of +7) and jumps to #R$DE6A's routine for the facing, which trims the step so that the record stops against a wall instead of in it, and sets the flag if it had to. From offset 4 (MOVE_CLIPPED_AGAIN) the flag is left as it is, for a second move in the same turn. The step is only trimmed here: #R$DD01 makes the move.
+R $DE59 IX The record
+  $DE59,4 No wall met yet
+  $DE5D,13 By the facing
+
+@ $DE6A label=MOVE_TABLE
+w $DE6A Routines to trim a step at the walls, by facing (#R$DE59)
+D $DE6A Each finds the town cells that the record's front edge is in, and will be in after the step, and tests the record against every box of each cell's type (the box lists, through #R$6334).
+W $DE6A,2 Facing +V
+W $DE6C,2 Facing +U
+W $DE6E,2 Facing -V
+W $DE70,2 Facing -U
+
+@ $DE72 label=CLIP_PLUS_V
+c $DE72 Trim a step along +V at the walls
+D $DE72 The record's front edge is at V plus its half-size in V (+9), from U less its half-size in U (+8) to U plus it. The cell under each front corner is tested (#R$DFFA: the record, moved by its step, against the boxes of that cell's type); the second only if it is a different cell from the first. Then, if the step carries the front edge into the next row of cells, the cells it goes into are tested too. The first test to find a box in the way trims the V step to touch it, sets the wall flag, and returns with carry set.
+D $DE72 Only the cells under the front edge are chosen; which boxes are hit is decided by the whole record against the whole box, so a box reaching into the cell from its side still counts. #R$DED3 and #R$DF34 are the same for +U and -V, and #R$DF97 for -U.
+R $DE72 IX The record
+R $DE72 O:F Carry set if a wall trimmed the step
+  $DE72,15 DE: U less the half-size, the left of the front edge
+  $DE81,10 HL: V plus the half-size, the front edge
+  $DE8B,8 Test the cell under the front left corner; done if a wall
+  $DE93,14 The right corner, U plus the half-size: in the same cell?
+  $DEA1,7 No: test its cell too
+  $DEA8,9 Does the step take the front edge into the next row of cells? Done if not
+  $DEB1,8 Yes: test the cell the left corner goes into...
+  $DEB9,12 ...and the one the right corner goes into
+  $DEC5,14 Both corners in one cell: test only the cell the step goes into, if another
+
+@ $DED3 label=CLIP_PLUS_U
+c $DED3 Trim a step along +U at the walls
+D $DED3 As #R$DE72, with U and V exchanged: the front edge is at U plus the half-size in U, the corners at V less and plus the half-size in V, and #R$E013 trims the U step.
+R $DED3 IX The record
+R $DED3 O:F Carry set if a wall trimmed the step
+  $DED3,13 DE: U plus the half-size, the front edge
+  $DEE0,12 HL: V less the half-size
+  $DEEC,8 Test the cell under the one front corner; done if a wall
+  $DEF4,14 The other corner, V plus the half-size: in the same cell?
+  $DF02,6 No: test its cell too
+  $DF08,9 Does the step take the front edge into the next column of cells? Done if not
+  $DF11,20 Yes: test the cells the two corners go into
+  $DF25,15 Both corners in one cell: test only the cell the step goes into, if another
+
+@ $DF34 label=CLIP_MINUS_V
+c $DF34 Trim a step along -V at the walls
+D $DF34 As #R$DE72, with the front edge at V less the half-size, the step taken as negative (B=$FF), and #R$E00B trimming it.
+R $DF34 IX The record
+R $DF34 O:F Carry set if a wall trimmed the step
+  $DF34,15 DE: U less the half-size
+  $DF43,12 HL: V less the half-size, the front edge
+  $DF4F,8 Test the cell under the one front corner; done if a wall
+  $DF57,14 The other corner, U plus the half-size: in the same cell?
+  $DF65,7 No: test its cell too
+  $DF6C,9 Does the step (negative: B=$FF) take the front edge into the row of cells before? Done if not
+  $DF75,20 Yes: test the cells the two corners go into
+  $DF89,14 Both corners in one cell: test only the cell the step goes into, if another
+
+# --------------------------------------------------------------------------
+# Movement against the boxes, the keys, the sprites and the buffers
+# --------------------------------------------------------------------------
+
+# Nightshade stage 2, range 5: $DF97-$FFFF.
+# Movement against the cell boxes, the drawing tables, the buffer copies,
+# the key reading, the pause, the sprite turning and drawing, the screen
+# address arithmetic, and everything above the code.
+
+# --------------------------------------------------------------------------
+# Movement against the boxes of the cells
+# --------------------------------------------------------------------------
+
+@ $DF97 label=CLIP_MINUS_U
+c $DF97 Cut a step in -U short at the boxes of the cells ahead
+D $DF97 The last of the four routines of #R$DE6A, for an object facing -U (bits 6-7 of +6 = 3). The object's footprint is its U and V plus or minus its half-sizes (+8, +9); its leading edge is at U less the half-size in U. The cells to test are the ones that edge's two corners stand in now, and, if this turn's step in U (+A, negative) takes the edge into the next column, the ones its corners reach there -- at most four, each tested once. For each, #R$E020 checks the object's box, moved by the step, against the cell's boxes and cuts the step short at the first it runs into; the first cut ends the search, with carry set.
+D $DF97 The corners only choose which cells to look in: the box test itself works from the object's own position and step (#R$E028), so a cell tested twice or one the object is nowhere near costs time but cannot give a wrong answer.
+R $DF97 IX The object
+R $DF97 O:F Carry set if the step was cut (and bit 0 of +7 set)
+  $DF97,15 DE = U less the half-size in U: the leading edge
+  $DFA6,12 HL = V less the half-size in V: the edge's low corner
+  $DFB2,8 Test the cell under that corner; stop if the step was cut
+  $DFBA,14 HL = V plus the half-size: the other corner; if it is in the same row, its cell has just been tested
+  $DFC8,6 Test the cell under the other corner. DE and HL come back swapped: HL the edge's U, DE the low V
+  $DFCE,9 Add the step in U, negative, B = $FF sign-extending it; if the edge stays in its column there is no new cell. A step of 0 reads as -256 here, so a still object tests the column behind as well, to no effect
+  $DFD7,9 Test the cell the moved edge reaches, at the low V corner...
+  $DFE0,11 ...and at the high one
+  $DFEB,15 Both corners in one row: only the cell the moved edge reaches, if it is in a new column
+
+@ $DFFA label=CUT_STEP_PLUS_V
+@ $DFFE label=CUT_STEP_V
+@ $E005 label=MARK_BLOCKED
+c $DFFA Cut a step in +V short at a box of a cell
+D $DFFA Called by the +V routine (#R$DE72) for each cell its object's leading edge covers. If the object's box, moved by this turn's step, overlaps one of the cell's boxes (#R$E0A0), the step in V (+B) is cut by the overlap, so that the move ends with the object against the box's face; bit 0 of the flags (+7) is set to say it was stopped, and carry is returned.
+D $DFFA The entry point CUT_STEP_V adds twice A, the overlap in half units, to the step; MARK_BLOCKED sets the flag. #R$E00B, #R$E013 and #R$E020 are the same for -V, +U and -U.
+R $DFFA D The column of the cell to test (the high byte of a U in it)
+R $DFFA H Its row (the high byte of a V in it)
+R $DFFA IX The object
+R $DFFA O:F Carry set if the step was cut
+  $DFFA,4 Test the cell's boxes; nothing in the way returns with carry clear
+  $DFFE,7 CUT_STEP_V: A is minus the overlap, in half units; twice it added to a positive step ends the move at the box
+  $E005,6 MARK_BLOCKED: bit 0 of the flags says the object was stopped; return with carry set
+
+@ $E00B label=CUT_STEP_MINUS_V
+c $E00B Cut a step in -V short at a box of a cell
+D $E00B As #R$DFFA, for the -V routine (#R$DF34): the overlap is made positive, so that it shortens a negative step.
+R $E00B D The column of the cell to test
+R $E00B H Its row
+R $E00B IX The object
+R $E00B O:F Carry set if the step was cut
+  $E00B,4 Test the cell's boxes; nothing in the way returns with carry clear
+  $E00F,4 Plus the overlap, and cut the step
+
+@ $E013 label=CUT_STEP_PLUS_U
+@ $E017 label=CUT_STEP_U
+c $E013 Cut a step in +U short at a box of a cell
+D $E013 As #R$DFFA, for the step in U (+A) and the +U routine (#R$DED3); the overlap in U comes from #R$E063. The entry point CUT_STEP_U adds twice A to the step.
+R $E013 D The column of the cell to test
+R $E013 H Its row
+R $E013 IX The object
+R $E013 O:F Carry set if the step was cut
+  $E013,4 Test the cell's boxes; nothing in the way returns with carry clear
+  $E017,9 CUT_STEP_U: twice minus the overlap added to the step in U; then mark the object stopped
+
+@ $E020 label=CUT_STEP_MINUS_U
+c $E020 Cut a step in -U short at a box of a cell
+D $E020 As #R$E013, for the -U routine (#R$DF97): the overlap is made positive, so that it shortens a negative step.
+R $E020 D The column of the cell to test
+R $E020 H Its row
+R $E020 IX The object
+R $E020 O:F Carry set if the step was cut
+  $E020,4 Test the cell's boxes; nothing in the way returns with carry clear
+  $E024,4 Plus the overlap, and cut the step
+
+@ $E028 label=PLACE_IN_CELL
+@ $E051 label=TOWN_CELL
+c $E028 Look up a cell of the town, and where the object is in it
+D $E028 Takes the cell at column D and row H -- the high bytes of any U and V in it -- and returns its type from the map (#R$5E04), and the object's position in that cell's own frame, in the units its boxes are measured in: the object's U and V less the cell's corner, halved, plus 64. A cell is 256 units a side, so it runs from 64 to 191 in these half units, and a position half a cell beyond it either way still fits in a byte; only the low byte of the halved difference is kept, which is right for anything within that distance.
+D $E028 The entry point TOWN_CELL does only the look-up, for a column in L and a row in H; the finds (#R$C5CE), the visited cells (#R$BF48), the monsters (#R$CDE8) and the bonus (#R$D76C) use it. The map is 32 cells a row, and nothing here checks that the column or the row is less than 32.
+R $E028 D The column (the high byte of a U)
+R $E028 H The row (the high byte of a V)
+R $E028 IX The object
+R $E028 O:A The cell's type, with Z set if it is 0 (nothing there)
+R $E028 O:HL The cell's address in the map
+R $E028 O:E The object's U in the cell, in half units from 64
+R $E028 O:D The object's V in the cell, likewise
+  $E028,3 Keep the row and the column
+  $E02B,20 E = (U less the cell's first U) halved, plus 64
+  $E03F,17 D = (V less the cell's first V) halved, plus 64
+  $E050,1 H = the row, L = the column
+  $E051,11 TOWN_CELL: HL = the row times 32, plus the column
+  $E05C,7 A = the cell's type from the map, Z set if the cell is empty
+
+@ $E063 label=HIT_BOXES_U
+c $E063 Does the moved object run into a box of a cell? Give the overlap in U
+D $E063 The cell's boxes come from #R$6334 by its type: four bytes a box -- its centre in U and V and its half-sizes in U and V, in the cell's half units (#R$E028) -- and a list ends at a 0. A box is hit when the object's footprint, moved by this turn's step, overlaps it in V (#R$E0C4) and in U (#R$E087). The first box hit returns carry, with A minus the depth of the overlap in U, in half units. #R$E0A0 is the same with the two tests the other way round, to give the overlap in V.
+R $E063 D The column of the cell
+R $E063 H Its row
+R $E063 IX The object
+R $E063 O:A Minus the overlap in U, in half units (when carry is set)
+R $E063 O:F Carry set if a box is hit
+  $E063,3 Find the cell's type and the object's place in it
+  $E066,9 IY = the type's list of boxes
+  $E06F,5 A 0 ends the list: nothing hit, carry clear
+  $E074,5 Overlapping this box in V?
+  $E079,4 ...and in U: then return carry, with the overlap in U
+  $E07D,10 The next box
+
+@ $E087 label=OVERLAP_U
+c $E087 Do the moved object and a box overlap in U?
+D $E087 A = |the object's U + half its step - the box's centre| less (half the object's half-size + the box's half-size), all in the cell's half units. That is negative, with carry set, when the two overlap, and it is then minus the depth of the overlap.
+R $E087 E The object's U in the cell (#R$E028)
+R $E087 IX The object
+R $E087 IY The box
+R $E087 O:A The gap between them, negative for an overlap
+R $E087 O:F Carry set if they overlap
+  $E087,9 C = the object's half-size in U, halved, plus the box's
+  $E090,9 The object's U after half its step, less the box's centre
+  $E099,5 Made positive
+  $E09E,2 Less the two half-sizes: carry if they overlap
+
+@ $E0A0 label=HIT_BOXES_V
+c $E0A0 Does the moved object run into a box of a cell? Give the overlap in V
+D $E0A0 As #R$E063, but testing U first and V second, so that the overlap it returns is in V: for the steps in V (#R$DFFA, #R$E00B).
+R $E0A0 D The column of the cell
+R $E0A0 H Its row
+R $E0A0 IX The object
+R $E0A0 O:A Minus the overlap in V, in half units (when carry is set)
+R $E0A0 O:F Carry set if a box is hit
+  $E0A0,3 Find the cell's type and the object's place in it
+  $E0A3,9 IY = the type's list of boxes
+  $E0AC,5 A 0 ends the list: nothing hit, carry clear
+  $E0B1,5 Overlapping this box in U?
+  $E0B6,4 ...and in V: then return carry, with the overlap in V
+  $E0BA,10 The next box
+
+@ $E0C4 label=OVERLAP_V
+c $E0C4 Do the moved object and a box overlap in V?
+D $E0C4 As #R$E087, in V: the object's half-size +9 and step +B, the box's centre and half-size at +1 and +3.
+R $E0C4 D The object's V in the cell (#R$E028)
+R $E0C4 IX The object
+R $E0C4 IY The box
+R $E0C4 O:A The gap between them, negative for an overlap
+R $E0C4 O:F Carry set if they overlap
+  $E0C4,9 C = the object's half-size in V, halved, plus the box's
+  $E0CD,9 The object's V after half its step, less the box's centre
+  $E0D6,5 Made positive
+  $E0DB,2 Less the two half-sizes: carry if they overlap
+
+# --------------------------------------------------------------------------
+# Small arithmetic
+# --------------------------------------------------------------------------
+
+@ $E0DD label=NEGATE_HL
+c $E0DD HL = -HL
+D $E0DD Complements both bytes and adds one. Used by #R$C55F and #R$DD99.
+R $E0DD HL A number
+R $E0DD O:HL Its negative
+R $E0DD O:A What was H complemented
+
+@ $E0E5 label=SIGN_EXTEND_A
+c $E0E5 HL = A, read as a signed number
+D $E0E5 H is 0, or 255 when bit 7 of A is set. Used by #R$DD01.
+R $E0E5 A A signed byte
+R $E0E5 O:HL The same number as a word
+R $E0E5 O:A H
+
+@ $E0EE label=HL_EQUALS_DE_X_A
+c $E0EE HL = DE * A
+D $E0EE A shift-and-add multiply, a bit of A at a time from the top; the result keeps its low 16 bits. A goes round eight places back to itself, and B ends at 0. The only caller is the upside-down half of #R$E353, which never runs, so neither does this. Alien 8's routine of the same name is the same idea.
+R $E0EE A One factor
+R $E0EE DE The other
+R $E0EE O:HL The product
+  $E0EE,5 HL = 0; eight bits
+  $E0F3,7 Double HL; add DE when the next bit of A, from the top, is set
+  $E0FA,1 A is back as it was; B is 0
+
+# --------------------------------------------------------------------------
+# The drawing tables
+# --------------------------------------------------------------------------
+
+@ $E0FB label=MAKE_TABLES
+c $E0FB Build the drawing tables
+D $E0FB Run at every new game (#R$BE0F). Fills the six pages from #R$F200, the six from #R$FA00, and #R$F900 with the tables the drawing of sprites and tiles reads to put a byte at any even pixel.
+D $E0FB The six pages from #R$FA00 up are every byte value shifted right two, four and six places, in pairs: page $FA holds a byte shifted right two, the part that stays in its own byte, and page $FB the two bits that fall out into the next byte; $FC and $FD the same for four places, $FE and $FF for six. The loop builds them the other way about: it shifts each value left across two bytes, two places at a time, and stores the pair after each shift from the top page down, so the high byte of a shift left by eight less s is the shift right by s. The six from #R$F200 are the same for every value with its bits reversed first, for tiles drawn mirrored; and #R$F900 is every value reversed, for mirroring sprites (#R$E353) and tiles on a byte boundary.
+D $E0FB Only even shifts are built because nothing is drawn at an odd pixel: the drawing ignores bit 0 of x. Knight Lore, Alien 8 and Pentagram build seven shifts, complemented; these are three, and plain. Checked in the simulator: after this routine every byte of the thirteen pages is as described, and the page between them, #R$F800, is not touched.
+  $E0FB,9 For each value L: DE = L, starting at the top page
+  $E104,14 Shift DE left two places; the low byte to page H and the high to the page below; three times, for pages $FF down to $FA
+  $E112,3 The next value
+  $E115,13 Again with the value's bits reversed first: C = L back to front
+  $E122,18 ...shifted and stored the same way on pages $F7 down to $F2
+  $E134,3 The next value
+  $E137,16 Page $F9: each value's bits in reverse order
+  $E147,1 Done
+
+# --------------------------------------------------------------------------
+# The buffers to the screen
+# --------------------------------------------------------------------------
+
+@ $E148 label=COPY_BUFFER
+c $E148 Copy the play area's pixels from the buffer to the screen
+D $E148 The buffer's row 0 is the bottom line of the play area, since the game's y counts upwards, so the copy starts there, at line 127 of the screen, and works up to line 16. It uses the stack: SP is pointed just past the end of a screen line, each PUSH puts two buffer bytes onto it, and eleven of them fill the 22 columns 7 to 28, while HL reads the buffer backwards. Only bytes 2 to 23 of each 24-byte buffer row are copied: the first two are a margin that sprites at the left edge are drawn into unseen (#R$E3D9). Interrupts are off throughout the game, so nothing else uses the stack meanwhile. Checked in the simulator: buffer row 0 goes to line 127, row 111 to line 16, and byte 2 of a row to column 7.
+  $E148,7 Keep SP; point it just past column 28 of line 127, the play area's bottom line
+  $E14F,5 112 lines, from the last byte of the buffer's row 0
+  $E154,54 Push the row's last 22 bytes onto the line, right to left
+  $E18A,5 HL = SP less 234: the same columns a pixel line up, as far as moving within a character cell goes
+  $E18F,7 That is right unless the low bits of H became 7: the line was the top of a character cell
+  $E196,11 Then a character row up: L less 32, and H back up by 8 unless that crossed into the third above
+  $E1A1,7 Point SP there; HL = the end of the next buffer row (45 on from byte 2 of this one)
+  $E1A8,5 Restore SP
+
+@ $E1AD label=COPY_ATTR_BUFFER
+c $E1AD Copy the play area's attributes from the buffer to the screen
+D $E1AD As #R$E148, a character row at a time: the attribute buffer's row 0, the play area's bottom row, goes to row 15 of the screen and its row 13 to row 2, bytes 2 to 23 of each to columns 7 to 28.
+  $E1AD,12 Keep SP; point it just past column 28 of attribute row 15; 14 rows, from the end of the buffer's row 0
+  $E1B9,54 Push the row's last 22 bytes
+  $E1EF,12 SP up a row: 10 more to make 32; HL to the end of the next buffer row
+  $E1FB,5 Restore SP
+
+@ $E200 label=SHOW_PLAY_AREA
+@ $E206 label=CLEAR_BUFFER
+@ $E21D label=FILL_BELOW_HL
+c $E200 Show this turn's play area, and clear the buffers for the next
+D $E200 Called at the end of every turn (#R$BE0F): copies the pixels and the attributes to the screen (#R$E148, #R$E1AD), and goes on into CLEAR_BUFFER.
+D $E200 The entry point CLEAR_BUFFER, also used at a new game (#R$BE0F), by the menu (#R$C8CA) and at the end of a game (#R$CC56), fills the attribute buffer with bright white ink on the paper colour in FLASH -- black but for the turn after a villain dies -- and the pixel buffer with zeros, both with PUSHes from the top down. The fill of the attributes starts just below #R$F194, so that byte is never written here.
+D $E200 FILL_BELOW_HL is the fill: B rows of 24 bytes, ending at HL, all DE.
+R $E200 O:HL The lowest address filled (the buffer's start)
+  $E200,6 Copy the pixels and the attributes to the screen
+  $E206,15 CLEAR_BUFFER: the attributes, 14 rows of 24 bytes below #R$F194, each FLASH's paper with bright white ink
+  $E215,8 Then the pixels, 112 rows of 24 bytes below #R$F044, all zeros
+  $E21D,5 FILL_BELOW_HL: keep SP and point it at the end of the area
+  $E222,14 Twelve pushes a row
+  $E230,9 HL = the lowest byte filled; restore SP
+
+# --------------------------------------------------------------------------
+# The keyboard, the joysticks and the pause
+# --------------------------------------------------------------------------
+
+@ $E239 label=READ_KEYS
+c $E239 Read a half-row of the keyboard
+D $E239 Knight Lore's, Alien 8's and Pentagram's routine, byte for byte. IN A,($FE) puts A on the top half of the address bus, so each 0 bit in A selects a half-row, and two or more can be read at once; the CPL turns the active-low bits the right way up, so a key held is a 1, and Z is set when none of the five is held.
+D $E239 The OUT before it is not needed for the read. It writes A to port A*256+$FD, which nothing on a 48K Spectrum answers. A 128K machine's paging port would decode it whenever A has bit 7 clear, and #R$E241 sends $7F with the keyboard and $7E with every method, every turn, as #R$E32C does: in 128 mode that would page RAM 7 or 6 over the top 16K, where the game's code and tables are, show the other screen and lock the paging. Read, not tried on a 128K; Pentagram's identical routine was tried and reset the machine at the first turn of play.
+R $E239 A The half-rows to read: a 0 bit for each
+R $E239 O:A Bits 0-4 the keys held, 1 for held
+R $E239 O:F Z set if none is held
+  $E239,2 The OUT that a 128K would take for paging (see above)
+  $E23B,6 Read the half-rows; held keys as 1s
+
+@ $E241 label=READ_CONTROLS
+c $E241 Read the controls into CONTROLS
+D $E241 Called once a turn by the knight's controls (#R$DA7A). Reads the keyboard or a joystick, by the method in bits 1-2 of CONTROL, into one byte, CONTROLS: bit 0 left, 1 right, 2 up, 3 fire, 4 down, 5 turn the town round -- what each does is the knight's controls' business (#R$DA7A). Bits 6 and 7 are never set.
+D $E241 The keyboard: X, V, B and M left, C and N right; the whole of the A-G and H-ENTER rows up; the whole of the Q-T and Y-P rows fire; any number key down. The bottom row is not alternate keys, as Pentagram's is (Z, C, M and B one way, X, V, SYMBOL SHIFT and N the other): here Z and SYMBOL SHIFT are the key that turns the town round, and of the rest X, V, B and M turn one way and C and N the other.
+D $E241 A joystick: the Kempston stick from port 31; the cursor keys, 5 left, 8 right, 7 up, 6 down and 0 fire; Interface II, the 6-0 keys for one stick (6 left, 7 right, 8 down, 9 up, 0 fire) and 1-5 for the other, read together. With any method, Z or SYMBOL SHIFT sets bit 5 (half-rows $7F and $FE read together: bit 1 is either). SPACE and CAPS SHIFT do nothing here: #R$E32C reads them for the pause.
+D $E241 Measured in the simulator, a key or a stick direction at a time for each method: every key and direction sets the bits above and nothing else.
+R $E241 O:A The controls, as stored in CONTROLS
+  $E241,15 Bits 1-2 of CONTROL: 0 the keyboard, 1 Kempston, 2 the cursor keys, 3 Interface II
+  $E250,16 Interface II: the 1-5 half-row, turned end for end so that 5 is bit 0 and 1 bit 4, as 0 and 6 are in the 6-0 half-row
+  $E260,6 ...ORed with the 6-0 half-row: bit 0 fire (0 or 5), 1 up (9 or 4), 2 down (8 or 3), 3 right (7 or 2), 4 left (6 or 1)
+  $E266,32 Rearranged into the controls' bits
+  $E286,3 On to the key that turns the town round
+  $E289,34 Kempston: bit 0 right, 1 left, 2 down, 3 up, 4 fire, rearranged
+  $E2AB,3 On to the key that turns the town round
+  $E2AE,13 The cursor keys: 5 left
+  $E2BB,31 0 fire, 7 up, 8 right, 6 down
+  $E2DA,16 The keyboard: X and V left, C right, from the CAPS SHIFT-V half-row turned two places
+  $E2EA,23 M and B left, N right
+  $E301,9 A-G and H-ENTER: up
+  $E30A,9 Q-T and Y-P: fire
+  $E313,9 1-5 and 6-0: down
+  $E31C,11 Every method: Z or SYMBOL SHIFT turns the town round (bit 5)
+  $E327,5 Store the controls
+
+@ $E32C label=PAUSE
+c $E32C Pause, when SPACE or CAPS SHIFT is pressed on its own
+D $E32C Called once a turn by the main loop, at the end of the turn (#R$BE0F). Half-rows $7F and $FE are read together, so bit 0 is SPACE or CAPS SHIFT and bits 1-4 are the other eight keys of the two rows; the pause needs bit 0 and none of the others, so no key that plays the game starts one. It waits for the key to be let go, then for a press and a release, and the game goes on.
+D $E32C Pentagram's pause (and Alien 8's) is the same test and the same waits, but beeps as it pauses and as it goes on, and turns interrupts on while it waits; Nightshade's is silent and leaves them off.
+  $E32C,11 Not SPACE or CAPS SHIFT, or another key of those two rows with it: no pause
+  $E337,9 Wait for the key to be let go...
+  $E340,9 ...pressed again...
+  $E349,10 ...and let go
+
+# --------------------------------------------------------------------------
+# Sprites
+# --------------------------------------------------------------------------
+
+@ $E353 label=TURN_SPRITE
+@ $E3A4 label=MIRROR_SPRITE_DATA
+c $E353 Find an object's sprite, and turn its stored data the way the object wants it
+D $E353 The graphic (+0) indexes #R$6E9E for the sprite. A sprite is a width byte -- bits 0-3 the width in bytes, bit 7 set while its data is stored upside down, bit 6 while it is stored mirrored -- a height byte, and then a mask byte and an image byte for each byte of each row, the bottom row first. Bits 7 and 6 of the object's flags (+7) say how it wants to be drawn. Where they differ from the sprite's, the data is turned in place and the sprite's bit toggled, so an object that keeps facing one way costs nothing after the first time, while two objects sharing a sprite and facing opposite ways turn it back and forth every time each is drawn.
+D $E353 Upside down swaps whole rows end for end, the first with the last, working inwards. Mirroring (MIRROR_SPRITE_DATA, also entered by #R$E3D6) reverses the order of each row's mask and image pairs and the bits of every byte, through #R$F900: a row's pairs are read, reversed, onto the stack and popped back in the opposite order.
+D $E353 Nothing in the game sets bit 7 of a record's flags. Every write to that byte was read: the records are cleared or copied from templates that hold 0 there; the rest set or clear bits 0, 1 and 5, set bit 6 from the view or the facing, take bits 6 and 7 from a table whose four bytes have bit 7 clear (#R$DCDC), or copy another record's flags. So the upside-down half, and the multiply it uses (#R$E0EE), never run -- which the build's sessions agree with -- and every sprite's bit 7 stays clear. Knight Lore's objects do turn upside down; Pentagram's routine is the same as this one, and Alien 8's nearly so.
+R $E353 IX The object
+R $E353 O:DE The sprite (its width byte)
+  $E353,11 DE = the sprite, kept on the stack
+  $E35E,8 Stored the way up the object wants?
+  $E366,4 No (it never happens): toggle the sprite's upside-down bit
+  $E36A,4 B = the bytes in a row, twice the width
+  $E36E,5 C = the height; DE on to the data
+  $E373,9 DE = the end of the data: the height times a row's bytes on from its start
+  $E37C,8 HL = the last byte of the first row, DE the last byte of the last; C = half the height, the pairs of rows to swap
+  $E384,10 Swap a row with its partner, byte for byte from their ends
+  $E38E,9 HL on to the end of the next row up; DE is already at the end of the row below its last
+  $E397,3 Until the middle
+  $E39A,10 Stored mirrored or not as the object wants?
+  $E3A4,8 No, or entered here (MIRROR_SPRITE_DATA): toggle the sprite's mirrored bit; B and C = the width
+  $E3AC,11 A' = the height; HL at the data, and HL' too, with B' the page of #R$F900
+  $E3B7,13 Read a row's pairs onto the stack, each byte's bits reversed
+  $E3C4,8 Pop them back over the same row, the last pair first
+  $E3CC,8 The next row, until the height is done
+  $E3D4,2 Return the sprite in DE
+
+@ $E3D6 label=MIRROR_SPRITE
+c $E3D6 Mirror a sprite's data, whichever way it is stored now
+D $E3D6 Used only by the panel's villains (#R$C1FD), which copies the villains' sprites straight onto the screen and so needs them the right way round: it calls this when a sprite's mirrored bit is set, to turn it back. It never ran in the build's sessions, where no villain's sprite was stored mirrored when the panel was drawn. The stage-1 journal listed it with the upside-down flip; it is the mirroring half of #R$E353, which does run.
+R $E3D6 DE The sprite
+R $E3D6 O:DE The same
+  $E3D6,3 Push DE for the routine's end to pop; mirror the sprite
+
+@ $E3D9 label=DRAW_SPRITE
+@ $E3FF label=DRAW_SPRITE_AT
+c $E3D9 Draw one object from the draw list
+D $E3D9 Called by the depth sort (#R$CFF2) for each object in turn, back to front. The projection (#R$D4F3) gives the object's place relative to the knight's in DRAW_X and DRAW_Y; adding the drawing offsets (+C, +D) gives the pixel x and y of the sprite's bottom left corner, which are kept in +E and +F. The game's y counts upwards: the play area is 112 lines, from y 72 at the bottom (line 127 of the screen) to 183 (line 16), and its buffer 24 bytes a row from x 16, of which the first two bytes are a margin never shown (#R$E148).
+D $E3D9 An object is not drawn at all if its x is below 16 or above 202, or its y is 184 or more, or either high byte from the projection is not 0. If its bottom is below the play area, only its rows from y 72 up are drawn; if its top is above, only those below. The knight's graphics (16 to 47, legs and top) are cut instead at ARRIVING lines above the bottom, which counts up to 112 as he appears at a new life (#R$DA7A), so he is shown from the ground up. The entry point DRAW_SPRITE_AT draws at +E and +F as they are, with no projection and no checks at the sides; the ending's pictures use it (#R$CD10).
+D $E3D9 The row loop is unrolled for a sprite five bytes wide, twice: a plain run for a sprite whose x is on a byte boundary (#R$E49F), and a shifted run that reads its bytes through the tables of #R$FA00 and touches one byte more a row (#R$E4CD). This routine patches the offset of the JR in #R$E4C9 to enter the right run as many units from its end as the sprite is wide, and the operand of the ADD at SPRITE_NEXT_ROW (#R$E4DF) with the step from the last byte drawn in a row to the first of the row above. Bits 1 and 2 of x choose the shift, 0 (the plain run), 2, 4 or 6 pixels; bit 0 is ignored, so things move across in steps of two pixels. The stack pointer reads the sprite: SP is pointed at the data and each POP DE fetches a mask into E and its image into D, the real SP kept in SAVED_SP meanwhile.
+D $E3D9 On the way out SPRITE_WIDTH holds the bytes drawn a row (one more than the sprite's width when shifted), SPRITE_ROWS the rows drawn, and bit 1 of the object's flags (+7) is set. Checked in the simulator, drawing a monster's sprite into an empty buffer at a range of places: the rows land from y less 72 up, the clipping at the bottom, the top and ARRIVING comes out as described, and the patched offsets and steps are the ones worked out here.
+D $E3D9 Nothing is clipped at the sides beyond the tests on x. A sprite starting in a row's last byte runs on into the first bytes of the row above: the two margin bytes hide two of them, but a four-byte sprite drawn shifted there would put its last two into the visible columns 2 and 3 of the row above (the simulator shows the run-on; whether it is ever seen in play is not known).
+R $E3D9 IX The object
+  $E3D9,3 Project the object into DRAW_X and DRAW_Y
+  $E3DC,16 x = DRAW_X plus the offset +C; not drawn unless DRAW_X's high byte is 0 and x is 16 to 202
+  $E3EC,3 Keep x in +E
+  $E3EF,13 y = DRAW_Y plus +D; not drawn unless the high byte is 0 and y is below 184
+  $E3FC,3 Keep y in +F
+  $E3FF,3 DRAW_SPRITE_AT: find the sprite, turned the right way; DE = its width byte
+  $E402,8 Bits 1-2 of x: 0 for a sprite on a byte boundary
+  $E40A,3 H = the first page of the shift's pair: $FA, $FC or $FE for 2, 4 or 6 pixels
+  $E40D,9 B and SPRITE_WIDTH = the width plus one: a shifted row touches one byte more
+  $E416,13 The JR offset into the shifted run: 18 bytes a unit, entered as many units from the end as the sprite is wide
+  $E423,3 Patch it into the JR in #R$E4C9, for either run
+  $E426,7 The step from the last byte drawn in a row to the first of the next: 25 less the bytes a row; patched into SPRITE_NEXT_ROW
+  $E42D,1 HL = the height byte
+  $E42E,15 C = how far up from the bottom may be drawn: the whole 112 lines, but ARRIVING for the knight's legs and top (graphics 16 to 47)
+  $E43D,7 y less 72: the lines above the play area's bottom; below it, clip there
+  $E444,2 Nothing to draw if it starts at or above the limit
+  $E446,10 The rows: the lines up to the limit, or the height if fewer; HL on to the data
+  $E450,14 BC = the buffer address of the sprite's bottom left byte (#R$E53A), from +E and +F; HL = the table page again
+  $E45E,7 Keep SP, and point it at the data
+  $E465,4 Mark the object drawn
+  $E469,5 A = the rows; into the row loop
+  $E46E,10 Below the bottom: C = the lines under it; the rows left above it, if any
+  $E478,20 Skip C rows of the data, twice the width a row, and start at the bottom line
+  $E48C,2 Draw
+  $E48E,8 On a byte boundary: B and SPRITE_WIDTH = the width
+  $E496,9 The JR offset into the plain run: 8 bytes a unit, entered as many units from the end as the sprite is wide
+
+@ $E49F label=SPRITE_ALIGNED_RUN
+c $E49F The unrolled row of a byte-aligned sprite
+D $E49F Entered by the JR in #R$E4C9, as many 8-byte units from the end as the sprite is wide. Each unit takes the next mask and image off the stack and does one buffer byte: cleared under the mask (CPL, OR E, CPL), the image ORed in, stored. The last unit has no INC BC, so a row leaves BC on its last byte, which the step patched in at SPRITE_NEXT_ROW allows for.
+D $E49F This first unit is for a fifth byte, and no sprite in the game is wider than four (graphics 2, 76 to 79 and 152 are four; read from the graphic table): it can never run, which is why the code map took it for data. Knight Lore, Alien 8 and Pentagram unroll the same five units.
+  $E49F,8 The unit for the fifth byte from the end
+
+@ $E4A7 label=SPRITE_ALIGNED_FOUR
+c $E4A7 The rest of the byte-aligned run
+D $E4A7 The units from the fourth byte from the end, the way in for a sprite four bytes wide, to the last, which jumps on to the step to the next row (SPRITE_NEXT_ROW, in #R$E4DF).
+  $E4A7,8 The fourth byte from the end: the next mask and image; the buffer byte cleared under the mask, the image put in; on to the next byte
+  $E4AF,8 The third
+  $E4B7,8 The second
+  $E4BF,7 The last, with no INC BC
+  $E4C6,3 To the step to the next row
+
+@ $E4C9 label=SPRITE_ROW
+c $E4C9 Start a row of a sprite
+D $E4C9 The row count goes to A', and A takes the row's first buffer byte: the shifted units of #R$E4DF expect the byte they are finishing to be in A already. The JR's offset is patched by #R$E3D9 for every sprite, into the plain run at #R$E49F or the shifted one at #R$E4CD; as it stands in the listing, an offset of $FE, it is a JR to itself.
+  $E4C9,2 The row count to A'; the row's first buffer byte
+  $E4CB,2 The patched JR into one of the runs
+
+@ $E4CD label=SPRITE_SHIFTED_RUN
+c $E4CD The unrolled row of a shifted sprite
+D $E4CD Entered by the JR in #R$E4C9, as many 18-byte units from the end as the sprite is wide. H is the first of the pair of pages #R$E0FB built for the shift: page H gives a byte shifted right, the part that stays in its own buffer byte, and page H + 1 the bits that fall out into the next. Each unit finishes the buffer byte in A -- cleared under the shifted mask (CPL, OR, CPL) and the shifted image ORed in -- stores it, and begins the next byte with the parts of the mask and image that fall into it, left in A for the next unit. The byte the last unit begins is stored after it.
+D $E4CD Pentagram's tables are complemented and its unit ANDs and XORs; Nightshade's are plain and the unit complements around the OR, as the byte-aligned run does. This first unit is for a fifth byte and never runs (see #R$E49F); the code map took it for data.
+  $E4CD,18 The unit for the fifth byte from the end
+
+@ $E4DF label=SPRITE_SHIFTED_FOUR
+@ $E528 label=SPRITE_NEXT_ROW
+c $E4DF The rest of the shifted run, and the step to the next row
+D $E4DF The units from the fourth byte from the end, the way in for a sprite four bytes wide, then the store of the byte the last one began. SPRITE_NEXT_ROW, where the byte-aligned run joins, steps BC on to the next row up by the amount #R$E3D9 patched into the ADD, and goes round again from #R$E4C9 until the rows counted in A' are done. Then the real stack pointer comes back from SAVED_SP, and the RET is the return from #R$E3D9.
+  $E4DF,9 The fourth byte from the end: finish the byte in A, cleared under the mask's part from page H and the image's part ORed in; store it; on to the next byte
+  $E4E8,9 Begin the next: that buffer byte cleared under the mask's bits from page H + 1, and the image's ORed in; left in A
+  $E4F1,18 The third byte from the end
+  $E503,18 The second
+  $E515,18 The last
+  $E527,1 Store the byte the last unit began
+  $E528,8 SPRITE_NEXT_ROW: BC on to the first byte of the row above; the ADD's operand is patched by #R$E3D9
+  $E530,5 Count a row, and draw the next
+  $E535,5 Restore SP
+
+# --------------------------------------------------------------------------
+# Addresses on the screen and in the buffers
+# --------------------------------------------------------------------------
+
+@ $E53A label=BUFFER_ADDRESS
+c $E53A The buffer address of a pixel position
+D $E53A The buffer's rows are 24 bytes, row 0 the play area's bottom line at y 72, and x 16 the start of a row, so a position's byte is at #R$E5C4 plus (y - 72) * 24 plus x / 8 - 2. It is worked here as y * 24 plus x / 8 plus a constant, the buffer's start less 72 rows and 2 bytes -- which happens to be an address in the code, and means nothing as one. Used by the drawing of sprites (#R$E3D9) and of the town's tiles (#R$D2B2, #R$D425).
+R $E53A L x
+R $E53A H y
+R $E53A O:HL The address in the buffer
+  $E53A,8 A = the byte's column, x / 8
+  $E542,10 HL = y times 24
+  $E54C,4 Plus the column
+  $E550,6 Plus the buffer's start less 72 rows and 2 bytes
+
+@ $E556 label=CALC_VRAM_ADDR
+c $E556 Display address of a pixel position
+D $E556 For drawing straight onto the screen: the carried things (#R$C489) and the text printer's two ways in (#R$C9EF, #R$C9FC). The y here counts up from the screen's bottom line, 0 at line 191. Turns it into the display's line counted from the top by complementing it: 255 - y is that line plus 64, one third of the screen too many in the top bits, which is taken back by adding 56 rather than 64 to the high byte. The same as Knight Lore's and Pentagram's routine of this name.
+R $E556 L x
+R $E556 H y, upwards from the screen's bottom line
+R $E556 O:HL The display address
+  $E556,2 E = x, D = y; DE kept
+  $E558,7 L's low five bits: the column, x / 8
+  $E55F,8 L's top three: the character row within the third, from 255 - y
+  $E567,8 H's third
+  $E56F,8 H's pixel line within the cell; adding 56 takes back the extra third
+  $E577,2 Restore DE
+
+@ $E579 label=ATTR_ADDRESS
+c $E579 The attribute buffer address of a pixel position
+D $E579 The attribute buffer's rows are 24 bytes, row 0 the play area's bottom character row, so the attribute of a position is at #R$F044 plus (y - 72) / 8 * 24 plus x / 8 - 2. Worked as (y / 8) * 24 plus x / 8 plus a constant, the buffer's start less 9 rows and 2 bytes. Used for the knight's colour (#R$BE0F), the buildings' (#R$D356) and the ending's pictures' (#R$CD10).
+R $E579 L x
+R $E579 H y
+R $E579 O:HL The address in the attribute buffer
+  $E579,13 HL = y with its low three bits cleared, times three: the character row times 24
+  $E586,10 Plus x / 8
+  $E590,6 Plus the buffer's start less 9 rows and 2 bytes
+
+@ $E596 label=ADD_HL_A
+c $E596 HL = HL + A
+D $E596 A is treated as unsigned. A is left holding H. The same as the earlier games'.
+R $E596 A The number to add
+R $E596 HL The number to add it to
+R $E596 O:HL The sum
+
+# --------------------------------------------------------------------------
+# Clearing the screen and memory
+# --------------------------------------------------------------------------
+
+@ $E59D label=CLEAR_SCREEN
+c $E59D Clear the screen
+D $E59D The pixels to 0, every attribute to bright white ink on black paper, and the border black. At a new game (#R$BE0F) and at the end of one (#R$CC56).
+  $E59D,6 The pixels, then the attributes
+  $E5A3,5 A black border
+
+@ $E5A8 label=CLR_BITMAP_MEMORY
+c $E5A8 Clear the display's pixels
+D $E5A8 All 6144 bytes, through #R$E5BA.
+
+@ $E5B0 label=CLR_ATTRIBUTE_MEMORY
+c $E5B0 Set the display's attributes to bright white ink on black paper
+D $E5B0 All 768, through the fill at #R$E5BA.
+
+@ $E5BA label=CLEAR_MEMORY
+@ $E5BC label=FILL_MEMORY
+c $E5BA Clear BC bytes from HL
+D $E5BA The entry point FILL_MEMORY fills them with E instead. Also used at the start and at every new game (#R$BDFE, #R$BE0F) to clear the variables and the object records.
+R $E5BA HL The first byte
+R $E5BA BC How many
+R $E5BA O:BC 0
+  $E5BA,2 The fill byte, 0
+  $E5BC,8 FILL_MEMORY: BC bytes from HL, all E
+
+# --------------------------------------------------------------------------
+# Above the code: the buffers and the drawing tables
+# --------------------------------------------------------------------------
+
+@ $E5C4 label=BUFFER
+b $E5C4 The screen buffer: the play area's pixels
+D $E5C4 24 bytes by 112 lines, running on through #R$E600 and #R$E800 to the attribute buffer (#R$F044). The town and the objects are drawn into it each turn (#R$D425, #R$E3D9), and at the end of the turn it is copied to the screen (#R$E148) and cleared (#R$E200). Row 0 is the play area's bottom line, y 72, since the game's y counts upwards; only bytes 2 to 23 of each row are shown, in columns 7 to 28 of the screen, the first two being a margin that sprites at the left edge are drawn into unseen.
+D $E5C4 These first 60 bytes are the end of the game block as the loader moved it (#R$5B80): zeros, loaded with the game but never anything but the buffer's.
+B $E5C4,60,12
+
+@ $E600 label=LOADER_LEFTOVER
+b $E600 The tail of the loaded block, left behind by the move (inside the buffer)
+D $E600 The tape loaded the game block 512 bytes higher than it runs, and the loader unscrambled it there and moved it down to #R$5E00 (#R$5B80). A move leaves its source behind where the two do not overlap, so these 512 bytes are a second copy of the game's last 512: from the operand of the first CALL in DRAW_SPRITE_AT (#R$E3D9) to the end of the buffer's first 60 bytes -- byte for byte the same (compared in the snapshot). Part of the buffer: cleared before it is read (#R$E200), and never run.
+B $E600,512,16
+
+@ $E800 label=BUFFER_REST
+b $E800 The rest of the screen buffer
+D $E800 Zeros in the snapshot: the tape loaded nothing here.
+B $E800,2116,16
+
+@ $F044 label=ATTR_BUFFER
+b $F044 The play area's attributes
+D $F044 24 bytes by 14 rows, row 0 the play area's bottom character row, two listing lines to a row. Filled each turn with bright white ink on the FLASH paper (#R$E200), coloured where the buildings stand (#R$D356) and round the knight (#R$BE0F), and copied to the screen (#R$E1AD), bytes 2 to 23 of each row to columns 7 to 28.
+B $F044,336,12
+
+@ $F194 label=ATTR_SPILL
+b $F194 One byte past the attribute buffer
+D $F194 Written by #R$C889 when a building's colour, which runs from a wall's foot up to the top of the play area, is filled in a row's last byte: the attribute rows count up the screen, so the top row's last byte is the buffer's last, and the fill goes one past it (measured: 28 of 752 colour fills in a run reached it, all at the right-hand edge; none started below the buffer). Nothing reads it, and the buffer's own fill (#R$E200) starts below it.
+
+@ $F195 label=UNUSED_F195
+u $F195 Unused
+D $F195 Neither read nor written in a run measured by stage 1 from the start through the menu, play, a new cell and more play (every access from #R$E5C4 up recorded in SkoolKit's simulator): the snapshot's zeros. Nothing in the code addresses it: the attribute buffer ends below it and the tables start at #R$F200.
+B $F195,107,12
+
+@ $F200 label=MIRROR_TABLES
+b $F200 Lookup tables for drawing mirrored tiles at an even pixel
+D $F200 Six pages built by #R$E0FB at every new game: every byte value with its bits reversed, then shifted right two, four and six places across two bytes. Page $F2 holds the part that stays in a byte for a shift of two and $F3 the bits that fall out into the next; $F4 and $F5 the same for four, $F6 and $F7 for six. The tile drawing (#R$D425) reads a pair when it draws a building's other face (DRAW_PASS non-zero), mirrored; the sprites are mirrored in place instead (#R$E353). Zeros in the snapshot.
+B $F200,1536,16
+
+@ $F800 label=UNUSED_F800
+u $F800 Unused
+D $F800 Between the two sets of tables, and neither read nor written in stage 1's measured run: the snapshot's zeros. It is where the tables' addressing -- page $F0 or $F8 plus bits 1 and 2 of x -- would put a shift of 0, which is never looked up: a sprite or tile on a byte boundary takes a path of its own (#R$E3D9, #R$D425). The mirrored set's page for 0 would be $F0, inside the attribute buffer.
+B $F800,256,16
+
+@ $F900 label=REVERSE_TABLE
+b $F900 Each byte with its bits in reverse order
+D $F900 Built by #R$E0FB at every new game. Sprites are mirrored through it (#R$E353), and the tiles of a building's other face on a byte boundary (#R$D425). Zeros in the snapshot.
+B $F900,256,16
+
+@ $FA00 label=SHIFT_TABLES
+b $FA00 Lookup tables for drawing at an even pixel
+D $FA00 Six pages built by #R$E0FB at every new game: every byte value shifted right two, four and six places across two bytes. Page $FA holds the part that stays in a byte for a shift of two and $FB the bits that fall out into the next; $FC and $FD the same for four, $FE and $FF for six. The sprite drawing (#R$E4DF) and the tile drawing (#R$D425) read a pair, page $F8 plus bits 1 and 2 of x and the page above it.
+D $FA00 Until the game builds them, these pages hold what the machine left there before the tape loaded, all overwritten before the game reads any of it (measured by stage 1): zeros; below RAMTOP, what the ROM's stack held as the BASIC loader ran -- among it ERR_SP's return into the ROM's main loop, and the end marker of the GOSUB stack at RAMTOP itself; and in the last 168 bytes the ROM's user-defined graphics, the letters A to U as the ROM sets them up.
+B $FA00,1536,16

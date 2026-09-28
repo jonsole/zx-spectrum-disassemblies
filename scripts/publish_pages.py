@@ -56,6 +56,9 @@ GAMES = {
     "alien8": (ROOT / "game_disassembly" / "alien8" / "html" / "alien8",
                ROOT / "scripts" / "build_alien8.py",
                ROOT / "game_disassembly" / "alien8" / "alien8.asm"),
+    "nightshade": (ROOT / "game_disassembly" / "nightshade" / "html" / "nightshade",
+                   ROOT / "scripts" / "build_nightshade.py",
+                   ROOT / "game_disassembly" / "nightshade" / "nightshade.asm"),
 }
 # What each build is given to build from. Knight Lore is built from a snapshot
 # of the loaded game, not a tape; --tape passes it on under its own name.
