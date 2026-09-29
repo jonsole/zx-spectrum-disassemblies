@@ -1023,8 +1023,44 @@ RECORD_IX_PARTWAY = {0xEB5E: ('(IX+$06)', '(IX+OBJ_KIND-OBJ_X)'),
                      0xEB15: ('(IX-$01)', '(IX+OBJ_NUMBER-OBJ_SIZE)')}
 
 
+# IY holds $FF80, the variables' base, from the start-up on -- the author's
+# source calls it V, as in (V+3) -- so an (IY+n) is the variable at $FF80+n,
+# written (IY+NAME-V). Two exceptions: AIM_AT is handed a record in IY (the
+# target's), so its (IY+n) are record fields; and in ROOMST's loop that loads
+# a room's records IY walks the table of carried places two bytes a turn, so
+# its offsets stay numbers.
+VARIABLES_BASE = 0xFF80
+IY_RECORD_ROUTINES = {0xFC66}
+IY_UNNAMED_RANGES = [(0xFDA8, 0xFDD7)]
+
+
+def _variable_labels(skool_text: str) -> dict[int, str]:
+    """The label of every labelled byte from VARIABLES_BASE up."""
+    labels, pending = {}, None
+    for line in skool_text.split(NEWLINE):
+        if line.startswith("@label="):
+            pending = line[len("@label="):]
+            continue
+        match = re.match(r"^[ *bcgistuw]\$([0-9A-F]{4}) ", line)
+        if match and pending:
+            address = int(match.group(1), 16)
+            if address >= VARIABLES_BASE:
+                labels[address] = pending
+        if not line.startswith("@"):
+            pending = None
+    return labels
+
+
+def _variable_name(address: int, labels: dict[int, str]) -> str:
+    """The variable at `address`: its own label, or the one before plus n."""
+    below = max(a for a in labels if a <= address)
+    return labels[below] if below == address else f"{labels[below]}+{address - below}"
+
+
 def name_record_fields(skool_text: str) -> str:
-    """Write (IX+n) as (IX+field) wherever IX is an object record."""
+    """Write (IX+n) as (IX+field) wherever IX is an object record, and (IY+n)
+    as (IY+variable-V) wherever IY is the variables' base."""
+    variables = _variable_labels(skool_text)
     out, entry = [], None
     for line in skool_text.split(NEWLINE):
         match = re.match(r"^([bcgistuw])\$([0-9A-F]{4})", line)
@@ -1041,6 +1077,14 @@ def name_record_fields(skool_text: str) -> str:
             elif entry in RECORD_IX_ROUTINES or any(a <= address < b for a, b in RECORD_IX_RANGES):
                 line = re.sub(r"\(IX\+\$([0-9A-F]{2})\)",
                               lambda m: f"(IX+{_field_name(int(m.group(1), 16))})", line)
+            if entry in IY_RECORD_ROUTINES:
+                line = re.sub(r"\(IY\+\$([0-9A-F]{2})\)",
+                              lambda m: f"(IY+{_field_name(int(m.group(1), 16))})", line)
+            elif (entry is not None and entry >= 0xB686
+                  and not any(a <= address < b for a, b in IY_UNNAMED_RANGES)):
+                line = re.sub(r"\(IY\+\$([0-9A-F]{2})\)",
+                              lambda m: "(IY+" + _variable_name(VARIABLES_BASE + int(m.group(1), 16),
+                                                                variables) + "-V)", line)
         out.append(line)
     return NEWLINE.join(out)
 
@@ -1060,6 +1104,8 @@ def record_equates() -> str:
         if "+" not in name:
             lines.append(f"{name} EQU ${offset:02X}")
     lines.append(f"OBJ_SIZE EQU ${RECORD_SIZE:02X}")
+    lines.append("; The variables' base, which IY holds: (IY+ROOM-V) is ROOM.")
+    lines.append(f"V EQU ${VARIABLES_BASE:04X}")
     return NEWLINE.join(lines) + NEWLINE
 
 

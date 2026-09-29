@@ -57,11 +57,11 @@ STALE_MEET_STORE = 0xFA10   # LD ($FF83),A
 STALE_PICK = 0xF57E         # LD A,($FFF8) after the knight's redraw
 STALE_PICK_STORE = 0xF581   # LD ($FF83),A
 TAKE_THING = 0xF555         # WEI3, where FOUND_RECORD is still the thing's
-DECLIF = 0xF1B6             # SET 0,(IY+$17): the way into LIFE's subtraction
+DECLIF = 0xF1B6             # SET 0,(IY+GAME_FLAGS-V): the way into LIFE's subtraction
 WEIGHT_TEST = 0xF54D        # JR C,$F555: under 8, take it
 KEY_TEST = 0xF7DE           # JR Z,$F7FF: no key needed
-ROOM_FLAGS = 0xFE41         # LD (IY+$17),$05: a new room's GAME_FLAGS
-FREEZE_SET = 0xFEC8         # SET 7,(IY+$17): the thing of kind 5 used
+ROOM_FLAGS = 0xFE41         # LD (IY+GAME_FLAGS-V),$05: a new room's GAME_FLAGS
+FREEZE_SET = 0xFEC8         # SET 7,(IY+GAME_FLAGS-V): the thing of kind 5 used
 QUIT_TEST = 0xFE8C          # BIT 1,B: SYMBOL SHIFT with 0
 QUIT = 0xFE8E               # RET NZ
 ROOM_ZERO = 0xFD26          # ROOMST: AND A, then RET Z for room 0
@@ -72,9 +72,9 @@ EXPECTED_INSTRUCTIONS = {
     FREEZE_TEST: "CP $05", FREEZE_JUMP: "JR NZ,$F22C", I01: "CP $0B",
     STALE_MEET: "LD A,($FFF8)", STALE_MEET_STORE: "LD ($FF83),A",
     STALE_PICK: "LD A,($FFF8)", STALE_PICK_STORE: "LD ($FF83),A", TAKE_THING: "LD ($FF92),A",
-    DECLIF: "SET 0,(IY+$17)", WEIGHT_TEST: "JR C,$F555", KEY_TEST: "JR Z,$F7FF",
-    ROOM_FLAGS: "LD (IY+$17),$05", FREEZE_SET: "SET 7,(IY+$17)", QUIT_TEST: "BIT 1,B",
-    QUIT: "RET NZ", ROOM_ZERO: "AND A", START_DI: "DI", WEIGHT_TEST + 2: "LD (IY+$07),$03",
+    DECLIF: "SET 0,(IY+GAME_FLAGS-V)", WEIGHT_TEST: "JR C,$F555", KEY_TEST: "JR Z,$F7FF",
+    ROOM_FLAGS: "LD (IY+GAME_FLAGS-V),$05", FREEZE_SET: "SET 7,(IY+GAME_FLAGS-V)", QUIT_TEST: "BIT 1,B",
+    QUIT: "RET NZ", ROOM_ZERO: "AND A", START_DI: "DI", WEIGHT_TEST + 2: "LD (IY+MESSAGE-V),$03",
 }
 
 # Opcodes the pokes and the Release 1 trial write, named for what they are.
