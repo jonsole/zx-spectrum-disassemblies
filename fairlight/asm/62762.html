@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F52A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62708.html">F4F4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62762">Map</a></td>
+<td class="next">
+Next: <a href="62869.html">F595</a>
+</td>
+</tr>
+</table>
+<div class="description">F52A: Look on for a thing that can be carried, and take it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The pick-up's search, from where <a href="64677.html">FIND_OBSTACLE</a> (or this, going round) left it. Each record whose box meets the search box is tested: it must be a thing that can be picked up (bit 5 of +12). A door ends the search (though no door has bit 5 set: a door's +12 is exactly 1). Then the weight: the thing's +16 less 16 (never below nought) is added to what he carries (CARRIED_WEIGHT, IY+$12), and if that comes to 8 or more it is TOO HEAVY (message 3) and nothing changes. So the load is at most 7; the heaviest things weigh 6.
+</div>
+<div class="paragraph">
+Taking it: the place in use gets the record's address, the record is marked as carried (bit 5 of +16) and not in the air, and the object table says it is in no room ($FE, <a href="62694.html">SET_THING_ROOM</a>). The knight is redrawn stooping; then the thing's picture is wiped from the room, by redrawing its area (<a href="60605.html">REDRAW_OBJECT</a>) with THIS_RECORD pointing at it so that it is left out, and drawn in the panel's box for the place (<a href="60492.html">SHOW_THING_IN_USE</a>). Krumlinde names the part from the weight on RTN_Store_Carried_Weight.
+</div>
+<div class="paragraph">
+The flags in IY+$11 are cleared: they say whether the lure and the thing of kind 11 lie in the room, and whichever still does sets its flag again on the next pass (<a href="61920.html">CHE3D</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP_LOOK_ON</td>
+<td class="address-2"><span id="62762"></span>F52A</td>
+<td class="instruction">CALL <a href="64677.html#64721">NEXT_OBSTACLE</a></td>
+<td class="comment-1" rowspan="1">Look on from the last record met</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62765"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62708.html">PICK_UP</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP_LOOK_ON_0</td>
+<td class="address-2"><span id="62765"></span>F52D</td>
+<td class="instruction">JR NC,<a href="62217.html#62691">KNIGHT_DONE</a></td>
+<td class="comment-1" rowspan="1">Nothing more: the pick-up ends with a redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62767"></span>F52F</td>
+<td class="instruction">BIT 5,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Not a thing that can be carried: look on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62771"></span>F533</td>
+<td class="instruction">JR Z,<a href="62762.html#62762">PICK_UP_LOOK_ON</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62773"></span>F535</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">A door: stop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62776"></span>F538</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62778"></span>F53A</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62780"></span>F53C</td>
+<td class="instruction">JR Z,<a href="62217.html#62691">KNIGHT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62782"></span>F53E</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="5">Its weight: +16 less 16, nought if below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62785"></span>F541</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62787"></span>F543</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62789"></span>F545</td>
+<td class="instruction">JR NC,<a href="62762.html#62792">PICK_UP_LOOK_ON_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62791"></span>F547</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP_LOOK_ON_1</td>
+<td class="address-2"><span id="62792"></span>F548</td>
+<td class="instruction">ADD A,(IY+$12)</td>
+<td class="comment-1" rowspan="5">Added to his load, 8 or more is TOO HEAVY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62795"></span>F54B</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62797"></span>F54D</td>
+<td class="instruction">JR C,<a href="62762.html#62805">TAKE_THING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62799"></span>F54F</td>
+<td class="instruction">LD (IY+$07),$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62803"></span>F553</td>
+<td class="instruction">JR <a href="62217.html#62691">KNIGHT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label">TAKE_THING</td>
+<td class="address-2"><span id="62805"></span>F555</td>
+<td class="instruction">LD (<a href="65408.html#65426">CARRIED_WEIGHT</a>),A</td>
+<td class="comment-1" rowspan="1">The author's WEI3. The new load</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62808"></span>F558</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="7">The place in use holds the thing now</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62810"></span>F55A</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62811"></span>F55B</td>
+<td class="instruction">LD H,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62813"></span>F55D</td>
+<td class="instruction">LD L,(IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62816"></span>F560</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62817"></span>F561</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62818"></span>F562</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62819"></span>F563</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Carried, and not in the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62823"></span>F567</td>
+<td class="instruction">RES 7,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62827"></span>F56B</td>
+<td class="instruction">RES 1,(IY+$11)</td>
+<td class="comment-1" rowspan="1">The thing of kind 11 may not lie in the room any more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62831"></span>F56F</td>
+<td class="instruction">LD C,$FE</td>
+<td class="comment-1" rowspan="2">In no room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62833"></span>F571</td>
+<td class="instruction">CALL <a href="62694.html">SET_THING_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62836"></span>F574</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="2">Redraw the knight, stooping</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62838"></span>F576</td>
+<td class="instruction">CALL <a href="62217.html#62691">KNIGHT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62841"></span>F579</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="5">THIS_RECORD = IY+$78, meant as the thing's number among the records so that its own redraw leaves it out; but the knight's redraw has already used that byte for a sprite's width (3 when measured, the thing being 9), so a fixed record is left out instead</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62842"></span>F57A</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62845"></span>F57D</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62846"></span>F57E</td>
+<td class="instruction">LD A,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62849"></span>F581</td>
+<td class="instruction">LD (<a href="65408.html#65411">THIS_RECORD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62852"></span>F584</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="2">Redraw where it was: without it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62853"></span>F585</td>
+<td class="instruction">CALL <a href="60605.html">REDRAW_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62856"></span>F588</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="2">Draw it in the panel's box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62857"></span>F589</td>
+<td class="instruction">CALL <a href="60492.html">SHOW_THING_IN_USE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62860"></span>F58C</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="2">THIS_RECORD back to the knight's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62861"></span>F58D</td>
+<td class="instruction">LD (<a href="65408.html#65411">THIS_RECORD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62864"></span>F590</td>
+<td class="instruction">LD (IY+$11),$00</td>
+<td class="comment-1" rowspan="1">Both room flags cleared (see above)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62868"></span>F594</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">The knight's pass is over</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62708.html">F4F4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62762">Map</a></td>
+<td class="next">
+Next: <a href="62869.html">F595</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

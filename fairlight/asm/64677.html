@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FCA5</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64668.html">FC9C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64677">Map</a></td>
+<td class="next">
+Next: <a href="64732.html">FCDC</a>
+</td>
+</tr>
+</table>
+<div class="description">FCA5: Find a record whose box overlaps a given box</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="62217.html">CREATURE_UPDATE</a>, <a href="62708.html">PICK_UP</a> and <a href="63068.html">ANIMATE_AND_MOVE</a>.
+</div>
+<div class="paragraph">
+Walks the records in use from the last down to the first -- the six fixed ones at <a href="48152.html">FIXED_RECORDS</a>, the room's floor, ceiling and four walls, included -- and stops at the first that overlaps the box, the mover's own record and hidden things aside (<a href="64732.html">TEST_ONE_RECORD</a>). Used for a move (<a href="63068.html">ANIMATE_AND_MOVE</a>), for the place a thing would be dropped (<a href="62217.html">CREATURE_UPDATE</a>), and by the pick-up (<a href="62708.html">PICK_UP</a>), which carries on down the list from NEXT_OBSTACLE (<a href="62762.html">PICK_UP_LOOK_ON</a>) until it finds a thing it can take.
+</div>
+<div class="paragraph">
+On the way it deals out the strike counters. IY+2 starts at $9E and goes down by one at each fighter (bit 7 of +12), but no lower than $98: the first six fighters from the top of the list have the counters at $9D down to $98 in STRIKES_LEFT, and any more share the last. The count depends only on the order of the records, so a fighter has the same counter for as long as the room lasts, and when a fighter is found IY+2 holds the low byte of its counter, for <a href="63833.html">OBJECTS_MEET</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B,</td>
+<td class="register-desc">D, H x, y and z of the box (y its top)</td>
+</tr>
+<tr>
+<td class="register">C,</td>
+<td class="register-desc">E, L its x length, height and z length</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Carry set if a record was found</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record found; FOUND_RECORD its number</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_OBSTACLE</td>
+<td class="address-2"><span id="64677"></span>FCA5</td>
+<td class="instruction">LD IX,(<a href="65408.html#65464">FREE_RECORD</a>)</td>
+<td class="comment-1" rowspan="1">IX = the next free record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64681"></span>FCA9</td>
+<td class="instruction">LD A,(<a href="65408.html">OBJECT_COUNT</a>)</td>
+<td class="comment-1" rowspan="2">FOUND_RECORD counts down from the number of records in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64684"></span>FCAC</td>
+<td class="instruction">LD (IY+$78),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64687"></span>FCAF</td>
+<td class="instruction">LD (IY+$02),$9E</td>
+<td class="comment-1" rowspan="1">The strike counters from the top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64691"></span>FCB3</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">DE' = minus 20; IX = the last record in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64692"></span>FCB4</td>
+<td class="instruction">LD DE,$FFEC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64695"></span>FCB7</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_OBSTACLE_0</td>
+<td class="address-2"><span id="64697"></span>FCB9</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">A fighter?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64698"></span>FCBA</td>
+<td class="instruction">BIT 7,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64702"></span>FCBE</td>
+<td class="instruction">JR Z,<a href="64677.html#64717">FIND_OBSTACLE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64704"></span>FCC0</td>
+<td class="instruction">DEC (IY+$02)</td>
+<td class="comment-1" rowspan="5">The next counter down, the sixth at most</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64707"></span>FCC3</td>
+<td class="instruction">LD A,(<a href="65408.html#65410">STRIKES_AT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64710"></span>FCC6</td>
+<td class="instruction">CP $98</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64712"></span>FCC8</td>
+<td class="instruction">JR NC,<a href="64677.html#64717">FIND_OBSTACLE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64714"></span>FCCA</td>
+<td class="instruction">INC (IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label">FIND_OBSTACLE_1</td>
+<td class="address-2"><span id="64717"></span>FCCD</td>
+<td class="instruction">CALL <a href="64732.html">TEST_ONE_RECORD</a></td>
+<td class="comment-1" rowspan="2">Overlapping: found</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64720"></span>FCD0</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="64721"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62762.html">PICK_UP_LOOK_ON</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">NEXT_OBSTACLE</td>
+<td class="address-2"><span id="64721"></span>FCD1</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">NEXT_OBSTACLE: on down the list</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64722"></span>FCD2</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64724"></span>FCD4</td>
+<td class="instruction">DEC (IY+$78)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64727"></span>FCD7</td>
+<td class="instruction">JR NZ,<a href="64677.html#64697">FIND_OBSTACLE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64729"></span>FCD9</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="3">None: carry clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64730"></span>FCDA</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64731"></span>FCDB</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64668.html">FC9C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64677">Map</a></td>
+<td class="next">
+Next: <a href="64732.html">FCDC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

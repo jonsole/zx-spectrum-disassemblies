@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#source">The author's source text and symbol table, left in memory</a></li>
+<li><a href="#swedish">Swedish letters among the textures</a></li>
+<li><a href="#interrupts">Interrupts off, all game</a></li>
+<li><a href="#keys">6 and 7 use, and SYMBOL SHIFT with 0 ends the game</a></li>
+<li><a href="#trapdoor">A trapdoor in room 10 ends the game</a></li>
+<li><a href="#releases">What Release 2 changed</a></li>
+<li><a href="#credits">Who made it</a></li>
+<li><a href="#krumlinde">Where this reading differs from Krumlinde's</a></li>
+</ul>
+<div><span id="source"></span></div>
+<div class="box box-1">
+<div class="box-title">The author's source text and symbol table, left in memory</div>
+<div class="paragraph">
+The tape carries more than the game. When Bo Jangeborg saved it, parts of
+his assembler's working memory went with it: pieces of the game's own source
+text -- numbered lines, the fields separated by tabs, in several stretches
+(<a href="../asm/24956.html">SOURCE_AND_STACK</a>, <a href="../asm/43260.html">SOURCE_BEFORE_OBJECTS</a>, <a href="../asm/48292.html">RECORDS</a>, <a href="../asm/50362.html">SOURCE_AFTER_START</a>, <a href="../asm/53557.html">SOURCE_AFTER_OBJECTS</a>, <a href="../asm/54932.html">SOURCE_AFTER_TEMPLATES</a> and others) -- and part
+of the assembler's symbol table (<a href="../asm/56633.html">SYMBOL_TABLE</a>), whose 64 whole names and values are this very
+release's: 20 of them are the first instruction of a routine in this listing.
+The game never reads either, and much of the text is overwritten when the
+game starts. They give the listing many of its names: ROOMST, ZOOMIN, CHE3D,
+EEN, MESS2, WAIT, PRINT, and the labels I0 to I95 inside <a href="../asm/61920.html">CHE3D</a>. The text
+also shows that he reached the variables at $FF80 as V+n and the working
+copy of a record at $FFE4 as T+n.
+</div>
+<div class="paragraph">
+Here, read from the snapshot at build time, are his lines for the end of the
+pick-up (the lines from WEI3 to its RET, at <a href="../asm/24956.html">SOURCE_AND_STACK</a>); 28 of the 28
+begin with the same instruction as the game's code from $F555 on
+(<a href="../asm/62762.html">PICK_UP_LOOK_ON</a>), which is what they assembled to:
+</div>
+<div class="paragraph">
+<pre>6260 WEI3  LD     (V+18),A
+6270       PUSH   IX
+6280       POP    DE
+6290       LD     H,255
+6300       LD     L,(IY+30)
+6310       LD     (HL),E
+6320       INC    HL
+6330       LD     (HL),D
+6340       SET    5,(IX+16)
+6350       RES    7,(IX+14)
+6360       RES    1,(IY+17)
+6370       LD     C,254
+6380       CALL   ROMM
+6390       PUSH   IX
+6400       CALL   DOE
+6410       POP    HL
+6420       LD     A,(V+3)
+6430       PUSH   AF
+6440       LD     A,(T+20)
+6450       LD     (V+3),A
+6460       PUSH   HL
+6470       CALL   SRP
+6480       POP    HL
+6490       CALL   INFOR
+6500       POP    AF
+6510       LD     (V+3),A
+6520       LD     (IY+17),0
+6530       RET</pre>
+ROMM is <a href="../asm/62694.html">SET_THING_ROOM</a>, DOE the instruction at $F4E3, SRP <a href="../asm/60605.html">REDRAW_OBJECT</a> and INFOR <a href="../asm/60492.html">SHOW_THING_IN_USE</a>.
+</div>
+</div>
+<div><span id="swedish"></span></div>
+<div class="box box-2">
+<div class="box-title">Swedish letters among the textures</div>
+<div class="paragraph">
+The fills that give the rooms their stone, brick and wood take their pattern
+from 26 textures of 16 by 16 pixels (<a href="../asm/57508.html">TEXTURES</a>). Two of them are not patterns
+at all: texture 22 (<a href="../asm/58212.html">TEXTURE22</a>) holds the capitals Å, Ä and Ö, texture 23
+(<a href="../asm/58244.html">TEXTURE23</a>) the small å, ä and ö -- the three letters the Swedish alphabet has
+beyond the English one. The game's font (<a href="../asm/47832.html">FONT</a>) has no use for them, and
+no room fills with either (read: every room's and part's commands, counted at every
+build). A reasonable guess is that they belong to the author's own tools, left
+among the textures; Bo Jangeborg is Swedish.
+</div>
+<div class="paragraph">
+Drawn by the game's own fill (at every build): two boxes outlined into the
+fill's map and filled with fill codes $FC and $FD by <a href="../asm/58775.html">DRAW_ROOM_RECORD</a>, the way a room
+is drawn:
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/letters.png" alt="Two areas filled with textures 22 and 23: rows of Swedish capitals and small letters with rings and dots"/></div>
+</div>
+</div>
+<div><span id="interrupts"></span></div>
+<div class="box box-1">
+<div class="box-title">Interrupts off, all game</div>
+<div class="paragraph">
+The game runs with interrupts disabled. The only EI and DI instructions in it
+are DI at $C00B, EI at $C018, DI at $C487 (searched, at every build). The loading
+tune (<a href="../asm/49152.html">LOADING_TUNE</a>) turns interrupts off while it plays and on as it ends, for
+two instructions: the start-up's DI ($C487) comes straight after and nothing
+turns them on again. It has to: the sprites at <a href="../asm/23296.html">SPRITE5B00</a> lie over the ROM's
+system variables, where the ROM's interrupt routine would count FRAMES and
+scan the keyboard fifty times a second. Nothing paces the game either: each
+pass of the main loop (<a href="../asm/65095.html">MAIN_LOOP</a>) takes as long as its room takes to update.
+Run in the simulator (at every build): the interrupt flip-flop was
+0 at the first pass of a game.
+</div>
+</div>
+<div><span id="keys"></span></div>
+<div class="box box-2">
+<div class="box-title">6 and 7 use, and SYMBOL SHIFT with 0 ends the game</div>
+<div class="paragraph">
+The title page lists the walking, jumping, fighting, taking and dropping
+keys. The others are read by the main loop (<a href="../asm/65095.html">MAIN_LOOP</a>): 1 to 5 choose one of
+the five places a thing is carried in; 6 or 7 use the thing in it (a thing of
+kind 4 adds ten to LIFE, 6 fills it, 5 freezes the creatures, 9 carries the
+knight off to room 30, and each is used up); SPACE with SYMBOL SHIFT pauses
+until a key; 9 turns the Kempston joystick on and off; and 0 with SYMBOL
+SHIFT returns from the game at once, to GAME OVER with LIFE still in hand.
+Read, and run in the simulator (at every build): SYMBOL SHIFT and 0 held at
+a pass ended the game with LIFE at 99.
+</div>
+</div>
+<div><span id="trapdoor"></span></div>
+<div class="box box-1">
+<div class="box-title">A trapdoor in room 10 ends the game</div>
+<div class="paragraph">
+Every door's record names the room behind it (<a href="../asm/63428.html">BUMPED</a>), and one names room 0:
+a hole in the floor of room 10, which the knight falls through. There is no
+room 0. $F8EC goes to <a href="../asm/64800.html">ROOMST</a> with it as it would for any room,
+and ROOMST's first test is for room 0, on which it returns -- the way the
+main loop leaves it at the end of a game. So the fall ends the game on the
+spot, whatever LIFE is left, with GAME OVER.
+</div>
+<div class="paragraph">
+Run in the simulator (at every build): room 10 entered, and the knight put
+over the middle of the hole (x 50 to 130, y 44 to
+84) with H held: the game returned from ROOMST with LIFE at
+99, drew room 1 behind GAME OVER and waited for a key.
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/room10.png" alt="Room 10: a cave whose floor has a dark hole in it"/></div>
+</div>
+</div>
+<div><span id="releases"></span></div>
+<div class="box box-2">
+<div class="box-title">What Release 2 changed</div>
+<div class="paragraph">
+Fairlight came out twice on tape for the 48K Spectrum, and this is Release 2.
+Compared byte for byte with Release 1, both loaded from their tapes and
+stopped where the loader hands over, it changes five things. The Kempston
+joystick, which Release 1 has switched off (its reading routine starts XOR A
+: RET), becomes an option: 9 turns it on and off (<a href="../asm/65095.html">MAIN_LOOP</a>, <a href="../asm/61670.html">IN31</a>), and the
+title page says so. The setting up of the tables moves out of the title
+routine into the start-up (<a href="../asm/50300.html">START</a>), in memory the game overwrites once it
+runs, 52 bytes the resident code no longer needs. The object dispatcher lets
+the knight's jump through the freeze (see <a href="bugs.html#freeze">the
+bugs</a>). Room 67 loses a part it drew and an origin it set. Three door
+records differ in a byte each. Everything else that differs is leftover
+text, the symbol table's values and the loader's checksum. The rooms, the
+sprites and the templates are the same.
+</div>
+</div>
+<div><span id="credits"></span></div>
+<div class="box box-1">
+<div class="box-title">Who made it</div>
+<div class="paragraph">
+The title page (<a href="../asm/46726.html">TITLE_PAGE_TEXT</a>) names Bo Jangeborg and The Edge, and no one else. ZXDB
+(<a href="https://spectrumcomputing.co.uk/entry/1712">its entry</a>) credits Bo Jangeborg with the code, the
+design, the level design, the story and in-game graphics; Jack Wilkes with
+in-game graphics and the loading screen; Niclas Osterlin with in-game
+graphics; Mark Alexander with the music (the loading tune, <a href="../asm/49152.html">LOADING_TUNE</a>); and
+Stuart Hughes with the inlay's art. It was published by The Edge in 1985 at
+&pound;9.95, as Fairlight: A Prelude, and its last lines (<a href="../asm/57330.html">MESS2</a>) point to
+the sequel, Fairlight II.
+</div>
+</div>
+<div><span id="krumlinde"></span></div>
+<div class="box box-2">
+<div class="box-title">Where this reading differs from Krumlinde's</div>
+<div class="paragraph">
+Ville Krumlinde's disassembly (<a href="https://github.com/VilleKrumlinde/FairlightZ80">FairlightZ80</a>),
+labelled and commented, came first, and this one was made beside it; many of
+its names and findings are his, credited where they are used. His snapshot
+was taken in the middle of a game, which hid the start-up and the loader from
+him, and several of his conclusions come out differently here. Each was
+checked against the code, and those marked run also in the simulator:
+<ul class="kl-list">
+<li><b>The entry point.</b> He starts at the title routine (<a href="../asm/61541.html">TITLE_SCREEN</a>) and
+rebuilds the stack for it; the loader returns to <a href="../asm/50300.html">START</a>, which sets the stack,
+plays the loading tune, sets IY, puts the tables in place and then jumps to
+the title (run).</li>
+<li><b>Interrupts.</b> He has the ROM's interrupt running fifty times a
+second; the start-up turns interrupts off for good (read and run; see
+<a href="#interrupts">above</a>).</li>
+<li><b>The compositor's four pages.</b> He concludes that two of the four
+256-byte pages at $D800 (<a href="../asm/58340.html">COMPOSITE_TO_SCREEN</a>) never reach the screen; the compositor
+reads all four, stepping from one to the next, and the pages behind the
+moving object carry the objects behind it (read, and run: the pages drawn
+out in the middle of a redraw).</li>
+<li><b>The textures.</b> He reads a texture as sixteen rows of two bytes;
+bytes 8 to 15 are the right-hand half of the same eight rows, a 16 by 16 tile
+in four 8 by 8 cells (read, and drawn: the brick textures only join up this
+way).</li>
+<li><b>The room's box.</b> The six records before the knight's
+(<a href="../asm/48152.html">FIXED_RECORDS</a>) are the floor, the ceiling and the four walls, which a room's patch
+codes set (<a href="../asm/58856.html">DO_ROOM_COMMAND</a>); he has the patches changing the object table (read, and
+run: the records read in every room).</li>
+<li><b>Saving the room's things.</b> <a href="../asm/63750.html">EEN</a> copies each thing's position
+from its record into the object table as the knight leaves, not the other way
+(run).</li>
+<li><b>The use key</b> is 6 or 7, not 0; 0 with SYMBOL SHIFT ends the game,
+and SPACE with SYMBOL SHIFT pauses (run).</li>
+<li><b>The carried things.</b> $FD9C (the author's ROS) walks the five places
+a thing is carried in, not a list of the room's objects (read).</li>
+</ul>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

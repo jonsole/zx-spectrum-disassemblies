@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FD20</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64732.html">FCDC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64800">Map</a></td>
+<td class="next">
+Next: <a href="65045.html">FE15</a>
+</td>
+</tr>
+</table>
+<div class="description">FD20: Enter the room in ROOM, or end the quest (the author's ROOMST)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="61541.html">TITLE_SCREEN</a> and <a href="63428.html">BUMPED</a>.
+</div>
+<div class="paragraph">
+Called by a new game (<a href="61541.html">TITLE_SCREEN</a>, at TELE) and jumped to from the door code (<a href="63428.html">BUMPED</a>) once the knight's record has its new place. It does not return until the game is over: the main loop (<a href="65095.html">MAIN_LOOP</a>) runs inside it and returns from it when LIFE is gone, or on SYMBOL SHIFT and 0, back to <a href="61541.html">TITLE_SCREEN</a> for GAME OVER. A door, and the thing that carries the knight off, come back in here with the stack as it was.
+</div>
+<div class="paragraph">
+Room 81 is the end of the quest. Its picture is drawn and the verdict printed: success if any of the five things carried is number 5 in the object table (+$13; the thing that lies in room 33), failure if not. An empty place reads as a record at address 0, whose +$13 is a ROM byte ($FF) and never matches. Then the two lines of <a href="57330.html">MESS2</a>, a key (<a href="61650.html">WAIT</a>), and back to GAME OVER.
+</div>
+<div class="paragraph">
+Any other room is entered at LOAD_ROOM (the author's ROS). First the carried things: their records, wherever the last room left them, are copied to the first places after the knight's, in the order of the five places, and each place is pointed at its record's new home. They go by way of BUFFER_D900, as one record may be moved onto another that has still to be copied. IY steps two bytes a place through the loop (the author's OBJD to OB2) so that IY+$1F and IY+$20 are each place in turn. OBJECT_COUNT becomes 7 and one for each thing carried; FREE_RECORD the next place. Then the room is drawn (<a href="58715.html">DRAW_CURRENT_ROOM</a>), which also makes the records of its objects, the six strike counters are set to 4, LIFE's label is printed, and the bare room is copied to the clean copy of the screen (<a href="61707.html">RESTOR</a>) before <a href="65045.html">DRAW_STILL_THINGS</a> draws the still things and starts the main loop.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST</td>
+<td class="address-2"><span id="64800"></span>FD20</td>
+<td class="instruction">LD DE,<a href="48292.html">RECORDS</a></td>
+<td class="comment-1" rowspan="1">DE = the first record after the knight's: where the carried things go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64803"></span>FD23</td>
+<td class="instruction">LD A,(IY+$34)</td>
+<td class="comment-1" rowspan="3">Room 0 (room 10's hole): the game ends</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64806"></span>FD26</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64807"></span>FD27</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64808"></span>FD28</td>
+<td class="instruction">CP $51</td>
+<td class="comment-1" rowspan="2">Any room but 81: LOAD_ROOM</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64810"></span>FD2A</td>
+<td class="instruction">JR NZ,<a href="64800.html#64924">LOAD_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64812"></span>FD2C</td>
+<td class="instruction">CALL <a href="58715.html">DRAW_CURRENT_ROOM</a></td>
+<td class="comment-1" rowspan="2">Draw room 81's picture and colour the screen; then print the start of the verdict</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64815"></span>FD2F</td>
+<td class="instruction">CALL <a href="61691.html">ATTRI</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64818"></span>FD32</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64821"></span>FD35</td>
+<td class="instruction">DEFB $C8,$48,$78</td>
+<td class="comment-1" rowspan="1">Print at x 72, y 120</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64824"></span>FD38</td>
+<td class="instruction">DEFB $19,$0F,$15,$00,$08,$01,$16,$05</td>
+<td class="comment-1" rowspan="2">"YOU HAVE "</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64832"></span>FD40</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64833"></span>FD41</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64834"></span>FD42</td>
+<td class="instruction">LD HL,<a href="65408.html#65439">CARRIED</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64837"></span>FD45</td>
+<td class="instruction">LD B,$05</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_0</td>
+<td class="address-2"><span id="64839"></span>FD47</td>
+<td class="instruction">LD E,(HL)</td>
+<td class="comment-1" rowspan="6">IX = the record in this place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64840"></span>FD48</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64841"></span>FD49</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64842"></span>FD4A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64843"></span>FD4B</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64844"></span>FD4C</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64846"></span>FD4E</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="3">Number 5 in the object table: print success</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64849"></span>FD51</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64851"></span>FD53</td>
+<td class="instruction">JR Z,<a href="64800.html#64867">ROOMST_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64853"></span>FD55</td>
+<td class="instruction">DJNZ <a href="64800.html#64839">ROOMST_0</a></td>
+<td class="comment-1" rowspan="1">Try the next place; after the last, print failure</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64855"></span>FD57</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64858"></span>FD5A</td>
+<td class="instruction">DEFB $06,$01,$09,$0C,$05,$04</td>
+<td class="comment-1" rowspan="1">"FAILED"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64864"></span>FD60</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64865"></span>FD61</td>
+<td class="instruction">JR <a href="64800.html#64879">ROOMST_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_1</td>
+<td class="address-2"><span id="64867"></span>FD63</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64870"></span>FD66</td>
+<td class="instruction">DEFB $13,$15,$03,$03,$05,$04,$05,$04</td>
+<td class="comment-1" rowspan="1">"SUCCEDED"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64878"></span>FD6E</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_2</td>
+<td class="address-2"><span id="64879"></span>FD6F</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64882"></span>FD72</td>
+<td class="instruction">DEFB $00,$09,$0E</td>
+<td class="comment-1" rowspan="1">" IN"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64885"></span>FD75</td>
+<td class="instruction">DEFB $C8,$14,$64</td>
+<td class="comment-1" rowspan="1">Print at x 20, y 100</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64888"></span>FD78</td>
+<td class="instruction">DEFB $19,$0F,$15,$12,$00,$11,$15,$05</td>
+<td class="comment-1" rowspan="4">"YOUR QUEST THE WIZARD IS FREE"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64896"></span>FD80</td>
+<td class="instruction">DEFB $13,$14,$00,$14,$08,$05,$00,$17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64904"></span>FD88</td>
+<td class="instruction">DEFB $09,$1A,$01,$12,$04,$00,$09,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64912"></span>FD90</td>
+<td class="instruction">DEFB $00,$06,$12,$05,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64917"></span>FD95</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64918"></span>FD96</td>
+<td class="instruction">CALL <a href="57330.html">MESS2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64921"></span>FD99</td>
+<td class="instruction">JP <a href="61650.html">WAIT</a></td>
+<td class="comment-1" rowspan="1">Wait for a key, and return to the new game's code: GAME OVER</td>
+</tr>
+<tr>
+<td class="asm-label">LOAD_ROOM</td>
+<td class="address-2"><span id="64924"></span>FD9C</td>
+<td class="instruction">LD (IY+$00),$07</td>
+<td class="comment-1" rowspan="1">LOAD_ROOM: seven records, the six fixed ones and the knight's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64928"></span>FDA0</td>
+<td class="instruction">LD B,$05</td>
+<td class="comment-1" rowspan="3">Five places; the records gather in BUFFER_D900 first, the pointer in POINT (the author's T)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64930"></span>FDA2</td>
+<td class="instruction">LD HL,<a href="54932.html#55552">BUFFER_D900</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64933"></span>FDA5</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_3</td>
+<td class="address-2"><span id="64936"></span>FDA8</td>
+<td class="instruction">LD L,(IY+$1F)</td>
+<td class="comment-1" rowspan="7">HL = the record in the next place, IY moved on two</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64939"></span>FDAB</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64941"></span>FDAD</td>
+<td class="instruction">LD H,(IY+$1F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64944"></span>FDB0</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64946"></span>FDB2</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64947"></span>FDB3</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64948"></span>FDB4</td>
+<td class="instruction">JR Z,<a href="64800.html#64983">ROOMST_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64950"></span>FDB6</td>
+<td class="instruction">LD (IY+$1D),E</td>
+<td class="comment-1" rowspan="2">Point the place at DE, the record's new home</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64953"></span>FDB9</td>
+<td class="instruction">LD (IY+$1E),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64956"></span>FDBC</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">DE on to the next home</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64957"></span>FDBD</td>
+<td class="instruction">LD BC,$0014</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64960"></span>FDC0</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64961"></span>FDC1</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64962"></span>FDC2</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64963"></span>FDC3</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="5">Copy the record's 20 bytes to the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64964"></span>FDC4</td>
+<td class="instruction">LD DE,(<a href="65408.html#65508">POINT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64968"></span>FDC8</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64970"></span>FDCA</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64974"></span>FDCE</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64975"></span>FDCF</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64976"></span>FDD0</td>
+<td class="instruction">LD A,(<a href="65408.html">OBJECT_COUNT</a>)</td>
+<td class="comment-1" rowspan="3">One more record in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64979"></span>FDD3</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64980"></span>FDD4</td>
+<td class="instruction">LD (<a href="65408.html">OBJECT_COUNT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_4</td>
+<td class="address-2"><span id="64983"></span>FDD7</td>
+<td class="instruction">DJNZ <a href="64800.html#64936">ROOMST_3</a></td>
+<td class="comment-1" rowspan="1">Next place (the author's OB2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64985"></span>FDD9</td>
+<td class="instruction">LD (<a href="65408.html#65464">FREE_RECORD</a>),DE</td>
+<td class="comment-1" rowspan="1">The room's own records start after the carried things</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64989"></span>FDDD</td>
+<td class="instruction">LD DE,<a href="48292.html">RECORDS</a></td>
+<td class="comment-1" rowspan="4">Copy the carried things into place (five records' worth, whatever was carried)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64992"></span>FDE0</td>
+<td class="instruction">LD HL,<a href="54932.html#55552">BUFFER_D900</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64995"></span>FDE3</td>
+<td class="instruction">LD BC,$0064</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64998"></span>FDE6</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65000"></span>FDE8</td>
+<td class="instruction">LD IY,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="1">IY back on the variables</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65004"></span>FDEC</td>
+<td class="instruction">CALL <a href="58715.html">DRAW_CURRENT_ROOM</a></td>
+<td class="comment-1" rowspan="1">Draw the room and make its objects' records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65007"></span>FDEF</td>
+<td class="instruction">LD A,$04</td>
+<td class="comment-1" rowspan="6">Four strikes in each of the six counters; then print LIFE's label</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65009"></span>FDF1</td>
+<td class="instruction">LD HL,<a href="65408.html#65432">STRIKES_LEFT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65012"></span>FDF4</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label">ROOMST_5</td>
+<td class="address-2"><span id="65014"></span>FDF6</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65015"></span>FDF7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65016"></span>FDF8</td>
+<td class="instruction">DJNZ <a href="64800.html#65014">ROOMST_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65018"></span>FDFA</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65021"></span>FDFD</td>
+<td class="instruction">DEFB $C8,$30,$14</td>
+<td class="comment-1" rowspan="1">Print at x 48, y 20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65024"></span>FE00</td>
+<td class="instruction">DEFB $0C,$09,$06,$05</td>
+<td class="comment-1" rowspan="1">"LIFE"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65028"></span>FE04</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65029"></span>FE05</td>
+<td class="instruction">CALL <a href="61707.html">RESTOR</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65032"></span>FE08</td>
+<td class="instruction">LD HL,<a href="48292.html">RECORDS</a></td>
+<td class="comment-1" rowspan="3">From the first record after the knight's, with bit 4 of GAME_FLAGS set: still things are drawn into the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65035"></span>FE0B</td>
+<td class="instruction">LD (IY+$03),$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65039"></span>FE0F</td>
+<td class="instruction">SET 4,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65043"></span>FE13</td>
+<td class="instruction">JR <a href="65045.html#65074">DRAW_STILL_THINGS_1</a></td>
+<td class="comment-1" rowspan="1">Draw them (<a href="65045.html">DRAW_STILL_THINGS</a>)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Room 0 returns at once, which ends the game: a new game's room comes from the master copy (<a href="25500.html">MASTER_OBJECTS</a>), where it is 29, but door record 185, a hole in room 10's floor, leads to room 0, so falling through it ends the game with LIFE still full (measured for the Facts page).
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64732.html">FCDC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64800">Map</a></td>
+<td class="next">
+Next: <a href="65045.html">FE15</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

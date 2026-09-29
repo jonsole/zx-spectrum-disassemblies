@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F959</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63750.html">F906</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63833">Map</a></td>
+<td class="next">
+Next: <a href="64116.html">FA74</a>
+</td>
+</tr>
+</table>
+<div class="description">F959: Settle what happens when a moving object runs into one that is not a door</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="63428.html">BUMPED</a>.
+</div>
+<div class="paragraph">
+Jumped to from <a href="63428.html">BUMPED</a> when the move tried for the object being updated -- the mover: its record at WORK_RECORD, its number in THIS_RECORD and a working copy of it from IY+$64 -- would overlap a record that is not a door: the other, at IX, its number in FOUND_RECORD. The kind bytes (+12) of the two decide, in this order.
+</div>
+<div class="paragraph">
+A mover with bit 4 of its kind byte hurts what it touches: the troll and the bouncing balls (<a href="32392.html">SPRITE7E88</a>). If the other is the knight he loses 10 LIFE, except on a room's first pass (bit 2 of GAME_FLAGS). If the other is not a still thing (+16), it is knocked -- bit 4 of its +14 and the direction $12 make its next update a hop upward -- and the mover vanishes where it is (bit 5 of its +16). Against a still thing the tests go on.
+</div>
+<div class="paragraph">
+When the knight walks into something whose kind byte has bit 4, he loses 10 LIFE, the other vanishes, and his move carries on as if it had not been there.
+</div>
+<div class="paragraph">
+Bit 7 of the kind byte marks a fighter: the knight and nearly every creature. A fighter other than the knight that walks into him takes 1 LIFE; the knight walking into a fighter loses 1 LIFE himself, unless his sword is out (bit 1 of GAME_FLAGS, the striking half of the fight animation, <a href="62869.html">KNIGHT_CONTROLS</a>). Then a fighter that can be killed (bit 6: the guards, the ghosts and the troll) has one of its strikes taken: the counter <a href="64677.html">FIND_OBSTACLE</a> gave it, one of the six STRIKES_LEFT, each 4 when the room was entered. At none left, a guard (behaviour 6, 9 or 10) is left lying as its helmet (<a href="42168.html">SPRITEA4B8</a>), a thing that can be picked up; anything else vanishes. That never happened in the build's sessions. Staged in the simulator -- the counters set to 1, the guard of room 29 put in front of the knight, and B and Y held -- the guard became the helmet.
+</div>
+<div class="paragraph">
+After the fighters: a creature of behaviour 13 (the ghost, <a href="23344.html">SPRITE5B30</a>) takes any thing that can be picked up that it runs into: the thing vanishes, and its entry in the object table is moved to room $FE, out of the game (<a href="62694.html">SET_THING_ROOM</a>). A wraith (behaviour 11) that a thing of kind 6 or 10 runs into vanishes with it, both taken out of the game; that too never ran in the sessions, and was staged in room 28 by dropping the kind-6 thing onto the wraith. Anything that runs into a kind-7 object -- the floor of the pits in rooms 9 and 12 -- vanishes, and if it is the knight, LIFE goes to 0. Everything else goes on to <a href="64131.html">MEET_DECOY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET</td>
+<td class="address-2"><span id="63833"></span>F959</td>
+<td class="instruction">BIT 4,(IY+$70)</td>
+<td class="comment-1" rowspan="2">Does the mover hurt what it touches (bit 4 of its kind)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63837"></span>F95D</td>
+<td class="instruction">JR Z,<a href="63833.html#63884">OBJECTS_MEET_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63839"></span>F95F</td>
+<td class="instruction">BIT 2,(IY+$17)</td>
+<td class="comment-1" rowspan="2">Not on the room's first pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63843"></span>F963</td>
+<td class="instruction">JR NZ,<a href="63833.html#63855">OBJECTS_MEET_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63845"></span>F965</td>
+<td class="instruction">LD A,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+<td class="comment-1" rowspan="4">The knight touched: 10 LIFE (the author's DECLI1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63848"></span>F968</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63850"></span>F96A</td>
+<td class="instruction">JR NZ,<a href="63833.html#63884">OBJECTS_MEET_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63852"></span>F96C</td>
+<td class="instruction">CALL <a href="61876.html">DECLI1</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_0</td>
+<td class="address-2"><span id="63855"></span>F96F</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="3">A still thing: on to the next test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63858"></span>F972</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63860"></span>F974</td>
+<td class="instruction">JR Z,<a href="63833.html#63884">OBJECTS_MEET_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63862"></span>F976</td>
+<td class="instruction">SET 4,(IX+$0E)</td>
+<td class="comment-1" rowspan="2">Knock it: next time it moves by the direction $12, up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63866"></span>F97A</td>
+<td class="instruction">LD (IX+$0D),$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63870"></span>F97E</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="2">The mover vanishes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63874"></span>F982</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63878"></span>F986</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="2">where it was, and is erased (<a href="63068.html">ANIMATE_AND_MOVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63881"></span>F989</td>
+<td class="instruction">JP <a href="63068.html#63186">COMMIT_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_1</td>
+<td class="address-2"><span id="63884"></span>F98C</td>
+<td class="instruction">BIT 4,(IX+$0C)</td>
+<td class="comment-1" rowspan="5">Does the other hurt, and is the mover the knight?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63888"></span>F990</td>
+<td class="instruction">JR Z,<a href="63833.html#63902">OBJECTS_MEET_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63890"></span>F992</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63893"></span>F995</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63895"></span>F997</td>
+<td class="instruction">JR NZ,<a href="63833.html#63902">OBJECTS_MEET_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63897"></span>F999</td>
+<td class="instruction">CALL <a href="61876.html">DECLI1</a></td>
+<td class="comment-1" rowspan="2">10 LIFE, and the other vanishes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63900"></span>F99C</td>
+<td class="instruction">JR <a href="63833.html#63974">OTHER_VANISHES</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_2</td>
+<td class="address-2"><span id="63902"></span>F99E</td>
+<td class="instruction">BIT 7,(IY+$70)</td>
+<td class="comment-1" rowspan="2">Is the mover a fighter (bit 7)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63906"></span>F9A2</td>
+<td class="instruction">JR Z,<a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63908"></span>F9A4</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+<td class="comment-1" rowspan="3">The knight: below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63911"></span>F9A7</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63913"></span>F9A9</td>
+<td class="instruction">JR Z,<a href="63833.html#63929">OBJECTS_MEET_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63915"></span>F9AB</td>
+<td class="instruction">LD A,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+<td class="comment-1" rowspan="3">Another fighter: has it walked into the knight?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63918"></span>F9AE</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63920"></span>F9B0</td>
+<td class="instruction">JR NZ,<a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_3</td>
+<td class="address-2"><span id="63922"></span>F9B2</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="3">Take 1 LIFE (at DECLIF, <a href="61876.html">DECLI1</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63924"></span>F9B4</td>
+<td class="instruction">CALL <a href="61876.html#61878">DECLIF</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63927"></span>F9B7</td>
+<td class="instruction">JR <a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_4</td>
+<td class="address-2"><span id="63929"></span>F9B9</td>
+<td class="instruction">BIT 1,(IY+$17)</td>
+<td class="comment-1" rowspan="2">The knight: is his sword out?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63933"></span>F9BD</td>
+<td class="instruction">JR NZ,<a href="63833.html#63943">OBJECTS_MEET_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63935"></span>F9BF</td>
+<td class="instruction">BIT 7,(IX+$0C)</td>
+<td class="comment-1" rowspan="3">No: a fighter touched costs him 1 LIFE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63939"></span>F9C3</td>
+<td class="instruction">JR NZ,<a href="63833.html#63922">OBJECTS_MEET_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63941"></span>F9C5</td>
+<td class="instruction">JR <a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_5</td>
+<td class="address-2"><span id="63943"></span>F9C7</td>
+<td class="instruction">BIT 6,(IX+$0C)</td>
+<td class="comment-1" rowspan="2">Yes: can the other be killed (bit 6)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63947"></span>F9CB</td>
+<td class="instruction">JR Z,<a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63949"></span>F9CD</td>
+<td class="instruction">LD L,(IY+$02)</td>
+<td class="comment-1" rowspan="4">Take a strike off its counter (the address's low byte in IY+2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63952"></span>F9D0</td>
+<td class="instruction">LD H,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63954"></span>F9D2</td>
+<td class="instruction">DEC (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63955"></span>F9D3</td>
+<td class="instruction">JR NZ,<a href="63833.html#64027">OBJECTS_MEET_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63957"></span>F9D5</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="8">None left: is it a guard (behaviour 6, 9 or 10)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63960"></span>F9D8</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63962"></span>F9DA</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63964"></span>F9DC</td>
+<td class="instruction">JR Z,<a href="63833.html#63980">OBJECTS_MEET_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63966"></span>F9DE</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63968"></span>F9E0</td>
+<td class="instruction">JR Z,<a href="63833.html#63980">OBJECTS_MEET_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63970"></span>F9E2</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63972"></span>F9E4</td>
+<td class="instruction">JR Z,<a href="63833.html#63980">OBJECTS_MEET_6</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63974"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="64131.html">MEET_DECOY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OTHER_VANISHES</td>
+<td class="address-2"><span id="63974"></span>F9E6</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+<td class="comment-1" rowspan="2">OTHER_VANISHES: bit 5 of its +16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63978"></span>F9EA</td>
+<td class="instruction">JR <a href="63833.html#64000">OBJECTS_MEET_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_6</td>
+<td class="address-2"><span id="63980"></span>F9EC</td>
+<td class="instruction">LD (IX+$04),$B8</td>
+<td class="comment-1" rowspan="5">The guard's helmet: its sprite, behaviour 0 with a hop, a fighter that can be picked up, direction $12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63984"></span>F9F0</td>
+<td class="instruction">LD (IX+$05),$A4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63988"></span>F9F4</td>
+<td class="instruction">LD (IX+$0E),$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63992"></span>F9F8</td>
+<td class="instruction">LD (IX+$0C),$A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63996"></span>F9FC</td>
+<td class="instruction">LD (IX+$0D),$12</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_7</td>
+<td class="address-2"><span id="64000"></span>FA00</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+<td class="comment-1" rowspan="4">Finish the mover's move (BLOCKED_MOVE, <a href="64131.html">MEET_DECOY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64003"></span>FA03</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64004"></span>FA04</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64006"></span>FA06</td>
+<td class="instruction">CALL <a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64009"></span>FA09</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">Redraw the other as the record being drawn (the number is stale: see below)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64010"></span>FA0A</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64011"></span>FA0B</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64013"></span>FA0D</td>
+<td class="instruction">LD A,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64016"></span>FA10</td>
+<td class="instruction">LD (<a href="65408.html#65411">THIS_RECORD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64019"></span>FA13</td>
+<td class="instruction">CALL <a href="60605.html">REDRAW_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64022"></span>FA16</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="3">THIS_RECORD back; the mover's update is done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64023"></span>FA17</td>
+<td class="instruction">LD (<a href="65408.html#65411">THIS_RECORD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64026"></span>FA1A</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_8</td>
+<td class="address-2"><span id="64027"></span>FA1B</td>
+<td class="instruction">LD A,(<a href="65408.html#65522">WORK_BEHAVIOUR</a>)</td>
+<td class="comment-1" rowspan="6">A behaviour-13 creature, the ghost, and a thing that can be picked up?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64030"></span>FA1E</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64032"></span>FA20</td>
+<td class="instruction">CP $0D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64034"></span>FA22</td>
+<td class="instruction">JR NZ,<a href="63833.html#64042">OBJECTS_MEET_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64036"></span>FA24</td>
+<td class="instruction">BIT 5,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64040"></span>FA28</td>
+<td class="instruction">JR NZ,<a href="63833.html#64081">OBJECTS_MEET_11</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_9</td>
+<td class="address-2"><span id="64042"></span>FA2A</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="10">A wraith (behaviour 11) met by a thing of kind 6 or 10?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64045"></span>FA2D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64047"></span>FA2F</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64049"></span>FA31</td>
+<td class="instruction">JR NZ,<a href="63833.html#64088">OBJECTS_MEET_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64051"></span>FA33</td>
+<td class="instruction">LD A,(<a href="65408.html#65520">WORK_KIND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64054"></span>FA36</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64056"></span>FA38</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64058"></span>FA3A</td>
+<td class="instruction">JR Z,<a href="63833.html#64064">OBJECTS_MEET_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64060"></span>FA3C</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64062"></span>FA3E</td>
+<td class="instruction">JR NZ,<a href="63833.html#64088">OBJECTS_MEET_12</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_10</td>
+<td class="address-2"><span id="64064"></span>FA40</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="6">The thing leaves the game (room $FE) and vanishes...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64066"></span>FA42</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64070"></span>FA46</td>
+<td class="instruction">LD C,$FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64072"></span>FA48</td>
+<td class="instruction">CALL <a href="62694.html">SET_THING_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64075"></span>FA4B</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64079"></span>FA4F</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_11</td>
+<td class="address-2"><span id="64081"></span>FA51</td>
+<td class="instruction">LD C,$FE</td>
+<td class="comment-1" rowspan="3">...and so does the other</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64083"></span>FA53</td>
+<td class="instruction">CALL <a href="62694.html">SET_THING_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64086"></span>FA56</td>
+<td class="instruction">JR <a href="63833.html#63974">OTHER_VANISHES</a></td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_MEET_12</td>
+<td class="address-2"><span id="64088"></span>FA58</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">Kind 7, the pit floor?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64091"></span>FA5B</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64093"></span>FA5D</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64095"></span>FA5F</td>
+<td class="instruction">JR NZ,<a href="64131.html">MEET_DECOY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64097"></span>FA61</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="1">IX = the mover</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64101"></span>FA65</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+<td class="comment-1" rowspan="5">The knight: LIFE 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64104"></span>FA68</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64106"></span>FA6A</td>
+<td class="instruction">JR NZ,<a href="64121.html">MOVER_VANISHES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64108"></span>FA6C</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64111"></span>FA6F</td>
+<td class="instruction">LD (<a href="65408.html#65429">LIFE_TENS</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64114"></span>FA72</td>
+<td class="instruction">JR <a href="64121.html">MOVER_VANISHES</a></td>
+<td class="comment-1" rowspan="1">Over the five bytes at <a href="64116.html">SKIPPED_REMOVAL</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+When something has vanished, or a guard become a helmet, the mover's move is finished at <a href="64131.html">MEET_DECOY</a>'s BLOCKED_MOVE and the other is redrawn -- erased, in fact, as it is now hidden -- with THIS_RECORD set to the other's number for <a href="60605.html">REDRAW_OBJECT</a>. The number is read from FOUND_RECORD after the mover's own redraw has used that byte for its sprite's width in bytes (<a href="61069.html">DRAW_SPRITE</a>), so it is wrong: 3, not 19, when the knight met the troll in room 2 in the simulator. It only changes which record <a href="60605.html">REDRAW_OBJECT</a> leaves out of the redraw. A vanished thing is hidden anyway; a helmet is not, and is drawn once as if in front of itself -- measured with a guard killed by fighting in room 77: one pixel differs from a corrected run, for one pass.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63750.html">F906</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63833">Map</a></td>
+<td class="next">
+Next: <a href="64116.html">FA74</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

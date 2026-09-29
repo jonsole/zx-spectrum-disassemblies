@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FC66</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64584.html">FC48</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64614">Map</a></td>
+<td class="next">
+Next: <a href="64668.html">FC9C</a>
+</td>
+</tr>
+</table>
+<div class="description">FC66: Work out which way a chaser should go to reach its target</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="64584.html">ZOOMIN</a>.
+</div>
+<div class="paragraph">
+The heading is along one floor axis only, whichever the target is further off along: x (+6) or z (+8), measured to a point two units past the target's corner, and z when they are equal. The chaser's timer (+15) is set to 10 passes before it looks again, or to 3 when the z distance is under 14 -- the z distance whichever axis won, as the code has it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The chaser's record</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The target's record</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The heading: 8 for +x, 4 for -x, $40 for +z, $80 for -z</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">How far off the target is along that axis</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">AIM_AT</td>
+<td class="address-2"><span id="64614"></span>FC66</td>
+<td class="instruction">LD A,(IY+$06)</td>
+<td class="comment-1" rowspan="3">Look again in 10 passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64617"></span>FC69</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64619"></span>FC6B</td>
+<td class="instruction">LD (IX+$0F),$0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64623"></span>FC6F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">Keep HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64624"></span>FC70</td>
+<td class="instruction">SUB (IX+$06)</td>
+<td class="comment-1" rowspan="6">Along x: H = +x (8) or -x (4), D = how far</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64627"></span>FC73</td>
+<td class="instruction">LD H,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64629"></span>FC75</td>
+<td class="instruction">JR NC,<a href="64614.html#64635">AIM_AT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64631"></span>FC77</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64633"></span>FC79</td>
+<td class="instruction">LD H,$04</td>
+</tr>
+<tr>
+<td class="asm-label">AIM_AT_0</td>
+<td class="address-2"><span id="64635"></span>FC7B</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64636"></span>FC7C</td>
+<td class="instruction">LD A,(IY+$08)</td>
+<td class="comment-1" rowspan="7">Along z: L = +z ($40) or -z ($80)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64639"></span>FC7F</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64641"></span>FC81</td>
+<td class="instruction">SUB (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64644"></span>FC84</td>
+<td class="instruction">LD L,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64646"></span>FC86</td>
+<td class="instruction">JR NC,<a href="64614.html#64652">AIM_AT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64648"></span>FC88</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64650"></span>FC8A</td>
+<td class="instruction">LD L,$80</td>
+</tr>
+<tr>
+<td class="asm-label">AIM_AT_1</td>
+<td class="address-2"><span id="64652"></span>FC8C</td>
+<td class="instruction">CP D</td>
+<td class="comment-1" rowspan="4">As far or further along z: head that way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64653"></span>FC8D</td>
+<td class="instruction">JR C,<a href="64614.html#64657">AIM_AT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64655"></span>FC8F</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64656"></span>FC90</td>
+<td class="instruction">LD H,L</td>
+</tr>
+<tr>
+<td class="asm-label">AIM_AT_2</td>
+<td class="address-2"><span id="64657"></span>FC91</td>
+<td class="instruction">CP $0E</td>
+<td class="comment-1" rowspan="3">Near along z: look again in 3 passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64659"></span>FC93</td>
+<td class="instruction">JR NC,<a href="64614.html#64665">AIM_AT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64661"></span>FC95</td>
+<td class="instruction">LD (IX+$0F),$03</td>
+</tr>
+<tr>
+<td class="asm-label">AIM_AT_3</td>
+<td class="address-2"><span id="64665"></span>FC99</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="3">A = the heading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64666"></span>FC9A</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64667"></span>FC9B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64584.html">FC48</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64614">Map</a></td>
+<td class="next">
+Next: <a href="64668.html">FC9C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

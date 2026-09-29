@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F050</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61516.html">F04C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61520">Map</a></td>
+<td class="next">
+Next: <a href="61541.html">F065</a>
+</td>
+</tr>
+</table>
+<div class="description">F050: Clear the 512 bytes below HL</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="60870.html">SORT_AND_DRAW_BEHIND</a>.
+</div>
+<div class="paragraph">
+And the two entries every fill of the buffers uses: CLEAR_BELOW, at offset 2, clears B times 8 bytes below HL, and FILL_BELOW, at offset 5, fills them with DE. The stack pointer is put at HL and DE pushed four times a turn, the fastest way a Z80 has to fill memory; SP is kept at IY+$76 while it is borrowed. No interrupt can push into the area meanwhile: the game runs with interrupts off (the DI at offset 11 of <a href="50300.html">START</a>). Krumlinde's names for these are RTN_ClearBuffer_512, FastFill_Zero and RTN_FastFill.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The byte after the last to fill</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The number of 8-byte units, at CLEAR_BELOW and FILL_BELOW</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The word to fill with, at FILL_BELOW</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_512_BELOW</td>
+<td class="address-2"><span id="61520"></span>F050</td>
+<td class="instruction">LD B,$40</td>
+<td class="comment-1" rowspan="1">64 units: 512 bytes</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="61522"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="60414.html">PRINT</a>, <a href="60492.html">SHOW_THING_IN_USE</a>, <a href="60533.html">CLEAR_THING_BOX</a> and <a href="61516.html">CLEAR_256_BELOW</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_BELOW</td>
+<td class="address-2"><span id="61522"></span>F052</td>
+<td class="instruction">LD DE,$0000</td>
+<td class="comment-1" rowspan="1">CLEAR_BELOW: fill with zero</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="61525"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="60533.html">CLEAR_THING_BOX</a> and <a href="60605.html">REDRAW_OBJECT</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_BELOW</td>
+<td class="address-2"><span id="61525"></span>F055</td>
+<td class="instruction">LD (<a href="65408.html#65526">WORK_HEADING</a>),SP</td>
+<td class="comment-1" rowspan="2">FILL_BELOW: the stack pointer borrowed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61529"></span>F059</td>
+<td class="instruction">LD SP,HL</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_512_BELOW_0</td>
+<td class="address-2"><span id="61530"></span>F05A</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="5">Eight bytes a turn, going down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61531"></span>F05B</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61532"></span>F05C</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61533"></span>F05D</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61534"></span>F05E</td>
+<td class="instruction">DJNZ <a href="61520.html#61530">CLEAR_512_BELOW_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61536"></span>F060</td>
+<td class="instruction">LD SP,(<a href="65408.html#65526">WORK_HEADING</a>)</td>
+<td class="comment-1" rowspan="2">And given back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61540"></span>F064</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61516.html">F04C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61520">Map</a></td>
+<td class="next">
+Next: <a href="61541.html">F065</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

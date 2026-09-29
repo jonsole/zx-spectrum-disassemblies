@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at C000</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48292.html">BCA4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49152">Map</a></td>
+<td class="next">
+Next: <a href="49178.html">C01A</a>
+</td>
+</tr>
+</table>
+<div class="description">C000: Play the loading tune until a key is pressed</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50300.html">START</a>.
+</div>
+<div class="paragraph">
+Called once, from <a href="50300.html">START</a>, while the loading screen is still up: two voices on the beeper, a note at a time (<a href="49225.html">TUNE_PLAY_NOTE</a>), with the ROM's KEY-SCAN between notes. The voices' pointers are set from <a href="49328.html">TUNE_VOICES</a> first, so the tune starts from its beginning. The tune lasts 52.6 seconds (418 note bytes a voice, of which the last three rest in both and are passed over, so 415 notes heard, each 0.127 s; measured for the sounds page); after it both voices rest, and the routine goes on scanning the keyboard in silence.
+</div>
+<div class="paragraph">
+Interrupts are off while it plays (KEY-SCAN does not need them); it turns them on as it returns, and <a href="50300.html">START</a> turns them off again three instructions later, for good.
+</div>
+<div class="paragraph">
+From the first room on, these bytes are part of the clean copy of the screen (<a href="61707.html">RESTOR</a> copies the screen here), so the tune cannot be played again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">LOADING_TUNE</td>
+<td class="address-2"><span id="49152"></span>C000</td>
+<td class="instruction">LD HL,<a href="49328.html">TUNE_VOICES</a></td>
+<td class="comment-1" rowspan="4">Both voices to the start of the tune: the four pointers from <a href="49328.html">TUNE_VOICES</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49155"></span>C003</td>
+<td class="instruction">LD DE,<a href="49178.html#49181">VOICE_ONE_AT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49158"></span>C006</td>
+<td class="instruction">LD BC,$0008</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49161"></span>C009</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49163"></span>C00B</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1">Interrupts off while it plays.</td>
+</tr>
+<tr>
+<td class="asm-label">LOADING_TUNE_0</td>
+<td class="address-2"><span id="49164"></span>C00C</td>
+<td class="instruction">CALL <a href="49225.html">TUNE_PLAY_NOTE</a></td>
+<td class="comment-1" rowspan="1">Play a note (once both voices are resting, nothing).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49167"></span>C00F</td>
+<td class="instruction">CALL $028E</td>
+<td class="comment-1" rowspan="4">KEY-SCAN leaves E at $FF while no key is pressed.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49170"></span>C012</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49172"></span>C014</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49173"></span>C015</td>
+<td class="instruction">JP Z,<a href="49152.html#49164">LOADING_TUNE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49176"></span>C018</td>
+<td class="instruction">EI</td>
+<td class="comment-1" rowspan="2">A key.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49177"></span>C019</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48292.html">BCA4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49152">Map</a></td>
+<td class="next">
+Next: <a href="49178.html">C01A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

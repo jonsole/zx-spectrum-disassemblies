@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at C47C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49328.html">C0B0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50300">Map</a></td>
+<td class="next">
+Next: <a href="50362.html">C4BA</a>
+</td>
+</tr>
+</table>
+<div class="description">C47C: The game's first instruction</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The loader returns here once it has checked its checksum and cleared itself. The stack goes near the top of <a href="24956.html">SOURCE_AND_STACK</a>; the loading tune plays until a key is pressed; IY is set to the variables, and interrupts turned off for the rest of the game; the object table and the templates are copied from where the tape has them to where the game reads them; a master copy of the object table, the variables and the knight's record is made at <a href="25500.html">MASTER_OBJECTS</a>, for each new game to start from; and the title page begins.
+</div>
+<div class="paragraph">
+The game runs with interrupts off from here on (measured: the interrupt flip-flop stays clear in the simulator, and the ROM's frame counter in its system variables never moves). It has to: the sprites from <a href="23296.html">SPRITE5B00</a> up lie over the ROM's system variables, which the ROM's interrupt routine writes to fifty times a second.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">START</td>
+<td class="address-2"><span id="50300"></span>C47C</td>
+<td class="instruction">LD HL,<a href="24956.html#25498">STACK_TOP</a></td>
+<td class="comment-1" rowspan="2">The stack: two bytes below the end of <a href="24956.html">SOURCE_AND_STACK</a>, over leftover source text.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50303"></span>C47F</td>
+<td class="instruction">LD SP,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50304"></span>C480</td>
+<td class="instruction">CALL <a href="49152.html">LOADING_TUNE</a></td>
+<td class="comment-1" rowspan="1">The loading tune, until a key is pressed.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50307"></span>C483</td>
+<td class="instruction">LD IY,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="1">IY at the variables, from here on.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50311"></span>C487</td>
+<td class="instruction">DI</td>
+<td class="comment-1" rowspan="1">Interrupts off for good (the tune turned them on as it returned).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50312"></span>C488</td>
+<td class="instruction">LD HL,<a href="50400.html">OBJECTS_TAPE</a></td>
+<td class="comment-1" rowspan="4">The object table, and 263 bytes of text after it: 3420 bytes from <a href="50400.html">OBJECTS_TAPE</a> to <a href="43300.html">OBJECTS</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50315"></span>C48B</td>
+<td class="instruction">LD DE,<a href="43300.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50318"></span>C48E</td>
+<td class="instruction">LD BC,$0D5C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50321"></span>C491</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50323"></span>C493</td>
+<td class="instruction">LD HL,<a href="54000.html">TEMPLATES_TAPE</a></td>
+<td class="comment-1" rowspan="4">The templates and the patches: 932 bytes from <a href="54000.html">TEMPLATES_TAPE</a> to <a href="46900.html">TEMPLATES</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50326"></span>C496</td>
+<td class="instruction">LD DE,<a href="46900.html">TEMPLATES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50329"></span>C499</td>
+<td class="instruction">LD BC,$03A4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50332"></span>C49C</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50334"></span>C49E</td>
+<td class="instruction">LD DE,<a href="25500.html">MASTER_OBJECTS</a></td>
+<td class="comment-1" rowspan="4">The master copy: the object table's first 1200 bytes...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50337"></span>C4A1</td>
+<td class="instruction">LD HL,<a href="43300.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50340"></span>C4A4</td>
+<td class="instruction">LD BC,$04B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50343"></span>C4A7</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50345"></span>C4A9</td>
+<td class="instruction">LD HL,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="3">...the 61 bytes of variables a new game starts with (IY+$00 to IY+$3C; B is 0 after the LDIR)...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50348"></span>C4AC</td>
+<td class="instruction">LD C,$3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50350"></span>C4AE</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50352"></span>C4B0</td>
+<td class="instruction">LD HL,<a href="48272.html">KNIGHT</a></td>
+<td class="comment-1" rowspan="3">...and the knight's record.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50355"></span>C4B3</td>
+<td class="instruction">LD C,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50357"></span>C4B5</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50359"></span>C4B7</td>
+<td class="instruction">JP <a href="61541.html">TITLE_SCREEN</a></td>
+<td class="comment-1" rowspan="1">The title page.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49328.html">C0B0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50300">Map</a></td>
+<td class="next">
+Next: <a href="50362.html">C4BA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

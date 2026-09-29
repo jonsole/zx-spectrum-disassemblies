@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at ED47</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60605.html">ECBD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60743">Map</a></td>
+<td class="next">
+Next: <a href="60856.html">EDB8</a>
+</td>
+</tr>
+</table>
+<div class="description">ED47: Sort one object into the redraw of a region: in front, behind, or out of it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="60605.html">REDRAW_OBJECT</a>.
+</div>
+<div class="paragraph">
+Called by <a href="60605.html">REDRAW_OBJECT</a> for each object record but the one being redrawn (THIS_RECORD), with IX at the record and D, E, C the redrawn object's far corner and floor (<a href="61494.html">FAR_CORNER</a>). The region is the rectangle of screen being rebuilt, the redrawn object's own box with three rows more above and below it: its x at IY+$64, its top row at IY+$65 (y counts up the screen), its width in pixels at IY+$66 and its height at IY+$67. An object that does not overlap the region, or has no sprite, is left out. One that overlaps it and stands in front of the redrawn object (<a href="61043.html">IS_IN_FRONT</a>) has its cover drawn at once into page $D8 (<a href="61069.html">DRAW_SPRITE</a>, mode 0), which tells the compositor (<a href="58340.html">COMPOSITE_TO_SCREEN</a>) to leave the screen as it is there. One behind goes onto the list at page $DA for <a href="60870.html">SORT_AND_DRAW_BEHIND</a> to sort and draw. Krumlinde's name for it is Cull_TestObject.
+</div>
+<div class="paragraph">
+What counts depends on the pass. Normally (bit 4 of IY+$17 clear) scenery -- an object whose +$10 has bits 0-4 clear, drawn once as the room was entered and so already in the clean copy of the screen (<a href="49152.html">LOADING_TUNE</a>) -- goes on the list but does not by itself ask for the list to be drawn: only a live object behind sets bit 1 of IY+$71. In the scenery pass as a room is entered (bit 4 set, <a href="64800.html">ROOMST</a>) live objects are left out altogether, since they are drawn later, and anything behind asks for the list. A door (type 1 in +$0C) skips both tests; anything taken out of the room (bit 5 of +$10: carried, or destroyed) is never drawn.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">An object record</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The redrawn object's far edge along +6</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">Its floor</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Its far edge along +8</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT</td>
+<td class="address-2"><span id="60743"></span>ED47</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">A door skips the flag tests</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60746"></span>ED4A</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60748"></span>ED4C</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60750"></span>ED4E</td>
+<td class="instruction">JR Z,<a href="60743.html#60769">CULL_OBJECT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60752"></span>ED50</td>
+<td class="instruction">BIT 4,(IY+$17)</td>
+<td class="comment-1" rowspan="5">In the scenery pass, leave out live objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60756"></span>ED54</td>
+<td class="instruction">JR Z,<a href="60743.html#60764">CULL_OBJECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60758"></span>ED56</td>
+<td class="instruction">LD A,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60761"></span>ED59</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60763"></span>ED5B</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_0</td>
+<td class="address-2"><span id="60764"></span>ED5C</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Leave out anything taken out of the room</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60768"></span>ED60</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_1</td>
+<td class="address-2"><span id="60769"></span>ED61</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="9">Across: out if the object lies wholly right or wholly left of the region</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60772"></span>ED64</td>
+<td class="instruction">SUB (IY+$64)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60775"></span>ED67</td>
+<td class="instruction">JR C,<a href="60743.html#60783">CULL_OBJECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60777"></span>ED69</td>
+<td class="instruction">SUB (IY+$66)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60780"></span>ED6C</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60781"></span>ED6D</td>
+<td class="instruction">JR <a href="60743.html#60788">CULL_OBJECT_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_2</td>
+<td class="address-2"><span id="60783"></span>ED6F</td>
+<td class="instruction">ADD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60786"></span>ED72</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60787"></span>ED73</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_3</td>
+<td class="address-2"><span id="60788"></span>ED74</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="9">Down: y is the top row and the sprite hangs +3 rows below it; out if wholly below or above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60791"></span>ED77</td>
+<td class="instruction">SUB (IY+$65)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60794"></span>ED7A</td>
+<td class="instruction">JR C,<a href="60743.html#60802">CULL_OBJECT_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60796"></span>ED7C</td>
+<td class="instruction">SUB (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60799"></span>ED7F</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60800"></span>ED80</td>
+<td class="instruction">JR <a href="60743.html#60807">CULL_OBJECT_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_4</td>
+<td class="address-2"><span id="60802"></span>ED82</td>
+<td class="instruction">ADD A,(IY+$67)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60805"></span>ED85</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60806"></span>ED86</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_5</td>
+<td class="address-2"><span id="60807"></span>ED87</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="3">No sprite, nothing to draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60810"></span>ED8A</td>
+<td class="instruction">OR (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60813"></span>ED8D</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60814"></span>ED8E</td>
+<td class="instruction">CALL <a href="61043.html">IS_IN_FRONT</a></td>
+<td class="comment-1" rowspan="4">In front of the redrawn object: its cover into page $D8, and done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60817"></span>ED91</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60818"></span>ED92</td>
+<td class="instruction">BIT 0,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60822"></span>ED96</td>
+<td class="instruction">JP NZ,<a href="61069.html">DRAW_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60825"></span>ED99</td>
+<td class="instruction">LD A,(<a href="65408.html#65535">RIDE_DIRECTION</a>)</td>
+<td class="comment-1" rowspan="7">Behind it: its number onto the list at page $DA; IY+$7F, which <a href="60605.html">REDRAW_OBJECT</a> sets to $FF, holds the last entry's index</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60828"></span>ED9C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60829"></span>ED9D</td>
+<td class="instruction">LD (<a href="65408.html#65535">RIDE_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60832"></span>EDA0</td>
+<td class="instruction">LD H,$DA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60834"></span>EDA2</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60835"></span>EDA3</td>
+<td class="instruction">LD A,(<a href="65408.html#65529">DRAW_INDEX</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60838"></span>EDA6</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60839"></span>EDA7</td>
+<td class="instruction">BIT 4,(IY+$17)</td>
+<td class="comment-1" rowspan="5">Scenery behind does not need the list drawn, except in the scenery pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60843"></span>EDAB</td>
+<td class="instruction">JR NZ,<a href="60743.html#60851">CULL_OBJECT_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60845"></span>EDAD</td>
+<td class="instruction">LD A,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60848"></span>EDB0</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60850"></span>EDB2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">CULL_OBJECT_6</td>
+<td class="address-2"><span id="60851"></span>EDB3</td>
+<td class="instruction">SET 1,(IY+$71)</td>
+<td class="comment-1" rowspan="2">The list has something to draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60855"></span>EDB7</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60605.html">ECBD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60743">Map</a></td>
+<td class="next">
+Next: <a href="60856.html">EDB8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

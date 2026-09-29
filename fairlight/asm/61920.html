@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F1E0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61896.html">F1C8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61920">Map</a></td>
+<td class="next">
+Next: <a href="62199.html">F2F7</a>
+</td>
+</tr>
+</table>
+<div class="description">F1E0: Update one object: the start of the dispatch on its state</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="63068.html">ANIMATE_AND_MOVE</a> and <a href="65095.html">MAIN_LOOP</a>.
+</div>
+<div class="paragraph">
+The author's CHE3D (Krumlinde's Sub_F1E0). The main loop (<a href="65095.html">MAIN_LOOP</a>) calls it once a pass for every record from the knight's on, and the movement code comes back to it at once for an object whose carried-along movement has just stopped (<a href="63068.html">ANIMATE_AND_MOVE</a>). Nothing is done for an object without a sprite, a door (type 1 in +$0C, dealt with where it is met, <a href="63428.html">BUMPED</a>), anything taken out of the room (bit 5 of +$10) or scenery (bits 0-4 of +$10 clear). The labels inside are the author's own.
+</div>
+<div class="paragraph">
+Otherwise the record's first 19 bytes are copied to IY+$64 on and its address kept at IY+$7D; its state byte, +$0E, is also kept at IY+$67, for the movement code to see bit 7 of it as it was when the pass began. In the first pass after a room is entered (bit 2 of IY+$17) the object is only drawn where it stands (NOG, <a href="63068.html">ANIMATE_AND_MOVE</a>). An object carried along by a movement already under way (bit 7 of +$0E) carries on in the direction kept in +$12 (NOPROP). Otherwise the low four bits of +$0E, its state, say what it does. The states dealt with here:
+</div>
+<div class="paragraph">
+State 0, at rest: it falls if it can -- the movement code adds the fall -- except that with bit 4 of +$0E, which is cleared as it is read, it makes its last movement (+$0D) once more instead: a thing just dropped (<a href="62217.html">CREATURE_UPDATE</a>) or knocked (<a href="63833.html">OBJECTS_MEET</a>). The pass also notes two kinds of thing as it meets them: the first thing of type 8 (+$0C) is kept at IY+$0F with bit 0 of IY+$11 set, and the creatures in state 9 go for it rather than for the knight (ZOOMIN, <a href="64584.html">ZOOMIN</a>), and destroy it when they reach it (<a href="64131.html">MEET_DECOY</a>); a thing of kind 11 sets bit 1 of IY+$11, which wakes the creature in state 15 (<a href="62217.html">CREATURE_UPDATE</a>). Both are forgotten when a room is entered, a thing is picked up, or the kind-8 thing is destroyed.
+</div>
+<div class="paragraph">
+State 3 bounces about: it keeps moving along its last movement, $45 (a diagonal) when it has none, and the movement code turns it round when it is blocked. State 4 strikes at the knight when he is in its reach -- its own box moved 12 towards lower +6, towards the viewer -- taking three from LIFE each pass and showing its striking frames (<a href="23828.html">TYPE48_FRAMES</a>); otherwise it is left alone. State 5 is the knight in a jump (<a href="62869.html">KNIGHT_CONTROLS</a> starts one): eight passes going up in the direction he was walking, without the fall, then back to state 8 to come down. State 9 is a creature that rises out of the floor: after a wait it grows through four frames (<a href="42168.html">SPRITEA4B8</a> to <a href="41700.html">SPRITEA2E4</a>) as +$11 counts up, and then walks after the knight like state 6. Every other state, the knight's 8 among them, goes on to <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+<div class="paragraph">
+Bit 7 of IY+$17 is set when the thing of type 5 is used (<a href="65095.html">MAIN_LOOP</a>), and lasts until a room is entered. While it is set every state but the knight's 8 and his jump's 5 is dealt with as state 0: the creatures stand where they are and only fall. Release 1 excepts only state 8 -- at offset 131 it has JR I00 where Release 2 has CP 5 and JR NZ -- and there a knight who jumps while the freeze lasts stays in state 5 for good, since nothing counts his jump down: he never walks again. Played in the simulator in both releases (the type-5 thing in room 24 picked up and used, then SPACE, then Q): Release 1's knight stayed in state 5 and did not move; Release 2's landed after eight passes and walked.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The object's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CHE3D</td>
+<td class="address-2"><span id="61920"></span>F1E0</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="5">No sprite: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61921"></span>F1E1</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61923"></span>F1E3</td>
+<td class="instruction">LD A,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61926"></span>F1E6</td>
+<td class="instruction">OR (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61929"></span>F1E9</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61930"></span>F1EA</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">A door: dealt with where it is met</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61933"></span>F1ED</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61935"></span>F1EF</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61937"></span>F1F1</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61938"></span>F1F2</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="5">Taken out of the room, or scenery</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61941"></span>F1F5</td>
+<td class="instruction">BIT 5,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61943"></span>F1F7</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61944"></span>F1F8</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61946"></span>F1FA</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61947"></span>F1FB</td>
+<td class="instruction">LD DE,<a href="65408.html#65508">POINT</a></td>
+<td class="comment-1" rowspan="4">The record's first 19 bytes to IY+$64 on, its address to IY+$7D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61950"></span>F1FE</td>
+<td class="instruction">LD (<a href="65408.html#65533">WORK_RECORD</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61953"></span>F201</td>
+<td class="instruction">LD BC,$0013</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61956"></span>F204</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61958"></span>F206</td>
+<td class="instruction">LD A,(<a href="65408.html#65522">WORK_BEHAVIOUR</a>)</td>
+<td class="comment-1" rowspan="2">The state byte as the pass found it, over the height's copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61961"></span>F209</td>
+<td class="instruction">LD (<a href="65408.html#65511">SECOND_POINT_ROW</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61964"></span>F20C</td>
+<td class="instruction">BIT 2,(IY+$17)</td>
+<td class="comment-1" rowspan="2">The first pass in a new room: only draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61968"></span>F210</td>
+<td class="instruction">JP NZ,<a href="63068.html#63116">SKIP_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61971"></span>F213</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="4">Carried along: on in the direction in +$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61973"></span>F215</td>
+<td class="instruction">JR Z,<a href="61920.html#61981">I0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61975"></span>F217</td>
+<td class="instruction">LD A,(IX+$12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61978"></span>F21A</td>
+<td class="instruction">JP <a href="63068.html#63102">ADD_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label">I0</td>
+<td class="address-2"><span id="61981"></span>F21D</td>
+<td class="instruction">LD C,(IY+$71)</td>
+<td class="comment-1" rowspan="6">I0: C its last movement (+$0D), HL its sprite; bit 4 cleared in the copy of +$0E; state 0?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61984"></span>F220</td>
+<td class="instruction">LD HL,(<a href="65408.html#65512">WORK_SPRITE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61987"></span>F223</td>
+<td class="instruction">RES 4,(IY+$72)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61991"></span>F227</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61992"></span>F228</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61994"></span>F22A</td>
+<td class="instruction">JR NZ,<a href="61920.html#62040">I3</a></td>
+</tr>
+<tr>
+<td class="asm-label">I00</td>
+<td class="address-2"><span id="61996"></span>F22C</td>
+<td class="instruction">BIT 0,(IY+$11)</td>
+<td class="comment-1" rowspan="9">I00: the first kind-8 thing, kept while none is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62000"></span>F230</td>
+<td class="instruction">JR NZ,<a href="61920.html#62021">I01</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62002"></span>F232</td>
+<td class="instruction">LD A,(<a href="65408.html#65520">WORK_KIND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62005"></span>F235</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62007"></span>F237</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62009"></span>F239</td>
+<td class="instruction">JR NZ,<a href="61920.html#62021">I01</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62011"></span>F23B</td>
+<td class="instruction">SET 0,(IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62015"></span>F23F</td>
+<td class="instruction">LD (<a href="65408.html#65423">DECOY</a>),IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62019"></span>F243</td>
+<td class="instruction">JR <a href="61920.html#62029">I02</a></td>
+</tr>
+<tr>
+<td class="asm-label">I01</td>
+<td class="address-2"><span id="62021"></span>F245</td>
+<td class="instruction">CP $0B</td>
+<td class="comment-1" rowspan="3">I01: a kind-11 thing. Once a kind-8 thing is known this compares the state instead of the kind, so a kind-11 thing met later goes unnoticed, and a frozen creature in state 11 counts as one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62023"></span>F247</td>
+<td class="instruction">JR NZ,<a href="61920.html#62029">I02</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62025"></span>F249</td>
+<td class="instruction">SET 1,(IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label">I02</td>
+<td class="address-2"><span id="62029"></span>F24D</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">I02: with bit 4, its last movement once more; otherwise only bit 0 of it, and the movement code adds the fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62030"></span>F24E</td>
+<td class="instruction">BIT 4,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62032"></span>F250</td>
+<td class="instruction">JP NZ,<a href="63068.html#63102">ADD_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62035"></span>F253</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62037"></span>F255</td>
+<td class="instruction">JP <a href="63068.html#63102">ADD_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label">I3</td>
+<td class="address-2"><span id="62040"></span>F258</td>
+<td class="instruction">BIT 7,(IY+$17)</td>
+<td class="comment-1" rowspan="6">I3: the freeze: the knight to his controls, his jump on, everything else as state 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62044"></span>F25C</td>
+<td class="instruction">JR Z,<a href="61920.html#62055">I30</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62046"></span>F25E</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62048"></span>F260</td>
+<td class="instruction">JP Z,<a href="62217.html#62413">KNIGHT_UPDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62051"></span>F263</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62053"></span>F265</td>
+<td class="instruction">JR NZ,<a href="61920.html#61996">I00</a></td>
+</tr>
+<tr>
+<td class="asm-label">I30</td>
+<td class="address-2"><span id="62055"></span>F267</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="6">I30: state 3: its last movement, or $45 if it has no direction</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62057"></span>F269</td>
+<td class="instruction">JR NZ,<a href="61920.html#62069">I4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62059"></span>F26B</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62060"></span>F26C</td>
+<td class="instruction">AND $CC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62062"></span>F26E</td>
+<td class="instruction">JR NZ,<a href="61920.html#62066">I31</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62064"></span>F270</td>
+<td class="instruction">LD C,$45</td>
+</tr>
+<tr>
+<td class="asm-label">I31</td>
+<td class="address-2"><span id="62066"></span>F272</td>
+<td class="instruction">JP <a href="63068.html#63101">MOVE_IN_DIRECTION</a></td>
+<td class="comment-1" rowspan="1">I31: move (KON6)</td>
+</tr>
+<tr>
+<td class="asm-label">I4</td>
+<td class="address-2"><span id="62069"></span>F275</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="10">I4: state 4: is the knight in its box moved 12 along +6?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62071"></span>F277</td>
+<td class="instruction">JR NZ,<a href="61920.html#62111">I5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62073"></span>F279</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62076"></span>F27C</td>
+<td class="instruction">CALL <a href="63418.html">WORKING_SIZES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62079"></span>F27F</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62080"></span>F280</td>
+<td class="instruction">SUB $0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62082"></span>F282</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62083"></span>F283</td>
+<td class="instruction">LD IX,<a href="48272.html">KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62087"></span>F287</td>
+<td class="instruction">CALL <a href="64732.html#64754">BOX_OVERLAP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62090"></span>F28A</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62091"></span>F28B</td>
+<td class="instruction">LD A,$03</td>
+<td class="comment-1" rowspan="7">Never run in the build's sessions: three from LIFE, and its striking frames, 144 bytes each, without moving (ANIM)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62093"></span>F28D</td>
+<td class="instruction">CALL <a href="61876.html#61878">DECLIF</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62096"></span>F290</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62100"></span>F294</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62102"></span>F296</td>
+<td class="instruction">LD HL,<a href="23684.html">SPRITE5C84</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62105"></span>F299</td>
+<td class="instruction">LD DE,$0090</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62108"></span>F29C</td>
+<td class="instruction">JP <a href="62869.html#63045">ANIM</a></td>
+</tr>
+<tr>
+<td class="asm-label">I5</td>
+<td class="address-2"><span id="62111"></span>F29F</td>
+<td class="instruction">CP $05</td>
+<td class="comment-1" rowspan="10">I5: state 5, the jump: when +$0F has counted down, back to state 8, and only the fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62113"></span>F2A1</td>
+<td class="instruction">JR NZ,<a href="61920.html#62142">I9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62115"></span>F2A3</td>
+<td class="instruction">DEC (IX+$0F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62118"></span>F2A6</td>
+<td class="instruction">JR NZ,<a href="61920.html#62133">I50</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62120"></span>F2A8</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62121"></span>F2A9</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62123"></span>F2AB</td>
+<td class="instruction">OR $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62125"></span>F2AD</td>
+<td class="instruction">LD (<a href="65408.html#65522">WORK_BEHAVIOUR</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62128"></span>F2B0</td>
+<td class="instruction">LD C,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62130"></span>F2B2</td>
+<td class="instruction">JP <a href="63068.html#63101">MOVE_IN_DIRECTION</a></td>
+</tr>
+<tr>
+<td class="asm-label">I50</td>
+<td class="address-2"><span id="62133"></span>F2B5</td>
+<td class="instruction">LD A,(<a href="65408.html#65526">WORK_HEADING</a>)</td>
+<td class="comment-1" rowspan="4">I50: up (bit 4) without the fall (bit 1) along +$12, in the knight's poses (INP5, <a href="62869.html">KNIGHT_CONTROLS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62136"></span>F2B8</td>
+<td class="instruction">OR $12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62138"></span>F2BA</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62139"></span>F2BB</td>
+<td class="instruction">JP <a href="62869.html#62935">KNIGHT_TURN</a></td>
+</tr>
+<tr>
+<td class="asm-label">I9</td>
+<td class="address-2"><span id="62142"></span>F2BE</td>
+<td class="instruction">CP $09</td>
+<td class="comment-1" rowspan="2">I9: other states go on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62144"></span>F2C0</td>
+<td class="instruction">JR NZ,<a href="62217.html">CREATURE_UPDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62146"></span>F2C2</td>
+<td class="instruction">LD A,(<a href="65408.html#65525">WORK_ANIMATION</a>)</td>
+<td class="comment-1" rowspan="3">State 9: risen already (bit 6 of +$11)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62149"></span>F2C5</td>
+<td class="instruction">BIT 6,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62151"></span>F2C7</td>
+<td class="instruction">JR NZ,<a href="61920.html#62194">I91</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62153"></span>F2C9</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="5">Rising: +$11 counts up; it stands still</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62154"></span>F2CA</td>
+<td class="instruction">LD (IX+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62157"></span>F2CD</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62159"></span>F2CF</td>
+<td class="instruction">JR NC,<a href="61920.html#62190">I92</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62161"></span>F2D1</td>
+<td class="instruction">LD C,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62163"></span>F2D3</td>
+<td class="instruction">LD HL,<a href="42168.html">SPRITEA4B8</a></td>
+<td class="comment-1" rowspan="10">Its frame by the count: below $37, $3A, $3D and $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62166"></span>F2D6</td>
+<td class="instruction">CP $37</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62168"></span>F2D8</td>
+<td class="instruction">JR C,<a href="61920.html#62187">I95</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62170"></span>F2DA</td>
+<td class="instruction">LD HL,<a href="42012.html">SPRITEA41C</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62173"></span>F2DD</td>
+<td class="instruction">CP $3A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62175"></span>F2DF</td>
+<td class="instruction">JR C,<a href="61920.html#62187">I95</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62177"></span>F2E1</td>
+<td class="instruction">LD HL,<a href="41856.html">SPRITEA380</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62180"></span>F2E4</td>
+<td class="instruction">CP $3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62182"></span>F2E6</td>
+<td class="instruction">JR C,<a href="61920.html#62187">I95</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62184"></span>F2E8</td>
+<td class="instruction">LD HL,<a href="41700.html">SPRITEA2E4</a></td>
+</tr>
+<tr>
+<td class="asm-label">I95</td>
+<td class="address-2"><span id="62187"></span>F2EB</td>
+<td class="instruction">JP <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+<td class="comment-1" rowspan="1">I95: into +4 and +5 (INPE)</td>
+</tr>
+<tr>
+<td class="asm-label">I92</td>
+<td class="address-2"><span id="62190"></span>F2EE</td>
+<td class="instruction">LD (IX+$11),$51</td>
+<td class="comment-1" rowspan="1">I92: risen: +$11 to $51</td>
+</tr>
+<tr>
+<td class="asm-label">I91</td>
+<td class="address-2"><span id="62194"></span>F2F2</td>
+<td class="instruction">CALL <a href="62199.html">STEER</a></td>
+<td class="comment-1" rowspan="2">I91: turn after the knight now and then (ZZ1), and walk with state 6's sprites (I600)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62197"></span>F2F5</td>
+<td class="instruction">JR <a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Continued at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61896.html">F1C8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61920">Map</a></td>
+<td class="next">
+Next: <a href="62199.html">F2F7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

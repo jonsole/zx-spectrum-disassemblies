@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FE47</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="65045.html">FE15</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65095">Map</a></td>
+<td class="next">
+Next: <a href="65386.html">FF6A</a>
+</td>
+</tr>
+</table>
+<div class="description">FE47: The main loop: the keys between passes, LIFE, the message line and every object</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+One pass is: the keys that are not the knight's own (walking, jumping, fighting, picking up and dropping are read in his update, <a href="62217.html">CREATURE_UPDATE</a>); LIFE printed if it has changed; the message line (<a href="57400.html">SHOW_MESSAGE</a>); and each record from the knight's, the seventh, to the last in use updated by the author's CHE3D (<a href="61920.html">CHE3D</a>). Nothing waits for the frame, so a pass takes as long as it takes. The author's source text, left on the tape, names the places from the use of a thing on: STAR2, USE6 to USE4, ST20 to ST22, STE3, ST3 to ST6 and ST9.
+</div>
+<div class="paragraph">
+The keys, in order. 9 turns the Kempston joystick on or off (bit 3 of OPTIONS), and waits until no key is held. After a room's first pass its colours are put on (<a href="61691.html">ATTRI</a>) -- it was drawn black on black -- so it appears all at once, and the thing in use is shown again. Then, unless the joystick is being pushed: SPACE and SYMBOL SHIFT together pause the game until a key is pressed; SYMBOL SHIFT and 0 together return from <a href="64800.html">ROOMST</a>, which ends the game; 6 or 7 use the thing in the chosen place; 1 to 5 choose a place and show what is in it.
+</div>
+<div class="paragraph">
+What using a thing does depends on its kind (+12). Kind 9 carries the knight off to room 30, to where a new game starts him (TELE, <a href="61541.html">TITLE_SCREEN</a>), after <a href="63750.html">SAVE_OBJECT_POSITIONS</a> has saved the room. Kind 6 makes LIFE 99. Kind 5 freezes the room's creatures until he leaves it (bit 7 of GAME_FLAGS: <a href="61920.html">CHE3D</a> then lets everything but the knight only fall). Kind 4 adds 10 to LIFE, to no more than 99. Each of these is used up: its place is emptied, though its record stays among the room's, hidden, and its entry in the object table says room $FE; LIFE is printed again. A thing of any other kind does nothing.
+</div>
+<div class="paragraph">
+A pass ends with a RET when LIFE is 0: that returns from <a href="64800.html">ROOMST</a> to <a href="61541.html">TITLE_SCREEN</a>, which says GAME OVER.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP</td>
+<td class="address-2"><span id="65095"></span>FE47</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="5">Row 6 to 0: 9 held?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65097"></span>FE49</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65100"></span>FE4C</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65101"></span>FE4D</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65102"></span>FE4E</td>
+<td class="instruction">JR NC,<a href="65095.html#65118">MAIN_LOOP_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65104"></span>FE50</td>
+<td class="instruction">LD A,(<a href="65408.html#65414">OPTIONS</a>)</td>
+<td class="comment-1" rowspan="3">Turn the joystick on or off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65107"></span>FE53</td>
+<td class="instruction">XOR $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65109"></span>FE55</td>
+<td class="instruction">LD (<a href="65408.html#65414">OPTIONS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_0</td>
+<td class="address-2"><span id="65112"></span>FE58</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">Wait until no key is held</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65113"></span>FE59</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65116"></span>FE5C</td>
+<td class="instruction">JR NZ,<a href="65095.html#65112">MAIN_LOOP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_1</td>
+<td class="address-2"><span id="65118"></span>FE5E</td>
+<td class="instruction">BIT 2,(IY+$17)</td>
+<td class="comment-1" rowspan="2">After the room's first pass (bit 2 of GAME_FLAGS)...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65122"></span>FE62</td>
+<td class="instruction">JR Z,<a href="65095.html#65137">PASS_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65124"></span>FE64</td>
+<td class="instruction">CALL <a href="61691.html">ATTRI</a></td>
+<td class="comment-1" rowspan="1">...put the room's colours on, so it appears at once...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65127"></span>FE67</td>
+<td class="instruction">RES 2,(IY+$17)</td>
+<td class="comment-1" rowspan="3">...and show the thing in use again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65131"></span>FE6B</td>
+<td class="instruction">LD A,(<a href="65408.html#65438">SELECTED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65134"></span>FE6E</td>
+<td class="instruction">JP <a href="65095.html#65294">SHOW_IN_USE</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="65137"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="65045.html">DRAW_STILL_THINGS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PASS_KEYS</td>
+<td class="address-2"><span id="65137"></span>FE71</td>
+<td class="instruction">CALL <a href="61670.html">IN31</a></td>
+<td class="comment-1" rowspan="2">PASS_KEYS: the joystick pushed? Then no more keys this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65140"></span>FE74</td>
+<td class="instruction">JP NZ,<a href="65095.html#65313">START_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65143"></span>FE77</td>
+<td class="instruction">LD A,$7F</td>
+<td class="comment-1" rowspan="4">B = SPACE (bit 0) and SYMBOL SHIFT (bit 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65145"></span>FE79</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65148"></span>FE7C</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65150"></span>FE7E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65151"></span>FE7F</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="2">Both: pause until a key (<a href="61650.html">WAIT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65153"></span>FE81</td>
+<td class="instruction">CALL Z,<a href="61650.html">WAIT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65156"></span>FE84</td>
+<td class="instruction">LD A,$EF</td>
+<td class="comment-1" rowspan="4">Row 6 to 0 again, 0 into the carry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65158"></span>FE86</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65161"></span>FE89</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65162"></span>FE8A</td>
+<td class="instruction">JR NC,<a href="65095.html#65167">MAIN_LOOP_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65164"></span>FE8C</td>
+<td class="instruction">BIT 1,B</td>
+<td class="comment-1" rowspan="2">0 with SYMBOL SHIFT: return, ending the game</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65166"></span>FE8E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_2</td>
+<td class="address-2"><span id="65167"></span>FE8F</td>
+<td class="instruction">AND $0C</td>
+<td class="comment-1" rowspan="2">STAR2: 6 or 7 (now bits 3 and 2)? Use the thing in the chosen place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65169"></span>FE91</td>
+<td class="instruction">JR Z,<a href="65095.html#65265">MAIN_LOOP_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65171"></span>FE93</td>
+<td class="instruction">LD H,$FF</td>
+<td class="comment-1" rowspan="7">IX = its record (0 for an empty place: its +12 is a ROM byte of kind 15, and nothing happens)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65173"></span>FE95</td>
+<td class="instruction">LD L,(IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65176"></span>FE98</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65177"></span>FE99</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65178"></span>FE9A</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65179"></span>FE9B</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65180"></span>FE9C</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65182"></span>FE9E</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">Kind 9?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65185"></span>FEA1</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65187"></span>FEA3</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65189"></span>FEA5</td>
+<td class="instruction">JR NZ,<a href="65095.html#65207">MAIN_LOOP_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65191"></span>FEA7</td>
+<td class="instruction">LD (IY+$34),$1E</td>
+<td class="comment-1" rowspan="1">To room 30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65195"></span>FEAB</td>
+<td class="instruction">LD B,$00</td>
+<td class="comment-1" rowspan="4">Empty the place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65197"></span>FEAD</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65198"></span>FEAE</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65199"></span>FEAF</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65200"></span>FEB0</td>
+<td class="instruction">CALL <a href="63750.html">SAVE_OBJECT_POSITIONS</a></td>
+<td class="comment-1" rowspan="1">Save the room's things (<a href="63750.html">SAVE_OBJECT_POSITIONS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65203"></span>FEB3</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="2">Drop the return to the new game's code, and go in as a new game does (TELE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65204"></span>FEB4</td>
+<td class="instruction">JP <a href="61541.html#61595">TELE</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_3</td>
+<td class="address-2"><span id="65207"></span>FEB7</td>
+<td class="instruction">CP $06</td>
+<td class="comment-1" rowspan="5">USE6: kind 6, LIFE 99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65209"></span>FEB9</td>
+<td class="instruction">JR NZ,<a href="65095.html#65220">MAIN_LOOP_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65211"></span>FEBB</td>
+<td class="instruction">LD DE,$0909</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65214"></span>FEBE</td>
+<td class="instruction">LD (<a href="65408.html#65429">LIFE_TENS</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65218"></span>FEC2</td>
+<td class="instruction">JR <a href="65095.html#65251">MAIN_LOOP_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_4</td>
+<td class="address-2"><span id="65220"></span>FEC4</td>
+<td class="instruction">CP $05</td>
+<td class="comment-1" rowspan="4">USE5: kind 5, freeze the creatures</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65222"></span>FEC6</td>
+<td class="instruction">JR NZ,<a href="65095.html#65230">MAIN_LOOP_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65224"></span>FEC8</td>
+<td class="instruction">SET 7,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65228"></span>FECC</td>
+<td class="instruction">JR <a href="65095.html#65251">MAIN_LOOP_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_5</td>
+<td class="address-2"><span id="65230"></span>FECE</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="8">USE4: kind 4, LIFE's tens up one...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65232"></span>FED0</td>
+<td class="instruction">JR NZ,<a href="65095.html#65265">MAIN_LOOP_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65234"></span>FED2</td>
+<td class="instruction">LD A,(<a href="65408.html#65429">LIFE_TENS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65237"></span>FED5</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65238"></span>FED6</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65240"></span>FED8</td>
+<td class="instruction">JR NC,<a href="65095.html#65247">MAIN_LOOP_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65242"></span>FEDA</td>
+<td class="instruction">LD (<a href="65408.html#65429">LIFE_TENS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65245"></span>FEDD</td>
+<td class="instruction">JR <a href="65095.html#65251">MAIN_LOOP_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_6</td>
+<td class="address-2"><span id="65247"></span>FEDF</td>
+<td class="instruction">LD (IY+$16),$09</td>
+<td class="comment-1" rowspan="1">...or at 9 tens already, 99 (ST21)</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_7</td>
+<td class="address-2"><span id="65251"></span>FEE3</td>
+<td class="instruction">LD A,(<a href="65408.html#65438">SELECTED</a>)</td>
+<td class="comment-1" rowspan="6">ST22: used up -- LIFE to be printed, the place emptied, and shown empty</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65254"></span>FEE6</td>
+<td class="instruction">SET 0,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65258"></span>FEEA</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65260"></span>FEEC</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65261"></span>FEED</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65263"></span>FEEF</td>
+<td class="instruction">JR <a href="65095.html#65294">SHOW_IN_USE</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_8</td>
+<td class="address-2"><span id="65265"></span>FEF1</td>
+<td class="instruction">LD A,$F7</td>
+<td class="comment-1" rowspan="3">ST20: row 1 to 5; nothing held, on to the pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65267"></span>FEF3</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65270"></span>FEF6</td>
+<td class="instruction">JR Z,<a href="65095.html#65313">START_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65272"></span>FEF8</td>
+<td class="instruction">LD B,$05</td>
+<td class="comment-1" rowspan="7">C = 1, 3, 5, 7 or 9 for keys 1 to 5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65274"></span>FEFA</td>
+<td class="instruction">LD C,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_9</td>
+<td class="address-2"><span id="65276"></span>FEFC</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65277"></span>FEFD</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65278"></span>FEFE</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65279"></span>FEFF</td>
+<td class="instruction">JR C,<a href="65095.html#65283">MAIN_LOOP_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65281"></span>FF01</td>
+<td class="instruction">DJNZ <a href="65095.html#65276">MAIN_LOOP_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_10</td>
+<td class="address-2"><span id="65283"></span>FF03</td>
+<td class="instruction">LD A,$9E</td>
+<td class="comment-1" rowspan="4">The place ($9F to $A7); the one in use already: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65285"></span>FF05</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65286"></span>FF06</td>
+<td class="instruction">CP (IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65289"></span>FF09</td>
+<td class="instruction">JR Z,<a href="65095.html#65313">START_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65291"></span>FF0B</td>
+<td class="instruction">LD (IY+$1E),A</td>
+<td class="comment-1" rowspan="1">Choose it</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_IN_USE</td>
+<td class="address-2"><span id="65294"></span>FF0E</td>
+<td class="instruction">LD H,$FF</td>
+<td class="comment-1" rowspan="9">SHOW_IN_USE (STE3): HL = the record in the place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65296"></span>FF10</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65297"></span>FF11</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65298"></span>FF12</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65299"></span>FF13</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65300"></span>FF14</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65301"></span>FF15</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65302"></span>FF16</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65303"></span>FF17</td>
+<td class="instruction">JR NZ,<a href="65095.html#65310">MAIN_LOOP_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65305"></span>FF19</td>
+<td class="instruction">CALL <a href="60533.html">CLEAR_THING_BOX</a></td>
+<td class="comment-1" rowspan="2">Empty: clear the box and show the place's number (<a href="60533.html">CLEAR_THING_BOX</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65308"></span>FF1C</td>
+<td class="instruction">JR <a href="65095.html#65313">START_PASS</a></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_11</td>
+<td class="address-2"><span id="65310"></span>FF1E</td>
+<td class="instruction">CALL <a href="60492.html">SHOW_THING_IN_USE</a></td>
+<td class="comment-1" rowspan="1">Show the thing (<a href="60492.html">SHOW_THING_IN_USE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">START_PASS</td>
+<td class="address-2"><span id="65313"></span>FF21</td>
+<td class="instruction">BIT 0,(IY+$17)</td>
+<td class="comment-1" rowspan="3">START_PASS (ST3): LIFE changed (bit 0 of GAME_FLAGS)? Then move the printer to x 55, y 12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65317"></span>FF25</td>
+<td class="instruction">JR Z,<a href="65095.html#65346">MAIN_LOOP_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65319"></span>FF27</td>
+<td class="instruction">RES 0,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65323"></span>FF2B</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65326"></span>FF2E</td>
+<td class="instruction">DEFB $C8,$37,$0C</td>
+<td class="comment-1" rowspan="1">Print at x 55, y 12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65329"></span>FF31</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65330"></span>FF32</td>
+<td class="instruction">LD A,(<a href="65408.html#65429">LIFE_TENS</a>)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65333"></span>FF35</td>
+<td class="instruction">ADD A,$1B</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65335"></span>FF37</td>
+<td class="instruction">CALL <a href="60405.html">PRINT_CHAR</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65338"></span>FF3A</td>
+<td class="instruction">LD A,(<a href="65408.html#65430">LIFE_UNITS</a>)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65341"></span>FF3D</td>
+<td class="instruction">ADD A,$1B</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65343"></span>FF3F</td>
+<td class="instruction">CALL <a href="60405.html">PRINT_CHAR</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_12</td>
+<td class="address-2"><span id="65346"></span>FF42</td>
+<td class="instruction">CALL <a href="57400.html">SHOW_MESSAGE</a></td>
+<td class="comment-1" rowspan="1">The message line (<a href="57400.html">SHOW_MESSAGE</a>, at ST9)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65349"></span>FF45</td>
+<td class="instruction">LD HL,<a href="48272.html">KNIGHT</a></td>
+<td class="comment-1" rowspan="2">From the knight's record, the seventh</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65352"></span>FF48</td>
+<td class="instruction">LD (IY+$03),$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65356"></span>FF4C</td>
+<td class="instruction">LD A,(<a href="65408.html#65429">LIFE_TENS</a>)</td>
+<td class="comment-1" rowspan="3">LIFE 0: return from <a href="64800.html">ROOMST</a>, the game over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65359"></span>FF4F</td>
+<td class="instruction">OR (IY+$16)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65362"></span>FF52</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">MAIN_LOOP_13</td>
+<td class="address-2"><span id="65363"></span>FF53</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">Update this object (CHE3D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65364"></span>FF54</td>
+<td class="instruction">CALL <a href="61920.html">CHE3D</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65367"></span>FF57</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65368"></span>FF58</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+<td class="comment-1" rowspan="4">The last in use done: next pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65371"></span>FF5B</td>
+<td class="instruction">INC (IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65374"></span>FF5E</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65377"></span>FF61</td>
+<td class="instruction">JP Z,<a href="65095.html#65095">MAIN_LOOP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65380"></span>FF64</td>
+<td class="instruction">LD DE,$0014</td>
+<td class="comment-1" rowspan="3">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65383"></span>FF67</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65384"></span>FF68</td>
+<td class="instruction">JR <a href="65095.html#65363">MAIN_LOOP_13</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="65045.html">FE15</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65095">Map</a></td>
+<td class="next">
+Next: <a href="65386.html">FF6A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#life">LIFE that never goes down</a></li>
+<li><a href="#weight">No weight limit</a></li>
+<li><a href="#keys">Every door without its key</a></li>
+<li><a href="#start">Start in any room</a></li>
+<li><a href="#freeze">Every creature frozen, in every room</a></li>
+</ul>
+<div><span id="life"></span></div>
+<div class="box box-1">
+<div class="box-title">LIFE that never goes down</div>
+<div class="paragraph">
+Everything that takes LIFE goes through DECLIF (in <a href="../asm/61876.html">DECLI1</a>): ten for a thing
+that hurts at a touch, one for a fighter's touch, three for a striking
+creature, one a pass for a long fall. A RET as its first instruction and
+none of them takes any. The pits' floors in rooms 9 and 12 (<a href="../asm/63833.html">OBJECTS_MEET</a>) still
+end the game: they set LIFE to 0 directly, and hide the knight.
+</div>
+<div class="paragraph">
+Tested in the simulator. Room 77, standing still for 300 passes while its
+guard came at him: without the poke LIFE ran out after 106 passes and the game was over; with it LIFE stayed at
+99. Room 2's troll put on him: 89 and 99. A fall from 60
+units above the floor of room 29: 89 and 99, from 99. ZXDB's pokes
+file (<a href="https://spectrumcomputing.co.uk/entry/1712">the game's entry</a>) does it another way,
+POKE 61893,0, which sends the store of LIFE's new value into the ROM; tried
+in the same trials when this was written, it did the same.
+</div>
+<div class="paragraph">
+POKE 61878,201
+</div>
+</div>
+<div><span id="weight"></span></div>
+<div class="box box-2">
+<div class="box-title">No weight limit</div>
+<div class="paragraph">
+The pick-up (<a href="../asm/62762.html">PICK_UP_LOOK_ON</a>) adds the thing's weight to what the knight carries and
+refuses it, with TOO HEAVY, at 8 or more. Make the JR C after the test a
+plain JR and everything is taken; a load of five of the heaviest things
+weighs 30, well inside the byte. ZXDB's pokes file (<a href="https://spectrumcomputing.co.uk/entry/1712">the
+game's entry</a>) has this same poke.
+</div>
+<div class="paragraph">
+Tested in the simulator, the build's own load-up (each thing of the room put
+where he stands and taken into places 1 to 5 in turn): without the poke,
+room 20, 3 carried, weight 6, TOO HEAVY shown; room 34, 1 carried, weight 6, TOO HEAVY shown. With it, room 20, 5 carried, weight 12; room 34, 4 carried, weight 24.
+</div>
+<div class="paragraph">
+POKE 62797,24
+</div>
+</div>
+<div><span id="keys"></span></div>
+<div class="box box-1">
+<div class="box-title">Every door without its key</div>
+<div class="paragraph">
+A door that needs a key names the thing's number at +14 of its record, and
+<a href="../asm/63428.html">BUMPED</a> compares it with the thing in the place in use, saying LOCKED if it is
+not there. Make the JR Z that skips the test for a door with no key a plain
+JR and no door needs one -- including room 31's way into room 81, the end of
+the quest, which needs thing 8. The way out of room 61 still waits for the
+thing of kind 11 (<a href="bugs.html#decoy">the bugs</a>).
+</div>
+<div class="paragraph">
+Tested in the simulator: room 21's door to room 22, which needs thing
+1, walked into with nothing carried. Without the poke:
+LOCKED, and still in room 21. With it: room 22. ZXDB's pokes
+file (<a href="https://spectrumcomputing.co.uk/entry/1712">the game's entry</a>) makes the JR Z after the
+comparison a JR instead, POKE 63478,24; tried when this was written, it
+opened the same door.
+</div>
+<div class="paragraph">
+POKE 63454,24
+</div>
+</div>
+<div><span id="start"></span></div>
+<div class="box box-2">
+<div class="box-title">Start in any room</div>
+<div class="paragraph">
+A new game takes its variables from a master copy (<a href="../asm/61541.html">TITLE_SCREEN</a>) that the
+start-up (<a href="../asm/50300.html">START</a>) makes of the variables as the tape left them, ROOM ($FFB4)
+among them: 29. Poke ROOM before the game runs -- in a snapshot
+taken at the hand-over -- and every game starts in that room, with the
+knight where a new game puts him in room 29. In nine of the other rooms
+(3, 4, 9, 12, 23, 46, 52, 55 and 69) that is inside something or over a pit,
+and he could not walk more than one of the four ways from there (run for
+every room when this was written). ZXDB's pokes file (<a href="https://spectrumcomputing.co.uk/entry/1712">the
+game's entry</a>) pokes the same address. Room 81 is the end of the quest:
+started there, a game prints its verdict (failure) and goes to GAME OVER.
+Room 1, the dark room GAME OVER is printed over, can be walked in (both run).
+</div>
+<div class="paragraph">
+Tested in the simulator, room 33: the first pass was in room 33, and after
+SYMBOL SHIFT and 0, GAME OVER and the title, the next game began in room
+33 too. Without the poke, room 29.
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/start.png" alt="A new game begun in room 33, where the thing the end of the quest asks for lies"/></div>
+POKE 65460,n (n from 1 to 81; before the game starts)
+</div>
+</div>
+<div><span id="freeze"></span></div>
+<div class="box box-1">
+<div class="box-title">Every creature frozen, in every room</div>
+<div class="paragraph">
+Using a thing of kind 5 freezes the creatures until the next room: bit 7 of
+GAME_FLAGS, set by <a href="../asm/65095.html">MAIN_LOOP</a> and cleared when a room is entered, because
+<a href="../asm/65045.html">DRAW_STILL_THINGS</a> sets GAME_FLAGS to $05. Make that $85 and every room starts frozen:
+creatures only fall, and nothing chases, patrols or strikes. The knight
+still walks and jumps (in Release 2; see <a href="bugs.html#freeze">the
+bugs</a> for Release 1). Things that hurt at a touch still hurt if he walks
+into them.
+</div>
+<div class="paragraph">
+Tested in the simulator, room 2 for forty passes: without the poke its
+1 creature moved 46 units in all; with it 0, GAME_FLAGS $80,
+and Q then moved the knight 20 units in ten passes.
+</div>
+<div class="paragraph">
+POKE 65092,133
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

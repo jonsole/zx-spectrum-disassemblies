@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E038</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57382.html">E026</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57400">Map</a></td>
+<td class="next">
+Next: <a href="57498.html">E09A</a>
+</td>
+</tr>
+</table>
+<div class="description">E038: Show a message under the room, and take it away again</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="65095.html">MAIN_LOOP</a>.
+</div>
+<div class="paragraph">
+Called once a pass by the main loop (<a href="65095.html">MAIN_LOOP</a>). A message is asked for by putting its number in IY+$07: 1 when the knight's way is blocked (<a href="62217.html">CREATURE_UPDATE</a>, <a href="63428.html">BUMPED</a>), 2 when a door is locked (<a href="63428.html">BUMPED</a>), 3 when what he would pick up is too heavy (<a href="62762.html">PICK_UP_LOOK_ON</a>). Message 1 prints a B and then shares message 2's word.
+</div>
+<div class="paragraph">
+The message is printed at x 28, y 12, over LIFE's digits, and stays for ten passes, counted in IY+$08, while bit 6 of IY+$17 is set; then nine spaces clear it, and bit 0 of IY+$17 asks the main loop to print LIFE again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_MESSAGE</td>
+<td class="address-2"><span id="57400"></span>E038</td>
+<td class="instruction">LD HL,$0C1C</td>
+<td class="comment-1" rowspan="2">Everything here prints at x 28, y 12.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57403"></span>E03B</td>
+<td class="instruction">LD (<a href="65408.html#65488">PRINT_X</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57406"></span>E03E</td>
+<td class="instruction">LD A,(<a href="65408.html#65415">MESSAGE</a>)</td>
+<td class="comment-1" rowspan="3">A new message?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57409"></span>E041</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57410"></span>E042</td>
+<td class="instruction">JR NZ,<a href="57400.html#57443">SHOW_MESSAGE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57412"></span>E044</td>
+<td class="instruction">BIT 6,(IY+$17)</td>
+<td class="comment-1" rowspan="4">No: if one is showing, count down its passes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57416"></span>E048</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57417"></span>E049</td>
+<td class="instruction">DEC (IY+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57420"></span>E04C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57421"></span>E04D</td>
+<td class="instruction">RES 6,(IY+$17)</td>
+<td class="comment-1" rowspan="3">Its time is up: clear it, and have LIFE printed again.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57425"></span>E051</td>
+<td class="instruction">SET 0,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57429"></span>E055</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57432"></span>E058</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="2">"         "</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57440"></span>E060</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57441"></span>E061</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57442"></span>E062</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_MESSAGE_0</td>
+<td class="address-2"><span id="57443"></span>E063</td>
+<td class="instruction">LD (IY+$08),$0A</td>
+<td class="comment-1" rowspan="3">A new message: ten passes, and it has been taken.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57447"></span>E067</td>
+<td class="instruction">SET 6,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57451"></span>E06B</td>
+<td class="instruction">LD (IY+$07),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57455"></span>E06F</td>
+<td class="instruction">CP $01</td>
+<td class="comment-1" rowspan="3">Message 1: B...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57457"></span>E071</td>
+<td class="instruction">JR NZ,<a href="57400.html#57466">SHOW_MESSAGE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57459"></span>E073</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57462"></span>E076</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">"B"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57463"></span>E077</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57464"></span>E078</td>
+<td class="instruction">JR <a href="57400.html#57470">SHOW_MESSAGE_2</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_MESSAGE_1</td>
+<td class="address-2"><span id="57466"></span>E07A</td>
+<td class="instruction">CP $02</td>
+<td class="comment-1" rowspan="3">Message 2.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57468"></span>E07C</td>
+<td class="instruction">JR NZ,<a href="57400.html#57481">SHOW_MESSAGE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_MESSAGE_2</td>
+<td class="address-2"><span id="57470"></span>E07E</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57473"></span>E081</td>
+<td class="instruction">DEFB $0C,$0F,$03,$0B,$05,$04</td>
+<td class="comment-1" rowspan="1">"LOCKED"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57479"></span>E087</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57480"></span>E088</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">SHOW_MESSAGE_3</td>
+<td class="address-2"><span id="57481"></span>E089</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="3">Message 3.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57483"></span>E08B</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57484"></span>E08C</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57487"></span>E08F</td>
+<td class="instruction">DEFB $14,$0F,$0F,$00,$08,$05,$01,$16</td>
+<td class="comment-1" rowspan="2">"TOO HEAVY"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57495"></span>E097</td>
+<td class="instruction">DEFB $19</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57496"></span>E098</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57497"></span>E099</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57382.html">E026</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57400">Map</a></td>
+<td class="next">
+Next: <a href="57498.html">E09A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Where this disassembly comes from</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="fairlight.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Provenance">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Fairlight" src="images/logo.png" /></a></td>
+<td class="page-header">Where this disassembly comes from</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#tape">The tape</a></li>
+<li><a href="#code">Code and data</a></li>
+<li><a href="#extent">What is disassembled</a></li>
+<li><a href="#names">Names, and another disassembly</a></li>
+</ul>
+<div><span id="tape"></span></div>
+<div class="box box-1">
+<div class="box-title">The tape</div>
+<div class="paragraph">
+Fairlight was released twice on tape for the 48K Spectrum, and this is Release 2, the later. The disassembly is of that tape, loaded the way a Spectrum loads it: SkoolKit's <code>tap2sna</code> runs the ROM's own LOAD, the tape's BASIC and its loader on a simulated machine, and stops at <a href="asm/50300.html">START</a>, where the loader hands over to the game, before the game has run a single instruction.
+The loader is the Alkatraz Protection System's. The BASIC program on the tape holds a routine that decrypts itself in layers and loads a second, turbo-speed loader; that one reads the long block, decrypting each byte with a key that changes as it goes, the count left and the address it is stored at. It loads the loading screen a line at a time, in its own order, and then the game in pieces, $5B00 to $DABF and $DD39 to the top of memory, checks a checksum, clears itself and returns to <a href="asm/50300.html">START</a>. The build decrypts the tape's block the loader's way itself, and checks the result is what the snapshot holds.
+Why Release 2: it is the release Ville Krumlinde's disassembly was made from (see below), so the two maps can be set side by side, address for address. What Release 1 differs in is written up in the notes that go with this disassembly.
+</div>
+</div>
+<div><span id="code"></span></div>
+<div class="box box-2">
+<div class="box-title">Code and data</div>
+<div class="paragraph">
+Which bytes are code was found by running the game, not by reading it. The build plays it in SkoolKit's simulator -- with the keyboard and with a Kempston joystick; in every room, entered the way a new game enters its first; picking up, using and dropping every thing in every room; walking into every door; to game over; and into the room that ends the quest -- and records every address the processor fetches an instruction from. Recursive descent then follows the branches out of what ran, inventing nothing. The game prints its text through a routine that reads the string from after its own CALL (<a href="asm/60414.html">PRINT</a>); those strings are laid out as the text they are.
+The rooms (<a href="asm/26800.html">ROOM1</a>) and the parts they are drawn from (<a href="asm/30092.html">PART1</a>), the object table (<a href="asm/50400.html">OBJECTS_TAPE</a>), the object templates (<a href="asm/54000.html">TEMPLATES_TAPE</a>), the font (<a href="asm/47832.html">FONT</a>), the textures (<a href="asm/57508.html">TEXTURES</a>), the sprites and the game's text are laid out a record per entry or per line from the game's own bytes each time the disassembly is built, so the game's design is never written into the repository's files. Each sprite's and texture's picture is drawn from its bytes the way the game's drawing code reads them. Which sprites there are was found the same way as the code: by recording, as the sessions played, the sprite every object in the room showed.
+The listing reassembles byte for byte with sjasmplus, and the snapshot rebuilt from it is the one the tape made, byte for byte.
+</div>
+</div>
+<div><span id="extent"></span></div>
+<div class="box box-1">
+<div class="box-title">What is disassembled</div>
+<div class="paragraph">
+Everything from $5B00 to the top of memory, all of it loaded from the tape except the loader's own bytes (<a href="asm/56000.html">LOADER_TABLE</a> to $DD38). A good deal of it is not what the game runs with. The start-up (<a href="asm/50300.html">START</a>) copies the object table and the templates from where the tape has them (<a href="asm/50400.html">OBJECTS_TAPE</a>, <a href="asm/54000.html">TEMPLATES_TAPE</a>) to where the game reads them (<a href="asm/43300.html">OBJECTS</a>, <a href="asm/46900.html">TEMPLATES</a>), and keeps a master copy for new games at <a href="asm/25500.html">MASTER_OBJECTS</a>; on the tape those three places hold leftover text. From the first room on, the loading tune's routine at <a href="asm/49152.html">LOADING_TUNE</a> and everything above it to $DBFF are the game's screen and sprite buffers.
+Several stretches are leftovers of the machine the game was written on, saved with the game: pieces of Fairlight's own source text (<a href="asm/24956.html">SOURCE_AND_STACK</a> and others), and part of the assembler's symbol table (<a href="asm/56633.html">SYMBOL_TABLE</a>), whose names and values are those of this very release.
+</div>
+</div>
+<div><span id="names"></span></div>
+<div class="box box-2">
+<div class="box-title">Names, and another disassembly</div>
+<div class="paragraph">
+Ville Krumlinde's disassembly of Fairlight (<a href="https://github.com/VilleKrumlinde/FairlightZ80">github.com/VilleKrumlinde/FairlightZ80</a>), labelled and commented and reassembling to the snapshot it was made from, was read beside this one, and some of the names and facts here were first found by him; he is credited where they are used. It carries no licence, so only facts, addresses and names are taken from it, each checked against the game's own code and against running it, and every word on these pages is this project's own. Where the two disagree, the notes that go with this disassembly say so.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F906</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63428.html">F7C4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63750">Map</a></td>
+<td class="next">
+Next: <a href="63833.html">F959</a>
+</td>
+</tr>
+</table>
+<div class="description">F906: Write the room's things' positions back into the object table (the author's EEN)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="61541.html">TITLE_SCREEN</a>, <a href="63428.html">BUMPED</a> and <a href="65095.html">MAIN_LOOP</a>.
+</div>
+<div class="paragraph">
+Run whenever the knight leaves a room: through a door (<a href="63428.html">BUMPED</a>), carried off by the thing of kind 9 (<a href="65095.html">MAIN_LOOP</a>), and at the end of a game, before GAME OVER (<a href="61541.html">TITLE_SCREEN</a>). The records after the knight's (from <a href="48292.html">RECORDS</a>) are the things he carries and then the object table's things for this room, in the table's order. For each, the three bytes of where it is -- +6 x, +7 y (its top: y is the height) and +8 z -- are copied into bytes 3 to 5 of its entry in the object table (<a href="43300.html">OBJECTS</a>), found from the number at +$13. That is how a thing left somewhere, or pushed, is still there when the knight comes back.
+</div>
+<div class="paragraph">
+The walk stops at the first door. The table lists a room's things that can move before its doors, and nothing after them is kept: not the doors, not the table's last six-byte entries (the author's source text heads them STATIC OBJ), and not what the room's drawing placed. The walk would also stop after the last record in use, but that never happened in the build's sessions: every room has a door.
+</div>
+<div class="paragraph">
+Two creatures are drawn facing the other way by turning their shared frames round in place: the wraith (<a href="24200.html">SPRITE5E88</a>, behaviour 11) and the troll (<a href="35768.html">SPRITE8BB8</a>, behaviour 7) -- the author's MIWRAI and MITRO name the routines. One whose frames are turned (bit 5 of +14) has them turned back here, by asking for the direction +x (C=8), so that the next room's wraiths and trolls, which start with bit 5 clear, find them the way round they expect. The record keeps its bit 5, but it is about to be overwritten.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SAVE_OBJECT_POSITIONS</td>
+<td class="address-2"><span id="63750"></span>F906</td>
+<td class="instruction">LD A,(<a href="65408.html">OBJECT_COUNT</a>)</td>
+<td class="comment-1" rowspan="3">Nothing to do if the knight's is the last record in use (the seventh)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63753"></span>F909</td>
+<td class="instruction">SUB $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63755"></span>F90B</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63756"></span>F90C</td>
+<td class="instruction">LD IX,<a href="48292.html">RECORDS</a></td>
+<td class="comment-1" rowspan="2">IX = the first record after his; B = how many there are</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63760"></span>F910</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">SAVE_OBJECT_POSITIONS_0</td>
+<td class="address-2"><span id="63761"></span>F911</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">Stop at the first door (kind 1 in +12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63764"></span>F914</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63766"></span>F916</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63768"></span>F918</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63769"></span>F919</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="7">HL = the thing's entry plus 3: six bytes a number, counted on from just below the table; kept on the stack</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63770"></span>F91A</td>
+<td class="instruction">LD B,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63773"></span>F91D</td>
+<td class="instruction">LD DE,$0006</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63776"></span>F920</td>
+<td class="instruction">LD HL,$A921</td>
+</tr>
+<tr>
+<td class="asm-label">SAVE_OBJECT_POSITIONS_1</td>
+<td class="address-2"><span id="63779"></span>F923</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63780"></span>F924</td>
+<td class="instruction">DJNZ <a href="63750.html#63779">SAVE_OBJECT_POSITIONS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63782"></span>F926</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63783"></span>F927</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="4">B = its behaviour byte (+14); C = 8, facing +x, for the mirror routines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63786"></span>F92A</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63787"></span>F92B</td>
+<td class="instruction">LD C,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63789"></span>F92D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63791"></span>F92F</td>
+<td class="instruction">CP $0B</td>
+<td class="comment-1" rowspan="5">Behaviour 11, the wraith: frames turned round (bit 5)? Turn them back (MIWRAI)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63793"></span>F931</td>
+<td class="instruction">JR NZ,<a href="63750.html#63802">SAVE_OBJECT_POSITIONS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63795"></span>F933</td>
+<td class="instruction">BIT 5,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63797"></span>F935</td>
+<td class="instruction">CALL NZ,<a href="61727.html">MIWRAI</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63800"></span>F938</td>
+<td class="instruction">JR <a href="63750.html#63811">SAVE_OBJECT_POSITIONS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">SAVE_OBJECT_POSITIONS_2</td>
+<td class="address-2"><span id="63802"></span>F93A</td>
+<td class="instruction">CP $07</td>
+<td class="comment-1" rowspan="4">Behaviour 7, the troll: the same (MITRO)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63804"></span>F93C</td>
+<td class="instruction">JR NZ,<a href="63750.html#63811">SAVE_OBJECT_POSITIONS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63806"></span>F93E</td>
+<td class="instruction">BIT 5,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63808"></span>F940</td>
+<td class="instruction">CALL NZ,<a href="61735.html">MITRO</a></td>
+</tr>
+<tr>
+<td class="asm-label">SAVE_OBJECT_POSITIONS_3</td>
+<td class="address-2"><span id="63811"></span>F943</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="7">Copy x, y and z (+6 to +8) into the entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63813"></span>F945</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63814"></span>F946</td>
+<td class="instruction">LD DE,$0006</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63817"></span>F949</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63818"></span>F94A</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63819"></span>F94B</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63822"></span>F94E</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63824"></span>F950</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="4">On to the next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63825"></span>F951</td>
+<td class="instruction">LD DE,$0014</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63828"></span>F954</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63830"></span>F956</td>
+<td class="instruction">DJNZ <a href="63750.html#63761">SAVE_OBJECT_POSITIONS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63832"></span>F958</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">After the last record (never reached in the build's sessions)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="comments">
+<div class="paragraph">
+Measured in the simulator: a thing's +6 and +8 changed in room 20, then LIFE set to 0; after this routine the thing's entry held the new values.
+</div>
+</div>
+</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63428.html">F7C4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63750">Map</a></td>
+<td class="next">
+Next: <a href="63833.html">F959</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

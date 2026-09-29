@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F127</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61727.html">F11F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61735">Map</a></td>
+<td class="next">
+Next: <a href="61783.html">F157</a>
+</td>
+</tr>
+</table>
+<div class="description">F127: Turn the sprites of the state-7 creature to face its way</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="62217.html">CREATURE_UPDATE</a> and <a href="63750.html">SAVE_OBJECT_POSITIONS</a>.
+</div>
+<div class="paragraph">
+The author's MITRO, which reads as "mirror troll": the six frames at <a href="35768.html">SPRITE8BB8</a>, 12 planes, the sprites of objects in state 7 (<a href="62217.html">CREATURE_UPDATE</a>), and turned back as a room is left (<a href="63750.html">SAVE_OBJECT_POSITIONS</a>).
+</div>
+<div class="paragraph">
+Then MIRROR, at offset 6, the part the three share. The direction bits in C become two facing bits in E: bit 6 says which of the two views the sprites show, bit 5 whether the view is mirrored. $08 (Y to P, or the stick right) is view 0 as drawn; $40 (Q to T, up) view 0 mirrored; $80 (A to G, down) view 1 as drawn; $04 (H to ENTER, left) view 1 mirrored. E goes to IY+$72, the copy of +$0E that <a href="61920.html">CHE3D</a> writes back, and if bit 5 of the record's +$0E says the sprites face the other way they are mirrored in place (<a href="61783.html">MW</a>). With no direction bit ($CC) nothing changes.
+</div>
+<div class="paragraph">
+The sprites are shared by every creature of a kind, so a record's bit 5 is only true if one creature of the kind is about: no room has two in state 7 or two in state 11 (measured over every room). Leaving a room turns them back (<a href="63750.html">SAVE_OBJECT_POSITIONS</a>), so the next room's creature, whose record comes fresh from its template with bit 5 clear, agrees with them; the knight's +$0E is kept through a new game for the same reason (TELE, <a href="61541.html">TITLE_SCREEN</a>). Krumlinde's names are Sub_F117, Sub_F11F and Sub_F127.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The direction bits</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The record's +$0E</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The new facing in bits 5 and 6, also at IY+$72</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MITRO</td>
+<td class="address-2"><span id="61735"></span>F127</td>
+<td class="instruction">LD HL,<a href="35768.html">SPRITE8BB8</a></td>
+<td class="comment-1" rowspan="3">The first sprite; 12 planes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61738"></span>F12A</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61739"></span>F12B</td>
+<td class="instruction">LD C,$0C</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="61741"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="61719.html">MIMAN</a> and <a href="61727.html">MIWRAI</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MIRROR</td>
+<td class="address-2"><span id="61741"></span>F12D</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">MIRROR: no direction, nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61742"></span>F12E</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61743"></span>F12F</td>
+<td class="instruction">AND $CC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61745"></span>F131</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61746"></span>F132</td>
+<td class="instruction">RES 5,E</td>
+<td class="comment-1" rowspan="4">Bit 5, mirrored: set for $40 and $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61748"></span>F134</td>
+<td class="instruction">AND $88</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61750"></span>F136</td>
+<td class="instruction">JR NZ,<a href="61735.html#61754">MW1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61752"></span>F138</td>
+<td class="instruction">SET 5,E</td>
+</tr>
+<tr>
+<td class="asm-label">MW1</td>
+<td class="address-2"><span id="61754"></span>F13A</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">MW1: bit 6, view 1: set for $80 and $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61755"></span>F13B</td>
+<td class="instruction">SET 6,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61757"></span>F13D</td>
+<td class="instruction">AND $84</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61759"></span>F13F</td>
+<td class="instruction">JR NZ,<a href="61735.html#61763">MW2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61761"></span>F141</td>
+<td class="instruction">RES 6,E</td>
+</tr>
+<tr>
+<td class="asm-label">MW2</td>
+<td class="address-2"><span id="61763"></span>F143</td>
+<td class="instruction">LD (IY+$72),E</td>
+<td class="comment-1" rowspan="1">MW2: the new facing for the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61766"></span>F146</td>
+<td class="instruction">LD A,(IX+$02)</td>
+<td class="comment-1" rowspan="8">The width in bytes (the carry is clear from the AND)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61769"></span>F149</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61770"></span>F14A</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61771"></span>F14B</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61772"></span>F14C</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61773"></span>F14D</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61774"></span>F14E</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61775"></span>F14F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61776"></span>F150</td>
+<td class="instruction">CALL <a href="61783.html">MW</a></td>
+<td class="comment-1" rowspan="1">Mirror them if they face the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61779"></span>F153</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61780"></span>F154</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61781"></span>F155</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61782"></span>F156</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61727.html">F11F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61735">Map</a></td>
+<td class="next">
+Next: <a href="61783.html">F157</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

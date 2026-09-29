@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F4F4</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62694.html">F4E6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62708">Map</a></td>
+<td class="next">
+Next: <a href="62762.html">F52A</a>
+</td>
+</tr>
+</table>
+<div class="description">F4F4: Pick up whatever the knight is standing at</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+<div class="paragraph">
+X, C or V (<a href="62217.html">CREATURE_UPDATE</a>). Only into an empty place: if the place in use (1 to 5, SELECTED) holds something, nothing happens. Otherwise he stoops (<a href="38252.html">SPRITE956C</a> facing the viewer, <a href="38438.html">SPRITE9626</a> facing away) and the game looks for things in a box the size of his own, four units on the way he faces (measured facing up x, with a thing 8 wide: it was found with its corner anywhere from 2 behind his to 10 ahead). <a href="64677.html">FIND_OBSTACLE</a> finds the first record whose box meets it; <a href="62762.html">PICK_UP_LOOK_ON</a> goes on through the rest until one can be carried.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP</td>
+<td class="address-2"><span id="62708"></span>F4F4</td>
+<td class="instruction">LD H,$FF</td>
+<td class="comment-1" rowspan="6">The place in use already holds something: do nothing but redraw him</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62710"></span>F4F6</td>
+<td class="instruction">LD L,(IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62713"></span>F4F9</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62714"></span>F4FA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62715"></span>F4FB</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62716"></span>F4FC</td>
+<td class="instruction">JR NZ,<a href="62217.html#62691">KNIGHT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62718"></span>F4FE</td>
+<td class="instruction">LD HL,$00BA</td>
+<td class="comment-1" rowspan="3">The stooping frames: <a href="38252.html">SPRITE956C</a>, and 186 bytes on (<a href="38438.html">SPRITE9626</a>) facing away</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62721"></span>F501</td>
+<td class="instruction">LD (<a href="65408.html#65506">AWAY_FRAMES</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62724"></span>F504</td>
+<td class="instruction">LD HL,<a href="38252.html">SPRITE956C</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62727"></span>F507</td>
+<td class="instruction">CALL <a href="61849.html">FACING</a></td>
+<td class="comment-1" rowspan="3">Choose by which way he faces; C = that way; it becomes his sprite</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62730"></span>F50A</td>
+<td class="instruction">LD (IY+$71),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62733"></span>F50D</td>
+<td class="instruction">LD (<a href="48272.html#48276">KNIGHT_SPRITE</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62736"></span>F510</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="1">B, D, H = where he is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62739"></span>F513</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">Move along x (bit 0), or along y (bit 2) if he faces along y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62740"></span>F514</td>
+<td class="instruction">LD C,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62742"></span>F516</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62744"></span>F518</td>
+<td class="instruction">JR Z,<a href="62708.html#62748">PICK_UP_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62746"></span>F51A</td>
+<td class="instruction">LD C,$04</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_UP_0</td>
+<td class="address-2"><span id="62748"></span>F51C</td>
+<td class="instruction">CALL <a href="64576.html">STEP_ALL_AXES</a></td>
+<td class="comment-1" rowspan="2">Two steps of two: four units on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62751"></span>F51F</td>
+<td class="instruction">CALL <a href="64576.html">STEP_ALL_AXES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62754"></span>F522</td>
+<td class="instruction">CALL <a href="63418.html">WORKING_SIZES</a></td>
+<td class="comment-1" rowspan="3">His sizes; what does a box there meet?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62757"></span>F525</td>
+<td class="instruction">CALL <a href="64677.html">FIND_OBSTACLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62760"></span>F528</td>
+<td class="instruction">JR <a href="62762.html#62765">PICK_UP_LOOK_ON_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62694.html">F4E6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62708">Map</a></td>
+<td class="next">
+Next: <a href="62762.html">F52A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

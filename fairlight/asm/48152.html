@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Data at BC18</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47832.html">BAD8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48152">Map</a></td>
+<td class="next">
+Next: <a href="48272.html">BC90</a>
+</td>
+</tr>
+</table>
+<div class="description">BC18: The room's floor, ceiling and walls: six object records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Records 1 to 6 of the object records (the knight's is the seventh, <a href="48272.html">KNIGHT</a>), twenty bytes each, laid out like his. They have no sprite (+4 and +5 are zero, so nothing draws them) and huge sizes, and they box the room in for the collision code, which tests every record in use from the first (<a href="64677.html">FIND_OBSTACLE</a>): record 1 is the floor, ten high with its top at +7; record 2 the ceiling; records 3 and 4 the walls across +6, one at each end; records 5 and 6 the walls across +8. Each reaches right across the room the other two ways ($FF). An object occupies +6 to +6 plus +9, +7 less +10 to +7, and +8 to +8 plus +11 (<a href="61494.html">FAR_CORNER</a>).
+</div>
+<div class="paragraph">
+A room sets them with the patch code in its object list (or a part's), $E6 up: PATCH_RECORDS in <a href="58856.html">DO_ROOM_COMMAND</a> writes the patch's six bytes into the floor's and the ceiling's +7, records 3 and 4's +6 and records 5 and 6's +8. In most rooms the floor's top is 50, the height the knight's feet are at when he stands on it. Every room the knight plays in has a patch in its list or in one of its parts; only rooms 1, 79 and 81 (GAME OVER, the title and the end of the quest) have none (read from the rooms' commands, parts followed). On the tape they hold the values below; entering rooms 3, 45, 80 and 5 in the simulator showed the walls moving to that room's patch (measured).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FIXED_RECORDS</td>
+<td class="address-1"><span id="48152"></span>BC18</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 1, the floor: no sprite; at 50, 50, 50; 255 by 10 by 255</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48158"></span>BC1E</td>
+<td class="instruction">DEFB $32,$32,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48161"></span>BC21</td>
+<td class="instruction">DEFB $FF,$0A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48164"></span>BC24</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48172"></span>BC2C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 2, the ceiling: at 50, 120, 50 on the tape; 255 by 10 by 255</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48178"></span>BC32</td>
+<td class="instruction">DEFB $32,$78,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48181"></span>BC35</td>
+<td class="instruction">DEFB $FF,$0A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48184"></span>BC38</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48192"></span>BC40</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 3, a wall across +6: at 178, 255, 50; 10 by 255 by 255</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48198"></span>BC46</td>
+<td class="instruction">DEFB $B2,$FF,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48201"></span>BC49</td>
+<td class="instruction">DEFB $0A,$FF,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48204"></span>BC4C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48212"></span>BC54</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 4, the other wall across +6: at 40, 255, 50; 10 by 255 by 255</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48218"></span>BC5A</td>
+<td class="instruction">DEFB $28,$FF,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48221"></span>BC5D</td>
+<td class="instruction">DEFB $0A,$FF,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48224"></span>BC60</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48232"></span>BC68</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 5, a wall across +8: at 50, 255, 175 on the tape; 255 by 255 by 10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48238"></span>BC6E</td>
+<td class="instruction">DEFB $32,$FF,$AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48241"></span>BC71</td>
+<td class="instruction">DEFB $FF,$FF,$0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48244"></span>BC74</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48252"></span>BC7C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="4">Record 6, the other wall across +8: the same on the tape</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48258"></span>BC82</td>
+<td class="instruction">DEFB $32,$FF,$AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48261"></span>BC85</td>
+<td class="instruction">DEFB $FF,$FF,$0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48264"></span>BC88</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="47832.html">BAD8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48152">Map</a></td>
+<td class="next">
+Next: <a href="48272.html">BC90</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

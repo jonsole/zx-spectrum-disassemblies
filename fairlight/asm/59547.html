@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E89B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59517.html">E87D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59547">Map</a></td>
+<td class="next">
+Next: <a href="60108.html">EACC</a>
+</td>
+</tr>
+</table>
+<div class="description">E89B: The room commands $C1-$E4: lines, mode bits, repeats, parts, the clean copy and $E4</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="58856.html">DO_ROOM_COMMAND</a>.
+</div>
+<div class="paragraph">
+Where the command interpreter (<a href="58856.html">DO_ROOM_COMMAND</a>) sends every code below $E6 that it has not dealt with itself -- it takes the points ($00-$BF), $C0, $CF, $D0 and $D6, and in object mode the objects. A cascade of comparisons; a code that none of them matches ($D1, $D3, $D4, $D7-$DF and $E3) does nothing and has no operand. The lengths of every code are laid out command by command in the rooms (<a href="26800.html">ROOM1</a>) and parts (<a href="30092.html">PART1</a>).
+</div>
+<div class="paragraph">
+$D2 draws a line from the second point to the first, both ends included (DRAW_LINE; <a href="58856.html">DO_ROOM_COMMAND</a> also calls it after each point while mode bit 5 is on). It is Bresenham's: a step along the longer distance every pixel, and one along the shorter whenever the running error passes the longer. The first pixel goes through <a href="59517.html">PLOT_LINE_START</a>; the rest are plotted here with the same pen, stepping the screen address a line or a pixel at a time rather than working it out afresh.
+</div>
+<div class="paragraph">
+$C1-$CE set and clear the mode bits (MODE), which the interpreter reads before every command. Bit 0 ($CB on, $CC off): lines clear pixels. Bit 1 ($CD on, $CE off): lines flip pixels. Bit 2 ($C3, $C4): after each point the second point is moved to it, so that with bit 5 the points make a joined line. Bit 3 ($C5, $C6): the second point moves along with the first. Bit 4 ($C1, $C2): points are relative -- their bytes are added to the point before, and those of $C0 and $E4 $05 to the second point and the origin. Bit 5 ($C7, $C8): a line from the second point to each new point. Bit 6 ($C9, $CA): the column bytes are negated or complemented, which mirrors the drawing left to right. Bit 7 is object mode, which $E4 $04 turns on. How the points use bits 2 to 6 is <a href="58856.html">DO_ROOM_COMMAND</a>'s.
+</div>
+<div class="paragraph">
+$D5 n repeats what follows, up to the $D6 that <a href="58856.html">DO_ROOM_COMMAND</a> handles, n times: the count goes in REPEATS and the place to go back to in REPEAT_FROM, so there is one repeat at a time. $E0 n and $E1 n draw part n (<a href="30092.html">PART1</a>) in the middle of the room's commands and come back to them; $E1 keeps the drawing's state as it was -- both points, the origin, the mode and the repeat, which it saves and restores -- and $E0 lets the part change it. Either way object mode ends with the part. $E2 copies the screen into the clean copy: from then on, what has been drawn so far bounds the fills.
+</div>
+<div class="paragraph">
+$E4 has a second byte. $E4 $00 clears the clean copy and sends the lines into it, where they bound a fill without being seen; $E4 $01 sends them back to the screen. Room 2 uses the pair to lay a second texture over part of a wall that is already textured, inside an outline drawn only in the clean copy (measured: without them the fill finds its first point already set and does nothing); part 16 does the same. $E4 $04 turns object mode on, and $E4 $05 x y z sets the origin (ORIGIN, ORIGIN_Y, ORIGIN_Z) that is added to the place of each object a room's commands put down -- rooms 13 and 17 draw one part's objects several times over, moving the origin each time. Both first place the object table's things in the room (<a href="60108.html">PLACE_ROOM_OBJECTS</a>), once in each drawing of a room, whichever comes first -- so the table's things are always placed with the origin at 0, and their places are the room's own. Any other second byte does nothing.
+</div>
+<div class="paragraph">
+Of these codes only $CE occurs in no room or part. Room 26 is the only one to turn flipping on, for its last line, which crosses a wall that is already textured; its drawing ends soon after, so nothing needs to turn it off (measured: with the line drawn in set pixels instead, 36 pixels of the room come out different).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS</td>
+<td class="address-2"><span id="59547"></span>E89B</td>
+<td class="instruction">CP $D2</td>
+<td class="comment-1" rowspan="2">not $D2: the other codes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59549"></span>E89D</td>
+<td class="instruction">JP NZ,<a href="59547.html#59713">ROOM_MODE_CODES</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="59552"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="58856.html">DO_ROOM_COMMAND</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_LINE</td>
+<td class="address-2"><span id="59552"></span>E8A0</td>
+<td class="instruction">LD BC,(<a href="65408.html#65510">SECOND_POINT</a>)</td>
+<td class="comment-1" rowspan="2">the line starts at the second point</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59556"></span>E8A4</td>
+<td class="instruction">CALL <a href="59517.html">PLOT_LINE_START</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59559"></span>E8A7</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="8">rows: how far to the first point, and which way (D +1 down the screen, -1 up)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59560"></span>E8A8</td>
+<td class="instruction">LD A,(<a href="65408.html#65511">SECOND_POINT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59563"></span>E8AB</td>
+<td class="instruction">SUB (IY+$65)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59566"></span>E8AE</td>
+<td class="instruction">LD D,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59568"></span>E8B0</td>
+<td class="instruction">JR NC,<a href="59547.html#59574">MORE_ROOM_COMMANDS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59570"></span>E8B2</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59571"></span>E8B3</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59572"></span>E8B4</td>
+<td class="instruction">LD D,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_0</td>
+<td class="address-2"><span id="59574"></span>E8B6</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="1">B = the rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59575"></span>E8B7</td>
+<td class="instruction">LD A,(<a href="65408.html#65510">SECOND_POINT</a>)</td>
+<td class="comment-1" rowspan="7">columns: E +1 to go left, -1 right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59578"></span>E8BA</td>
+<td class="instruction">SUB (IY+$64)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59581"></span>E8BD</td>
+<td class="instruction">LD E,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59583"></span>E8BF</td>
+<td class="instruction">JR NC,<a href="59547.html#59589">MORE_ROOM_COMMANDS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59585"></span>E8C1</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59586"></span>E8C2</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59587"></span>E8C3</td>
+<td class="instruction">LD E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_1</td>
+<td class="address-2"><span id="59589"></span>E8C5</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1">C = the columns</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59590"></span>E8C6</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="7">more rows than columns: every step moves a row, some a column too (the plain step has no column)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59591"></span>E8C7</td>
+<td class="instruction">JR NC,<a href="59547.html#59599">MORE_ROOM_COMMANDS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59593"></span>E8C9</td>
+<td class="instruction">LD L,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59594"></span>E8CA</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59595"></span>E8CB</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59596"></span>E8CC</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59597"></span>E8CD</td>
+<td class="instruction">JR <a href="59547.html#59606">MORE_ROOM_COMMANDS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_2</td>
+<td class="address-2"><span id="59599"></span>E8CF</td>
+<td class="instruction">OR C</td>
+<td class="comment-1" rowspan="6">more columns: every step moves a column (the plain step has no row); nothing more to do if the points are the same</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59600"></span>E8D0</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59601"></span>E8D1</td>
+<td class="instruction">LD L,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59602"></span>E8D2</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59603"></span>E8D3</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59604"></span>E8D4</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_3</td>
+<td class="address-2"><span id="59606"></span>E8D6</td>
+<td class="instruction">LD H,B</td>
+<td class="comment-1" rowspan="3">H = steps, the longer distance; the error starts at half of it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59607"></span>E8D7</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59608"></span>E8D8</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_4</td>
+<td class="address-2"><span id="59609"></span>E8D9</td>
+<td class="instruction">ADD A,L</td>
+<td class="comment-1" rowspan="4">add the shorter distance: past the longer?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59610"></span>E8DA</td>
+<td class="instruction">JR C,<a href="59547.html#59615">MORE_ROOM_COMMANDS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59612"></span>E8DC</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59613"></span>E8DD</td>
+<td class="instruction">JR C,<a href="59547.html#59622">MORE_ROOM_COMMANDS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_5</td>
+<td class="address-2"><span id="59615"></span>E8DF</td>
+<td class="instruction">SUB H</td>
+<td class="comment-1" rowspan="6">yes: take the longer off, and step both ways (the step pushed first)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59616"></span>E8E0</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59617"></span>E8E1</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59618"></span>E8E2</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59619"></span>E8E3</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59620"></span>E8E4</td>
+<td class="instruction">JR <a href="59547.html#59626">MORE_ROOM_COMMANDS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_6</td>
+<td class="address-2"><span id="59622"></span>E8E6</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="4">no: the plain step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59623"></span>E8E7</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59624"></span>E8E8</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59625"></span>E8E9</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_7</td>
+<td class="address-2"><span id="59626"></span>E8EA</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="3">a row to move?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59627"></span>E8EB</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59628"></span>E8EC</td>
+<td class="instruction">JR Z,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59630"></span>E8EE</td>
+<td class="instruction">ADD A,H</td>
+<td class="comment-1" rowspan="14">down a line: into the next character row, and into the next third only if L carried</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59631"></span>E8EF</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59632"></span>E8F0</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59634"></span>E8F2</td>
+<td class="instruction">JR NZ,<a href="59547.html#59652">MORE_ROOM_COMMANDS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59636"></span>E8F4</td>
+<td class="instruction">BIT 7,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59638"></span>E8F6</td>
+<td class="instruction">JR NZ,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59640"></span>E8F8</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59641"></span>E8F9</td>
+<td class="instruction">ADD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59643"></span>E8FB</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59644"></span>E8FC</td>
+<td class="instruction">JR C,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59646"></span>E8FE</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59647"></span>E8FF</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59649"></span>E901</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59650"></span>E902</td>
+<td class="instruction">JR <a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_8</td>
+<td class="address-2"><span id="59652"></span>E904</td>
+<td class="instruction">XOR $07</td>
+<td class="comment-1" rowspan="11">up a line: the same, the other way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59654"></span>E906</td>
+<td class="instruction">JR NZ,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59656"></span>E908</td>
+<td class="instruction">BIT 7,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59658"></span>E90A</td>
+<td class="instruction">JR Z,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59660"></span>E90C</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59661"></span>E90D</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59663"></span>E90F</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59664"></span>E910</td>
+<td class="instruction">JR C,<a href="59547.html#59670">MORE_ROOM_COMMANDS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59666"></span>E912</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59667"></span>E913</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59669"></span>E915</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_9</td>
+<td class="address-2"><span id="59670"></span>E916</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">a column to move?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59671"></span>E917</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59672"></span>E918</td>
+<td class="instruction">JR Z,<a href="59547.html#59691">MORE_ROOM_COMMANDS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59674"></span>E91A</td>
+<td class="instruction">RLA</td>
+<td class="comment-1" rowspan="8">left: the mask moves left, into the byte before when it wraps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59675"></span>E91B</td>
+<td class="instruction">JR C,<a href="59547.html#59685">MORE_ROOM_COMMANDS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59677"></span>E91D</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59678"></span>E91E</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59679"></span>E91F</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59680"></span>E920</td>
+<td class="instruction">JR NC,<a href="59547.html#59691">MORE_ROOM_COMMANDS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59682"></span>E922</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59683"></span>E923</td>
+<td class="instruction">JR <a href="59547.html#59691">MORE_ROOM_COMMANDS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_10</td>
+<td class="address-2"><span id="59685"></span>E925</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="5">right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59686"></span>E926</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59687"></span>E927</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59688"></span>E928</td>
+<td class="instruction">JR NC,<a href="59547.html#59691">MORE_ROOM_COMMANDS_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59690"></span>E92A</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_11</td>
+<td class="address-2"><span id="59691"></span>E92B</td>
+<td class="instruction">BIT 1,(IY+$6B)</td>
+<td class="comment-1" rowspan="8">plot it with the pen, as <a href="59517.html">PLOT_LINE_START</a> does</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59695"></span>E92F</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59696"></span>E930</td>
+<td class="instruction">JR NZ,<a href="59547.html#59705">MORE_ROOM_COMMANDS_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59698"></span>E932</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59699"></span>E933</td>
+<td class="instruction">BIT 0,(IY+$6B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59703"></span>E937</td>
+<td class="instruction">JR Z,<a href="59547.html#59706">MORE_ROOM_COMMANDS_13</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_12</td>
+<td class="address-2"><span id="59705"></span>E939</td>
+<td class="instruction">XOR D</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_13</td>
+<td class="address-2"><span id="59706"></span>E93A</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59707"></span>E93B</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">the error back in A; the next step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59708"></span>E93C</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59709"></span>E93D</td>
+<td class="instruction">DJNZ <a href="59547.html#59609">MORE_ROOM_COMMANDS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59711"></span>E93F</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="2">drop the step saved at the start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59712"></span>E940</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_MODE_CODES</td>
+<td class="address-2"><span id="59713"></span>E941</td>
+<td class="instruction">CP $CB</td>
+<td class="comment-1" rowspan="4">$CB: bit 0 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59715"></span>E943</td>
+<td class="instruction">JR NZ,<a href="59547.html#59721">MORE_ROOM_COMMANDS_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59717"></span>E945</td>
+<td class="instruction">LD C,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59719"></span>E947</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_14</td>
+<td class="address-2"><span id="59721"></span>E949</td>
+<td class="instruction">CP $CD</td>
+<td class="comment-1" rowspan="4">$CD: bit 1 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59723"></span>E94B</td>
+<td class="instruction">JR NZ,<a href="59547.html#59729">MORE_ROOM_COMMANDS_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59725"></span>E94D</td>
+<td class="instruction">LD C,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59727"></span>E94F</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_15</td>
+<td class="address-2"><span id="59729"></span>E951</td>
+<td class="instruction">CP $C3</td>
+<td class="comment-1" rowspan="3">$C3: bit 2 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59731"></span>E953</td>
+<td class="instruction">JR NZ,<a href="59547.html#59743">MORE_ROOM_COMMANDS_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59733"></span>E955</td>
+<td class="instruction">LD C,$04</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_16</td>
+<td class="address-2"><span id="59735"></span>E957</td>
+<td class="instruction">LD A,(<a href="65408.html#65515">MODE</a>)</td>
+<td class="comment-1" rowspan="4">set the bit in MODE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59738"></span>E95A</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59739"></span>E95B</td>
+<td class="instruction">LD (<a href="65408.html#65515">MODE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59742"></span>E95E</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_17</td>
+<td class="address-2"><span id="59743"></span>E95F</td>
+<td class="instruction">CP $C7</td>
+<td class="comment-1" rowspan="4">$C7: bit 5 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59745"></span>E961</td>
+<td class="instruction">JR NZ,<a href="59547.html#59751">MORE_ROOM_COMMANDS_18</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59747"></span>E963</td>
+<td class="instruction">LD C,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59749"></span>E965</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_18</td>
+<td class="address-2"><span id="59751"></span>E967</td>
+<td class="instruction">CP $C5</td>
+<td class="comment-1" rowspan="4">$C5: bit 3 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59753"></span>E969</td>
+<td class="instruction">JR NZ,<a href="59547.html#59759">MORE_ROOM_COMMANDS_19</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59755"></span>E96B</td>
+<td class="instruction">LD C,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59757"></span>E96D</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_19</td>
+<td class="address-2"><span id="59759"></span>E96F</td>
+<td class="instruction">CP $C1</td>
+<td class="comment-1" rowspan="4">$C1: bit 4 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59761"></span>E971</td>
+<td class="instruction">JR NZ,<a href="59547.html#59767">MORE_ROOM_COMMANDS_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59763"></span>E973</td>
+<td class="instruction">LD C,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59765"></span>E975</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_20</td>
+<td class="address-2"><span id="59767"></span>E977</td>
+<td class="instruction">CP $C9</td>
+<td class="comment-1" rowspan="4">$C9: bit 6 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59769"></span>E979</td>
+<td class="instruction">JR NZ,<a href="59547.html#59775">MORE_ROOM_COMMANDS_21</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59771"></span>E97B</td>
+<td class="instruction">LD C,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59773"></span>E97D</td>
+<td class="instruction">JR <a href="59547.html#59735">MORE_ROOM_COMMANDS_16</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_21</td>
+<td class="address-2"><span id="59775"></span>E97F</td>
+<td class="instruction">CP $CA</td>
+<td class="comment-1" rowspan="4">$CA: bit 6 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59777"></span>E981</td>
+<td class="instruction">JR NZ,<a href="59547.html#59783">MORE_ROOM_COMMANDS_22</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59779"></span>E983</td>
+<td class="instruction">LD C,$BF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59781"></span>E985</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_22</td>
+<td class="address-2"><span id="59783"></span>E987</td>
+<td class="instruction">CP $C2</td>
+<td class="comment-1" rowspan="4">$C2: bit 4 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59785"></span>E989</td>
+<td class="instruction">JR NZ,<a href="59547.html#59791">MORE_ROOM_COMMANDS_23</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59787"></span>E98B</td>
+<td class="instruction">LD C,$EF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59789"></span>E98D</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_23</td>
+<td class="address-2"><span id="59791"></span>E98F</td>
+<td class="instruction">CP $CE</td>
+<td class="comment-1" rowspan="4">$CE: bit 1 off (no room or part has it)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59793"></span>E991</td>
+<td class="instruction">JR NZ,<a href="59547.html#59799">MORE_ROOM_COMMANDS_24</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59795"></span>E993</td>
+<td class="instruction">LD C,$FD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59797"></span>E995</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_24</td>
+<td class="address-2"><span id="59799"></span>E997</td>
+<td class="instruction">CP $CC</td>
+<td class="comment-1" rowspan="4">$CC: bit 0 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59801"></span>E999</td>
+<td class="instruction">JR NZ,<a href="59547.html#59807">MORE_ROOM_COMMANDS_25</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59803"></span>E99B</td>
+<td class="instruction">LD C,$FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59805"></span>E99D</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_25</td>
+<td class="address-2"><span id="59807"></span>E99F</td>
+<td class="instruction">CP $C8</td>
+<td class="comment-1" rowspan="4">$C8: bit 5 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59809"></span>E9A1</td>
+<td class="instruction">JR NZ,<a href="59547.html#59815">MORE_ROOM_COMMANDS_26</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59811"></span>E9A3</td>
+<td class="instruction">LD C,$DF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59813"></span>E9A5</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_26</td>
+<td class="address-2"><span id="59815"></span>E9A7</td>
+<td class="instruction">CP $C6</td>
+<td class="comment-1" rowspan="4">$C6: bit 3 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59817"></span>E9A9</td>
+<td class="instruction">JR NZ,<a href="59547.html#59823">MORE_ROOM_COMMANDS_27</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59819"></span>E9AB</td>
+<td class="instruction">LD C,$F7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59821"></span>E9AD</td>
+<td class="instruction">JR <a href="59547.html#59829">MORE_ROOM_COMMANDS_28</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_27</td>
+<td class="address-2"><span id="59823"></span>E9AF</td>
+<td class="instruction">CP $C4</td>
+<td class="comment-1" rowspan="3">$C4: bit 2 off</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59825"></span>E9B1</td>
+<td class="instruction">JR NZ,<a href="59547.html#59835">MORE_ROOM_COMMANDS_29</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59827"></span>E9B3</td>
+<td class="instruction">LD C,$FB</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_28</td>
+<td class="address-2"><span id="59829"></span>E9B5</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="4">clear the bit (D is MODE, as the interpreter read it)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59830"></span>E9B6</td>
+<td class="instruction">AND C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59831"></span>E9B7</td>
+<td class="instruction">LD (<a href="65408.html#65515">MODE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59834"></span>E9BA</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_29</td>
+<td class="address-2"><span id="59835"></span>E9BB</td>
+<td class="instruction">CP $D5</td>
+<td class="comment-1" rowspan="2">$D5 n</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59837"></span>E9BD</td>
+<td class="instruction">JR NZ,<a href="59547.html#59852">MORE_ROOM_COMMANDS_30</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59839"></span>E9BF</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="5">the count, and where to go back to: the count's own place, which the interpreter steps past</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59841"></span>E9C1</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59844"></span>E9C4</td>
+<td class="instruction">LD (<a href="65408.html#65516">REPEATS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59847"></span>E9C7</td>
+<td class="instruction">LD (<a href="65408.html#65518">REPEAT_FROM</a>),IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59851"></span>E9CB</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_30</td>
+<td class="address-2"><span id="59852"></span>E9CC</td>
+<td class="instruction">CP $E1</td>
+<td class="comment-1" rowspan="2">$E1 n</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59854"></span>E9CE</td>
+<td class="instruction">JR NZ,<a href="59547.html#59929">MORE_ROOM_COMMANDS_31</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59856"></span>E9D0</td>
+<td class="instruction">LD HL,(<a href="65408.html#65508">POINT</a>)</td>
+<td class="comment-1" rowspan="16">keep the points, the mode, the repeat, the origin and the bytes between</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59859"></span>E9D3</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59860"></span>E9D4</td>
+<td class="instruction">LD HL,(<a href="65408.html#65510">SECOND_POINT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59863"></span>E9D7</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59864"></span>E9D8</td>
+<td class="instruction">LD E,(IY+$68)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59867"></span>E9DB</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59868"></span>E9DC</td>
+<td class="instruction">LD HL,(<a href="65408.html#65516">REPEATS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59871"></span>E9DF</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59872"></span>E9E0</td>
+<td class="instruction">LD HL,(<a href="65408.html#65518">REPEAT_FROM</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59875"></span>E9E3</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59876"></span>E9E4</td>
+<td class="instruction">LD HL,(<a href="65408.html#65520">WORK_KIND</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59879"></span>E9E7</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59880"></span>E9E8</td>
+<td class="instruction">LD HL,(<a href="65408.html#65503">ORIGIN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59883"></span>E9EB</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59884"></span>E9EC</td>
+<td class="instruction">LD HL,(<a href="65408.html#65505">ORIGIN_Z</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59887"></span>E9EF</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59888"></span>E9F0</td>
+<td class="instruction">CALL <a href="59547.html#59933">DRAW_PART</a></td>
+<td class="comment-1" rowspan="1">draw the part</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59891"></span>E9F3</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="20">and put them all back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59892"></span>E9F4</td>
+<td class="instruction">LD (<a href="65408.html#65505">ORIGIN_Z</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59895"></span>E9F7</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59896"></span>E9F8</td>
+<td class="instruction">LD (<a href="65408.html#65503">ORIGIN</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59899"></span>E9FB</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59900"></span>E9FC</td>
+<td class="instruction">LD (<a href="65408.html#65520">WORK_KIND</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59903"></span>E9FF</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59904"></span>EA00</td>
+<td class="instruction">LD (<a href="65408.html#65518">REPEAT_FROM</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59907"></span>EA03</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59908"></span>EA04</td>
+<td class="instruction">LD (<a href="65408.html#65516">REPEATS</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59911"></span>EA07</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59912"></span>EA08</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59913"></span>EA09</td>
+<td class="instruction">LD (<a href="65408.html#65512">WORK_SPRITE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59916"></span>EA0C</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59917"></span>EA0D</td>
+<td class="instruction">LD (<a href="65408.html#65515">MODE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59920"></span>EA10</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59921"></span>EA11</td>
+<td class="instruction">LD (<a href="65408.html#65510">SECOND_POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59924"></span>EA14</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59925"></span>EA15</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59928"></span>EA18</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_31</td>
+<td class="address-2"><span id="59929"></span>EA19</td>
+<td class="instruction">CP $E0</td>
+<td class="comment-1" rowspan="2">$E0 n</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59931"></span>EA1B</td>
+<td class="instruction">JR NZ,<a href="59547.html#59974">MORE_ROOM_COMMANDS_34</a></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_PART</td>
+<td class="address-2"><span id="59933"></span>EA1D</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="5">the part's number; the parts from <a href="30092.html">PART1</a>, the first numbered 1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59935"></span>EA1F</td>
+<td class="instruction">LD B,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59938"></span>EA22</td>
+<td class="instruction">LD HL,(<a href="65408.html#65461">PARTS_TABLE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59941"></span>EA25</td>
+<td class="instruction">LD A,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59943"></span>EA27</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_32</td>
+<td class="address-2"><span id="59944"></span>EA28</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">this one?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59945"></span>EA29</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59946"></span>EA2A</td>
+<td class="instruction">JR NZ,<a href="59547.html#59965">MORE_ROOM_COMMANDS_33</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59948"></span>EA2C</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="9">yes: run its commands to its $E5, after its length; object mode ends with it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59950"></span>EA2E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59951"></span>EA2F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59952"></span>EA30</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59953"></span>EA31</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59955"></span>EA33</td>
+<td class="instruction">CALL <a href="58775.html#58790">RUN_ROOM_COMMANDS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59958"></span>EA36</td>
+<td class="instruction">RES 7,(IY+$6B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59962"></span>EA3A</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59964"></span>EA3C</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_33</td>
+<td class="address-2"><span id="59965"></span>EA3D</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="8">no: past it by its length</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59966"></span>EA3E</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59967"></span>EA3F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59968"></span>EA40</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59969"></span>EA41</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59970"></span>EA42</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59971"></span>EA43</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59972"></span>EA44</td>
+<td class="instruction">JR <a href="59547.html#59944">MORE_ROOM_COMMANDS_32</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_34</td>
+<td class="address-2"><span id="59974"></span>EA46</td>
+<td class="instruction">CP $E2</td>
+<td class="comment-1" rowspan="2">$E2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59976"></span>EA48</td>
+<td class="instruction">JR NZ,<a href="59547.html#59994">MORE_ROOM_COMMANDS_36</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59978"></span>EA4A</td>
+<td class="instruction">LD HL,$4000</td>
+<td class="comment-1" rowspan="2">the screen...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59981"></span>EA4D</td>
+<td class="instruction">LD E,$00</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_35</td>
+<td class="address-2"><span id="59983"></span>EA4F</td>
+<td class="instruction">LD A,$40</td>
+<td class="comment-1" rowspan="6">...into the clean copy, its 6144 bytes of pixels</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59985"></span>EA51</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59987"></span>EA53</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59988"></span>EA54</td>
+<td class="instruction">LD BC,$1800</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59991"></span>EA57</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59993"></span>EA59</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_36</td>
+<td class="address-2"><span id="59994"></span>EA5A</td>
+<td class="instruction">CP $E4</td>
+<td class="comment-1" rowspan="2">$E4, or nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59996"></span>EA5C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59997"></span>EA5D</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="4">the second byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59999"></span>EA5F</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60002"></span>EA62</td>
+<td class="instruction">CP $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60004"></span>EA64</td>
+<td class="instruction">JR NZ,<a href="59547.html#60019">MORE_ROOM_COMMANDS_37</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60006"></span>EA66</td>
+<td class="instruction">LD HL,$BFFF</td>
+<td class="comment-1" rowspan="5">0: clear the clean copy (a zero at the end of the records area, <a href="48292.html">RECORDS</a>, copied along it) and send lines into it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60009"></span>EA69</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60011"></span>EA6B</td>
+<td class="instruction">LD (IY+$6A),$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60015"></span>EA6F</td>
+<td class="instruction">LD E,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60017"></span>EA71</td>
+<td class="instruction">JR <a href="59547.html#59983">MORE_ROOM_COMMANDS_35</a></td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_37</td>
+<td class="address-2"><span id="60019"></span>EA73</td>
+<td class="instruction">CP $01</td>
+<td class="comment-1" rowspan="4">1: lines onto the screen again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60021"></span>EA75</td>
+<td class="instruction">JR NZ,<a href="59547.html#60028">MORE_ROOM_COMMANDS_38</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60023"></span>EA77</td>
+<td class="instruction">LD (IY+$6A),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60027"></span>EA7B</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_38</td>
+<td class="address-2"><span id="60028"></span>EA7C</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="3">4: object mode on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60030"></span>EA7E</td>
+<td class="instruction">JR NZ,<a href="59547.html#60053">MORE_ROOM_COMMANDS_39</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60032"></span>EA80</td>
+<td class="instruction">SET 7,(IY+$6B)</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_OBJECTS_ONCE</td>
+<td class="address-2"><span id="60036"></span>EA84</td>
+<td class="instruction">BIT 0,(IY+$3C)</td>
+<td class="comment-1" rowspan="7">place the object table's things in the room, if this drawing has not yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60040"></span>EA88</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60041"></span>EA89</td>
+<td class="instruction">SET 0,(IY+$3C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60045"></span>EA8D</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60047"></span>EA8F</td>
+<td class="instruction">CALL <a href="60108.html">PLACE_ROOM_OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60050"></span>EA92</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60052"></span>EA94</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_39</td>
+<td class="address-2"><span id="60053"></span>EA95</td>
+<td class="instruction">CP $05</td>
+<td class="comment-1" rowspan="3">5: place them too</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60055"></span>EA97</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60056"></span>EA98</td>
+<td class="instruction">CALL <a href="59547.html#60036">PLACE_OBJECTS_ONCE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60059"></span>EA9B</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="19">then the origin's three bytes, each added to the origin as it is while mode bit 4 is on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60061"></span>EA9D</td>
+<td class="instruction">LD D,(IY+$6B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60064"></span>EAA0</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60067"></span>EAA3</td>
+<td class="instruction">BIT 4,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60069"></span>EAA5</td>
+<td class="instruction">JR Z,<a href="59547.html#60074">MORE_ROOM_COMMANDS_40</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60071"></span>EAA7</td>
+<td class="instruction">ADD A,(IY+$5F)</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_40</td>
+<td class="address-2"><span id="60074"></span>EAAA</td>
+<td class="instruction">LD (<a href="65408.html#65503">ORIGIN</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60077"></span>EAAD</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60079"></span>EAAF</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60082"></span>EAB2</td>
+<td class="instruction">BIT 4,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60084"></span>EAB4</td>
+<td class="instruction">JR Z,<a href="59547.html#60089">MORE_ROOM_COMMANDS_41</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60086"></span>EAB6</td>
+<td class="instruction">ADD A,(IY+$60)</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_41</td>
+<td class="address-2"><span id="60089"></span>EAB9</td>
+<td class="instruction">LD (<a href="65408.html#65504">ORIGIN_Y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60092"></span>EABC</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60094"></span>EABE</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60097"></span>EAC1</td>
+<td class="instruction">BIT 4,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60099"></span>EAC3</td>
+<td class="instruction">JR Z,<a href="59547.html#60104">MORE_ROOM_COMMANDS_42</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60101"></span>EAC5</td>
+<td class="instruction">ADD A,(IY+$61)</td>
+</tr>
+<tr>
+<td class="asm-label">MORE_ROOM_COMMANDS_42</td>
+<td class="address-2"><span id="60104"></span>EAC8</td>
+<td class="instruction">LD (<a href="65408.html#65505">ORIGIN_Z</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60107"></span>EACB</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">done</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59517.html">E87D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59547">Map</a></td>
+<td class="next">
+Next: <a href="60108.html">EACC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

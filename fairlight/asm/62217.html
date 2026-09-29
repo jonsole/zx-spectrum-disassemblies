@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F309</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62199.html">F2F7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62217">Map</a></td>
+<td class="next">
+Next: <a href="62694.html">F4E6</a>
+</td>
+</tr>
+</table>
+<div class="description">F309: Update an object by its state: guards, the troll, the wraith, the floating things and the knight</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+<div class="paragraph">
+The author's I6: the rest of the dispatch that <a href="61920.html">CHE3D</a> (CHE3D) begins, which tests the low nibble of the object's state (+14) in turn and comes here for state 6 and up. Each case chooses a direction in C and a sprite in HL, and leaves by one of three doors into the movement code: ANIM (in <a href="62869.html">KNIGHT_CONTROLS</a>), which picks a frame from a run of them, SET_SPRITE_AND_MOVE (<a href="63068.html">ANIMATE_AND_MOVE</a>), which shows HL as it is, or MOVE_IN_DIRECTION (<a href="63068.html">ANIMATE_AND_MOVE</a>), which leaves the sprite alone. From there the object is moved in direction C, collides, lands, and is redrawn.
+</div>
+<div class="paragraph">
+The states handled here, with the object types whose templates (<a href="46900.html">TEMPLATES</a>) start them in each: 6 and 10 (types 26 and 33): a guard. Within 30 of the knight along the floor it chases him (<a href="62199.html">STEER</a>); further off, a state-6 guard walks to and fro along x and a state-10 one along y, turning back at whatever stops it. Its frames depend on the way it walks: <a href="40764.html">SPRITE9F3C</a>, <a href="41232.html">SPRITEA110</a>, <a href="42324.html">SPRITEA554</a> or <a href="42792.html">SPRITEA728</a>, three each. The guards of state 9 (type 27), which materialise first (<a href="61920.html">CHE3D</a>), use the same frames and always chase. 7 (type 13): the troll, which chases, turning its frames (<a href="35768.html">SPRITE8BB8</a> facing the viewer, <a href="36452.html">SPRITE8E64</a> facing away). 11 (type 45): a wraith, which chases and has one frame each way, <a href="24200.html">SPRITE5E88</a> and <a href="24328.html">SPRITE5F08</a>. 12 (type 51): hangs in the air where it is and flickers through three small frames from <a href="23296.html">SPRITE5B00</a>. 13 (type 52): wanders, diagonally if it has no way of its own yet, and turns back off whatever it meets; frames from <a href="23344.html">SPRITE5B30</a>. 14 (type 40): hangs where it is and flickers through three frames from <a href="24836.html">SPRITE6104</a>. 15 (type 56, one in room 61): stands still until the thing of kind 11 lies in the room, when it takes the wraith's frames and state and chases the knight from then on (measured: it becomes state 11 for good). The door out of room 61 waits for the same thing (<a href="63428.html">BUMPED</a>). 8: the knight -- KNIGHT_UPDATE, below. Any other (1 or 2, which no object that is updated has): moves the way +13 says, with no sprite change.
+</div>
+<div class="paragraph">
+The knight (the author's I8, KNIGHT_UPDATE) comes here on every pass on which he is not in the air: in the air, <a href="61920.html">CHE3D</a> carries him on in the direction +18 holds. First, if he has just landed from a long fall, it costs him LIFE: IY+$14 counts the passes he fell for, and each pass over 20 -- each two units over 40 -- takes a point (measured: a fall of 50 cost 5, of 60 cost 10, of 40 nothing). Then the keys. Any key but the number keys goes to the action keys: X to V pick up (<a href="62708.html">PICK_UP</a>), CAPS SHIFT and Z drop, and the rest walk, jump and fight (<a href="62869.html">KNIGHT_CONTROLS</a>). With no key, the Kempston joystick (when 9 has turned it on) goes to <a href="62869.html">KNIGHT_CONTROLS</a> too. With neither, he stands: facing the viewer or away, with now and then a fidget of 14 passes (bit 3 of IY+$17) after a random wait of 128 to 255.
+</div>
+<div class="paragraph">
+The drop (Krumlinde's MainLoop_DropItemCheck, at the CAPS SHIFT row test) takes the thing in the place in use and puts it down just beside him on the side he faces: past his own width or depth when he faces the way the axis grows, past the thing's own when he faces back. Its top is set level with his, so it starts in the air. If the thing's box there meets anything (<a href="64677.html">FIND_OBSTACLE</a>), BLOCKED (message 1, IY+$07) and nothing changes. Otherwise the place is emptied, the thing moved there, its weight -- its +16 less 16, and never below nought -- taken off CARRIED_WEIGHT (IY+$12), its carried flag cleared, and it is given one pass going up (state bit 4 with +13 = $12) after which it falls to the floor like anything else. The object table is told it is in this room now (<a href="62694.html">SET_THING_ROOM</a>) and the panel's box for the place is emptied (<a href="60533.html">CLEAR_THING_BOX</a>). With 46 or more object records in use the drop key is ignored (not worked out why).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The state's low nibble</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The whole state, +14</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Its direction, +13 (<a href="62869.html">KNIGHT_CONTROLS</a> has the bits)</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">Its sprite, +4 and +5</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">Its record; the working copy of its +0 to +18 is at IY+$64 to IY+$76</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE</td>
+<td class="address-2"><span id="62217"></span>F309</td>
+<td class="instruction">CP $06</td>
+<td class="comment-1" rowspan="4">States 6 and 10: a guard</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62219"></span>F30B</td>
+<td class="instruction">JR Z,<a href="62217.html#62225">GUARD_MOVES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62221"></span>F30D</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62223"></span>F30F</td>
+<td class="instruction">JR NZ,<a href="62217.html#62298">CREATURE_UPDATE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">GUARD_MOVES</td>
+<td class="address-2"><span id="62225"></span>F311</td>
+<td class="instruction">CALL <a href="62199.html">STEER</a></td>
+<td class="comment-1" rowspan="1">The author's I601. Keep course, or aim at the knight (D is how far he is, when it aimed)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62228"></span>F314</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="5">Not aimed this pass, or the knight within 30: go the way <a href="62199.html">STEER</a> said</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62229"></span>F315</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62230"></span>F316</td>
+<td class="instruction">JR Z,<a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62232"></span>F318</td>
+<td class="instruction">CP $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62234"></span>F31A</td>
+<td class="instruction">JR C,<a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62236"></span>F31C</td>
+<td class="instruction">LD (IX+$0F),$01</td>
+<td class="comment-1" rowspan="1">Far off: look again next pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62240"></span>F320</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="5">A state-6 guard walks along x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62241"></span>F321</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62243"></span>F323</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62245"></span>F325</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62248"></span>F328</td>
+<td class="instruction">JR Z,<a href="62217.html#62261">CREATURE_UPDATE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62250"></span>F32A</td>
+<td class="instruction">AND $C3</td>
+<td class="comment-1" rowspan="6">State 10: keep its y direction (and the low bits); with none, go up y ($40) and turn back when stopped (bit 0)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62252"></span>F32C</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62253"></span>F32D</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62255"></span>F32F</td>
+<td class="instruction">JR NZ,<a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62257"></span>F331</td>
+<td class="instruction">LD C,$41</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62259"></span>F333</td>
+<td class="instruction">JR <a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_0</td>
+<td class="address-2"><span id="62261"></span>F335</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="4">State 6 (the author's I602): keep its x direction; with none, go down x ($04) and turn back when stopped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62263"></span>F337</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62264"></span>F338</td>
+<td class="instruction">JR NZ,<a href="62217.html#62268">GUARD_FRAMES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62266"></span>F33A</td>
+<td class="instruction">LD C,$05</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62268"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">GUARD_FRAMES</td>
+<td class="address-2"><span id="62268"></span>F33C</td>
+<td class="instruction">LD HL,<a href="40764.html">SPRITE9F3C</a></td>
+<td class="comment-1" rowspan="1">The author's I600, which the materialised guards of state 9 use too (<a href="61920.html">CHE3D</a>). Frames by the way it goes: down y, or standing, <a href="40764.html">SPRITE9F3C</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62271"></span>F33F</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="3">Up x: <a href="41232.html">SPRITEA110</a> (the author's I60 is the next test)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62273"></span>F341</td>
+<td class="instruction">JR Z,<a href="62217.html#62278">CREATURE_UPDATE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62275"></span>F343</td>
+<td class="instruction">LD HL,<a href="41232.html">SPRITEA110</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_1</td>
+<td class="address-2"><span id="62278"></span>F346</td>
+<td class="instruction">BIT 2,C</td>
+<td class="comment-1" rowspan="3">Down x: <a href="42324.html">SPRITEA554</a> (I61 is the next)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62280"></span>F348</td>
+<td class="instruction">JR Z,<a href="62217.html#62285">CREATURE_UPDATE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62282"></span>F34A</td>
+<td class="instruction">LD HL,<a href="42324.html">SPRITEA554</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_2</td>
+<td class="address-2"><span id="62285"></span>F34D</td>
+<td class="instruction">BIT 6,C</td>
+<td class="comment-1" rowspan="3">Up y: <a href="42792.html">SPRITEA728</a> (a later test wins over an earlier one)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62287"></span>F34F</td>
+<td class="instruction">JR Z,<a href="62217.html#62292">CREATURE_UPDATE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62289"></span>F351</td>
+<td class="instruction">LD HL,<a href="42792.html">SPRITEA728</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_3</td>
+<td class="address-2"><span id="62292"></span>F354</td>
+<td class="instruction">LD DE,$009C</td>
+<td class="comment-1" rowspan="2">The author's I62: frames of 24 by 26, 156 bytes apart; step through them</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62295"></span>F357</td>
+<td class="instruction">JP <a href="62869.html#63045">ANIM</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_4</td>
+<td class="address-2"><span id="62298"></span>F35A</td>
+<td class="instruction">CP $0B</td>
+<td class="comment-1" rowspan="2">The author's I11. State 11: a wraith</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62300"></span>F35C</td>
+<td class="instruction">JR NZ,<a href="62217.html#62319">CREATURE_UPDATE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">WRAITH_MOVES</td>
+<td class="address-2"><span id="62302"></span>F35E</td>
+<td class="instruction">CALL <a href="62199.html">STEER</a></td>
+<td class="comment-1" rowspan="1">The author's I1110 (state 15 comes here too). Keep course, or aim at the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62305"></span>F361</td>
+<td class="instruction">CALL <a href="61727.html">MIWRAI</a></td>
+<td class="comment-1" rowspan="1">Turn its two frames (<a href="24200.html">SPRITE5E88</a>) to face the way it goes; HL is the first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62308"></span>F364</td>
+<td class="instruction">BIT 6,E</td>
+<td class="comment-1" rowspan="4">Facing away (bit 6 of the state clear): the second frame, 128 bytes on (<a href="24328.html">SPRITE5F08</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62310"></span>F366</td>
+<td class="instruction">JR NZ,<a href="62217.html#62316">CREATURE_UPDATE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62312"></span>F368</td>
+<td class="instruction">LD DE,$0080</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62315"></span>F36B</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_5</td>
+<td class="address-2"><span id="62316"></span>F36C</td>
+<td class="instruction">JP <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+<td class="comment-1" rowspan="1">Show that frame (no animation) and move</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_6</td>
+<td class="address-2"><span id="62319"></span>F36F</td>
+<td class="instruction">CP $0C</td>
+<td class="comment-1" rowspan="2">The author's I12. State 12: the small floating thing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62321"></span>F371</td>
+<td class="instruction">JR NZ,<a href="62217.html#62338">CREATURE_UPDATE_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62323"></span>F373</td>
+<td class="instruction">LD DE,$0010</td>
+<td class="comment-1" rowspan="2">Frames of 8 by 8, 16 bytes apart, from <a href="23296.html">SPRITE5B00</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62326"></span>F376</td>
+<td class="instruction">LD HL,<a href="23296.html">SPRITE5B00</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_7</td>
+<td class="address-2"><span id="62329"></span>F379</td>
+<td class="instruction">LD C,$02</td>
+<td class="comment-1" rowspan="1">No way to go, and bit 1: it does not fall</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_8</td>
+<td class="address-2"><span id="62331"></span>F37B</td>
+<td class="instruction">SET 4,(IX+$11)</td>
+<td class="comment-1" rowspan="1">Make sure the run is at least three frames (the last frame, bits 3-5 of +17, at least 2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62335"></span>F37F</td>
+<td class="instruction">JP <a href="62869.html#63045">ANIM</a></td>
+<td class="comment-1" rowspan="1">Step through the frames</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_9</td>
+<td class="address-2"><span id="62338"></span>F382</td>
+<td class="instruction">CP $0D</td>
+<td class="comment-1" rowspan="2">State 13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62340"></span>F384</td>
+<td class="instruction">JR NZ,<a href="62217.html#62357">CREATURE_UPDATE_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62342"></span>F386</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="4">With no x or y direction of its own, go down x and up y ($45), turning back when stopped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62343"></span>F387</td>
+<td class="instruction">AND $CC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62345"></span>F389</td>
+<td class="instruction">JR NZ,<a href="62217.html#62349">CREATURE_UPDATE_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62347"></span>F38B</td>
+<td class="instruction">LD C,$45</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_10</td>
+<td class="address-2"><span id="62349"></span>F38D</td>
+<td class="instruction">LD DE,$005C</td>
+<td class="comment-1" rowspan="3">Frames of 16 by 23 from <a href="23344.html">SPRITE5B30</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62352"></span>F390</td>
+<td class="instruction">LD HL,<a href="23344.html">SPRITE5B30</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62355"></span>F393</td>
+<td class="instruction">JR <a href="62217.html#62331">CREATURE_UPDATE_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_11</td>
+<td class="address-2"><span id="62357"></span>F395</td>
+<td class="instruction">CP $0E</td>
+<td class="comment-1" rowspan="2">State 14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62359"></span>F397</td>
+<td class="instruction">JR NZ,<a href="62217.html#62369">CREATURE_UPDATE_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62361"></span>F399</td>
+<td class="instruction">LD HL,<a href="24836.html">SPRITE6104</a></td>
+<td class="comment-1" rowspan="3">Frames of 16 by 10 from <a href="24836.html">SPRITE6104</a>, hanging still</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62364"></span>F39C</td>
+<td class="instruction">LD DE,$0028</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62367"></span>F39F</td>
+<td class="instruction">JR <a href="62217.html#62329">CREATURE_UPDATE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_12</td>
+<td class="address-2"><span id="62369"></span>F3A1</td>
+<td class="instruction">CP $0F</td>
+<td class="comment-1" rowspan="2">State 15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62371"></span>F3A3</td>
+<td class="instruction">JR NZ,<a href="62217.html#62385">CREATURE_UPDATE_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62373"></span>F3A5</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">Unless the thing of kind 11 lies in the room (bit 1 of IY+$11, set by <a href="61920.html">CHE3D</a>): stand quite still, not even falling. (This skips the clearing of C: C still holds +13, which is nought for this figure)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62374"></span>F3A6</td>
+<td class="instruction">BIT 1,(IY+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62378"></span>F3AA</td>
+<td class="instruction">JP Z,<a href="63068.html#63127">ANIMATE_AND_MOVE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62381"></span>F3AD</td>
+<td class="instruction">LD E,$0B</td>
+<td class="comment-1" rowspan="2">Then be a wraith. The wraith's case writes the state it is given, so it stays one (measured, by putting the thing of kind 11 in room 61: the figure took the wraith's frame and state 11 and came for the knight)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62383"></span>F3AF</td>
+<td class="instruction">JR <a href="62217.html#62302">WRAITH_MOVES</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_13</td>
+<td class="address-2"><span id="62385"></span>F3B1</td>
+<td class="instruction">CP $07</td>
+<td class="comment-1" rowspan="2">State 7: the troll</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62387"></span>F3B3</td>
+<td class="instruction">JR NZ,<a href="62217.html#62413">KNIGHT_UPDATE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62389"></span>F3B5</td>
+<td class="instruction">RES 4,(IX+$0C)</td>
+<td class="comment-1" rowspan="1">Clear bit 4 of its +12, which makes a touch cost the knight 10 LIFE (<a href="63833.html">OBJECTS_MEET</a>): the troll's object-table records have it set, so it lasts only until the troll's first pass (the working copy keeps it for that pass)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62393"></span>F3B9</td>
+<td class="instruction">CALL <a href="62199.html">STEER</a></td>
+<td class="comment-1" rowspan="1">Keep course, or aim at the knight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62396"></span>F3BC</td>
+<td class="instruction">CALL <a href="61735.html">MITRO</a></td>
+<td class="comment-1" rowspan="1">Turn its frames (<a href="35768.html">SPRITE8BB8</a>) to face the way it goes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62399"></span>F3BF</td>
+<td class="instruction">BIT 6,E</td>
+<td class="comment-1" rowspan="4">Facing away: the frames that start 684 bytes on (<a href="36452.html">SPRITE8E64</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62401"></span>F3C1</td>
+<td class="instruction">JR NZ,<a href="62217.html#62407">CREATURE_UPDATE_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62403"></span>F3C3</td>
+<td class="instruction">LD DE,$02AC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62406"></span>F3C6</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_14</td>
+<td class="address-2"><span id="62407"></span>F3C7</td>
+<td class="instruction">LD DE,$00E4</td>
+<td class="comment-1" rowspan="2">Frames of 24 by 38, 228 bytes apart</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62410"></span>F3CA</td>
+<td class="instruction">JP <a href="62869.html#63045">ANIM</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62413"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_UPDATE</td>
+<td class="address-2"><span id="62413"></span>F3CD</td>
+<td class="instruction">CP $08</td>
+<td class="comment-1" rowspan="2">The author's I8. Any state not handled above just moves the way +13 says</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62415"></span>F3CF</td>
+<td class="instruction">JP NZ,<a href="63068.html#63101">MOVE_IN_DIRECTION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62418"></span>F3D2</td>
+<td class="instruction">LD A,(IY+$14)</td>
+<td class="comment-1" rowspan="3">State 8, the knight, on the ground. A fall of more than 20 passes (IY+$14, counted by <a href="63068.html">ANIMATE_AND_MOVE</a>) costs a LIFE point a pass over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62421"></span>F3D5</td>
+<td class="instruction">SUB $14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62423"></span>F3D7</td>
+<td class="instruction">CALL NC,<a href="61876.html#61878">DECLIF</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62426"></span>F3DA</td>
+<td class="instruction">LD (IY+$14),$00</td>
+<td class="comment-1" rowspan="1">Start the count again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62430"></span>F3DE</td>
+<td class="instruction">LD C,$01</td>
+<td class="comment-1" rowspan="1">Standing: no way to go (bit 0 alone)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62432"></span>F3E0</td>
+<td class="instruction">LD A,$18</td>
+<td class="comment-1" rowspan="3">Any key but 1-5 and 6-0: the action and movement keys</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62434"></span>F3E2</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62437"></span>F3E5</td>
+<td class="instruction">JR NZ,<a href="62217.html#62529">PICK_OR_DROP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62439"></span>F3E7</td>
+<td class="instruction">CALL <a href="61670.html">IN31</a></td>
+<td class="comment-1" rowspan="2">No key: the Kempston joystick, if it is on (<a href="61670.html">IN31</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62442"></span>F3EA</td>
+<td class="instruction">JP NZ,<a href="62869.html#62874">STICK_DIRECTION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62445"></span>F3ED</td>
+<td class="instruction">LD C,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">Nothing pressed. C = the way he was going, which matters only if he stands on something that moves</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62448"></span>F3F0</td>
+<td class="instruction">LD A,(<a href="65408.html#65525">WORK_ANIMATION</a>)</td>
+<td class="comment-1" rowspan="3">Back to the first frame of a run (+17's bits 0-2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62451"></span>F3F3</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62453"></span>F3F5</td>
+<td class="instruction">LD (IX+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62456"></span>F3F8</td>
+<td class="instruction">DEC (IX+$12)</td>
+<td class="comment-1" rowspan="2">Count down to a change of stance (+18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62459"></span>F3FB</td>
+<td class="instruction">JR NZ,<a href="62217.html#62484">CREATURE_UPDATE_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62461"></span>F3FD</td>
+<td class="instruction">LD A,(<a href="65408.html#65431">GAME_FLAGS</a>)</td>
+<td class="comment-1" rowspan="3">Start or end a fidget (bit 3 of IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62464"></span>F400</td>
+<td class="instruction">XOR $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62466"></span>F402</td>
+<td class="instruction">LD (<a href="65408.html#65431">GAME_FLAGS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62469"></span>F405</td>
+<td class="instruction">BIT 3,A</td>
+<td class="comment-1" rowspan="3">A fidget lasts 14 passes...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62471"></span>F407</td>
+<td class="instruction">LD (IX+$12),$0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62475"></span>F40B</td>
+<td class="instruction">JR NZ,<a href="62217.html#62484">CREATURE_UPDATE_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62477"></span>F40D</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="3">...and the stillness between them 128 to 255, at random</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62479"></span>F40F</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62481"></span>F411</td>
+<td class="instruction">LD (IX+$12),A</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_15</td>
+<td class="address-2"><span id="62484"></span>F414</td>
+<td class="instruction">RES 1,(IY+$17)</td>
+<td class="comment-1" rowspan="1">His sword is not out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62488"></span>F418</td>
+<td class="instruction">BIT 4,E</td>
+<td class="comment-1" rowspan="2">Riding on something that moves (state bit 4): keep his sprite and go with it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62490"></span>F41A</td>
+<td class="instruction">JR NZ,<a href="62217.html#62526">CREATURE_UPDATE_18</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62492"></span>F41C</td>
+<td class="instruction">BIT 6,E</td>
+<td class="comment-1" rowspan="7">Facing the viewer: <a href="37322.html">SPRITE91CA</a>, or <a href="39368.html">SPRITE99C8</a> in a fidget</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62494"></span>F41E</td>
+<td class="instruction">JR Z,<a href="62217.html#62511">CREATURE_UPDATE_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62496"></span>F420</td>
+<td class="instruction">LD HL,<a href="37322.html">SPRITE91CA</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62499"></span>F423</td>
+<td class="instruction">BIT 3,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62503"></span>F427</td>
+<td class="instruction">JR Z,<a href="62217.html#62524">CREATURE_UPDATE_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62505"></span>F429</td>
+<td class="instruction">LD HL,<a href="39368.html">SPRITE99C8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62508"></span>F42C</td>
+<td class="instruction">JP <a href="62217.html#62524">CREATURE_UPDATE_17</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_16</td>
+<td class="address-2"><span id="62511"></span>F42F</td>
+<td class="instruction">LD HL,<a href="37880.html">SPRITE93F8</a></td>
+<td class="comment-1" rowspan="4">Facing away: <a href="37880.html">SPRITE93F8</a>, or <a href="39554.html">SPRITE9A82</a> in a fidget</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62514"></span>F432</td>
+<td class="instruction">BIT 3,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62518"></span>F436</td>
+<td class="instruction">JP Z,<a href="62217.html#62524">CREATURE_UPDATE_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62521"></span>F439</td>
+<td class="instruction">LD HL,<a href="39554.html">SPRITE9A82</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_17</td>
+<td class="address-2"><span id="62524"></span>F43C</td>
+<td class="instruction">LD C,$01</td>
+<td class="comment-1" rowspan="1">Stand still</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_18</td>
+<td class="address-2"><span id="62526"></span>F43E</td>
+<td class="instruction">JP <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+<td class="comment-1" rowspan="1">Show the frame, and move (or not)</td>
+</tr>
+<tr>
+<td class="asm-label">PICK_OR_DROP</td>
+<td class="address-2"><span id="62529"></span>F441</td>
+<td class="instruction">LD A,$FE</td>
+<td class="comment-1" rowspan="2">Krumlinde's MainLoop_DropItemCheck. A key is down, so no fidget</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62531"></span>F443</td>
+<td class="instruction">RES 3,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62535"></span>F447</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+<td class="comment-1" rowspan="2">Nothing on the CAPS SHIFT to V row: walk, jump or fight (<a href="62869.html">KNIGHT_CONTROLS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62538"></span>F44A</td>
+<td class="instruction">JP Z,<a href="62869.html">KNIGHT_CONTROLS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62541"></span>F44D</td>
+<td class="instruction">AND $1C</td>
+<td class="comment-1" rowspan="2">X, C or V: pick up (<a href="62708.html">PICK_UP</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62543"></span>F44F</td>
+<td class="instruction">JP NZ,<a href="62708.html">PICK_UP</a></td>
+</tr>
+<tr>
+<td class="asm-label">DROP_THING</td>
+<td class="address-1"><span id="62546"></span>F452</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">CAPS SHIFT or Z: drop. Not with 46 records or more in use: then read the walking keys instead</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62549"></span>F455</td>
+<td class="instruction">CP $2E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62551"></span>F457</td>
+<td class="instruction">JP NC,<a href="62869.html#62899">WALK_KEYS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62554"></span>F45A</td>
+<td class="instruction">LD H,$FF</td>
+<td class="comment-1" rowspan="8">The place in use (SELECTED, IY+$1E) is empty: nothing to drop; just redraw him</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62556"></span>F45C</td>
+<td class="instruction">LD L,(IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62559"></span>F45F</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62560"></span>F460</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62561"></span>F461</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62562"></span>F462</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62563"></span>F463</td>
+<td class="instruction">OR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62564"></span>F464</td>
+<td class="instruction">JP Z,<a href="63068.html#63402">REDRAW_THIS_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62567"></span>F467</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">Keep the place's address; IX = the thing; B, D, H = where he is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62568"></span>F468</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62569"></span>F469</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62570"></span>F46A</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62572"></span>F46C</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62575"></span>F46F</td>
+<td class="instruction">LD E,(IY+$72)</td>
+<td class="comment-1" rowspan="5">Which way he faces: bits 5 and 6 of his state</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62578"></span>F472</td>
+<td class="instruction">BIT 5,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62580"></span>F474</td>
+<td class="instruction">JR NZ,<a href="62217.html#62600">CREATURE_UPDATE_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62582"></span>F476</td>
+<td class="instruction">BIT 6,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62584"></span>F478</td>
+<td class="instruction">JR NZ,<a href="62217.html#62593">CREATURE_UPDATE_19</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62586"></span>F47A</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">Up x (neither bit): put it past his width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62587"></span>F47B</td>
+<td class="instruction">ADD A,(IY+$6D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62590"></span>F47E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62591"></span>F47F</td>
+<td class="instruction">JR <a href="62217.html#62616">DROP_TEST</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_19</td>
+<td class="address-2"><span id="62593"></span>F481</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="4">Down y (bit 6): its own depth short of him</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62594"></span>F482</td>
+<td class="instruction">SUB (IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62597"></span>F485</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62598"></span>F486</td>
+<td class="instruction">JR <a href="62217.html#62616">DROP_TEST</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_20</td>
+<td class="address-2"><span id="62600"></span>F488</td>
+<td class="instruction">BIT 6,E</td>
+<td class="comment-1" rowspan="6">Down x (both bits): its own width short of him</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62602"></span>F48A</td>
+<td class="instruction">JR Z,<a href="62217.html#62611">CREATURE_UPDATE_21</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62604"></span>F48C</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62605"></span>F48D</td>
+<td class="instruction">SUB (IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62608"></span>F490</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62609"></span>F491</td>
+<td class="instruction">JR <a href="62217.html#62616">DROP_TEST</a></td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_21</td>
+<td class="address-2"><span id="62611"></span>F493</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="3">Up y (bit 5): past his depth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62612"></span>F494</td>
+<td class="instruction">ADD A,(IY+$6F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62615"></span>F497</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">DROP_TEST</td>
+<td class="address-2"><span id="62616"></span>F498</td>
+<td class="instruction">LD C,(IX+$09)</td>
+<td class="comment-1" rowspan="5">Krumlinde's DropItem_TestPlacement. Would the thing's own box there meet anything? (It is still marked as carried, so it does not meet itself)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62619"></span>F49B</td>
+<td class="instruction">LD E,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62622"></span>F49E</td>
+<td class="instruction">LD L,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62625"></span>F4A1</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62627"></span>F4A3</td>
+<td class="instruction">CALL <a href="64677.html">FIND_OBSTACLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62630"></span>F4A6</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">Keep the place's address in the other register set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62631"></span>F4A7</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62633"></span>F4A9</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62634"></span>F4AA</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62635"></span>F4AB</td>
+<td class="instruction">JR NC,<a href="62217.html#62643">DROP_COMMIT</a></td>
+<td class="comment-1" rowspan="3">Something is there: BLOCKED</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62637"></span>F4AD</td>
+<td class="instruction">LD (IY+$07),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62641"></span>F4B1</td>
+<td class="instruction">JR <a href="62217.html#62691">KNIGHT_DONE</a></td>
+</tr>
+<tr>
+<td class="asm-label">DROP_COMMIT</td>
+<td class="address-2"><span id="62643"></span>F4B3</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="6">Krumlinde's DropItem_Commit. Empty the place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62644"></span>F4B4</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62645"></span>F4B5</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62646"></span>F4B6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62647"></span>F4B7</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62648"></span>F4B8</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62649"></span>F4B9</td>
+<td class="instruction">CALL <a href="58615.html">ISO_MOVE</a></td>
+<td class="comment-1" rowspan="1">Move the thing to the spot (its top level with his, so it starts in the air)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62652"></span>F4BC</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="6">Its weight: +16 less 16, and nought if that is below it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62655"></span>F4BF</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62657"></span>F4C1</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62659"></span>F4C3</td>
+<td class="instruction">JR NC,<a href="62217.html#62662">CREATURE_UPDATE_22</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62661"></span>F4C5</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">CREATURE_UPDATE_22</td>
+<td class="address-2"><span id="62662"></span>F4C6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62663"></span>F4C7</td>
+<td class="instruction">LD A,(<a href="65408.html#65426">CARRIED_WEIGHT</a>)</td>
+<td class="comment-1" rowspan="3">Off what he carries (CARRIED_WEIGHT, IY+$12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62666"></span>F4CA</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62667"></span>F4CB</td>
+<td class="instruction">LD (<a href="65408.html#65426">CARRIED_WEIGHT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62670"></span>F4CE</td>
+<td class="instruction">RES 5,(IX+$10)</td>
+<td class="comment-1" rowspan="1">No longer carried</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62674"></span>F4D2</td>
+<td class="instruction">SET 4,(IX+$0E)</td>
+<td class="comment-1" rowspan="2">For one pass it goes where +13 says: up, and not falling (bits 4 and 1); then it falls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62678"></span>F4D6</td>
+<td class="instruction">LD (IX+$0D),$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62682"></span>F4DA</td>
+<td class="instruction">LD C,(IY+$34)</td>
+<td class="comment-1" rowspan="2">The object table: it is in this room now</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62685"></span>F4DD</td>
+<td class="instruction">CALL <a href="62694.html">SET_THING_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62688"></span>F4E0</td>
+<td class="instruction">CALL <a href="60533.html">CLEAR_THING_BOX</a></td>
+<td class="comment-1" rowspan="1">Empty the panel's box for the place</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62691"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="62708.html">PICK_UP</a> and <a href="62762.html">PICK_UP_LOOK_ON</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_DONE</td>
+<td class="address-2"><span id="62691"></span>F4E3</td>
+<td class="instruction">JP <a href="63068.html#63402">REDRAW_THIS_OBJECT</a></td>
+<td class="comment-1" rowspan="1">The author's DOE: the way out of the knight's actions. Redraw him, and the pass is over for him</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62199.html">F2F7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62217">Map</a></td>
+<td class="next">
+Next: <a href="62694.html">F4E6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

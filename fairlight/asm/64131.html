@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FA83</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64121.html">FA79</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64131">Map</a></td>
+<td class="next">
+Next: <a href="64519.html">FC07</a>
+</td>
+</tr>
+</table>
+<div class="description">FA83: Let a guard take a decoy, or else stop the part of a move that is blocked</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="63833.html">OBJECTS_MEET</a>.
+</div>
+<div class="paragraph">
+The last case of <a href="63833.html">OBJECTS_MEET</a>: a behaviour-9 guard that runs into a decoy (kind 8) takes it. The decoy vanishes, its entry goes to room $FE, and THINGS_NOTED is cleared, so that <a href="61920.html">CHE3D</a> finds any other decoy afresh and until then the guard chases the knight (<a href="64584.html">ZOOMIN</a>). Anything else, and a move into a door (<a href="63428.html">BUMPED</a>), comes to BLOCKED_MOVE.
+</div>
+<div class="paragraph">
+BLOCKED_MOVE works out how much of the move the other object stops, trying the move against that one object only (<a href="64668.html">TEST_OTHER</a>) from where the mover was. Each axis that is moving is tried alone: x (+6), y (+7, the height) and z (+8). One that collides is taken out of the move, and the mover's direction on it is turned round if the mover bounces (bit 0 of its direction, +13) or cleared if it does not. Two collisions do something else. Running along x into a kind-3 object, or along z into a kind-2 one, marks a climb (bit 6 of STEP_AXES): those are the invisible steps of a staircase, and <a href="63068.html">ANIMATE_AND_MOVE</a> lifts the mover for three passes. Coming down onto the other marks a landing (bit 5); and if what the mover lands on is moving -- by its own behaviour, or coasting (bit 7 of +14) -- the mover rides it: bit 4 of the mover's +14 is set and the other's direction (+13, or +18 if coasting) goes to RIDE_DIRECTION, which <a href="63068.html">ANIMATE_AND_MOVE</a> gives the mover. Nothing rides a door.
+</div>
+<div class="paragraph">
+Then the pairs, from where the mover was: x with y colliding takes y out; x with z takes both out; y with z takes y out. If all three axes are still in the move after that, only the whole move collides, and none of it is made.
+</div>
+<div class="paragraph">
+Last, a push. Unless the mover landed on the other or it is a door, and unless the other is still (nothing in the low five bits of +16, which for a thing that moves are 16 more than its weight), the other is pushed if it is no more than 5 heavier than the mover: it coasts (bit 7 of +14) for the mover's +16 less its own, plus 6, passes (+15), heading (+18) the way the mover asked to go (ASKED_DIRECTION), keeping its own bounce and rise bits. The knight's +16 is 18, so he pushes anything of 23 or less. What is left of the move is then tried again (<a href="63068.html">ANIMATE_AND_MOVE</a>), and may run into something else.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The other's kind (+12, low nibble)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The other's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY</td>
+<td class="address-2"><span id="64131"></span>FA83</td>
+<td class="instruction">CP $08</td>
+<td class="comment-1" rowspan="6">A decoy, and the mover a behaviour-9 guard?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64133"></span>FA85</td>
+<td class="instruction">JR NZ,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64135"></span>FA87</td>
+<td class="instruction">LD A,(<a href="65408.html#65522">WORK_BEHAVIOUR</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64138"></span>FA8A</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64140"></span>FA8C</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64142"></span>FA8E</td>
+<td class="instruction">JR NZ,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64144"></span>FA90</td>
+<td class="instruction">LD C,$FE</td>
+<td class="comment-1" rowspan="3">The decoy leaves the game (room $FE); look for decoys again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64146"></span>FA92</td>
+<td class="instruction">CALL <a href="62694.html">SET_THING_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64149"></span>FA95</td>
+<td class="instruction">LD (IY+$11),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64153"></span>FA99</td>
+<td class="instruction">JP <a href="63833.html#63974">OTHER_VANISHES</a></td>
+<td class="comment-1" rowspan="1">It vanishes (<a href="63833.html">OBJECTS_MEET</a>)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="64156"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="63428.html">BUMPED</a> and <a href="63833.html">OBJECTS_MEET</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BLOCKED_MOVE</td>
+<td class="address-2"><span id="64156"></span>FA9C</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="2">BLOCKED_MOVE: B, D, H = the mover's x, y and z before the move; C, E, L its lengths</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64159"></span>FA9F</td>
+<td class="instruction">CALL <a href="63418.html">WORKING_SIZES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64162"></span>FAA2</td>
+<td class="instruction">LD C,(IY+$7B)</td>
+<td class="comment-1" rowspan="1">C = the axes moving (STEP_AXES)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64165"></span>FAA5</td>
+<td class="instruction">CALL <a href="64519.html">STEP_ALONG_X</a></td>
+<td class="comment-1" rowspan="3">x alone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64168"></span>FAA8</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64171"></span>FAAB</td>
+<td class="instruction">JR NC,<a href="64131.html#64204">MEET_DECOY_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64173"></span>FAAD</td>
+<td class="instruction">RES 0,C</td>
+<td class="comment-1" rowspan="1">Blocked: x out of the move</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64175"></span>FAAF</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="6">Along x into a kind-3 step: a climb</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64178"></span>FAB2</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64180"></span>FAB4</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64182"></span>FAB6</td>
+<td class="instruction">JR NZ,<a href="64131.html#64188">MEET_DECOY_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64184"></span>FAB8</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64186"></span>FABA</td>
+<td class="instruction">JR <a href="64131.html#64204">MEET_DECOY_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_0</td>
+<td class="address-2"><span id="64188"></span>FABC</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+<td class="comment-1" rowspan="7">Otherwise turn round on x if the mover bounces, or stop on x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64191"></span>FABF</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64193"></span>FAC1</td>
+<td class="instruction">JR NZ,<a href="64131.html#64199">MEET_DECOY_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64195"></span>FAC3</td>
+<td class="instruction">AND $F3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64197"></span>FAC5</td>
+<td class="instruction">JR <a href="64131.html#64201">MEET_DECOY_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_1</td>
+<td class="address-2"><span id="64199"></span>FAC7</td>
+<td class="instruction">XOR $0C</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_2</td>
+<td class="address-2"><span id="64201"></span>FAC9</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_3</td>
+<td class="address-2"><span id="64204"></span>FACC</td>
+<td class="instruction">LD B,(IY+$6A)</td>
+<td class="comment-1" rowspan="4">y alone, x back where it was</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64207"></span>FACF</td>
+<td class="instruction">CALL <a href="64540.html">STEP_ALONG_Y</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64210"></span>FAD2</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64213"></span>FAD5</td>
+<td class="instruction">JR NC,<a href="64131.html#64270">MEET_DECOY_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64215"></span>FAD7</td>
+<td class="instruction">RES 1,C</td>
+<td class="comment-1" rowspan="1">Blocked: y out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64217"></span>FAD9</td>
+<td class="instruction">BIT 7,C</td>
+<td class="comment-1" rowspan="2">Nothing rides a door</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64219"></span>FADB</td>
+<td class="instruction">JR NZ,<a href="64131.html#64254">MEET_DECOY_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64221"></span>FADD</td>
+<td class="instruction">LD D,(IX+$0E)</td>
+<td class="comment-1" rowspan="3">Coming down onto it (bit 5 of the direction)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64224"></span>FAE0</td>
+<td class="instruction">BIT 5,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64228"></span>FAE4</td>
+<td class="instruction">JR Z,<a href="64131.html#64254">MEET_DECOY_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64230"></span>FAE6</td>
+<td class="instruction">SET 5,C</td>
+<td class="comment-1" rowspan="1">A landing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64232"></span>FAE8</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="4">What it lands on has a behaviour: ride with its direction (+13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64233"></span>FAE9</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64235"></span>FAEB</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64238"></span>FAEE</td>
+<td class="instruction">JR NZ,<a href="64131.html#64247">MEET_DECOY_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64240"></span>FAF0</td>
+<td class="instruction">BIT 7,D</td>
+<td class="comment-1" rowspan="3">Or is coasting: ride with its heading (+18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64242"></span>FAF2</td>
+<td class="instruction">JR Z,<a href="64131.html#64254">MEET_DECOY_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64244"></span>FAF4</td>
+<td class="instruction">LD A,(IX+$12)</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_4</td>
+<td class="address-2"><span id="64247"></span>FAF7</td>
+<td class="instruction">SET 4,(IY+$72)</td>
+<td class="comment-1" rowspan="2">Riding: bit 4 of the mover's +14, and the way to go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64251"></span>FAFB</td>
+<td class="instruction">LD (<a href="65408.html#65535">RIDE_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_5</td>
+<td class="address-2"><span id="64254"></span>FAFE</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+<td class="comment-1" rowspan="7">Turn round on y if the mover bounces, or stop on y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64257"></span>FB01</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64259"></span>FB03</td>
+<td class="instruction">JR NZ,<a href="64131.html#64265">MEET_DECOY_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64261"></span>FB05</td>
+<td class="instruction">AND $CF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64263"></span>FB07</td>
+<td class="instruction">JR <a href="64131.html#64267">MEET_DECOY_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_6</td>
+<td class="address-2"><span id="64265"></span>FB09</td>
+<td class="instruction">XOR $30</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_7</td>
+<td class="address-2"><span id="64267"></span>FB0B</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_8</td>
+<td class="address-2"><span id="64270"></span>FB0E</td>
+<td class="instruction">LD D,(IY+$6B)</td>
+<td class="comment-1" rowspan="4">z alone, y back where it was</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64273"></span>FB11</td>
+<td class="instruction">CALL <a href="64555.html">STEP_ALONG_Z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64276"></span>FB14</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64279"></span>FB17</td>
+<td class="instruction">JR NC,<a href="64131.html#64312">MEET_DECOY_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64281"></span>FB19</td>
+<td class="instruction">RES 2,C</td>
+<td class="comment-1" rowspan="1">Blocked: z out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64283"></span>FB1B</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="6">Along z into a kind-2 step: a climb</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64286"></span>FB1E</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64288"></span>FB20</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64290"></span>FB22</td>
+<td class="instruction">JR NZ,<a href="64131.html#64296">MEET_DECOY_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64292"></span>FB24</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64294"></span>FB26</td>
+<td class="instruction">JR <a href="64131.html#64312">MEET_DECOY_12</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_9</td>
+<td class="address-2"><span id="64296"></span>FB28</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+<td class="comment-1" rowspan="7">Otherwise turn round on z, or stop on z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64299"></span>FB2B</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64301"></span>FB2D</td>
+<td class="instruction">JR NZ,<a href="64131.html#64307">MEET_DECOY_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64303"></span>FB2F</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64305"></span>FB31</td>
+<td class="instruction">JR <a href="64131.html#64309">MEET_DECOY_11</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_10</td>
+<td class="address-2"><span id="64307"></span>FB33</td>
+<td class="instruction">XOR $C0</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_11</td>
+<td class="address-2"><span id="64309"></span>FB35</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_12</td>
+<td class="address-2"><span id="64312"></span>FB38</td>
+<td class="instruction">LD H,(IY+$6C)</td>
+<td class="comment-1" rowspan="2">Back to where the mover was</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64315"></span>FB3B</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64318"></span>FB3E</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="8">x and y together</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64319"></span>FB3F</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64321"></span>FB41</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64323"></span>FB43</td>
+<td class="instruction">JR NZ,<a href="64131.html#64357">MEET_DECOY_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64325"></span>FB45</td>
+<td class="instruction">CALL <a href="64519.html">STEP_ALONG_X</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64328"></span>FB48</td>
+<td class="instruction">CALL <a href="64540.html">STEP_ALONG_Y</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64331"></span>FB4B</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64334"></span>FB4E</td>
+<td class="instruction">JR NC,<a href="64131.html#64354">MEET_DECOY_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64336"></span>FB50</td>
+<td class="instruction">RES 1,C</td>
+<td class="comment-1" rowspan="8">Blocked: y out, turned round or stopped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64338"></span>FB52</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64341"></span>FB55</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64343"></span>FB57</td>
+<td class="instruction">JR NZ,<a href="64131.html#64349">MEET_DECOY_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64345"></span>FB59</td>
+<td class="instruction">AND $CF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64347"></span>FB5B</td>
+<td class="instruction">JR <a href="64131.html#64351">MEET_DECOY_14</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_13</td>
+<td class="address-2"><span id="64349"></span>FB5D</td>
+<td class="instruction">XOR $30</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_14</td>
+<td class="address-2"><span id="64351"></span>FB5F</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_15</td>
+<td class="address-2"><span id="64354"></span>FB62</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="1">Back again</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_16</td>
+<td class="address-2"><span id="64357"></span>FB65</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="8">x and z together</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64358"></span>FB66</td>
+<td class="instruction">AND $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64360"></span>FB68</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64362"></span>FB6A</td>
+<td class="instruction">JR NZ,<a href="64131.html#64398">MEET_DECOY_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64364"></span>FB6C</td>
+<td class="instruction">CALL <a href="64519.html">STEP_ALONG_X</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64367"></span>FB6F</td>
+<td class="instruction">CALL <a href="64555.html">STEP_ALONG_Z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64370"></span>FB72</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64373"></span>FB75</td>
+<td class="instruction">JR NC,<a href="64131.html#64395">MEET_DECOY_19</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64375"></span>FB77</td>
+<td class="instruction">RES 0,C</td>
+<td class="comment-1" rowspan="9">Blocked: both out, both turned round or stopped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64377"></span>FB79</td>
+<td class="instruction">RES 2,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64379"></span>FB7B</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64382"></span>FB7E</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64384"></span>FB80</td>
+<td class="instruction">JR NZ,<a href="64131.html#64390">MEET_DECOY_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64386"></span>FB82</td>
+<td class="instruction">AND $33</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64388"></span>FB84</td>
+<td class="instruction">JR <a href="64131.html#64392">MEET_DECOY_18</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_17</td>
+<td class="address-2"><span id="64390"></span>FB86</td>
+<td class="instruction">XOR $CC</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_18</td>
+<td class="address-2"><span id="64392"></span>FB88</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_19</td>
+<td class="address-2"><span id="64395"></span>FB8B</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="1">Back again</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_20</td>
+<td class="address-2"><span id="64398"></span>FB8E</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="8">y and z together</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64399"></span>FB8F</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64401"></span>FB91</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64403"></span>FB93</td>
+<td class="instruction">JR NZ,<a href="64131.html#64437">MEET_DECOY_24</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64405"></span>FB95</td>
+<td class="instruction">CALL <a href="64540.html">STEP_ALONG_Y</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64408"></span>FB98</td>
+<td class="instruction">CALL <a href="64555.html">STEP_ALONG_Z</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64411"></span>FB9B</td>
+<td class="instruction">CALL <a href="64668.html">TEST_OTHER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64414"></span>FB9E</td>
+<td class="instruction">JR NC,<a href="64131.html#64434">MEET_DECOY_23</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64416"></span>FBA0</td>
+<td class="instruction">RES 1,C</td>
+<td class="comment-1" rowspan="8">Blocked: y out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64418"></span>FBA2</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64421"></span>FBA5</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64423"></span>FBA7</td>
+<td class="instruction">JR NZ,<a href="64131.html#64429">MEET_DECOY_21</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64425"></span>FBA9</td>
+<td class="instruction">AND $CF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64427"></span>FBAB</td>
+<td class="instruction">JR <a href="64131.html#64431">MEET_DECOY_22</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_21</td>
+<td class="address-2"><span id="64429"></span>FBAD</td>
+<td class="instruction">XOR $30</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_22</td>
+<td class="address-2"><span id="64431"></span>FBAF</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_23</td>
+<td class="address-2"><span id="64434"></span>FBB2</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="1">Back again</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_24</td>
+<td class="address-2"><span id="64437"></span>FBB5</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="4">All three still moving? Then only the whole move collides...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64438"></span>FBB6</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64440"></span>FBB8</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64442"></span>FBBA</td>
+<td class="instruction">JR NZ,<a href="64131.html#64464">MEET_DECOY_27</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64444"></span>FBBC</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="10">...so none of it is made</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64445"></span>FBBD</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64447"></span>FBBF</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64448"></span>FBC0</td>
+<td class="instruction">LD A,(<a href="65408.html#65521">WORK_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64451"></span>FBC3</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64453"></span>FBC5</td>
+<td class="instruction">JR NZ,<a href="64131.html#64459">MEET_DECOY_25</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64455"></span>FBC7</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64457"></span>FBC9</td>
+<td class="instruction">JR <a href="64131.html#64461">MEET_DECOY_26</a></td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_25</td>
+<td class="address-2"><span id="64459"></span>FBCB</td>
+<td class="instruction">XOR $FC</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_26</td>
+<td class="address-2"><span id="64461"></span>FBCD</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_27</td>
+<td class="address-2"><span id="64464"></span>FBD0</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">What is left of the move, the landing and door bits dropped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64465"></span>FBD1</td>
+<td class="instruction">AND $5F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64467"></span>FBD3</td>
+<td class="instruction">LD (<a href="65408.html#65531">STEP_AXES</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64470"></span>FBD6</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">No push after a landing or into a door</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64471"></span>FBD7</td>
+<td class="instruction">AND $A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64473"></span>FBD9</td>
+<td class="instruction">JR NZ,<a href="64131.html#64516">MEET_DECOY_28</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64475"></span>FBDB</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="3">Nor of a still thing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64478"></span>FBDE</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64480"></span>FBE0</td>
+<td class="instruction">JR Z,<a href="64131.html#64516">MEET_DECOY_28</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64482"></span>FBE2</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="6">Pushed if no more than 5 heavier than the mover</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64483"></span>FBE3</td>
+<td class="instruction">LD A,(<a href="65408.html#65524">WORK_WEIGHT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64486"></span>FBE6</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64488"></span>FBE8</td>
+<td class="instruction">ADD A,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64490"></span>FBEA</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64491"></span>FBEB</td>
+<td class="instruction">JR C,<a href="64131.html#64516">MEET_DECOY_28</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64493"></span>FBED</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="3">Coasting for the difference plus 6 passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64494"></span>FBEE</td>
+<td class="instruction">LD (IX+$0F),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64497"></span>FBF1</td>
+<td class="instruction">SET 7,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64501"></span>FBF5</td>
+<td class="instruction">LD A,(<a href="65408.html#65532">ASKED_DIRECTION</a>)</td>
+<td class="comment-1" rowspan="7">heading the way the mover asked to go, with its own bounce and rise bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64504"></span>FBF8</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64506"></span>FBFA</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64507"></span>FBFB</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64510"></span>FBFE</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64512"></span>FC00</td>
+<td class="instruction">OR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64513"></span>FC01</td>
+<td class="instruction">LD (IX+$12),A</td>
+</tr>
+<tr>
+<td class="asm-label">MEET_DECOY_28</td>
+<td class="address-2"><span id="64516"></span>FC04</td>
+<td class="instruction">JP <a href="63068.html#63157">TRY_STEP</a></td>
+<td class="comment-1" rowspan="1">Try what is left of the move again</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64121.html">FA79</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64131">Map</a></td>
+<td class="next">
+Next: <a href="64519.html">FC07</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

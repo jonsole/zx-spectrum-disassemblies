@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EDC6</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60865.html">EDC1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60870">Map</a></td>
+<td class="next">
+Next: <a href="61043.html">EE73</a>
+</td>
+</tr>
+</table>
+<div class="description">EDC6: Put the objects behind in drawing order, and draw them into pages $DA and $DB</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="60605.html">REDRAW_OBJECT</a>.
+</div>
+<div class="paragraph">
+Called by <a href="60605.html">REDRAW_OBJECT</a> when the list that <a href="60743.html">CULL_OBJECT</a> built at page $DA has something to draw (bit 1 of IY+$71). The list holds record numbers; IY+$7F the index of the last. Krumlinde's name for it is RTN_Sort_And_Draw_Sprites.
+</div>
+<div class="paragraph">
+First the list is sorted. For each place in turn, the entries after it are tested against the one there with <a href="61043.html">IS_IN_FRONT</a>; if one of them stands in front of it, the entry is taken out, the rest close up, it goes on the end, and whatever now fills its place is tested in turn. The list is drawn from the end back, so each object is drawn before anything in front of it. An isometric scene has no single depth to sort by, and three objects can each stand in front of the next; the fifty moves allowed at each place (IY+$7E) are what stop such a ring from sorting forever.
+</div>
+<div class="paragraph">
+Then the list is copied up to IY+$46, since the pages it lies in are about to be cleared -- thirty bytes whatever its length, over the printer's position and the room origin, which are wanted only while printing or drawing a room -- and drawn: each object's cover is ORed into page $DA and cleared out of page $DB (mode 4), and its image ORed into page $DB (mode 8). So page $DA ends up with where the objects behind cover the region, and page $DB with what they show, nearer over farther. In an ordinary pass the entries at the back of the list that are scenery or doors are skipped, because the clean copy the compositor starts from already shows them; from the first live object on everything is drawn, scenery included, since it has to cover that object. In the scenery pass everything is drawn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND</td>
+<td class="address-2"><span id="60870"></span>EDC6</td>
+<td class="instruction">LD HL,<a href="54932.html#55808">BUFFER_DA00</a></td>
+<td class="comment-1" rowspan="5">One entry: nothing to sort. IY+$74 counts the places still to settle</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60873"></span>EDC9</td>
+<td class="instruction">LD A,(<a href="65408.html#65535">RIDE_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60876"></span>EDCC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60877"></span>EDCD</td>
+<td class="instruction">LD (<a href="65408.html#65524">WORK_WEIGHT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60880"></span>EDD0</td>
+<td class="instruction">JR Z,<a href="60870.html#60950">SORT_AND_DRAW_BEHIND_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_0</td>
+<td class="address-2"><span id="60882"></span>EDD2</td>
+<td class="instruction">LD (IY+$7E),$32</td>
+<td class="comment-1" rowspan="1">At most fifty moves at this place</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_1</td>
+<td class="address-2"><span id="60886"></span>EDD6</td>
+<td class="instruction">LD B,(HL)</td>
+<td class="comment-1" rowspan="3">The record at this place, and its far corner</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60887"></span>EDD7</td>
+<td class="instruction">CALL <a href="60856.html">RECORD_FROM_NUMBER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60890"></span>EDDA</td>
+<td class="instruction">CALL <a href="61494.html">FAR_CORNER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60893"></span>EDDD</td>
+<td class="instruction">LD B,(IY+$74)</td>
+<td class="comment-1" rowspan="13">Test each entry after it; none in front: the place is settled</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60896"></span>EDE0</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_2</td>
+<td class="address-2"><span id="60897"></span>EDE1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60898"></span>EDE2</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60899"></span>EDE3</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60900"></span>EDE4</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60901"></span>EDE5</td>
+<td class="instruction">CALL <a href="60856.html">RECORD_FROM_NUMBER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60904"></span>EDE8</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60905"></span>EDE9</td>
+<td class="instruction">CALL <a href="61043.html">IS_IN_FRONT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60908"></span>EDEC</td>
+<td class="instruction">BIT 0,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60912"></span>EDF0</td>
+<td class="instruction">JR NZ,<a href="60870.html#60918">SORT_AND_DRAW_BEHIND_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60914"></span>EDF2</td>
+<td class="instruction">DJNZ <a href="60870.html#60897">SORT_AND_DRAW_BEHIND_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60916"></span>EDF4</td>
+<td class="instruction">JR <a href="60870.html#60943">SORT_AND_DRAW_BEHIND_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_3</td>
+<td class="address-2"><span id="60918"></span>EDF6</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="8">One is in front: take this entry out and close up the list...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60919"></span>EDF7</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60920"></span>EDF8</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60921"></span>EDF9</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60922"></span>EDFA</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60923"></span>EDFB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60924"></span>EDFC</td>
+<td class="instruction">LD BC,$001E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60927"></span>EDFF</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60929"></span>EE01</td>
+<td class="instruction">LD L,(IY+$7F)</td>
+<td class="comment-1" rowspan="3">...and put it on the end</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60932"></span>EE04</td>
+<td class="instruction">LD H,$DA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60934"></span>EE06</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60935"></span>EE07</td>
+<td class="instruction">DEC (IY+$7E)</td>
+<td class="comment-1" rowspan="4">Test what now fills the place, unless the moves are used up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60938"></span>EE0A</td>
+<td class="instruction">JR Z,<a href="60870.html#60943">SORT_AND_DRAW_BEHIND_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60940"></span>EE0C</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60941"></span>EE0D</td>
+<td class="instruction">JR <a href="60870.html#60886">SORT_AND_DRAW_BEHIND_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_4</td>
+<td class="address-2"><span id="60943"></span>EE0F</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="4">The next place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60944"></span>EE10</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60945"></span>EE11</td>
+<td class="instruction">DEC (IY+$74)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60948"></span>EE14</td>
+<td class="instruction">JR NZ,<a href="60870.html#60882">SORT_AND_DRAW_BEHIND_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_5</td>
+<td class="address-2"><span id="60950"></span>EE16</td>
+<td class="instruction">LD HL,<a href="54932.html#55808">BUFFER_DA00</a></td>
+<td class="comment-1" rowspan="4">Keep the list up at IY+$46, out of the pages about to be cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60953"></span>EE19</td>
+<td class="instruction">LD DE,<a href="65408.html#65478">DRAW_LIST</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60956"></span>EE1C</td>
+<td class="instruction">LD BC,$001E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60959"></span>EE1F</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60961"></span>EE21</td>
+<td class="instruction">LD HL,<a href="56031.html#56320">BUFFER_DC00</a></td>
+<td class="comment-1" rowspan="4">Clear pages $DA and $DB (512 bytes), and start at the last entry (IY+$7E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60964"></span>EE24</td>
+<td class="instruction">LD A,(<a href="65408.html#65535">RIDE_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60967"></span>EE27</td>
+<td class="instruction">LD (IY+$7E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60970"></span>EE2A</td>
+<td class="instruction">CALL <a href="61520.html">CLEAR_512_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60973"></span>EE2D</td>
+<td class="instruction">BIT 4,(IY+$17)</td>
+<td class="comment-1" rowspan="3">An ordinary pass: nothing is drawn until the first live object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60977"></span>EE31</td>
+<td class="instruction">JR NZ,<a href="60870.html#60983">SORT_AND_DRAW_BEHIND_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60979"></span>EE33</td>
+<td class="instruction">RES 1,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_6</td>
+<td class="address-2"><span id="60983"></span>EE37</td>
+<td class="instruction">LD H,$FF</td>
+<td class="comment-1" rowspan="6">The record at this index</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60985"></span>EE39</td>
+<td class="instruction">LD A,(<a href="65408.html#65534">DRAW_COUNT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60988"></span>EE3C</td>
+<td class="instruction">ADD A,$C6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60990"></span>EE3E</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60991"></span>EE3F</td>
+<td class="instruction">LD B,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60992"></span>EE40</td>
+<td class="instruction">CALL <a href="60856.html">RECORD_FROM_NUMBER</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60995"></span>EE43</td>
+<td class="instruction">BIT 1,(IY+$71)</td>
+<td class="comment-1" rowspan="10">Until then, skip scenery and doors; draw from the first live object on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60999"></span>EE47</td>
+<td class="instruction">JR NZ,<a href="60870.html#61021">SORT_AND_DRAW_BEHIND_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61001"></span>EE49</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61004"></span>EE4C</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61006"></span>EE4E</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61008"></span>EE50</td>
+<td class="instruction">JR Z,<a href="60870.html#61031">SORT_AND_DRAW_BEHIND_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61010"></span>EE52</td>
+<td class="instruction">LD A,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61013"></span>EE55</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61015"></span>EE57</td>
+<td class="instruction">JR Z,<a href="60870.html#61031">SORT_AND_DRAW_BEHIND_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61017"></span>EE59</td>
+<td class="instruction">SET 1,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_7</td>
+<td class="address-2"><span id="61021"></span>EE5D</td>
+<td class="instruction">LD A,$04</td>
+<td class="comment-1" rowspan="4">Its cover into page $DA, its image into page $DB</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61023"></span>EE5F</td>
+<td class="instruction">CALL <a href="61069.html">DRAW_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61026"></span>EE62</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61028"></span>EE64</td>
+<td class="instruction">CALL <a href="61069.html">DRAW_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label">SORT_AND_DRAW_BEHIND_8</td>
+<td class="address-2"><span id="61031"></span>EE67</td>
+<td class="instruction">LD A,(<a href="65408.html#65534">DRAW_COUNT</a>)</td>
+<td class="comment-1" rowspan="6">On to the first entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61034"></span>EE6A</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61035"></span>EE6B</td>
+<td class="instruction">LD (<a href="65408.html#65534">DRAW_COUNT</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61038"></span>EE6E</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61040"></span>EE70</td>
+<td class="instruction">JR NZ,<a href="60870.html#60983">SORT_AND_DRAW_BEHIND_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61042"></span>EE72</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60865.html">EDC1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60870">Map</a></td>
+<td class="next">
+Next: <a href="61043.html">EE73</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

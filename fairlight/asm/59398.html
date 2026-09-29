@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E806</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59314.html">E7B2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59398">Map</a></td>
+<td class="next">
+Next: <a href="59444.html">E834</a>
+</td>
+</tr>
+</table>
+<div class="description">E806: Fill a whole byte at once when nothing in it needs looking at pixel by pixel</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="59444.html">FILL_BYTE_TO_LEFT</a>.
+</div>
+<div class="paragraph">
+Jumped to from <a href="59444.html">FILL_BYTE_TO_LEFT</a> when the fill has just moved into a new byte. The whole byte is painted in one go only when nothing in it could change the fill's course: all eight pixels are clear in the clean copy, and each neighbouring row is the same all along the byte -- all clear if a run is open there (the run just goes on), all set if none is (none can open). Then all eight are marked in the clean copy, the texture's byte is written to the screen whole, and the loop goes on from the byte's left-hand pixel; the return address into <a href="59314.html">FILL_NEXT_PIXEL</a> is dropped so as to go straight to its top, ready for the next byte. Otherwise it returns and the byte is done pixel by pixel. On a room's big plain areas this paints eight pixels for about the work of one.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The byte below, in the clean copy</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_WHOLE_BYTE</td>
+<td class="address-2"><span id="59398"></span>E806</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">the row below, with no run open: go on only if all eight are set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59399"></span>E807</td>
+<td class="instruction">BIT 1,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59401"></span>E809</td>
+<td class="instruction">JR NZ,<a href="59398.html#59407">FILL_WHOLE_BYTE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59403"></span>E80B</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59404"></span>E80C</td>
+<td class="instruction">JR Z,<a href="59398.html#59409">FILL_WHOLE_BYTE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59406"></span>E80E</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_WHOLE_BYTE_0</td>
+<td class="address-2"><span id="59407"></span>E80F</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="2">with a run open: only if all eight are clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59408"></span>E810</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_WHOLE_BYTE_1</td>
+<td class="address-2"><span id="59409"></span>E811</td>
+<td class="instruction">LD HL,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="9">the row above, the same way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59412"></span>E814</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59413"></span>E815</td>
+<td class="instruction">BIT 0,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59415"></span>E817</td>
+<td class="instruction">JR NZ,<a href="59398.html#59421">FILL_WHOLE_BYTE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59417"></span>E819</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59418"></span>E81A</td>
+<td class="instruction">JR Z,<a href="59398.html#59423">FILL_WHOLE_BYTE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59420"></span>E81C</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_WHOLE_BYTE_2</td>
+<td class="address-2"><span id="59421"></span>E81D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59422"></span>E81E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_WHOLE_BYTE_3</td>
+<td class="address-2"><span id="59423"></span>E81F</td>
+<td class="instruction">LD HL,(<a href="65408.html#65531">STEP_AXES</a>)</td>
+<td class="comment-1" rowspan="4">this row: all eight must be clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59426"></span>E822</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59427"></span>E823</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59428"></span>E824</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59429"></span>E825</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="2">mark all eight done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59430"></span>E826</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59431"></span>E827</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">the texture's byte onto the screen whole</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59432"></span>E828</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59433"></span>E829</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59434"></span>E82A</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="4">the byte's left-hand pixel is the last one painted</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59435"></span>E82B</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59437"></span>E82D</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59438"></span>E82E</td>
+<td class="instruction">LD D,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59440"></span>E830</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="2">drop the return into <a href="59314.html">FILL_NEXT_PIXEL</a> and go on from its top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59441"></span>E831</td>
+<td class="instruction">JP <a href="59314.html">FILL_NEXT_PIXEL</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59314.html">E7B2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59398">Map</a></td>
+<td class="next">
+Next: <a href="59444.html">E834</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

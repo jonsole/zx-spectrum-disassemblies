@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EACC</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59547.html">E89B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60108">Map</a></td>
+<td class="next">
+Next: <a href="60186.html">EB1A</a>
+</td>
+</tr>
+</table>
+<div class="description">EACC: Put the object table's things for this room into its records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="59547.html">MORE_ROOM_COMMANDS</a>.
+</div>
+<div class="paragraph">
+Walks the whole object table (<a href="43300.html">OBJECTS</a>) and makes a record (<a href="60186.html">PLACE_OBJECT</a>) for every entry whose room is ROOM, in the table's order, from FREE_RECORD on. First every record from there to the end of the area (<a href="48292.html">RECORDS</a>; the clean copy begins where it ends) is cleared.
+</div>
+<div class="paragraph">
+An entry is a room, a type and four more bytes for a type below $46 -- the things, which can be moved and carried from room to room -- or nine for the rest (doors, walls and the like); $FF ends the table. A thing's record also gets its number in the table, counting from 1, at +19: the code that moves a thing to another room or into the knight's hands writes its new room into its entry by that number (<a href="62694.html">SET_THING_ROOM</a>). The number is a byte, which is enough because the 163 things come first.
+</div>
+<div class="paragraph">
+Called once in each drawing of a room, by <a href="59547.html">MORE_ROOM_COMMANDS</a>'s $E4 $04 or $E4 $05. The most records a room's drawing makes is 30 (room 71), besides the knight's and the five carried; the area has room for 43 (measured, in rooms 1-80).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_ROOM_OBJECTS</td>
+<td class="address-2"><span id="60108"></span>EACC</td>
+<td class="instruction">LD IX,(<a href="65408.html#65464">FREE_RECORD</a>)</td>
+<td class="comment-1" rowspan="13">clear the records from the next free one to the end of the area</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60112"></span>EAD0</td>
+<td class="instruction">LD HL,(<a href="65408.html#65464">FREE_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60115"></span>EAD3</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60117"></span>EAD5</td>
+<td class="instruction">LD DE,(<a href="65408.html#65464">FREE_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60121"></span>EAD9</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60122"></span>EADA</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60123"></span>EADB</td>
+<td class="instruction">LD HL,<a href="49152.html">LOADING_TUNE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60126"></span>EADE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60127"></span>EADF</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60129"></span>EAE1</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60130"></span>EAE2</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60131"></span>EAE3</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60132"></span>EAE4</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60134"></span>EAE6</td>
+<td class="instruction">LD HL,(<a href="65408.html#65466">OBJECT_TABLE_AT</a>)</td>
+<td class="comment-1" rowspan="2">from the start of the table, numbering the entries</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60137"></span>EAE9</td>
+<td class="instruction">LD (IY+$5B),$00</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_ROOM_OBJECTS_0</td>
+<td class="address-2"><span id="60141"></span>EAED</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="4">the entry's room; $FF ends the table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60142"></span>EAEE</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60143"></span>EAEF</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60145"></span>EAF1</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60146"></span>EAF2</td>
+<td class="instruction">INC (IY+$5B)</td>
+<td class="comment-1" rowspan="3">count it; this room?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60149"></span>EAF5</td>
+<td class="instruction">CP (IY+$34)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60152"></span>EAF8</td>
+<td class="instruction">JR Z,<a href="60108.html#60168">PLACE_ROOM_OBJECTS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60154"></span>EAFA</td>
+<td class="instruction">LD DE,$0005</td>
+<td class="comment-1" rowspan="7">no: past it, six bytes or eleven by its type</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60157"></span>EAFD</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60158"></span>EAFE</td>
+<td class="instruction">CP $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60160"></span>EB00</td>
+<td class="instruction">JR C,<a href="60108.html#60165">PLACE_ROOM_OBJECTS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60162"></span>EB02</td>
+<td class="instruction">LD DE,$000A</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_ROOM_OBJECTS_1</td>
+<td class="address-2"><span id="60165"></span>EB05</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60166"></span>EB06</td>
+<td class="instruction">JR <a href="60108.html#60141">PLACE_ROOM_OBJECTS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_ROOM_OBJECTS_2</td>
+<td class="address-2"><span id="60168"></span>EB08</td>
+<td class="instruction">CALL <a href="60186.html">PLACE_OBJECT</a></td>
+<td class="comment-1" rowspan="1">yes: make its record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60171"></span>EB0B</td>
+<td class="instruction">LD A,(<a href="65408.html#65498">PLACED_TYPE</a>)</td>
+<td class="comment-1" rowspan="6">a thing: its number in the table at +19</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60174"></span>EB0E</td>
+<td class="instruction">CP $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60176"></span>EB10</td>
+<td class="instruction">JR NC,<a href="60108.html#60141">PLACE_ROOM_OBJECTS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60178"></span>EB12</td>
+<td class="instruction">LD A,(<a href="65408.html#65499">PLACED_NUMBER</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60181"></span>EB15</td>
+<td class="instruction">LD (IX-$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60184"></span>EB18</td>
+<td class="instruction">JR <a href="60108.html#60141">PLACE_ROOM_OBJECTS_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="59547.html">E89B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60108">Map</a></td>
+<td class="next">
+Next: <a href="60186.html">EB1A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

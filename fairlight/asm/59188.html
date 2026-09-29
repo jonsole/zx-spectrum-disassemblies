@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E734</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58856.html">E5E8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59188">Map</a></td>
+<td class="next">
+Next: <a href="59314.html">E7B2</a>
+</td>
+</tr>
+</table>
+<div class="description">E734: Fill the next run of a flood fill</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="59314.html">FILL_NEXT_PIXEL</a>.
+</div>
+<div class="paragraph">
+The textured flood fill of room codes $E6-$FF (<a href="58856.html">DO_ROOM_COMMAND</a>), with the machine stack as its list of places still to fill. A place is x, y in C, B (y up from the bottom), and the list ends at a word whose high byte is $FE, pushed before the first. The fill's map is the 6 KB 32 KB above the screen, laid out like it: the pixels set there bound the fill (room code $E4 $00 clears it and sends the lines there, and $E2 copies the screen there), and the fill sets there every pixel it fills. For each place taken off the list: if it is off the top or the bottom of the screen, or already set in the map, it is dropped; otherwise the fill goes right to the last clear pixel of its run, and from there fills leftwards a pixel at a time (<a href="59314.html">FILL_NEXT_PIXEL</a>), writing the texture's pixels to the screen, setting them in the map, and pushing a place in the row above or below each time a clear run begins there.
+</div>
+<div class="paragraph">
+This part sets up a run: the map addresses of its pixel and of the pixels above and below it (IY+$7B, IY+$7D, IY+$76), and the texture's two bytes for the row (B' the one for this byte, C' the other). A texture is 16 pixels by 16 rows, in four 8 by 8 cells: bytes 0-7 and 8-15 the left and right cells for the character rows in which y has bit 3 set, bytes 16-23 and 24-31 for the others; each cell's bytes run from the top of its character row. So the pattern lines up with the screen's character cells, and with the colours, whatever the area's shape.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED</td>
+<td class="address-2"><span id="59188"></span>E734</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="6">The next place; the end marker ends the fill; a place off the screen (y 192 or more, or below 0) is dropped.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59189"></span>E735</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59190"></span>E736</td>
+<td class="instruction">CP $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59192"></span>E738</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59193"></span>E739</td>
+<td class="instruction">CP $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59195"></span>E73B</td>
+<td class="instruction">JR NC,<a href="59188.html#59188">FILL_NEXT_SEED</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="59197"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="58856.html">DO_ROOM_COMMAND</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_SEED</td>
+<td class="address-2"><span id="59197"></span>E73D</td>
+<td class="instruction">CALL <a href="59492.html">BUFFER_PIXEL</a></td>
+<td class="comment-1" rowspan="3">FILL_SEED, where <a href="58856.html">DO_ROOM_COMMAND</a> starts: dropped if its pixel is set in the map (HL the byte, D the bit).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59200"></span>E740</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59201"></span>E741</td>
+<td class="instruction">JR NZ,<a href="59188.html#59188">FILL_NEXT_SEED</a></td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED_0</td>
+<td class="address-2"><span id="59203"></span>E743</td>
+<td class="instruction">AND (HL)</td>
+<td class="comment-1" rowspan="10">Go right to a set pixel, or to the screen's right edge (x back round to 0).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59204"></span>E744</td>
+<td class="instruction">JR NZ,<a href="59188.html#59217">FILL_NEXT_SEED_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59206"></span>E746</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59207"></span>E747</td>
+<td class="instruction">RRC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59209"></span>E749</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59210"></span>E74A</td>
+<td class="instruction">JR NC,<a href="59188.html#59203">FILL_NEXT_SEED_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59212"></span>E74C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59213"></span>E74D</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59214"></span>E74E</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59215"></span>E74F</td>
+<td class="instruction">JR NZ,<a href="59188.html#59203">FILL_NEXT_SEED_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED_1</td>
+<td class="address-2"><span id="59217"></span>E751</td>
+<td class="instruction">LD E,$00</td>
+<td class="comment-1" rowspan="5">Back one pixel, the run's last clear one; E: no run open above or below yet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59219"></span>E753</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59220"></span>E754</td>
+<td class="instruction">RLC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59222"></span>E756</td>
+<td class="instruction">JR NC,<a href="59188.html#59225">FILL_NEXT_SEED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59224"></span>E758</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED_2</td>
+<td class="address-2"><span id="59225"></span>E759</td>
+<td class="instruction">LD (<a href="65408.html#65531">STEP_AXES</a>),HL</td>
+<td class="comment-1" rowspan="4">Keep its map address; HL: its screen address.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59228"></span>E75C</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59229"></span>E75D</td>
+<td class="instruction">SUB $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59231"></span>E75F</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59232"></span>E760</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="11">The map address of the pixel above (y plus 1): the screen address a line up, worked out afresh across the top of a character row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59233"></span>E761</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59234"></span>E762</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59235"></span>E763</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59236"></span>E764</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59238"></span>E766</td>
+<td class="instruction">XOR $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59240"></span>E768</td>
+<td class="instruction">CALL Z,<a href="59465.html">PIXEL_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59243"></span>E76B</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59244"></span>E76C</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59246"></span>E76E</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59247"></span>E76F</td>
+<td class="instruction">LD (<a href="65408.html#65533">WORK_RECORD</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59250"></span>E772</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="12">And of the pixel below.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59251"></span>E773</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59252"></span>E774</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59253"></span>E775</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59254"></span>E776</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59255"></span>E777</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59257"></span>E779</td>
+<td class="instruction">CALL Z,<a href="59465.html">PIXEL_ADDRESS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59260"></span>E77C</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59261"></span>E77D</td>
+<td class="instruction">ADD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59263"></span>E77F</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59264"></span>E780</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59265"></span>E781</td>
+<td class="instruction">LD (<a href="65408.html#65526">WORK_HEADING</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59268"></span>E784</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="3">x, y into BC'.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59269"></span>E785</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59270"></span>E786</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59271"></span>E787</td>
+<td class="instruction">LD HL,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+<td class="comment-1" rowspan="12">HL': the texture's byte for this row of the left cell: the second half unless bit 3 of y is set, and the row within the character row, from the top.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59274"></span>E78A</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59275"></span>E78B</td>
+<td class="instruction">BIT 3,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59277"></span>E78D</td>
+<td class="instruction">JR NZ,<a href="59188.html#59281">FILL_NEXT_SEED_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59279"></span>E78F</td>
+<td class="instruction">LD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED_3</td>
+<td class="address-2"><span id="59281"></span>E791</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59282"></span>E792</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59283"></span>E793</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59284"></span>E794</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59285"></span>E795</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59287"></span>E797</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59288"></span>E798</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59289"></span>E799</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="10">C' the left cell's byte, B' the right's; swapped when bit 3 of x is clear, so that B' is this byte's.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59290"></span>E79A</td>
+<td class="instruction">LD C,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59291"></span>E79B</td>
+<td class="instruction">LD DE,$0008</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59294"></span>E79E</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59295"></span>E79F</td>
+<td class="instruction">LD B,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59296"></span>E7A0</td>
+<td class="instruction">BIT 3,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59298"></span>E7A2</td>
+<td class="instruction">JR NZ,<a href="59188.html#59303">FILL_NEXT_SEED_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59300"></span>E7A4</td>
+<td class="instruction">LD E,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59301"></span>E7A5</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59302"></span>E7A6</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label">FILL_NEXT_SEED_4</td>
+<td class="address-2"><span id="59303"></span>E7A7</td>
+<td class="instruction">LD E,B</td>
+<td class="comment-1" rowspan="7">E': this byte's; HL': the screen address; and on to fill leftwards.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59304"></span>E7A8</td>
+<td class="instruction">LD HL,(<a href="65408.html#65531">STEP_AXES</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59307"></span>E7AB</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59308"></span>E7AC</td>
+<td class="instruction">SUB $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59310"></span>E7AE</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59311"></span>E7AF</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="59312"></span>E7B0</td>
+<td class="instruction">JR <a href="59314.html#59325">FILL_THIS_PIXEL</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58856.html">E5E8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#59188">Map</a></td>
+<td class="next">
+Next: <a href="59314.html">E7B2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

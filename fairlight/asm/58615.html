@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E4F7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58340.html">E3E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58615">Map</a></td>
+<td class="next">
+Next: <a href="58715.html">E55B</a>
+</td>
+</tr>
+</table>
+<div class="description">E4F7: Move an object to a new position, and its sprite on the screen with it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="60236.html">PLACE_FROM_TEMPLATE</a>, <a href="62217.html">CREATURE_UPDATE</a>, <a href="63068.html">ANIMATE_AND_MOVE</a> and <a href="63428.html">BUMPED</a>.
+</div>
+<div class="paragraph">
+Krumlinde's RTN_Iso_Project. The new position is compared with the record's (+6 to +8), field by field, and the sprite's place on the screen (+0, +1) moved by the difference, projected: a step along +6 moves it one pixel right and half a row up, a step along +8 one pixel left and half a row up, and a step up in +7 (the height) one row up. So, give or take a constant, x is +6 less +8 and y is (+6 plus +8) / 2 plus +7, and the far corner of a room is at the top of the screen.
+</div>
+<div class="paragraph">
+Half rows are rounded towards zero, and C remembers whether +6's half was rounded: when both +6 and +8 move an odd amount the same way, the two halves make a whole row between them. An odd move along one axis alone would lose its half row, but the knight moves two at a step (measured, walking each way in the simulator: x by 2 and y by 1 a step).
+</div>
+<div class="paragraph">
+Called when an object is made for a room (<a href="60236.html">PLACE_FROM_TEMPLATE</a>, after setting its record to 50, its height plus 50, 50, the position its template's screen place is drawn for) and when things move (<a href="62217.html">CREATURE_UPDATE</a>, <a href="63068.html">ANIMATE_AND_MOVE</a>, <a href="63428.html">BUMPED</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object's record</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The new +6</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">The new +7 (the height of its top)</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The new +8</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE</td>
+<td class="address-2"><span id="58615"></span>E4F7</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="4">Keep H, the new +8; HL: the sprite's place on the screen, x and y.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58616"></span>E4F8</td>
+<td class="instruction">LD C,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58618"></span>E4FA</td>
+<td class="instruction">LD L,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58621"></span>E4FD</td>
+<td class="instruction">LD H,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58624"></span>E500</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="3">How far +6 moves (not at all: on to the height).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58625"></span>E501</td>
+<td class="instruction">SUB (IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58628"></span>E504</td>
+<td class="instruction">JR Z,<a href="58615.html#58659">ISO_MOVE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58630"></span>E506</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="6">Further: half of it, rounded down; bit 0 of C set if it was odd.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58631"></span>E507</td>
+<td class="instruction">JR C,<a href="58615.html#58641">ISO_MOVE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58633"></span>E509</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58635"></span>E50B</td>
+<td class="instruction">JR NC,<a href="58615.html#58651">ISO_MOVE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58637"></span>E50D</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58639"></span>E50F</td>
+<td class="instruction">JR <a href="58615.html#58651">ISO_MOVE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_0</td>
+<td class="address-2"><span id="58641"></span>E511</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="5">Back: half of it, rounded towards zero; bit 1 of C set if it was odd.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58643"></span>E513</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58645"></span>E515</td>
+<td class="instruction">JR NC,<a href="58615.html#58649">ISO_MOVE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58647"></span>E517</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_1</td>
+<td class="address-2"><span id="58649"></span>E519</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_2</td>
+<td class="address-2"><span id="58651"></span>E51B</td>
+<td class="instruction">ADD A,H</td>
+<td class="comment-1" rowspan="6">y up by the half, x right by the whole; the new +6.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58652"></span>E51C</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58653"></span>E51D</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58654"></span>E51E</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58655"></span>E51F</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58656"></span>E520</td>
+<td class="instruction">LD (IX+$06),B</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_3</td>
+<td class="address-2"><span id="58659"></span>E523</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="5">y up by the change in the height; the new +7.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58660"></span>E524</td>
+<td class="instruction">SUB (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58663"></span>E527</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58664"></span>E528</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58665"></span>E529</td>
+<td class="instruction">LD (IX+$07),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58668"></span>E52C</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="4">How far +8 moves.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58669"></span>E52D</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58670"></span>E52E</td>
+<td class="instruction">SUB (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58673"></span>E531</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58674"></span>E532</td>
+<td class="instruction">JR C,<a href="58615.html#58687">ISO_MOVE_4</a></td>
+<td class="comment-1" rowspan="7">Further: half of it, and a row more if +6 moved an odd amount the same way.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58676"></span>E534</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58678"></span>E536</td>
+<td class="instruction">JR NC,<a href="58615.html#58700">ISO_MOVE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58680"></span>E538</td>
+<td class="instruction">BIT 0,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58682"></span>E53A</td>
+<td class="instruction">JR Z,<a href="58615.html#58700">ISO_MOVE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58684"></span>E53C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58685"></span>E53D</td>
+<td class="instruction">JR <a href="58615.html#58700">ISO_MOVE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_4</td>
+<td class="address-2"><span id="58687"></span>E53F</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="7">Back: the same, the other way.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58689"></span>E541</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58691"></span>E543</td>
+<td class="instruction">JR NC,<a href="58615.html#58698">ISO_MOVE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58693"></span>E545</td>
+<td class="instruction">BIT 1,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58695"></span>E547</td>
+<td class="instruction">JR Z,<a href="58615.html#58698">ISO_MOVE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58697"></span>E549</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_5</td>
+<td class="address-2"><span id="58698"></span>E54A</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">ISO_MOVE_6</td>
+<td class="address-2"><span id="58700"></span>E54C</td>
+<td class="instruction">ADD A,H</td>
+<td class="comment-1" rowspan="5">y up by the half, x left by the whole.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58701"></span>E54D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58702"></span>E54E</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58703"></span>E54F</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58704"></span>E550</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58705"></span>E551</td>
+<td class="instruction">LD (IX+$08),D</td>
+<td class="comment-1" rowspan="4">The new +8, and the sprite's new place.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58708"></span>E554</td>
+<td class="instruction">LD (IX+$00),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58711"></span>E557</td>
+<td class="instruction">LD (IX+$01),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58714"></span>E55A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58340.html">E3E4</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58615">Map</a></td>
+<td class="next">
+Next: <a href="58715.html">E55B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

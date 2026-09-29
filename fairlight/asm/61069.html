@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EE8D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61043.html">EE73</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61069">Map</a></td>
+<td class="next">
+Next: <a href="61262.html">EF4E</a>
+</td>
+</tr>
+</table>
+<div class="description">EE8D: Draw an object's sprite into one of the region's buffers</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="60605.html">REDRAW_OBJECT</a>, <a href="60743.html">CULL_OBJECT</a> and <a href="60870.html">SORT_AND_DRAW_BEHIND</a>.
+</div>
+<div class="paragraph">
+The one routine that draws objects, and it never touches the screen: it draws the object at IX into a buffer the shape of the region being rebuilt -- a row one byte wider than the region's width in bytes (IY+$73), as many rows as the region is high, wrapping within its 256-byte page -- clipped to the region and shifted to the pixel. The compositor (<a href="58340.html">COMPOSITE_TO_SCREEN</a>) then makes the screen's bytes from the buffers. Krumlinde's name for it is RTN_Draw_Sprite.
+</div>
+<div class="paragraph">
+The mode in A says what is drawn where. Mode $80, for the object being redrawn (<a href="60605.html">REDRAW_OBJECT</a>): its mask, into page $D9, with three rows of $FF (nothing covered) above and below it. Mode 0, for an object in front of it (<a href="60743.html">CULL_OBJECT</a>): its cover -- the mask inverted, a bit set where the object shows -- ORed into page $D8. Modes 4 and 8, for the objects behind (<a href="60870.html">SORT_AND_DRAW_BEHIND</a>): the cover ORed into page $DA and cleared out of page $DB, and then the image ORed into page $DB. A sprite is its image and then its mask, each width/8 bytes by height rows (+2 and +3), so every mode but 8 starts one plane in.
+</div>
+<div class="paragraph">
+The setting up works out, in turn: which rows to draw -- skipping the sprite's rows above the region, or the buffer's rows above the sprite -- into IY+$75; the shift, x mod 8, written into the JR in <a href="61292.html">DRAW_SPRITE_ROWS</a> that jumps into its run of RRCAs, and the masks for the two parts of a shifted byte written into the three ANDs there; and which columns: a sprite starting left of the region is handled by <a href="61267.html">DRAW_SPRITE_CLIP_LEFT</a>, one starting inside it by moving the buffer pointer along (<a href="61262.html">DRAW_SPRITE_SKIP_COLUMNS</a>). Then <a href="61292.html">DRAW_SPRITE_ROWS</a> draws.
+</div>
+<div class="paragraph">
+The bits of C, besides the mode's: bit 4, the sprite starts left of the region; bit 5, the first column only primes the spill and is not written; bit 6, no spill column after the last, because the sprite is on a byte boundary or is cut by the region's right edge.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The mode: $80, 0, 4 or 8</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE</td>
+<td class="address-2"><span id="61069"></span>EE8D</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="9">The sprite's width in bytes, kept at IY+$78</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61070"></span>EE8E</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61071"></span>EE8F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61072"></span>EE90</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61075"></span>EE93</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61077"></span>EE95</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61079"></span>EE97</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61081"></span>EE99</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61082"></span>EE9A</td>
+<td class="instruction">LD (<a href="65408.html#65528">FOUND_RECORD</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61085"></span>EE9D</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">One plane's size: width times height</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_0</td>
+<td class="address-2"><span id="61086"></span>EE9E</td>
+<td class="instruction">ADD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61089"></span>EEA1</td>
+<td class="instruction">DJNZ <a href="61069.html#61086">DRAW_SPRITE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61091"></span>EEA3</td>
+<td class="instruction">LD H,(IX+$05)</td>
+<td class="comment-1" rowspan="7">The sprite; every mode but 8 draws the second plane, the mask</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61094"></span>EEA6</td>
+<td class="instruction">LD L,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61097"></span>EEA9</td>
+<td class="instruction">BIT 3,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61099"></span>EEAB</td>
+<td class="instruction">JR NZ,<a href="61069.html#61105">DRAW_SPRITE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61101"></span>EEAD</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61102"></span>EEAE</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61104"></span>EEB0</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_1</td>
+<td class="address-2"><span id="61105"></span>EEB1</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="1">DE: where to read from</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61106"></span>EEB2</td>
+<td class="instruction">LD A,(<a href="65408.html#65509">POINT_ROW</a>)</td>
+<td class="comment-1" rowspan="3">Does the sprite start above the region's top row?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61109"></span>EEB5</td>
+<td class="instruction">SUB (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61112"></span>EEB8</td>
+<td class="instruction">JR C,<a href="61069.html#61146">DRAW_SPRITE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61114"></span>EEBA</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="7">No: skip the buffer's rows above it (a count of 0 goes round 256 times and comes back to no rows)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61115"></span>EEBB</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_2</td>
+<td class="address-2"><span id="61116"></span>EEBC</td>
+<td class="instruction">ADD A,(IY+$73)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61119"></span>EEBF</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61120"></span>EEC0</td>
+<td class="instruction">DJNZ <a href="61069.html#61116">DRAW_SPRITE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61122"></span>EEC2</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61123"></span>EEC3</td>
+<td class="instruction">LD H,$D9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61125"></span>EEC5</td>
+<td class="instruction">LD A,(<a href="65408.html#65509">POINT_ROW</a>)</td>
+<td class="comment-1" rowspan="9">And draw down to the region's bottom, or the sprite's height if that is less</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61128"></span>EEC8</td>
+<td class="instruction">SUB (IY+$67)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61131"></span>EECB</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61132"></span>EECC</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61135"></span>EECF</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61136"></span>EED0</td>
+<td class="instruction">CP (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61139"></span>EED3</td>
+<td class="instruction">JR C,<a href="61069.html#61175">DRAW_SPRITE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61141"></span>EED5</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61144"></span>EED8</td>
+<td class="instruction">JR <a href="61069.html#61175">DRAW_SPRITE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_3</td>
+<td class="address-2"><span id="61146"></span>EEDA</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="11">Yes: skip the sprite's rows above the region</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61147"></span>EEDB</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61148"></span>EEDC</td>
+<td class="instruction">LD B,(IY+$78)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61151"></span>EEDF</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61152"></span>EEE0</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_4</td>
+<td class="address-2"><span id="61153"></span>EEE1</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61154"></span>EEE2</td>
+<td class="instruction">DJNZ <a href="61069.html#61153">DRAW_SPRITE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61156"></span>EEE4</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61158"></span>EEE6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61159"></span>EEE7</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61160"></span>EEE8</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61161"></span>EEE9</td>
+<td class="instruction">LD HL,<a href="54932.html#55552">BUFFER_D900</a></td>
+<td class="comment-1" rowspan="6">And draw from the buffer's top down to the sprite's bottom</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61164"></span>EEEC</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61167"></span>EEEF</td>
+<td class="instruction">SUB (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61170"></span>EEF2</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61171"></span>EEF3</td>
+<td class="instruction">LD A,(<a href="65408.html#65509">POINT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61174"></span>EEF6</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_5</td>
+<td class="address-2"><span id="61175"></span>EEF7</td>
+<td class="instruction">LD (IY+$75),A</td>
+<td class="comment-1" rowspan="1">The rows to draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61178"></span>EEFA</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="4">7 minus (x mod 8) into the JR's displacement: that many of the seven RRCAs are jumped over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61181"></span>EEFD</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61182"></span>EEFE</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61184"></span>EF00</td>
+<td class="instruction">LD ($EFD1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61187"></span>EF03</td>
+<td class="instruction">CP $07</td>
+<td class="comment-1" rowspan="3">On a byte boundary: nothing spills into a next column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61189"></span>EF05</td>
+<td class="instruction">JR NZ,<a href="61069.html#61193">DRAW_SPRITE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61191"></span>EF07</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_6</td>
+<td class="address-2"><span id="61193"></span>EF09</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="6">A mask of the low 8 minus (x mod 8) bits: the part of a shifted byte that stays in its column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61194"></span>EF0A</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61195"></span>EF0B</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_7</td>
+<td class="address-2"><span id="61196"></span>EF0C</td>
+<td class="instruction">SCF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61197"></span>EF0D</td>
+<td class="instruction">RLA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61198"></span>EF0E</td>
+<td class="instruction">DJNZ <a href="61069.html#61196">DRAW_SPRITE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61200"></span>EF10</td>
+<td class="instruction">LD ($EFF4),A</td>
+<td class="comment-1" rowspan="4">Into the two ANDs that keep it, and its complement into the one that keeps the spill</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61203"></span>EF13</td>
+<td class="instruction">LD ($EFE3),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61206"></span>EF16</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61207"></span>EF17</td>
+<td class="instruction">LD ($F008),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61210"></span>EF1A</td>
+<td class="instruction">LD A,(<a href="65408.html#65508">POINT</a>)</td>
+<td class="comment-1" rowspan="9">Columns from the region's left byte to the sprite's; bit 4 if the sprite starts left of it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61213"></span>EF1D</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61215"></span>EF1F</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61216"></span>EF20</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61219"></span>EF23</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61221"></span>EF25</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61222"></span>EF26</td>
+<td class="instruction">JR NC,<a href="61069.html#61228">DRAW_SPRITE_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61224"></span>EF28</td>
+<td class="instruction">SET 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61226"></span>EF2A</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_SPRITE_8</td>
+<td class="address-2"><span id="61228"></span>EF2C</td>
+<td class="instruction">SRL A</td>
+<td class="comment-1" rowspan="6">In bytes; starting left: <a href="61267.html">DRAW_SPRITE_CLIP_LEFT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61230"></span>EF2E</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61232"></span>EF30</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61234"></span>EF32</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61235"></span>EF33</td>
+<td class="instruction">BIT 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61237"></span>EF35</td>
+<td class="instruction">JR NZ,<a href="61267.html">DRAW_SPRITE_CLIP_LEFT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61239"></span>EF37</td>
+<td class="instruction">INC B</td>
+<td class="comment-1" rowspan="8">Starting inside: draw what fits before the region's right edge and its spare column, the spill cut off...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61240"></span>EF38</td>
+<td class="instruction">SET 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61242"></span>EF3A</td>
+<td class="instruction">SUB (IY+$73)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61245"></span>EF3D</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61247"></span>EF3F</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61248"></span>EF40</td>
+<td class="instruction">CP (IY+$78)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61251"></span>EF43</td>
+<td class="instruction">JR C,<a href="61262.html#61263">DRAW_SPRITE_SKIP_COLUMNS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61253"></span>EF45</td>
+<td class="instruction">JR Z,<a href="61262.html#61263">DRAW_SPRITE_SKIP_COLUMNS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61255"></span>EF47</td>
+<td class="instruction">LD A,(<a href="65408.html#65528">FOUND_RECORD</a>)</td>
+<td class="comment-1" rowspan="3">...or the whole width and the spill column after it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61258"></span>EF4A</td>
+<td class="instruction">RES 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61260"></span>EF4C</td>
+<td class="instruction">JR <a href="61262.html#61263">DRAW_SPRITE_SKIP_COLUMNS_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61043.html">EE73</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61069">Map</a></td>
+<td class="next">
+Next: <a href="61262.html">EF4E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

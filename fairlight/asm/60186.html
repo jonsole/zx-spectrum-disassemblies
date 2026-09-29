@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EB1A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60108.html">EACC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60186">Map</a></td>
+<td class="next">
+Next: <a href="60236.html">EB4C</a>
+</td>
+</tr>
+</table>
+<div class="description">EB1A: Make an object record from a type, a place and its template</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="58856.html">DO_ROOM_COMMAND</a> and <a href="60108.html">PLACE_ROOM_OBJECTS</a>.
+</div>
+<div class="paragraph">
+Makes the record at IX for an object whose type is at HL, from the type's template and the bytes that follow the type, and counts it in OBJECT_COUNT. It serves both the object table (<a href="60108.html">PLACE_ROOM_OBJECTS</a>) and the objects a room's own commands put down in object mode (<a href="58856.html">DO_ROOM_COMMAND</a>), which are written the same way as the table's things without the room.
+</div>
+<div class="paragraph">
+A type below $46 has an 11-byte template (<a href="46900.html">TEMPLATES</a>) and four bytes after it: +12 (the thing's kind, and whether it can be picked up), then its place, +6 to +8 (along the floor, the height of its top, across the floor). The template gives +0 to +5 (where its sprite goes on the screen, the sprite's size and the sprite), +9 to +11 (its length along, its height and its length across, each from the corner at +6 to +8) and two more bytes: +14, whose low nibble is the kind of movement the object dispatcher (<a href="61920.html">CHE3D</a>) acts on, and +16 (bits 0-4: 0 for an object that stays put, which the object dispatcher passes over, else 16 plus its weight, <a href="62762.html">PICK_UP_LOOK_ON</a>; bit 5 set while it is carried or gone).
+</div>
+<div class="paragraph">
+A type from $46 has a 9-byte template (LARGE_TEMPLATES, less $46) and nine bytes after it: the place, then six bytes for +13 to +18, which the door code reads (<a href="63428.html">BUMPED</a>). Its +12 is 1, the kind that the object dispatcher passes over. A room's commands only ever put down types below $46 -- they take five bytes each (<a href="58856.html">DO_ROOM_COMMAND</a>), which would not do for these.
+</div>
+<div class="paragraph">
+The template's screen position is right for an object standing at 50, 50 with its floor at 50, so the record is first given that place (the top is 50 plus the height) and <a href="58615.html">ISO_MOVE</a> moves it from there to the place asked for plus the origin, moving the screen position with it. Then a thing's movement gets its starting state by kind: +15 is 1, and +13 and +17 are set for kinds 3 and 4-10 (and for kind 2, which no template has, so that code never runs).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The type, followed by its bytes</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record to fill (FREE_RECORD)</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The byte after them</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The next record, which FREE_RECORD is left at</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_OBJECT</td>
+<td class="address-2"><span id="60186"></span>EB1A</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="2">the type, kept for <a href="60108.html">PLACE_ROOM_OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60187"></span>EB1B</td>
+<td class="instruction">LD (<a href="65408.html#65498">PLACED_TYPE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60190"></span>EB1E</td>
+<td class="instruction">RES 6,(IY+$7D)</td>
+<td class="comment-1" rowspan="5">a type from $46: +12 is 1, and bit 6 of IY+$7D says so below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60194"></span>EB22</td>
+<td class="instruction">CP $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60196"></span>EB24</td>
+<td class="instruction">JR C,<a href="60186.html#60206">PLACE_OBJECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60198"></span>EB26</td>
+<td class="instruction">LD (IX+$0C),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60202"></span>EB2A</td>
+<td class="instruction">SET 6,(IY+$7D)</td>
+</tr>
+<tr>
+<td class="asm-label">PLACE_OBJECT_0</td>
+<td class="address-2"><span id="60206"></span>EB2E</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="2">past the type; one more record in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60207"></span>EB2F</td>
+<td class="instruction">INC (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60210"></span>EB32</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="5">the templates for types below $46, 11 bytes each...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60212"></span>EB34</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60213"></span>EB35</td>
+<td class="instruction">LD DE,$000B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60216"></span>EB38</td>
+<td class="instruction">LD HL,<a href="46900.html">TEMPLATES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60219"></span>EB3B</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60220"></span>EB3C</td>
+<td class="instruction">BIT 6,(IY+$7D)</td>
+<td class="comment-1" rowspan="6">...or from $46, 9 bytes each</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60224"></span>EB40</td>
+<td class="instruction">JR Z,<a href="60236.html#60237">PLACE_FROM_TEMPLATE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60226"></span>EB42</td>
+<td class="instruction">LD HL,<a href="46900.html#47530">LARGE_TEMPLATES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60229"></span>EB45</td>
+<td class="instruction">LD DE,$0009</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60232"></span>EB48</td>
+<td class="instruction">SUB $46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60234"></span>EB4A</td>
+<td class="instruction">JR <a href="60236.html#60237">PLACE_FROM_TEMPLATE_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60108.html">EACC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60186">Map</a></td>
+<td class="next">
+Next: <a href="60236.html">EB4C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

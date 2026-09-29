@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E55B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58615.html">E4F7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58715">Map</a></td>
+<td class="next">
+Next: <a href="58754.html">E582</a>
+</td>
+</tr>
+</table>
+<div class="description">E55B: Draw the room the knight is in</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="61541.html">TITLE_SCREEN</a> and <a href="64800.html">ROOMST</a>.
+</div>
+<div class="paragraph">
+Called by <a href="64800.html">ROOMST</a> for every room entered, and by <a href="61541.html">TITLE_SCREEN</a> for the title (room 79, put in IY+$34 for the purpose), for GAME OVER (room 1) and at the end of the quest (room 81). The flag that says the room's objects have been placed (bit 0 of IY+$3C) is cleared, so that its $E4 $04 or $E4 $05 places them once however many parts it draws; the room is found by walking the table at <a href="26800.html">ROOM1</a> from room 1, each record's first word its length; the drawing variables are set from <a href="58754.html">ROOM_DEFAULTS</a>; and the room is drawn from its colour byte on (<a href="58775.html">DRAW_ROOM_RECORD</a>).
+</div>
+<div class="paragraph">
+Stage 1 called it DRAW_ROOM_NUMBER, which reads as if it drew a number.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CURRENT_ROOM</td>
+<td class="address-2"><span id="58715"></span>E55B</td>
+<td class="instruction">RES 0,(IY+$3C)</td>
+<td class="comment-1" rowspan="1">Let the room place its objects again (<a href="59547.html">MORE_ROOM_COMMANDS</a>, room code $E4 $04 or $05).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58719"></span>E55F</td>
+<td class="instruction">LD HL,<a href="26800.html">ROOM1</a></td>
+<td class="comment-1" rowspan="11">Find the room's record: room n is the nth, each skipped by its length.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58722"></span>E562</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CURRENT_ROOM_0</td>
+<td class="address-2"><span id="58723"></span>E563</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58724"></span>E564</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58725"></span>E565</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58726"></span>E566</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58727"></span>E567</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58728"></span>E568</td>
+<td class="instruction">CP (IY+$34)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58731"></span>E56B</td>
+<td class="instruction">JR Z,<a href="58715.html#58736">DRAW_CURRENT_ROOM_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58733"></span>E56D</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58734"></span>E56E</td>
+<td class="instruction">JR <a href="58715.html#58723">DRAW_CURRENT_ROOM_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_CURRENT_ROOM_1</td>
+<td class="address-2"><span id="58736"></span>E570</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="4">IX: the room's colour byte, after the length.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58737"></span>E571</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58738"></span>E572</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58739"></span>E573</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58741"></span>E575</td>
+<td class="instruction">LD HL,<a href="58754.html">ROOM_DEFAULTS</a></td>
+<td class="comment-1" rowspan="4">The drawing variables' starting values, into IY+$5F to IY+$72.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58744"></span>E578</td>
+<td class="instruction">LD DE,<a href="65408.html#65503">ORIGIN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58747"></span>E57B</td>
+<td class="instruction">LD BC,$0014</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58750"></span>E57E</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58752"></span>E580</td>
+<td class="instruction">JR <a href="58775.html">DRAW_ROOM_RECORD</a></td>
+<td class="comment-1" rowspan="1">Draw it.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58615.html">E4F7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58715">Map</a></td>
+<td class="next">
+Next: <a href="58754.html">E582</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

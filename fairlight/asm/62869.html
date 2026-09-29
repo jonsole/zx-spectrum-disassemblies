@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F595</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62762.html">F52A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62869">Map</a></td>
+<td class="next">
+Next: <a href="63068.html">F65C</a>
+</td>
+</tr>
+</table>
+<div class="description">F595: The knight's controls: walk, jump or fight, and the frames they show</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+<div class="paragraph">
+Reached from KNIGHT_UPDATE (<a href="62217.html">CREATURE_UPDATE</a>) when a key other than the action keys is down, or the joystick has moved. The way to go comes from the joystick if it is on and moved, otherwise from the keyboard. A later test wins, so there is no diagonal walking: on the keyboard Q-T beats A-G beats H-ENTER beats Y-P, and on the joystick up beats down beats left beats right.
+</div>
+<div class="paragraph">
+A direction is a byte with one bit for each way, the same for every object (+13, +18, IY+$71, IY+$7C): bit 0 -- turn back when stopped (<a href="64131.html">MEET_DECOY</a> reverses the way rather than ending it); bit 1 -- rising: do not fall this pass; bit 2 -- down x; bit 3 -- up x (Y-P, joystick right); bit 4 -- up; bit 5 -- down (gravity); bit 6 -- up y (Q-T, joystick up); bit 7 -- down y. On the screen, going up x moves up and to the right, and going up y moves up and to the left. A step is two units along one axis, or one along each of x and y for a diagonal; up or down is always two.
+</div>
+<div class="paragraph">
+The author's I88, with the author's own labels from the source text left at <a href="24956.html">SOURCE_AND_STACK</a> for most of its tests. INP5 then turns the knight to face the way he goes (<a href="61719.html">MIMAN</a> mirrors all his frames, and sets bits 5 and 6 of his state: <a href="61849.html">FACING</a> has which is which). Mid-jump (state 5, from <a href="61920.html">CHE3D</a>) he just walks on. Otherwise SPACE or SYMBOL SHIFT jumps: up for 8 passes of two units, going the way he walked, then down (measured: from 78 to 94 and back). His state becomes 5 for the rise, keeping the facing bits; <a href="61920.html">CHE3D</a> counts the rise off and makes him 8 again, and he falls as anything does. B, N or M, or the joystick's fire, fights: the sword is out (bit 1 of IY+$17, which is what hurts a creature he meets, <a href="63833.html">OBJECTS_MEET</a>) for three passes, standing, and then away for three while he steps forward, the two frames facing the viewer or away (<a href="38624.html">SPRITE96E0</a> and <a href="38810.html">SPRITE979A</a>, <a href="38996.html">SPRITE9854</a> and <a href="39182.html">SPRITE990E</a>). Otherwise he walks, through three frames of his walk (<a href="37136.html">SPRITE9110</a> facing the viewer, <a href="37694.html">SPRITE933E</a> away).
+</div>
+<div class="paragraph">
+The author's ANIM, at the end, picks a frame from a run of them. +17 holds the frame (bits 0-2), the last frame of the run (bits 3-5) and bit 7 while going back. HL is the first frame and DE the size of one; the frame shown is HL + DE times the frame. The run goes forward to the last and then back, but it goes back by jumping to frame 1: measured, a run of three goes 0, 1, 2, 1, 0, 1, 2 ..., but one of four goes 0, 1, 2, 3, 1, 0 and one of two 0, 1, 1, 0. Every run the game uses is three frames. The rest of it is at <a href="63068.html">ANIMATE_AND_MOVE</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The knight's state, +14</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The way to go by default (1: standing)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">His record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS</td>
+<td class="address-2"><span id="62869"></span>F595</td>
+<td class="instruction">CALL <a href="61670.html">IN31</a></td>
+<td class="comment-1" rowspan="2">The author's I88. The joystick, if it is on; otherwise the keyboard</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62872"></span>F598</td>
+<td class="instruction">JR Z,<a href="62869.html#62899">WALK_KEYS</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62874"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">STICK_DIRECTION</td>
+<td class="address-2"><span id="62874"></span>F59A</td>
+<td class="instruction">RRA</td>
+<td class="comment-1" rowspan="3">The author's I89 (the source's I82 to I85 are the next four tests). Right: up x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62875"></span>F59B</td>
+<td class="instruction">JR NC,<a href="62869.html#62879">KNIGHT_CONTROLS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62877"></span>F59D</td>
+<td class="instruction">LD C,$08</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_0</td>
+<td class="address-2"><span id="62879"></span>F59F</td>
+<td class="instruction">RRA</td>
+<td class="comment-1" rowspan="3">Left: down x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62880"></span>F5A0</td>
+<td class="instruction">JR NC,<a href="62869.html#62884">KNIGHT_CONTROLS_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62882"></span>F5A2</td>
+<td class="instruction">LD C,$04</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_1</td>
+<td class="address-2"><span id="62884"></span>F5A4</td>
+<td class="instruction">RRA</td>
+<td class="comment-1" rowspan="3">Down: down y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62885"></span>F5A5</td>
+<td class="instruction">JR NC,<a href="62869.html#62889">KNIGHT_CONTROLS_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62887"></span>F5A7</td>
+<td class="instruction">LD C,$80</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_2</td>
+<td class="address-2"><span id="62889"></span>F5A9</td>
+<td class="instruction">RRA</td>
+<td class="comment-1" rowspan="3">Up: up y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62890"></span>F5AA</td>
+<td class="instruction">JR NC,<a href="62869.html#62894">KNIGHT_CONTROLS_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62892"></span>F5AC</td>
+<td class="instruction">LD C,$40</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_3</td>
+<td class="address-2"><span id="62894"></span>F5AE</td>
+<td class="instruction">RRA</td>
+<td class="comment-1" rowspan="2">Fire: fight, at once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62895"></span>F5AF</td>
+<td class="instruction">JR C,<a href="62869.html#62963">KNIGHT_FIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62897"></span>F5B1</td>
+<td class="instruction">JR <a href="62869.html#62935">KNIGHT_TURN</a></td>
+<td class="comment-1" rowspan="1">Walk</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62899"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">WALK_KEYS</td>
+<td class="address-2"><span id="62899"></span>F5B3</td>
+<td class="instruction">LD A,$DF</td>
+<td class="comment-1" rowspan="4">The author's I80 (INP2 to INP4 are the next three tests). Y-P: up x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62901"></span>F5B5</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62904"></span>F5B8</td>
+<td class="instruction">JR Z,<a href="62869.html#62908">KNIGHT_CONTROLS_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62906"></span>F5BA</td>
+<td class="instruction">LD C,$08</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_4</td>
+<td class="address-2"><span id="62908"></span>F5BC</td>
+<td class="instruction">LD A,$BF</td>
+<td class="comment-1" rowspan="4">H-ENTER: down x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62910"></span>F5BE</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62913"></span>F5C1</td>
+<td class="instruction">JR Z,<a href="62869.html#62917">KNIGHT_CONTROLS_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62915"></span>F5C3</td>
+<td class="instruction">LD C,$04</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_5</td>
+<td class="address-2"><span id="62917"></span>F5C5</td>
+<td class="instruction">LD A,$FD</td>
+<td class="comment-1" rowspan="4">A-G: down y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62919"></span>F5C7</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62922"></span>F5CA</td>
+<td class="instruction">JR Z,<a href="62869.html#62926">KNIGHT_CONTROLS_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62924"></span>F5CC</td>
+<td class="instruction">LD C,$80</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_6</td>
+<td class="address-2"><span id="62926"></span>F5CE</td>
+<td class="instruction">LD A,$FB</td>
+<td class="comment-1" rowspan="4">Q-T: up y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62928"></span>F5D0</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62931"></span>F5D3</td>
+<td class="instruction">JR Z,<a href="62869.html#62935">KNIGHT_TURN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62933"></span>F5D5</td>
+<td class="instruction">LD C,$40</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62935"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_TURN</td>
+<td class="address-2"><span id="62935"></span>F5D7</td>
+<td class="instruction">CALL <a href="61719.html">MIMAN</a></td>
+<td class="comment-1" rowspan="1">The author's INP5 (<a href="61920.html">CHE3D</a> comes here mid-jump). Turn his frames to face the way he goes; HL = his walking frames facing the viewer (<a href="37136.html">SPRITE9110</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62938"></span>F5DA</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="4">Facing away: the walk at <a href="37694.html">SPRITE933E</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62939"></span>F5DB</td>
+<td class="instruction">BIT 6,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62941"></span>F5DD</td>
+<td class="instruction">JR NZ,<a href="62869.html#62946">KNIGHT_CONTROLS_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62943"></span>F5DF</td>
+<td class="instruction">LD HL,<a href="37694.html">SPRITE933E</a></td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_7</td>
+<td class="address-2"><span id="62946"></span>F5E2</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="3">Mid-jump (state 5): just walk on through the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62948"></span>F5E4</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62950"></span>F5E6</td>
+<td class="instruction">JR Z,<a href="62869.html#63038">KNIGHT_CONTROLS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62952"></span>F5E8</td>
+<td class="instruction">LD A,$7F</td>
+<td class="comment-1" rowspan="3">None of SPACE, SYMBOL SHIFT, M, N and B: walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62954"></span>F5EA</td>
+<td class="instruction">CALL <a href="61663.html">INPUT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62957"></span>F5ED</td>
+<td class="instruction">JR Z,<a href="62869.html#63038">KNIGHT_CONTROLS_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62959"></span>F5EF</td>
+<td class="instruction">AND $03</td>
+<td class="comment-1" rowspan="2">SPACE or SYMBOL SHIFT: jump</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62961"></span>F5F1</td>
+<td class="instruction">JR NZ,<a href="62869.html#63017">KNIGHT_JUMP</a></td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_FIGHT</td>
+<td class="address-2"><span id="62963"></span>F5F3</td>
+<td class="instruction">LD HL,$0174</td>
+<td class="comment-1" rowspan="4">The author's INP59. B, N or M, or fire: fight. The frames <a href="38624.html">SPRITE96E0</a> facing the viewer, and 372 bytes on (<a href="38996.html">SPRITE9854</a>) facing away; C = the way he faces</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62966"></span>F5F6</td>
+<td class="instruction">LD (<a href="65408.html#65506">AWAY_FRAMES</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62969"></span>F5F9</td>
+<td class="instruction">LD HL,<a href="38624.html">SPRITE96E0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62972"></span>F5FC</td>
+<td class="instruction">CALL <a href="61849.html">FACING</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62975"></span>F5FF</td>
+<td class="instruction">BIT 1,(IY+$17)</td>
+<td class="comment-1" rowspan="2">Is his sword out?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62979"></span>F603</td>
+<td class="instruction">JR NZ,<a href="62869.html#62996">KNIGHT_CONTROLS_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62981"></span>F605</td>
+<td class="instruction">DEC (IX+$0F)</td>
+<td class="comment-1" rowspan="2">Not yet: the step forward, until +15 runs out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62984"></span>F608</td>
+<td class="instruction">JR NZ,<a href="62869.html#63011">KNIGHT_CONTROLS_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62986"></span>F60A</td>
+<td class="instruction">SET 1,(IY+$17)</td>
+<td class="comment-1" rowspan="3">Out with the sword, for three passes (this pass still steps)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62990"></span>F60E</td>
+<td class="instruction">LD (IX+$0F),$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62994"></span>F612</td>
+<td class="instruction">JR <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_8</td>
+<td class="address-2"><span id="62996"></span>F614</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="1">Sword out: stand</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62998"></span>F616</td>
+<td class="instruction">DEC (IX+$0F)</td>
+<td class="comment-1" rowspan="2">For three passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63001"></span>F619</td>
+<td class="instruction">JR NZ,<a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63003"></span>F61B</td>
+<td class="instruction">LD (IX+$0F),$03</td>
+<td class="comment-1" rowspan="2">Then away with it, three passes more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63007"></span>F61F</td>
+<td class="instruction">RES 1,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_9</td>
+<td class="address-2"><span id="63011"></span>F623</td>
+<td class="instruction">LD DE,$00BA</td>
+<td class="comment-1" rowspan="3">The stepping frame, one on from the other</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63014"></span>F626</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63015"></span>F627</td>
+<td class="instruction">JR <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_JUMP</td>
+<td class="address-2"><span id="63017"></span>F629</td>
+<td class="instruction">SET 4,C</td>
+<td class="comment-1" rowspan="2">Jump: up, and not falling, as well as the way he walks</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63019"></span>F62B</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63021"></span>F62D</td>
+<td class="instruction">LD (IX+$0F),$08</td>
+<td class="comment-1" rowspan="2">For 8 passes (+15), going this way (+18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63025"></span>F631</td>
+<td class="instruction">LD (IX+$12),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63028"></span>F634</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="5">State 5, rising, with his facing kept; show the first frame of the walk</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63029"></span>F635</td>
+<td class="instruction">AND $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63031"></span>F637</td>
+<td class="instruction">OR $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63033"></span>F639</td>
+<td class="instruction">LD (IY+$72),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63036"></span>F63C</td>
+<td class="instruction">JR <a href="63068.html#63095">SET_SPRITE_AND_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">KNIGHT_CONTROLS_10</td>
+<td class="address-2"><span id="63038"></span>F63E</td>
+<td class="instruction">LD DE,$00BA</td>
+<td class="comment-1" rowspan="2">Walk: frames 186 bytes apart; the sword is not out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63041"></span>F641</td>
+<td class="instruction">RES 1,(IY+$17)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63045"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="61920.html">CHE3D</a> and <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ANIM</td>
+<td class="address-2"><span id="63045"></span>F645</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1">The author's ANIM. Keep the way to go</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63046"></span>F646</td>
+<td class="instruction">LD A,(IX+$11)</td>
+<td class="comment-1" rowspan="5">C = +17; B = the frame, plus one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63049"></span>F649</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63050"></span>F64A</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63052"></span>F64C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63053"></span>F64D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63054"></span>F64E</td>
+<td class="instruction">BIT 7,C</td>
+<td class="comment-1" rowspan="2">Going forward: the next frame is this one plus one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63056"></span>F650</td>
+<td class="instruction">JR Z,<a href="63068.html#63069">ANIMATE_AND_MOVE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63058"></span>F652</td>
+<td class="instruction">SUB $02</td>
+<td class="comment-1" rowspan="2">Going back: this one less one...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63060"></span>F654</td>
+<td class="instruction">JR NC,<a href="63068.html#63069">ANIMATE_AND_MOVE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63062"></span>F656</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="3">...and at nought, the frame before is 1, going forward again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63064"></span>F658</td>
+<td class="instruction">RES 7,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63066"></span>F65A</td>
+<td class="instruction">JR <a href="63068.html#63069">ANIMATE_AND_MOVE_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62762.html">F52A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62869">Map</a></td>
+<td class="next">
+Next: <a href="63068.html">F65C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at C049</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49217.html">C041</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49225">Map</a></td>
+<td class="next">
+Next: <a href="49328.html">C0B0</a>
+</td>
+</tr>
+</table>
+<div class="description">C049: Play one note of the loading tune</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49152.html">LOADING_TUNE</a>.
+</div>
+<div class="paragraph">
+Both voices' next notes are taken and their pitches looked up. Unless both are resting, the note is played for 18 passes of 256 turns of a loop that sends a byte to the speaker's port twice a turn, one for each voice. Each voice keeps its own copy of the port byte (voice one's in A', voice two's in A) and its own countdown (E, and L), and toggles the speaker bit in its copy when the countdown runs out; so each is a square wave at its own pitch, and the two sound together. The two ways round the loop take the same time, 96 T-states (the JR Z that never jumps and the NOPs pad the shorter), so neither voice's pitch depends on the other's.
+</div>
+<div class="paragraph">
+Once both voices rest, it returns at once. That never ran in the sessions (the sounds page's runs reach it), and nor did the end of a note by way of the first DJNZ: which of the two ends a note depends only on voice two's countdown in the note's last turn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE</td>
+<td class="address-2"><span id="49225"></span>C049</td>
+<td class="instruction">LD HL,<a href="49178.html#49181">VOICE_ONE_AT</a></td>
+<td class="comment-1" rowspan="3">Voice one's next note.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49228"></span>C04C</td>
+<td class="instruction">CALL <a href="49190.html">TUNE_NEXT_NOTE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49231"></span>C04F</td>
+<td class="instruction">LD (<a href="49178.html">VOICE_ONE_NOTE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49234"></span>C052</td>
+<td class="instruction">LD HL,<a href="49178.html#49185">VOICE_TWO_AT</a></td>
+<td class="comment-1" rowspan="3">Voice two's.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49237"></span>C055</td>
+<td class="instruction">CALL <a href="49190.html">TUNE_NEXT_NOTE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49240"></span>C058</td>
+<td class="instruction">LD (<a href="49178.html#49179">VOICE_TWO_NOTE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49243"></span>C05B</td>
+<td class="instruction">LD HL,<a href="49178.html">VOICE_ONE_NOTE</a></td>
+<td class="comment-1" rowspan="3">Voice one's pitch, on the stack.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49246"></span>C05E</td>
+<td class="instruction">CALL <a href="49203.html">TUNE_PITCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49249"></span>C061</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49250"></span>C062</td>
+<td class="instruction">LD HL,<a href="49178.html#49179">VOICE_TWO_NOTE</a></td>
+<td class="comment-1" rowspan="3">Voice two's: H its pitch, L its countdown; D and E voice one's.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49253"></span>C065</td>
+<td class="instruction">CALL <a href="49203.html">TUNE_PITCH</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49256"></span>C068</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49257"></span>C069</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="6">Both resting: nothing to play.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49258"></span>C06A</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49260"></span>C06C</td>
+<td class="instruction">JR NZ,<a href="49225.html#49266">TUNE_PLAY_NOTE_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49262"></span>C06E</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49263"></span>C06F</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49265"></span>C071</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_0</td>
+<td class="address-2"><span id="49266"></span>C072</td>
+<td class="instruction">LD A,(<a href="49178.html#49189">NOTE_LENGTH</a>)</td>
+<td class="comment-1" rowspan="3">BC counts the note's turns: B 256 at a time, C up from $EE to 0.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49269"></span>C075</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49270"></span>C076</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49272"></span>C078</td>
+<td class="instruction">LD A,(<a href="49178.html#49180">TUNE_PORT</a>)</td>
+<td class="comment-1" rowspan="3">Both voices start from the same port byte: voice one's copy in A', voice two's in A.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49275"></span>C07B</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49276"></span>C07C</td>
+<td class="instruction">LD A,(<a href="49178.html#49180">TUNE_PORT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49279"></span>C07F</td>
+<td class="instruction">LD IXh,D</td>
+<td class="comment-1" rowspan="1">Voice one's pitch in IXh, to reload its countdown from.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49281"></span>C081</td>
+<td class="instruction">LD D,$10</td>
+<td class="comment-1" rowspan="1">D: the speaker bit (bit 4 of port $FE).</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_1</td>
+<td class="address-2"><span id="49283"></span>C083</td>
+<td class="instruction">NOP</td>
+<td class="comment-1" rowspan="2">Padding.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49284"></span>C084</td>
+<td class="instruction">NOP</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_2</td>
+<td class="address-2"><span id="49285"></span>C085</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="4">Voice one: its port byte out, and its countdown down; not run out, the other way round.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49286"></span>C086</td>
+<td class="instruction">DEC E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49287"></span>C087</td>
+<td class="instruction">OUT ($FE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49289"></span>C089</td>
+<td class="instruction">JR NZ,<a href="49225.html#49310">TUNE_PLAY_NOTE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49291"></span>C08B</td>
+<td class="instruction">LD E,IXh</td>
+<td class="comment-1" rowspan="2">Run out: reload it, and toggle voice one's speaker bit.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49293"></span>C08D</td>
+<td class="instruction">XOR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49294"></span>C08E</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="3">Voice two: its countdown down; not run out, out with its port byte as it is.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49295"></span>C08F</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49296"></span>C090</td>
+<td class="instruction">JP NZ,<a href="49225.html#49317">TUNE_PLAY_NOTE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_3</td>
+<td class="address-2"><span id="49299"></span>C093</td>
+<td class="instruction">OUT ($FE),A</td>
+<td class="comment-1" rowspan="3">Run out: out with voice two's port byte; reload its countdown and toggle its speaker bit.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49301"></span>C095</td>
+<td class="instruction">LD L,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49302"></span>C096</td>
+<td class="instruction">XOR D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49303"></span>C097</td>
+<td class="instruction">DJNZ <a href="49225.html#49283">TUNE_PLAY_NOTE_1</a></td>
+<td class="comment-1" rowspan="4">Next turn; next 256; the note is over.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49305"></span>C099</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49306"></span>C09A</td>
+<td class="instruction">JP NZ,<a href="49225.html#49285">TUNE_PLAY_NOTE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49309"></span>C09D</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_4</td>
+<td class="address-2"><span id="49310"></span>C09E</td>
+<td class="instruction">JR Z,<a href="49225.html#49310">TUNE_PLAY_NOTE_4</a></td>
+<td class="comment-1" rowspan="1">As long as the reload above, and never jumps: Z is clear here.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49312"></span>C0A0</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="3">Voice two: its countdown down; run out, go and toggle it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49313"></span>C0A1</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49314"></span>C0A2</td>
+<td class="instruction">JP Z,<a href="49225.html#49299">TUNE_PLAY_NOTE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">TUNE_PLAY_NOTE_5</td>
+<td class="address-2"><span id="49317"></span>C0A5</td>
+<td class="instruction">OUT ($FE),A</td>
+<td class="comment-1" rowspan="3">Out with voice two's port byte, and padding.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49319"></span>C0A7</td>
+<td class="instruction">NOP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49320"></span>C0A8</td>
+<td class="instruction">NOP</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49321"></span>C0A9</td>
+<td class="instruction">DJNZ <a href="49225.html#49283">TUNE_PLAY_NOTE_1</a></td>
+<td class="comment-1" rowspan="4">Next turn; next 256; the note is over.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49323"></span>C0AB</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49324"></span>C0AC</td>
+<td class="instruction">JP NZ,<a href="49225.html#49285">TUNE_PLAY_NOTE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49327"></span>C0AF</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49217.html">C041</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49225">Map</a></td>
+<td class="next">
+Next: <a href="49328.html">C0B0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Sounds: the loading tune</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="fairlight.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Sounds">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Fairlight" src="images/logo.png" /></a></td>
+<td class="page-header">Sounds: the loading tune</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Fairlight has one piece of music and no sound effects. The loading tune -- music by Mark Alexander, as <a href="https://spectrumcomputing.co.uk/entry/1712">ZXDB</a> credits it -- plays once over the loading screen, 52.59 s of it in two voices, until a key is pressed; from the title screen on the game makes no sound at all. No footsteps, no jumps, no blows, no doors, no pick-ups, no chime for a message: nothing.</p>
+<p>That is a finding, not an omission here, and it rests on two things. A 48K Spectrum makes sound only by an OUT to port $FE that changes its bit 4. The listing has three instructions that write a port, $C087, $C093, $C0A5, all of them in the tune's player <a href="asm/49225.html">TUNE_PLAY_NOTE</a>, and reaches the ROM only through CALL $028E at $C00F (in <a href="asm/49152.html">LOADING_TUNE</a>); CALL $22B0 at $E423 (in <a href="asm/58340.html">COMPOSITE_TO_SCREEN</a>) -- KEY-SCAN and PIXEL-ADD, neither of which writes a port; and interrupts are off from start-up on (<a href="asm/50300.html">START</a>), so the ROM's interrupt routine does not run (<em>read</em>). And the build's own nine play sessions, 34 minutes of emulated play between them -- every room entered and the keys tried in it, every door walked through, every thing picked up, used and dropped, everything in every room met, a game lost and the quest done -- were run again for this page with every OUT to any port logged: the only ones were the tune's, in the half-second each session lets it play before its first key (<em>measured</em>). Ville Krumlinde's <a href="https://github.com/VilleKrumlinde/FairlightZ80">disassembly</a> says the same of the game in play: his notes on the close-range strike observe that nothing in it outputs to port $FE. His snapshot was taken mid-game, after the room buffers had been written over the tune at $C000, so the tune itself is not in his listing.</p>
+<table class="kl-table">
+<tr><th>Session</th><th>Emulated</th><th>OUTs by the tune</th><th>Any other OUT</th></tr>
+<tr><td>keyboard</td><td>33 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>Kempston joystick</td><td>31 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>every room</td><td>944 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>every door</td><td>419 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>game over</td><td>22 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>the end of the quest</td><td>4 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>the quest done</td><td>6 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>too heavy</td><td>27 s</td><td>36,864</td><td>none</td></tr>
+<tr><td>meeting everything</td><td>542 s</td><td>36,864</td><td>none</td></tr>
+</table>
+<h3>The loading tune</h3>
+<div class="kl-item" id="tune">
+<h4>The loading tune, whole</h4>
+<p><a href="asm/50300.html">START</a>, the game's first instruction, calls <a href="asm/49152.html">LOADING_TUNE</a> while the loading screen is still up. It sets both voices to the start of the tune, turns interrupts off, and then plays a note (<a href="asm/49225.html">TUNE_PLAY_NOTE</a>) and calls the ROM's KEY-SCAN, over and over, until a key is down; the note under way finishes first, so a key stops the tune within an eighth of a second. Each voice has 418 notes, but the last 3 are rests in both, and a note both voices rest is not played at all (<a href="asm/49225.html">TUNE_PLAY_NOTE</a> returns at once), so 415 notes are heard. After them each voice goes back to its own last note, a rest (<a href="asm/49217.html">TUNE_RESTART_VOICE</a>), for ever: a player who waits hears the tune once and then silence, while the loop goes on reading the keyboard.</p>
+<p>Recorded: the game run from its first instruction in SkoolKit's simulator, no key held, stopped at TUNE_PLAY_NOTE's look-up of the two pitches ($C069) in each note and on to the next; from the call of <a href="asm/49152.html">LOADING_TUNE</a> to the first note both voices rest.</p>
+<p>Checked: all 415 notes were compared, edge by edge, with a model of <a href="asm/49225.html">TUNE_PLAY_NOTE</a>'s loop worked out from its instructions: each voice starting from TUNE_PORT's byte (0) with a countdown of 1; voice one's OUT 8 T-states into each 96-T-state turn and voice two's at 56; a turn of 97 at the end of each pass of 256 but the last; each voice's bit toggled when its countdown runs out. Every one of the 1,828,260 edges was where the model puts it, to the T-state. From one note's last OUT to the next note's first, 1,176 to 1,187 T-states: the ROM's KEY-SCAN and the next note's set-up. After the last note, a further second of the loop made no edge.</p>
+<p>52.59 s, 415 notes, 1,828,260 edges, 1013 Hz at the highest, 80 Hz at the lowest.</p>
+<audio controls preload="none" src="audio/tune.wav"><a href="audio/tune.wav">tune.wav</a></audio>
+</div>
+<h4>Two voices from one speaker</h4>
+<p>The speaker is one bit: on or off. <a href="asm/49225.html">TUNE_PLAY_NOTE</a> makes two voices of it by taking turns. Its loop runs 4,608 times a note, 96 T-states a time, and keeps two copies of the port byte, voice one's in A' and voice two's in A, each with its own countdown (E and L). Each turn it sends voice one's byte to port $FE, counts its countdown down and, if it has run out, reloads it from the voice's pitch and flips bit 4 in that voice's copy; 48 T-states later it does the same for voice two. So each voice is a square wave that flips every so many turns -- its pitch -- and the speaker spends the first half of every turn showing voice one's level and the second half voice two's. Where the voices agree the speaker stays put; where they differ it switches every 48 T-states, 36,458 times a second, far faster than the speaker cone or an ear can follow, and what is heard is the average: half. The result is the sum of the two square waves, each at half the volume -- a mix made in time rather than in voltage. For the mix to be fair both halves of the turn must be the same length whatever the countdowns do, and they are: the loop has two ways round (voice one's countdown run out or not), padded to 96 T-states each by two NOPs and a JR Z at $C09E that can never jump, and voice two's OUT comes at the same point on both.</p>
+<p><img class="fl-diagram" src="images/sounds/voices.png" width="1076" height="400" alt="The two voices' port bytes, the speaker and its average over a turn"></p>
+<p>Note 7 of the tune, drawn from its OUTs as the recording logged them: voice one on note +10 (a pitch of 72 turns, 253 Hz) and voice two on note +21 (38 turns, 480 Hz). In the upper panel the speaker row is solid where it switches too fast to draw; in the close-up each tick is an OUT, and the switching shows turn by turn. The lowest row is the speaker averaged over one turn, which is how the recordings on this page are rendered (below).</p>
+<p>A voice that rests is not silent: its pitch is 1, so it flips every turn, a square wave at 18.2 kHz, above most people's hearing. In the mix it is there at half volume like any other note. The two recordings below are the opening with one voice resting throughout.</p>
+<div class="kl-item" id="voice_one">
+<h4>Voice one alone (the first 64 notes)</h4>
+<p>Recorded: as the whole tune, with voice two's 418 note bytes poked to 41, a rest, before the game started, and stopped after 64 notes.</p>
+<p>Checked: all 64 notes were compared, edge by edge, with a model of <a href="asm/49225.html">TUNE_PLAY_NOTE</a>'s loop worked out from its instructions: each voice starting from TUNE_PORT's byte (0) with a countdown of 1; voice one's OUT 8 T-states into each 96-T-state turn and voice two's at 56; a turn of 97 at the end of each pass of 256 but the last; each voice's bit toggled when its countdown runs out. Every one of the 294,911 edges was where the model puts it, to the T-state. From one note's last OUT to the next note's first, 1,187 T-states: the ROM's KEY-SCAN and the next note's set-up.</p>
+<p>8.11 s, 294,911 edges.</p>
+<audio controls preload="none" src="audio/voice_one.wav"><a href="audio/voice_one.wav">voice_one.wav</a></audio>
+</div>
+<div class="kl-item" id="voice_two">
+<h4>Voice two alone (the first 64 notes)</h4>
+<p>Recorded: as the whole tune, with voice one's 418 note bytes poked to 41, a rest, before the game started, and stopped after 64 notes.</p>
+<p>Checked: all 64 notes (4 of them rests in both voices, which <a href="asm/49225.html">TUNE_PLAY_NOTE</a> skips at once) were compared, edge by edge, with a model of <a href="asm/49225.html">TUNE_PLAY_NOTE</a>'s loop worked out from its instructions: each voice starting from TUNE_PORT's byte (0) with a countdown of 1; voice one's OUT 8 T-states into each 96-T-state turn and voice two's at 56; a turn of 97 at the end of each pass of 256 but the last; each voice's bit toggled when its countdown runs out. Every one of the 276,480 edges was where the model puts it, to the T-state. From one note's last OUT to the next note's first, 1,176 to 2,233 T-states: the ROM's KEY-SCAN and the next note's set-up, with another KEY-SCAN for each note skipped.</p>
+<p>7.60 s, 276,480 edges.</p>
+<audio controls preload="none" src="audio/voice_two.wav"><a href="audio/voice_two.wav">voice_two.wav</a></audio>
+</div>
+<h4>The notes</h4>
+<p>The tune's data is <a href="asm/49328.html">TUNE_VOICES</a>. Its first eight bytes are two words for each voice: the address before its first note, which <a href="asm/49152.html">LOADING_TUNE</a> copies into the voice's pointer, VOICE_ONE_AT or VOICE_TWO_AT among <a href="asm/49178.html">the tune's variables</a>, and the address it goes back to after its end (its last note). Then the pitch table (TUNE_NOTES, offset 8, 54 bytes), then voice one's notes ended by $40, then voice two's, 418 each. A note is one byte, a signed number of semitones from -12 to 40 ($FB is -5), or 41 for a rest, and every note lasts the same time: there are no lengths, a held note is the same note written again, and both voices step on together a note at a time, so the two lists are read side by side. <a href="asm/49190.html">TUNE_NEXT_NOTE</a> takes a voice's next note and <a href="asm/49203.html">TUNE_PITCH</a> looks up its pitch, the byte at the note plus 12 in the table: the number of turns between two flips of the voice's bit. A wave is twice that, so a note of pitch P sounds at 3,500,000 / (192 P) Hz. A note lasts 18 passes of 256 turns (256 less NOTE_LENGTH, $EE), 442,385 T-states, and with the ROM's KEY-SCAN and the next note's set-up comes round every 0.1267 s -- 473 a minute.</p>
+<p>The pitches fall by about a semitone a step ($FF, $F0, $E3 ...), each close to 0.944 of the one before, and whoever made the table rounded them to whole turns, so the highest notes, where a turn is a large part of the wave, are the least exact (the top two, 12 and 13 turns, are 1.4 semitones apart). Against the equal-tempered scale on A = 440 Hz, notes -12 to +24 come out 30 to 61 cents (half of them 45 or more) above the nearest note of it below them here -- close to half a semitone sharp. That is the simulator's Spectrum, which never holds up an OUT; a real one's ULA holds up every OUT to port $FE made while it is drawing the screen, which stretches the turns and flattens every note by an amount this page does not measure (the emulator this project uses does not model the delay either).</p>
+<table class="kl-table">
+<tr><th>Note</th><th>Index</th><th>Pitch (turns)</th><th>Frequency</th><th>Scale note below it, cents above</th><th>Voice one plays it</th><th>Voice two</th></tr>
+<tr><td>-10</td><td>$02</td><td>227</td><td>80.3&nbsp;Hz</td><td>D&#35;2 +55</td><td>26</td><td>5</td></tr>
+<tr><td>-9</td><td>$03</td><td>215</td><td>84.8&nbsp;Hz</td><td>E2 +49</td><td>4</td><td></td></tr>
+<tr><td>-7</td><td>$05</td><td>192</td><td>94.9&nbsp;Hz</td><td>F&#35;2 +45</td><td>11</td><td></td></tr>
+<tr><td>-6</td><td>$06</td><td>180</td><td>101.3&nbsp;Hz</td><td>G2 +57</td><td>9</td><td></td></tr>
+<tr><td>-5</td><td>$07</td><td>171</td><td>106.6&nbsp;Hz</td><td>G&#35;2 +46</td><td>59</td><td>5</td></tr>
+<tr><td>-3</td><td>$09</td><td>151</td><td>120.7&nbsp;Hz</td><td>A&#35;2 +61</td><td>27</td><td>1</td></tr>
+<tr><td>-2</td><td>$0A</td><td>144</td><td>126.6&nbsp;Hz</td><td>B2 +43</td><td>28</td><td></td></tr>
+<tr><td>+0</td><td>$0C</td><td>128</td><td>142.4&nbsp;Hz</td><td>C&#35;3 +47</td><td>6</td><td></td></tr>
+<tr><td>+2</td><td>$0E</td><td>114</td><td>159.9&nbsp;Hz</td><td>D&#35;3 +48</td><td>27</td><td></td></tr>
+<tr><td>+3</td><td>$0F</td><td>108</td><td>168.8&nbsp;Hz</td><td>E3 +41</td><td>7</td><td></td></tr>
+<tr><td>+5</td><td>$11</td><td>96</td><td>189.9&nbsp;Hz</td><td>F&#35;3 +45</td><td>19</td><td></td></tr>
+<tr><td>+6</td><td>$12</td><td>91</td><td>200.3&nbsp;Hz</td><td>G3 +38</td><td>2</td><td></td></tr>
+<tr><td>+7</td><td>$13</td><td>86</td><td>212.0&nbsp;Hz</td><td>G&#35;3 +36</td><td>20</td><td></td></tr>
+<tr><td>+9</td><td>$15</td><td>76</td><td>239.9&nbsp;Hz</td><td>A&#35;3 +50</td><td>6</td><td></td></tr>
+<tr><td>+10</td><td>$16</td><td>72</td><td>253.2&nbsp;Hz</td><td>B3 +43</td><td>21</td><td></td></tr>
+<tr><td>+12</td><td>$18</td><td>64</td><td>284.8&nbsp;Hz</td><td>C&#35;4 +47</td><td>5</td><td></td></tr>
+<tr><td>+14</td><td>$1A</td><td>57</td><td>319.8&nbsp;Hz</td><td>D&#35;4 +48</td><td>1</td><td>13</td></tr>
+<tr><td>+15</td><td>$1B</td><td>54</td><td>337.6&nbsp;Hz</td><td>E4 +41</td><td>5</td><td>5</td></tr>
+<tr><td>+17</td><td>$1D</td><td>48</td><td>379.8&nbsp;Hz</td><td>F&#35;4 +45</td><td></td><td>18</td></tr>
+<tr><td>+18</td><td>$1E</td><td>45</td><td>405.1&nbsp;Hz</td><td>G4 +57</td><td>3</td><td>10</td></tr>
+<tr><td>+19</td><td>$1F</td><td>43</td><td>423.9&nbsp;Hz</td><td>G&#35;4 +36</td><td>11</td><td>93</td></tr>
+<tr><td>+21</td><td>$21</td><td>38</td><td>479.7&nbsp;Hz</td><td>A&#35;4 +50</td><td>6</td><td>76</td></tr>
+<tr><td>+22</td><td>$22</td><td>36</td><td>506.4&nbsp;Hz</td><td>B4 +43</td><td>9</td><td>72</td></tr>
+<tr><td>+24</td><td>$24</td><td>32</td><td>569.7&nbsp;Hz</td><td>C&#35;5 +47</td><td>1</td><td>25</td></tr>
+<tr><td>+26</td><td>$26</td><td>28</td><td>651.0&nbsp;Hz</td><td>D&#35;5 +78</td><td>1</td><td>49</td></tr>
+<tr><td>+27</td><td>$27</td><td>27</td><td>675.2&nbsp;Hz</td><td>E5 +41</td><td></td><td>9</td></tr>
+<tr><td>+29</td><td>$29</td><td>24</td><td>759.5&nbsp;Hz</td><td>F&#35;5 +45</td><td>1</td><td>12</td></tr>
+<tr><td>+30</td><td>$2A</td><td>23</td><td>792.6&nbsp;Hz</td><td>G5 +19</td><td>2</td><td></td></tr>
+<tr><td>+31</td><td>$2B</td><td>21</td><td>868.1&nbsp;Hz</td><td>G&#35;5 +76</td><td>3</td><td></td></tr>
+<tr><td>+33</td><td>$2D</td><td>19</td><td>959.4&nbsp;Hz</td><td>A&#35;5 +50</td><td>6</td><td></td></tr>
+<tr><td>+34</td><td>$2E</td><td>18</td><td>1,012.7&nbsp;Hz</td><td>B5 +43</td><td>4</td><td></td></tr>
+<tr><td>41 (rest)</td><td>$35</td><td>1</td><td>18,229.2&nbsp;Hz</td><td>--</td><td>85</td><td>22</td></tr>
+</table>
+<p><img class="fl-diagram" src="images/sounds/roll.png" width="948" height="438" alt="Both voices of the loading tune, note by note"></p>
+<p>The whole tune from its data, the first half above and the second below, a column for each of the 415 notes and a row for each semitone; a line every twelve semitones up from the lowest note, with its pitch. Voice two is the upper voice, from note -10 to +29 (22 rests); voice one ranges from -10 to +34 (85 rests): after two single notes it holds each note for eight, and then four, a slow bass up to note 66 (about 8 s), and then moves more often with rests between, rising above voice two in three places (at about 20, 36 and 41 s, 18 notes in all). The longest passage played twice is 27 notes long: notes 99 to 125 come again, both voices, as notes 355 to 381.</p>
+<h3>Never heard: the loader's warble</h3>
+<div class="kl-item" id="warble">
+<h4>The loading error</h4>
+<p><a href="asm/56521.html">LOADER_FAILURE</a> belongs to the loader, not the game: the Alkatraz loader jumps to it when the game's checksum does not match, which a good load never does, and it is left in memory only because the loader clears its own code and not this. It clears memory from itself down to $5B00, prints a request to rewind and reload the tape on the bottom line in flashing yellow, sets the border colour in BORDCR to black, and then warbles 233 times: the ROM's BEEPER with DE = 5 and HL = 1642, 6 waves at 261.7 Hz (C4 +1), then with DE = 4 and HL = 1029, 5 waves at 413.3 Hz (G&#35;4 -8); then RST 0 resets the machine.</p>
+<p>Recorded: the routine called on a machine of its own built from the snapshot, with the stack at $DADE in the loader's space (its real value at that point is not known; nothing in the routine depends on it) and the ROM's interrupt routine running, as it would once BEEPER turns interrupts on; from its first instruction to its RST 0.</p>
+<p>Checked: 466 calls of BEEPER, each DE + 1 waves with every half-wave 4 HL + 118 T-states (6,686 and 4,234), the timing worked out from BEEPER's instructions -- 5 T-states a wave less than the ROM's own comment on it (HL = 437500 / f - 30.125) implies. Each call's last wave is cut short: its off half ends when the next call's first OUT, which comes almost at once, turns the speaker on again, 307 to 328 T-states later.</p>
+<p>7.68 s (the clearing and printing included), 5,126 edges.</p>
+<audio controls preload="none" src="audio/warble.wav"><a href="audio/warble.wav">warble.wav</a></audio>
+</div>
+<h3>How these were recorded</h3>
+<p>Every recording is the game's own code running in SkoolKit's simulator, each change of bit 4 of port $FE logged to the T-state and rendered at 44100 Hz; nothing is synthesised. Each sample is the fraction of the 96 T-states centred on it (one turn of the tune's loop) that the speaker was on. Averaging over exactly one turn removes the 36 kHz switching between the voices completely, as the speaker would; SkoolKit's own writer averages over each sample's 79 T-states instead, and the switching then folds back into the audible range as a faint hiss near 7.5 kHz. The simulator has no contention, so on a real Spectrum everything here is a little slower and lower.</p>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

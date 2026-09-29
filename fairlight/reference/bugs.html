@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#numberless">Room 19's two things wreck a door in room 25</a></li>
+<li><a href="#freeze">Release 1: a jump while the creatures are frozen stops the knight for good</a></li>
+<li><a href="#decoy">A decoy on the floor hides the thing of kind 11</a></li>
+<li><a href="#stale">Two redraws read a record number after it has changed</a></li>
+</ul>
+<div><span id="numberless"></span></div>
+<div class="box box-1">
+<div class="box-title">Room 19's two things wreck a door in room 25</div>
+<div class="paragraph">
+Every thing the knight can carry from room to room has a number, its place in
+the object table (<a href="../asm/43300.html">OBJECTS</a>), and its record keeps it at +19 (<a href="../asm/60108.html">PLACE_ROOM_OBJECTS</a>). When a
+thing is picked up, dropped, stolen or destroyed, <a href="../asm/62694.html">SET_THING_ROOM</a> (the
+author's ROMM) finds its entry by counting six bytes a number from just below
+the table, with DJNZ; and when the knight leaves a room, <a href="../asm/63750.html">EEN</a> saves
+where each thing is the same way. Room 19's drawing places two things of its
+own -- kind 4 (used, they add ten to LIFE), bouncing, hurting at a touch, and
+able to be picked up -- which are not in the table and so have number 0. For
+them DJNZ goes round 256 times, and the byte written is 1536 bytes on: $AF1E,
+the third byte of an eleven-byte entry, the door from room 25 to room 21.
+Its x is 50.
+</div>
+<div class="paragraph">
+Run in the simulator (checked at every build): as the game starts, the knight
+put in that doorway and walked into it arrives in room 21. In room 19,
+put ten units short of one of the two things, X took it
+(LIFE unchanged), and $AF1E became $FE, the room
+SET_THING_ROOM gives a thing carried. The door's record in room 25 now had x
+254, far outside the room, and walking into the doorway left him in room
+25: the door no longer exists. Dropping the thing writes the room
+it is dropped in instead, so carried to room 50 and dropped there it put
+back the 50 the door had, and room 25's doorway led to room
+21 again. Carried out of room 29 by its door to room 30, its
+record -- a carried thing's record comes straight after the knight's -- came
+before the room's doors, so EEN wrote its position (100, 76, 130) over the next three bytes of the same entry: the
+door's destination, its key and the x the knight arrives at became
+100, 76, 130. From then on the door, wherever its x, leads to room
+100, which does not exist, and wants thing 76 as its key.
+</div>
+<div class="paragraph">
+<div><img class="kl-scene" src="../images/reference/room19.png" alt="Room 19 just after one of its own things has been picked up: it shows in the panel's box"/></div>
+<div><img class="kl-scene" src="../images/reference/room25.png" alt="Room 25 afterwards: the knight at the room's near edge, the way to room 21, and unable to go on"/></div>
+They are the only numberless things that can be carried: every room 2 to 80
+was entered in the simulator (at every build) and every record read, and no
+other record with a sprite and number 0 can be picked up, stolen by the ghost
+or destroyed with a wraith, the three ways to SET_THING_ROOM. Reaching one is the only
+difficulty: it hurts at a touch, costing ten LIFE and vanishing
+(<a href="../asm/63833.html">OBJECTS_MEET</a>), and the pick-up's search reaches four units past the knight.
+The author may have met the same trouble once: the five bytes the pits'
+code jumps over (<a href="../asm/64116.html">SKIPPED_REMOVAL</a>) would have called SET_THING_ROOM for the knight,
+whose number is 0 too (read; why they are skipped is not known).
+</div>
+</div>
+<div><span id="freeze"></span></div>
+<div class="box box-2">
+<div class="box-title">Release 1: a jump while the creatures are frozen stops the knight for good</div>
+<div class="paragraph">
+Using a thing of kind 5 freezes the creatures until the next room: <a href="../asm/65095.html">MAIN_LOOP</a>
+sets bit 7 of GAME_FLAGS, which only a room's entry clears (<a href="../asm/65045.html">DRAW_STILL_THINGS</a>). While
+it is set, <a href="../asm/61920.html">CHE3D</a> sends the knight's state, 8, to his controls
+($F3CD) and treats every other state as state 0, a thing lying still:
+only the fall. The knight's jump is state 5, counted down by its own case and
+ended by setting state 8 again. Release 2 lets state 5 through as well
+(CP 5 : JR NZ at $F263). Release 1 has JR I00 there: a jump that begins
+during the freeze is handled as a thing lying still, nothing counts it down,
+and state 8 never comes back. With no controls he cannot walk to another
+room, the only thing that ends the freeze.
+</div>
+<div class="paragraph">
+Run in the simulator (at every build), Release 2 as it is and with Release
+1's two bytes put in its place: in room 24 its thing of kind 5 was picked
+up and used (GAME_FLAGS $80), SPACE held for two passes, and the
+knight's state noted each pass for twenty. Release 2: 8 5 5 5 5 5 5 5 5 8 8 8 8 8 8 8 8 8 8 8,
+and then Q moved him 20 units in ten passes. Release 1's instruction:
+8 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5, and Q moved him 0. The same trial on
+Release 1 itself, loaded from its own tape, gave the same states. Ending the
+game with SYMBOL SHIFT and 0 is the way out (see
+<a href="facts.html#keys">the facts</a>); a new game starts with the freeze
+cleared. This is surely why Release 2 changed that instruction and no other
+in the object dispatcher (inferred; <a href="facts.html#releases">the
+facts</a> list what else changed).
+</div>
+</div>
+<div><span id="decoy"></span></div>
+<div class="box box-1">
+<div class="box-title">A decoy on the floor hides the thing of kind 11</div>
+<div class="paragraph">
+Each pass <a href="../asm/61920.html">CHE3D</a> notes, among the things lying still, the first decoy
+(kind 8, which the guards of state 9 go after) and whether a thing of kind 11
+lies in the room; room 61 waits for that thing -- its creature stays still and
+its one way out, a hole down to room 60, stays shut until it lies there
+($F3A1, <a href="../asm/63428.html">BUMPED</a>). The test for kind 11 (CP $0B at $F245) compares A, which holds
+the thing's kind only on the way in that has just found no decoy. Once a decoy
+is known, the other way in reaches the same CP with A holding the thing's
+state, 0 for anything lying still. So a thing of kind 11 whose record comes
+after a decoy's is never noticed. (With the creatures frozen, a wraith's state
+11 would pass the test instead; nothing the flag controls is affected by that
+outside room 61.)
+</div>
+<div class="paragraph">
+Run in the simulator (at every build): the decoy (thing 11, from room
+20) and the thing of kind 11 (thing 7, from room 14) fetched into two
+places, carried into room 61 and dropped there, place 1 first. A carried
+thing's record keeps its place's order, so the first place's thing is looked
+at first each pass. Decoy in place 1: THINGS_NOTED stayed
+$01 for forty passes, the creature moved 0 units, and the
+knight put on the hole stayed in room 61. The other way round:
+THINGS_NOTED $03, the creature, woken, moved 60
+units, and the hole took him to room 60. Picking the decoy up again
+clears the flags and puts things right. Only room 61 cares, and only a
+player who brings a decoy there and drops it before the thing of kind 11
+meets it.
+</div>
+</div>
+<div><span id="stale"></span></div>
+<div class="box box-2">
+<div class="box-title">Two redraws read a record number after it has changed</div>
+<div class="paragraph">
+FOUND_RECORD ($FFF8) holds the number of the record a search last met
+(<a href="../asm/64677.html">FIND_OBSTACLE</a>, the author's T+20); it is also where <a href="../asm/61069.html">DRAW_SPRITE</a> keeps a sprite's width
+in bytes while drawing it. Twice the game reads it as a record's number when
+something has been drawn since the search, so that it holds a width. <a href="../asm/63833.html">OBJECTS_MEET</a>, when a thing has vanished or a guard has
+become a helmet, finishes the mover's move -- redrawing the mover -- and then
+takes FOUND_RECORD as THIS_RECORD for redrawing the other ($FA0D); the
+pick-up (<a href="../asm/62762.html">PICK_UP_LOOK_ON</a>) redraws the knight stooping, then does the same for the thing
+it has taken ($F57E). THIS_RECORD is the one record <a href="../asm/60605.html">REDRAW_OBJECT</a> leaves out
+of a redraw, and a width in bytes is 1 to 6 -- no sprite is wider than 48
+pixels -- which is always one of the six fixed records the redraw never
+looks at anyway. So nothing is left out. A thing that has vanished or been
+taken is left out regardless (<a href="../asm/60743.html">CULL_OBJECT</a> skips a record whose bit 5 of +16 is
+set); a helmet is not, and is taken as lying in front of itself, so for one
+pass the screen keeps what it showed inside the helmet's shape.
+</div>
+<div class="paragraph">
+Run in the simulator (at every build): room 20's decoy picked up,
+FOUND_RECORD was 9 (the decoy's record) at TAKE_THING and THIS_RECORD was given
+3. In room 77, the knight fighting with B held until the guard's
+last strike: THIS_RECORD was given 3 for the helmet, record 8.
+Given 8 instead, the screen after the redraw differed in
+1 pixel, and after the next pass in 0: the helmet lies
+mostly behind the knight, where the old picture and the new one agree. Harmless
+in practice.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

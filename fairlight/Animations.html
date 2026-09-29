@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Animations</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="fairlight.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Animations">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Fairlight" src="images/logo.png" /></a></td>
+<td class="page-header">Animations</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>An object in Fairlight animates by changing the sprite its record points at (+4 and +5): every pass of the main loop the author's CHE3D (<a href="asm/61920.html">CHE3D</a>, going on at <a href="asm/62217.html">CREATURE_UPDATE</a>) updates each object in the room, chooses its frame -- from a run of three that his ANIM steps forward and back, 0, 1, 2, 1, or by what the object is doing -- moves it, and redraws it where it now stands. The knight, the troll and the wraith face four ways with two views, one of them turned round in memory whenever they change between a way drawn as stored and its mirror image (<a href="asm/61735.html">MITRO</a>); the guards have a set of frames for each way. Only the rectangle an object covers is redrawn, straight onto the screen (<a href="asm/60605.html">REDRAW_OBJECT</a>).</p>
+<p>Each animation below was made by running the game in SkoolKit's simulator when these pages were built: the tape's snapshot, the loading tune and the title passed with a key, and the room wanted entered the way a new game enters its first (TELE, in <a href="asm/61541.html">TITLE_SCREEN</a>). Where more was staged -- the knight put somewhere, a creature's place changed, something added to a room -- the animation says so. Each frame is the screen as a pass of the main loop left it. The main loop does not wait for the television (interrupts are off from <a href="asm/50300.html">START</a> on), so a pass lasts as long as its work -- about 30 to 100 ms in these rooms -- and each picture is shown for as long as the next pass took, counted in T-states at 3.5MHz; the simulator has none of a real Spectrum's memory contention, so the game runs a little faster here. A picture the same as the one before is merged into it. Where the game is between passes -- a room being drawn, the title, the end -- the screen was read once a television frame (69,888 T-states).</p>
+<p>The creatures are shown alone, the way the <a href="Sprites.html">Sprites</a> page shows a sprite. In runs made the same way, the creature's record and the bytes of the sprite it pointed at -- as they lay in memory, turned round or not -- were kept at the end of every pass, and drawn by themselves by the game's own <a href="asm/60605.html">REDRAW_OBJECT</a> and <a href="asm/58340.html">COMPOSITE_TO_SCREEN</a> on a spare machine, once over a clean copy of zeros and once over ones: a pixel set in the first is the image, one clear in the second the solid part of the mask. Every picture was checked against the sprite's bytes as the listing reads them, and the bytes against the tape's, as they are or turned round. White is the image, black the mask where the image is clear, the rest transparent, shown on the Sprites page's blue-grey. Each picture stands on its bottom left corner, and is shown for as long as its pass stayed on the screen. Where the way a creature faces changes its picture, its table has a GIF for each way.</p>
+<p>Under each: what it shows and how it was staged; what was measured in the run beside what the code says it should be; and the frames of the picture, with what each shows and for how long.</p>
+<h3>The knight</h3>
+<div class="kl-item" id="walk-upx">
+<h4>Walking up x</h4>
+<img class="kl-piece" src="images/animations/walk-upx.gif" alt="Walking up x" width="204" height="177">
+<p>He walks up x (Y-P): up and to the right on the screen, facing away from the viewer: <a href="asm/62869.html">KNIGHT_CONTROLS</a> shows his walk from <a href="asm/37136.html">SPRITE9110</a> (towards the viewer) or <a href="asm/37694.html">SPRITE933E</a> (away), three frames 186 bytes apart, stepped by the author's ANIM -- forward to the last and back, so 0, 1, 2, 1 and round again, a frame a pass -- and his frames are as the tape has them, not turned by <a href="asm/61719.html">MIMAN</a>, which mirrors all fourteen of his frames in memory when he turns between a way that is drawn as stored and one that is its mirror image. Each pass he steps two units, and <a href="asm/58615.html">ISO_MOVE</a> moves him on the screen by the projection of the step. In room 61, the knight put at a clear stretch of its floor, standing a pass and then walking for 16.</p>
+<p>Sprites: <a href="Sprites.html#sprite9110">$9110</a>, <a href="Sprites.html#sprite91ca">$91CA</a>, <a href="Sprites.html#sprite9284">$9284</a>, <a href="Sprites.html#sprite933e">$933E</a>, <a href="Sprites.html#sprite93f8">$93F8</a>, <a href="Sprites.html#sprite94b2">$94B2</a>.</p>
+<p>The walking frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; each step along x and y, in units: 2, 0, as the code says; each step on the screen, x and y in pixels: 2, 1, as the code says. Passes of 76-88 ms.</p>
+<p>In the picture: walking 1 (facing away), at 66,78,96 (80 ms); walking 0 (facing away), at 68,78,96 (80 ms); walking 1 (facing away), at 70,78,96 (80 ms); walking 2 (facing away), at 72,78,96 (80 ms); walking 1 (facing away), at 74,78,96 (80 ms); walking 0 (facing away), at 76,78,96 (80 ms); walking 1 (facing away), at 78,78,96 (90 ms); walking 2 (facing away), at 80,78,96 (90 ms); walking 1 (facing away), at 82,78,96 (80 ms); walking 0 (facing away), at 84,78,96 (80 ms); walking 1 (facing away), at 86,78,96 (80 ms); and so on. 17 frames, 1.4 s in all.</p>
+</div>
+<div class="kl-item" id="walk-upy">
+<h4>Walking up y</h4>
+<img class="kl-piece" src="images/animations/walk-upy.gif" alt="Walking up y" width="204" height="177">
+<p>He walks up y (Q-T): up and to the left, facing away from the viewer: <a href="asm/62869.html">KNIGHT_CONTROLS</a> shows his walk from <a href="asm/37136.html">SPRITE9110</a> (towards the viewer) or <a href="asm/37694.html">SPRITE933E</a> (away), three frames 186 bytes apart, stepped by the author's ANIM -- forward to the last and back, so 0, 1, 2, 1 and round again, a frame a pass -- and his frames are turned round from the tape's by <a href="asm/61719.html">MIMAN</a>, which mirrors all fourteen of his frames in memory when he turns between a way that is drawn as stored and one that is its mirror image. Each pass he steps two units, and <a href="asm/58615.html">ISO_MOVE</a> moves him on the screen by the projection of the step. In room 61, the knight put at a clear stretch of its floor, standing a pass and then walking for 16.</p>
+<p>Sprites: <a href="Sprites.html#sprite9110">$9110</a>, <a href="Sprites.html#sprite91ca">$91CA</a>, <a href="Sprites.html#sprite9284">$9284</a>, <a href="Sprites.html#sprite933e">$933E</a>, <a href="Sprites.html#sprite93f8">$93F8</a>, <a href="Sprites.html#sprite94b2">$94B2</a>.</p>
+<p>The walking frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; each step along x and y, in units: 0, 2, as the code says; each step on the screen, x and y in pixels: -2, 1, as the code says. Passes of 64-74 ms; the first, in which he turns round and <a href="asm/61719.html">MIMAN</a> turns all 28 of his planes over in memory, 213 ms.</p>
+<p>In the picture: walking 1 (facing away), at 140,78,66 (210 ms); walking 0 (facing away), at 140,78,68 (70 ms); walking 1 (facing away), at 140,78,70 (70 ms); walking 2 (facing away), at 140,78,72 (70 ms); walking 1 (facing away), at 140,78,74 (70 ms); walking 0 (facing away), at 140,78,76 (70 ms); walking 1 (facing away), at 140,78,78 (70 ms); walking 2 (facing away), at 140,78,80 (70 ms); walking 1 (facing away), at 140,78,82 (70 ms); walking 0 (facing away), at 140,78,84 (70 ms); walking 1 (facing away), at 140,78,86 (70 ms); and so on. 17 frames, 1.3 s in all.</p>
+</div>
+<div class="kl-item" id="walk-downx">
+<h4>Walking down x</h4>
+<img class="kl-piece" src="images/animations/walk-downx.gif" alt="Walking down x" width="204" height="177">
+<p>He walks down x (H-ENTER): down and to the left, facing towards the viewer: <a href="asm/62869.html">KNIGHT_CONTROLS</a> shows his walk from <a href="asm/37136.html">SPRITE9110</a> (towards the viewer) or <a href="asm/37694.html">SPRITE933E</a> (away), three frames 186 bytes apart, stepped by the author's ANIM -- forward to the last and back, so 0, 1, 2, 1 and round again, a frame a pass -- and his frames are turned round from the tape's by <a href="asm/61719.html">MIMAN</a>, which mirrors all fourteen of his frames in memory when he turns between a way that is drawn as stored and one that is its mirror image. Each pass he steps two units, and <a href="asm/58615.html">ISO_MOVE</a> moves him on the screen by the projection of the step. In room 61, the knight put at a clear stretch of its floor, standing a pass and then walking for 16.</p>
+<p>Sprites: <a href="Sprites.html#sprite9110">$9110</a>, <a href="Sprites.html#sprite91ca">$91CA</a>, <a href="Sprites.html#sprite9284">$9284</a>, <a href="Sprites.html#sprite933e">$933E</a>, <a href="Sprites.html#sprite93f8">$93F8</a>, <a href="Sprites.html#sprite94b2">$94B2</a>.</p>
+<p>The walking frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; each step along x and y, in units: -2, 0, as the code says; each step on the screen, x and y in pixels: -2, -1, as the code says. Passes of 64-80 ms; the first, in which he turns round and <a href="asm/61719.html">MIMAN</a> turns all 28 of his planes over in memory, 202 ms.</p>
+<p>In the picture: walking 1 (facing away), at 150,78,96 (200 ms); walking 0 (facing the viewer), at 148,78,96 (70 ms); walking 1 (facing the viewer), at 146,78,96 (70 ms); walking 2 (facing the viewer), at 144,78,96 (70 ms); walking 1 (facing the viewer), at 142,78,96 (60 ms); walking 0 (facing the viewer), at 140,78,96 (70 ms); walking 1 (facing the viewer), at 138,78,96 (70 ms); walking 2 (facing the viewer), at 136,78,96 (70 ms); walking 1 (facing the viewer), at 134,78,96 (60 ms); walking 0 (facing the viewer), at 132,78,96 (70 ms); walking 1 (facing the viewer), at 130,78,96 (70 ms); and so on. 17 frames, 1.3 s in all.</p>
+</div>
+<div class="kl-item" id="walk-downy">
+<h4>Walking down y</h4>
+<img class="kl-piece" src="images/animations/walk-downy.gif" alt="Walking down y" width="204" height="177">
+<p>He walks down y (A-G): down and to the right, facing towards the viewer: <a href="asm/62869.html">KNIGHT_CONTROLS</a> shows his walk from <a href="asm/37136.html">SPRITE9110</a> (towards the viewer) or <a href="asm/37694.html">SPRITE933E</a> (away), three frames 186 bytes apart, stepped by the author's ANIM -- forward to the last and back, so 0, 1, 2, 1 and round again, a frame a pass -- and his frames are as the tape has them, not turned by <a href="asm/61719.html">MIMAN</a>, which mirrors all fourteen of his frames in memory when he turns between a way that is drawn as stored and one that is its mirror image. Each pass he steps two units, and <a href="asm/58615.html">ISO_MOVE</a> moves him on the screen by the projection of the step. In room 61, the knight put at a clear stretch of its floor, standing a pass and then walking for 16.</p>
+<p>Sprites: <a href="Sprites.html#sprite9110">$9110</a>, <a href="Sprites.html#sprite91ca">$91CA</a>, <a href="Sprites.html#sprite9284">$9284</a>, <a href="Sprites.html#sprite933e">$933E</a>, <a href="Sprites.html#sprite93f8">$93F8</a>, <a href="Sprites.html#sprite94b2">$94B2</a>.</p>
+<p>The walking frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; each step along x and y, in units: 0, -2, as the code says; each step on the screen, x and y in pixels: 2, -1, as the code says. Passes of 64-69 ms.</p>
+<p>In the picture: walking 1 (facing away), at 160,78,160 (70 ms); walking 0 (facing the viewer), at 160,78,158 (60 ms); walking 1 (facing the viewer), at 160,78,156 (70 ms); walking 2 (facing the viewer), at 160,78,154 (70 ms); walking 1 (facing the viewer), at 160,78,152 (70 ms); walking 0 (facing the viewer), at 160,78,150 (60 ms); walking 1 (facing the viewer), at 160,78,148 (70 ms); walking 2 (facing the viewer), at 160,78,146 (70 ms); walking 1 (facing the viewer), at 160,78,144 (70 ms); walking 0 (facing the viewer), at 160,78,142 (70 ms); walking 1 (facing the viewer), at 160,78,140 (70 ms); and so on. 17 frames, 1.2 s in all.</p>
+</div>
+<div class="kl-item" id="standing">
+<h4>Standing, and the fidget</h4>
+<img class="kl-piece" src="images/animations/standing.gif" alt="Standing, and the fidget" width="108" height="129">
+<p>Standing, he shows the middle frame of his walk (<a href="asm/37322.html">SPRITE91CA</a>, or <a href="asm/37880.html">SPRITE93F8</a> facing away). His record's +18 counts his stance down a pass at a time (<a href="asm/62217.html">CREATURE_UPDATE</a>); at nought a fidget begins, 14 passes of <a href="asm/39368.html">SPRITE99C8</a> or <a href="asm/39554.html">SPRITE9A82</a> (bit 3 of GAME_FLAGS), and after it a random count of 128 to 255 passes starts again. The master copy of his record (<a href="asm/25500.html">MASTER_OBJECTS</a>) has 1 there, so every game begins, and every entry by the thing that carries him off, with a fidget on the second pass. Here the knight stood in room 61 after that first fidget, until the next came; the GIF is the fidget with four passes either side.</p>
+<p>Sprites: <a href="Sprites.html#sprite99c8">$99C8</a>, <a href="Sprites.html#sprite9a82">$9A82</a>.</p>
+<p>Passes standing before the fidget (one fewer than his stance count, +18, as they began: the fidget starts in the pass that counts it to nought): 167, as the code says; passes of the fidget: 14, as the code says.</p>
+<p>In the picture: walking 1 (facing away), at 114,78,96 (320 ms); fidget (facing away), at 114,78,96 (1100 ms); walking 1 (facing away), at 114,78,96 (320 ms). 3 frames, 1.7 s in all.</p>
+</div>
+<div class="kl-item" id="jump">
+<h4>Jumping</h4>
+<img class="kl-piece" src="images/animations/jump.gif" alt="Jumping" width="108" height="177">
+<p>SPACE or SYMBOL SHIFT (<a href="asm/62869.html">KNIGHT_CONTROLS</a>): his state becomes 5 with +15 at 8, and for eight passes <a href="asm/61920.html">CHE3D</a> moves him up two units a pass without the fall, stepping through his walk as it goes (INP5, which is why his legs move in the air); then his state is 8 again and gravity brings him down, two units a pass, straight down, in whatever frame he was in. Here, standing in the middle of room 61, SPACE was held for one pass.</p>
+<p>The rise, units a pass: 2, 2, 2, 2, 2, 2, 2, 2, as the code says; the fall, units a pass: -2, -2, -2, -2, -2, -2, -2, -2, as the code says. Passes of 78-83 ms.</p>
+<p>In the picture: walking 1 (facing away), at 114,78,96 (80 ms); walking 0 (facing away), at 114,80,96 (80 ms); walking 0 (facing away), at 114,82,96 (80 ms); walking 1 (facing away), at 114,84,96 (80 ms); walking 2 (facing away), at 114,86,96 (80 ms); walking 1 (facing away), at 114,88,96 (80 ms); walking 0 (facing away), at 114,90,96 (80 ms); walking 1 (facing away), at 114,92,96 (80 ms); walking 2 (facing away), at 114,94,96 (80 ms); walking 2 (facing away), at 114,92,96 (80 ms); walking 2 (facing away), at 114,90,96 (80 ms); and so on. 18 frames, 1.6 s in all.</p>
+</div>
+<div class="kl-item" id="jump-running">
+<h4>A running jump</h4>
+<img class="kl-piece" src="images/animations/jump-running.gif" alt="A running jump" width="186" height="213">
+<p>The same jump taken walking: Y held, and SPACE with it for one pass. He rises the way he was walking, and comes down straight: a fall keeps only the down bit of the way (<a href="asm/63068.html">ANIMATE_AND_MOVE</a>).</p>
+<p>The rise, units a pass: 2, 2, 2, 2, 2, 2, 2, 2, as the code says; the fall, units a pass: -2, -2, -2, -2, -2, -2, -2, -2, as the code says; along x while rising, then falling: 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, as the code says. Passes of 77-94 ms.</p>
+<p>In the picture: walking 1 (facing away), at 66,78,96 (80 ms); walking 0 (facing away), at 68,78,96 (80 ms); walking 1 (facing away), at 70,78,96 (80 ms); walking 2 (facing away), at 72,78,96 (80 ms); walking 1 (facing away), at 74,78,96 (80 ms); walking 0 (facing away), at 76,80,96 (90 ms); walking 0 (facing away), at 78,82,96 (90 ms); walking 1 (facing away), at 80,84,96 (90 ms); walking 2 (facing away), at 82,86,96 (80 ms); walking 1 (facing away), at 84,88,96 (90 ms); walking 0 (facing away), at 86,90,96 (90 ms); and so on. 22 frames, 2.0 s in all.</p>
+</div>
+<div class="kl-item" id="fight">
+<h4>Fighting</h4>
+<img class="kl-piece" src="images/animations/fight.gif" alt="Fighting" width="150" height="150">
+<p>B, N or M (<a href="asm/62869.html">KNIGHT_CONTROLS</a>, the author's INP59): the sword comes out for three passes, standing (bit 1 of GAME_FLAGS, <a href="asm/38624.html">SPRITE96E0</a> facing the viewer or <a href="asm/38996.html">SPRITE9854</a> away), and goes away for three while he steps forward (<a href="asm/38810.html">SPRITE979A</a> or <a href="asm/39182.html">SPRITE990E</a>), for as long as the key is held. The sword out is what lets him hurt a creature he meets (<a href="asm/63833.html">OBJECTS_MEET</a>). In room 61, turned to face down x with H for a pass, then B held for 12 passes.</p>
+<p>Sprites: <a href="Sprites.html#sprite96e0">$96E0</a>, <a href="Sprites.html#sprite979a">$979A</a>, <a href="Sprites.html#sprite9854">$9854</a>, <a href="Sprites.html#sprite990e">$990E</a>.</p>
+<p>Passes with the sword out and away, in turn: 3, 3, 3, 3, as the code says; each step forward along x, in units: -2, as the code says. He moved on 5 of the 11 passes after the first.</p>
+<p>In the picture: walking 1 (facing away), at 114,78,96 (220 ms); walking 0 (facing the viewer), at 112,78,96 (80 ms); sword out (facing the viewer), at 110,78,96, sword out (230 ms); stepping (facing the viewer), at 110,78,96 (80 ms); stepping (facing the viewer), at 108,78,96 (80 ms); stepping (facing the viewer), at 106,78,96 (80 ms); sword out (facing the viewer), at 104,78,96, sword out (240 ms); stepping (facing the viewer), at 104,78,96 (80 ms); stepping (facing the viewer), at 102,78,96 (80 ms); stepping (facing the viewer), at 100,78,96 (70 ms); walking 1 (facing the viewer), at 100,78,96 (150 ms). 11 frames, 1.4 s in all.</p>
+</div>
+<div class="kl-item" id="stoop">
+<h4>Stooping to pick something up</h4>
+<img class="kl-piece" src="images/animations/stoop.gif" alt="Stooping to pick something up" width="366" height="321">
+<p>X, C or V (<a href="asm/62708.html">PICK_UP</a>): he stoops (<a href="asm/38252.html">SPRITE956C</a>, or <a href="asm/38438.html">SPRITE9626</a> facing away) and the game looks for a thing that can be carried in a box his size four units ahead; the thing found is wiped from the room by redrawing the rectangle it stood in without it (<a href="asm/60605.html">REDRAW_OBJECT</a>, with THIS_RECORD pointing at it), and drawn in the panel's box for the place in use (<a href="asm/60492.html">SHOW_THING_IN_USE</a>). In room 61, a step up x to face the stool the object table numbers 88, then X for a pass.</p>
+<p>Sprites: <a href="Sprites.html#sprite956c">$956C</a>, <a href="Sprites.html#sprite9626">$9626</a>.</p>
+<p>Passes he is shown stooping: 1, as the code says; the thing is in the place in use afterwards: yes.</p>
+<p>In the picture: walking 1 (facing away), at 100,78,130 (100 ms); walking 0 (facing away), at 102,78,130 (90 ms); walking 1 (facing away), at 102,78,130 (220 ms); stooping (facing away), at 102,78,130, carrying it (80 ms); walking 1 (facing away), at 102,78,130, carrying it (500 ms). 5 frames, 1.0 s in all.</p>
+</div>
+<div class="kl-item" id="fall">
+<h4>Falling through a hole</h4>
+<img class="kl-scene" src="images/animations/fall.gif" alt="Falling through a hole" width="512" height="384">
+<p>Room 68's hole is a door whose way is down (<a href="asm/63428.html">BUMPED</a>): Q held, he walks onto it, the fall that every step carries meets it, and he goes through to room 67 at the height the door gives, 140 ($F8EC). While room 67 is drawn the screen is black; then he falls, two units a pass, to the landing of the stairs. A fall of 20 passes or fewer costs nothing. The whole screen; the pass that went through the door is shown a television frame at a time.</p>
+<p>His top as he comes through, from the door's +16: 140, as the code says; units a pass while falling: 2, as the code says; passes falling: 13, as the code says; LIFE lost (none unless a fall passes 20): 0, as the code says. Room 67 took 1854 ms to draw, the screen black meanwhile.</p>
+<p>In the picture: room 68, walking 1 (facing away), at 111,78,140 (210 ms); room 68, walking 0 (facing away), at 111,78,142 (70 ms); room 68, walking 1 (facing away), at 111,78,144 (70 ms); room 68, walking 2 (facing away), at 111,78,146 (20 ms); the next room being drawn (1890 ms); its first pass, the objects drawn (30 ms); room 67, walking 1 (facing away), at 111,138,148, in the air (30 ms); room 67, walking 1 (facing away), at 111,136,148, in the air (30 ms); room 67, walking 1 (facing away), at 111,134,148, in the air (30 ms); room 67, walking 1 (facing away), at 111,132,148, in the air (30 ms); room 67, walking 1 (facing away), at 111,130,148, in the air (30 ms); and so on. 19 frames, 2.8 s in all.</p>
+</div>
+<div class="kl-item" id="fall-damage">
+<h4>A fall that costs LIFE</h4>
+<img class="kl-scene" src="images/animations/fall-damage.gif" alt="A fall that costs LIFE" width="512" height="384">
+<p>The knight put 80 units above the floor of room 61 (his top at 158) and left to fall. FALL_COUNT (IY+$14) counts the passes he falls; when he lands, <a href="asm/62217.html">CREATURE_UPDATE</a> takes a point of LIFE for each over 20. His stance count was raised first, so that the fidget every entry by TELE begins with does not start on his first pass and stay on him all the way down: in the air his own update does not run (<a href="asm/61920.html">CHE3D</a>), and he keeps the frame he had. The whole screen, for LIFE at the bottom.</p>
+<p>Units fallen: 80, as the code says; passes counted falling (FALL_COUNT): 40, as the code says; LIFE lost, a point a pass over 20: 20, as the code says.</p>
+<p>In the picture: walking 0 (facing the viewer), at 114,158,96, LIFE 99 (60 ms); walking 1 (facing away), at 114,156,96, LIFE 99, falling 1 (60 ms); walking 1 (facing away), at 114,154,96, LIFE 99, falling 2 (60 ms); walking 1 (facing away), at 114,152,96, LIFE 99, falling 3 (60 ms); walking 1 (facing away), at 114,150,96, LIFE 99, falling 4 (60 ms); walking 1 (facing away), at 114,148,96, LIFE 99, falling 5 (60 ms); walking 1 (facing away), at 114,146,96, LIFE 99, falling 6 (60 ms); walking 1 (facing away), at 114,144,96, LIFE 99, falling 7 (60 ms); walking 1 (facing away), at 114,142,96, LIFE 99, falling 8 (60 ms); walking 1 (facing away), at 114,140,96, LIFE 99, falling 9 (60 ms); walking 1 (facing away), at 114,138,96, LIFE 99, falling 10 (60 ms); and so on. 42 frames, 3.3 s in all.</p>
+</div>
+<h3>The creatures, alone</h3>
+<div class="kl-item" id="guards">
+<h4>The guards</h4>
+<table class="kl-table">
+<tr><th></th><th>up x (Y-P): up and to the right on the screen</th><th>up y (Q-T): up and to the left</th><th>down x (H-ENTER): down and to the left</th><th>down y (A-G): down and to the right</th></tr>
+<tr><td>a guard<br>(<a href="Rooms.html#room31">room 31</a>)</td><td><img class="kl-sprite" src="images/animations/guards-upx.gif" alt="a guard, up x" width="72" height="78"><br>$A110, $A1AC, $A248; 20 passes of 56-78 ms</td><td><img class="kl-sprite" src="images/animations/guards-upy.gif" alt="a guard, up y" width="72" height="78"><br>$A728, $A7C4, $A860; 20 passes of 57-77 ms</td><td><img class="kl-sprite" src="images/animations/guards-downx.gif" alt="a guard, down x" width="72" height="78"><br>$A554, $A5F0, $A68C; 20 passes of 61-80 ms</td><td><img class="kl-sprite" src="images/animations/guards-downy.gif" alt="a guard, down y" width="72" height="78"><br>$9F3C, $9FD8, $A074; 20 passes of 58-81 ms</td></tr>
+</table>
+<p>A guard has a set of three frames of 24 by 26 for each way it walks, 156 bytes apart (GUARD_FRAMES in <a href="asm/62217.html">CREATURE_UPDATE</a>): <a href="asm/41232.html">SPRITEA110</a> up x, <a href="asm/42792.html">SPRITEA728</a> up y, <a href="asm/42324.html">SPRITEA554</a> down x and <a href="asm/40764.html">SPRITE9F3C</a> down y (and standing), stepped by ANIM a frame a pass. Nothing is turned round. The guards of states 6 and 10 patrol along x or along y and chase the knight when he is within 30; those of state 9 rise first (below) and then always chase; all use these frames. Staged in room 31 with its state-10 guard moved to 114, 110 and the knight put 24 away on each side in turn, so that it came for him each way.</p>
+<p>Up x: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; up y: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; down x: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; down y: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says. Passes of 56-81 ms.</p>
+</div>
+<div class="kl-item" id="troll">
+<h4>The troll</h4>
+<table class="kl-table">
+<tr><th></th><th>up x (Y-P): up and to the right on the screen</th><th>up y (Q-T): up and to the left</th><th>down x (H-ENTER): down and to the left</th><th>down y (A-G): down and to the right</th></tr>
+<tr><td>the troll<br>(<a href="Rooms.html#room5">room 5</a>)</td><td><img class="kl-sprite" src="images/animations/troll-upx.gif" alt="the troll, up x" width="72" height="114"><br>$8E64, $8F48, $902C; 20 passes of 53-87 ms</td><td><img class="kl-sprite" src="images/animations/troll-upy.gif" alt="the troll, up y" width="72" height="114"><br>$8E64 turned, $8F48 turned, $902C turned; 20 passes of 53-86 ms</td><td><img class="kl-sprite" src="images/animations/troll-downx.gif" alt="the troll, down x" width="72" height="114"><br>$8BB8 turned, $8C9C turned, $8D80 turned; 20 passes of 53-91 ms</td><td><img class="kl-sprite" src="images/animations/troll-downy.gif" alt="the troll, down y" width="72" height="114"><br>$8BB8, $8C9C, $8D80; 20 passes of 53-87 ms</td></tr>
+</table>
+<p>Three frames of 24 by 38, 228 bytes apart: <a href="asm/35768.html">SPRITE8BB8</a> towards the viewer and <a href="asm/36452.html">SPRITE8E64</a> away. MITRO (<a href="asm/61735.html">MITRO</a>) turns all six round in memory when it turns between a way drawn as stored and one that is its mirror image (up y and down x). There is only ever one troll in a room, which is what makes turning shared sprites safe; <a href="asm/63750.html">SAVE_OBJECT_POSITIONS</a> turns them back as the knight leaves. Staged in room 5, the troll moved to 110, 140 and the knight put 40 away on each side in turn.</p>
+<p>Up x: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; turned round: no, as the code says; up y: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; turned round: yes, as the code says; down x: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; turned round: yes, as the code says; down y: frames: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says; turned round: no, as the code says. Passes of 53-91 ms.</p>
+</div>
+<div class="kl-item" id="wraith">
+<h4>The wraith</h4>
+<table class="kl-table">
+<tr><th></th><th>up x (Y-P): up and to the right on the screen</th><th>up y (Q-T): up and to the left</th><th>down x (H-ENTER): down and to the left</th><th>down y (A-G): down and to the right</th></tr>
+<tr><td>a wraith<br>(<a href="Rooms.html#room56">room 56</a>)</td><td><img class="kl-sprite" src="images/animations/wraith-upx.gif" alt="a wraith, up x" width="48" height="96"><br>$5F08: one picture, 19 passes</td><td><img class="kl-sprite" src="images/animations/wraith-upy.gif" alt="a wraith, up y" width="48" height="96"><br>$5F08 turned: one picture, 19 passes</td><td><img class="kl-sprite" src="images/animations/wraith-downx.gif" alt="a wraith, down x" width="48" height="96"><br>$5E88 turned: one picture, 19 passes</td><td><img class="kl-sprite" src="images/animations/wraith-downy.gif" alt="a wraith, down y" width="48" height="96"><br>$5E88: one picture, 19 passes</td></tr>
+</table>
+<p>One frame each view, 16 by 32: <a href="asm/24200.html">SPRITE5E88</a> towards the viewer and <a href="asm/24328.html">SPRITE5F08</a> away, turned round by MIWRAI (<a href="asm/61727.html">MIWRAI</a>) as the troll's are. It glides without stepping. Staged in room 56, the wraith moved to 100, 130 and the knight put 32 away on each side in turn.</p>
+<p>Up x: the frame: $5F08, as the code says; turned round: no, as the code says; up y: the frame: $5F08, as the code says; turned round: yes, as the code says; down x: the frame: $5E88, as the code says; turned round: yes, as the code says; down y: the frame: $5E88, as the code says; turned round: no, as the code says. Passes of 59-99 ms.</p>
+</div>
+<div class="kl-item" id="ghost">
+<h4>The ghost</h4>
+<img class="kl-sprite" src="images/animations/ghost.gif" alt="The ghost" width="48" height="69">
+<p>State 13 (<a href="asm/62217.html">CREATURE_UPDATE</a>): three frames of 16 by 23 from <a href="asm/23344.html">SPRITE5B30</a>, stepped by ANIM; it wanders diagonally, turning back off whatever it meets, and faces no way in particular. Room 3's, left to itself for 40 passes.</p>
+<p>Sprites: <a href="Sprites.html#sprite5b30">$5B30</a>, <a href="Sprites.html#sprite5b8c">$5B8C</a>, <a href="Sprites.html#sprite5be8">$5BE8</a>.</p>
+<p>Frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says. Passes of 42-50 ms.</p>
+<p>In the picture: $5B30 (50 ms); $5B8C (50 ms); $5BE8 (40 ms); $5B8C (40 ms); $5B30 (40 ms); $5B8C (40 ms); $5BE8 (40 ms); $5B8C (40 ms); $5B30 (40 ms); $5B8C (40 ms); $5BE8 (40 ms); and so on. 36 frames, 1.5 s in all.</p>
+</div>
+<div class="kl-item" id="hunched">
+<h4>The small hunched figure</h4>
+<img class="kl-sprite" src="images/animations/hunched.gif" alt="The small hunched figure" width="24" height="24">
+<p>State 12: three frames of 8 by 8 from <a href="asm/23296.html">SPRITE5B00</a>. It hangs where it is, without even falling, and steps through its frames. Room 25's, for 16 passes.</p>
+<p>Sprites: <a href="Sprites.html#sprite5b00">$5B00</a>, <a href="Sprites.html#sprite5b10">$5B10</a>, <a href="Sprites.html#sprite5b20">$5B20</a>.</p>
+<p>Frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says. Passes of 36 ms.</p>
+<p>In the picture: $5B00 (40 ms); $5B10 (40 ms); $5B20 (40 ms); $5B10 (40 ms); $5B00 (40 ms); $5B10 (40 ms); $5B20 (40 ms); $5B10 (40 ms); $5B00 (40 ms); $5B10 (40 ms); $5B20 (40 ms); and so on. 16 frames, 0.6 s in all.</p>
+</div>
+<div class="kl-item" id="cloud">
+<h4>The small cloud</h4>
+<img class="kl-sprite" src="images/animations/cloud.gif" alt="The small cloud" width="48" height="30">
+<p>State 14: three frames of 16 by 10 from <a href="asm/24836.html">SPRITE6104</a>, hanging still. One of room 47's four, for 16 passes.</p>
+<p>Sprites: <a href="Sprites.html#sprite6104">$6104</a>, <a href="Sprites.html#sprite612c">$612C</a>, <a href="Sprites.html#sprite6154">$6154</a>.</p>
+<p>Frames, pass by pass: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says. Passes of 82 ms.</p>
+<p>In the picture: $6104 (80 ms); $612C (80 ms); $6154 (80 ms); $612C (80 ms); $6104 (80 ms); $612C (80 ms); $6154 (80 ms); $612C (80 ms); $6104 (80 ms); $612C (80 ms); $6154 (80 ms); and so on. 16 frames, 1.3 s in all.</p>
+</div>
+<div class="kl-item" id="strike">
+<h4>The flower with a face, striking</h4>
+<img class="kl-sprite" src="images/animations/strike.gif" alt="The flower with a face, striking" width="72" height="72">
+<p>State 4 (<a href="asm/61920.html">CHE3D</a>, the author's I4): it stays where it is and shows <a href="asm/23684.html">SPRITE5C84</a> until the knight is inside its own box moved 12 units down x; then each pass it takes three from LIFE and steps through <a href="asm/23684.html">SPRITE5C84</a> and the two frames after it, <a href="asm/23828.html">TYPE48_FRAMES</a>, 144 bytes apart. In room 45, the knight put well away for six passes and then 10 short of the creature the object table puts at 140, 74, 90 (his x and z written into his record: his place on the screen is worked out afresh from them each pass, <a href="asm/63068.html">ANIMATE_AND_MOVE</a>). This code never ran in the build's play sessions.</p>
+<p>Sprites: <a href="Sprites.html#sprite5c84">$5C84</a>, $5D14, $5DA4.</p>
+<p>LIFE taken each pass he is in reach: 3, as the code says; frames while striking: 0, 1, 2, 1, 0, 1, 2, 1, 0, 1, 2, 1, as the code says. Passes of 36-100 ms.</p>
+<p>In the picture: $5C84 (340 ms); $5D14 (100 ms); $5DA4 (100 ms); $5D14 (100 ms); $5C84 (100 ms); $5D14 (100 ms); $5DA4 (100 ms); $5D14 (100 ms); $5C84 (100 ms); $5D14 (100 ms); $5DA4 (100 ms); $5D14 (100 ms). 12 frames, 1.4 s in all.</p>
+</div>
+<div class="kl-item" id="rising">
+<h4>A guard rising out of the floor</h4>
+<img class="kl-sprite" src="images/animations/rising.gif" alt="A guard rising out of the floor" width="72" height="78">
+<p>State 9 (<a href="asm/61920.html">CHE3D</a>): the guard starts as its helmet, <a href="asm/42168.html">SPRITEA4B8</a>, and +17 counts up a pass at a time; at $37 it becomes <a href="asm/42012.html">SPRITEA41C</a>, at $3A <a href="asm/41856.html">SPRITEA380</a>, at $3D <a href="asm/41700.html">SPRITEA2E4</a>, and at $40 it has risen (+17 = $51) and walks after the knight in the guards' frames. Room 72's, as the object table has it, the knight standing where a new game starts him.</p>
+<p>Sprites: <a href="Sprites.html#spritea4b8">$A4B8</a>, <a href="Sprites.html#spritea41c">$A41C</a>, <a href="Sprites.html#spritea380">$A380</a>, <a href="Sprites.html#spritea2e4">$A2E4</a>.</p>
+<p>Passes as the helmet, then in each of the three frames of the rise: 38, 3, 3, 3, as the code says (+17 starts at $10 and counts up a pass; <a href="asm/61920.html">CHE3D</a> changes the frame at $37, $3A and $3D and has it risen at $40). Then it walks after the knight in the guards' frames.</p>
+<p>In the picture: $A4B8 (3940 ms); $A41C (310 ms); $A380 (310 ms); $A2E4 (300 ms); $A5F0 (90 ms); $A68C (100 ms); $A5F0 (100 ms); $A554 (100 ms); $A5F0 (100 ms); $A68C (100 ms); $A5F0 (100 ms); $A554 (100 ms). 12 frames, 5.7 s in all.</p>
+</div>
+<div class="kl-item" id="waking">
+<h4>The robed figure waking</h4>
+<img class="kl-sprite" src="images/animations/waking.gif" alt="The robed figure waking" width="48" height="96">
+<p>State 15 (<a href="asm/62217.html">CREATURE_UPDATE</a>): room 61's robed figure (<a href="asm/24708.html">SPRITE6084</a>) stands quite still, not even falling, until the thing of kind 11 -- the book -- lies in the room; then it takes the wraith's frames and state 11 and comes for the knight. Staged: before room 61 was entered, the object table's record for the book (thing 7, which lies in room 14) was given room 61 and a place on its floor.</p>
+<p>Sprites: <a href="Sprites.html#sprite6084">$6084</a>.</p>
+<p>The pass it wakes on (the first only draws the room's objects, <a href="asm/61920.html">CHE3D</a>, and the book is noticed on the second): 1, as the code says; its state from then on: 11, as the code says.</p>
+<p>In the picture: $6084 (90 ms); $5E88 (2930 ms). 2 frames, 3.0 s in all.</p>
+</div>
+<h3>Drawing</h3>
+<div class="kl-item" id="drawing">
+<h4>A room being drawn</h4>
+<img class="kl-scene" src="images/animations/drawing.gif" alt="A room being drawn" width="512" height="384">
+<p>Room 29, the first room of a game, drawn from nothing by its commands (<a href="asm/58715.html">DRAW_CURRENT_ROOM</a>, $E5A6): points and lines, parts shared between rooms, and fills that flood an area with a texture a run at a time (<a href="asm/59188.html">FILL_NEXT_SEED</a>), bounded by what is set in the clean copy of the screen (<a href="asm/49152.html">LOADING_TUNE</a>), which the room fills with its outline first. Then the doors and still things are drawn in and the screen copied to the clean copy again (<a href="asm/65045.html">DRAW_STILL_THINGS</a>), and after the first pass, which draws the live objects, the room is coloured (<a href="asm/61691.html">ATTRI</a>). The game draws all this black on black -- the player sees nothing until the colours go on -- so up to then the pixels here are shown in the colours the room gets. The screen was read once a television frame, each frame labelled with the commands fetched in it.</p>
+<p>185 commands fetched by the interpreter ($E5A6), parts and repeats included, in 1748 ms; the frames are a television frame (20 ms) apart.</p>
+<p>In the picture: 87 frames, 2.1 s in all. The fills, each with the time from the television frame it began in to the one it ended in: texture 11 (40 ms), texture 11 (60 ms), texture 21 (339 ms), texture 15 (220 ms), texture 16 (180 ms), texture 15 (140 ms), texture 16 (120 ms), texture 16 (100 ms), texture 13 (80 ms), texture 0 (40 ms), texture 3 (60 ms), texture 0 (20 ms).</p>
+</div>
+<div class="kl-item" id="compositor">
+<h4>A moving object redrawn</h4>
+<img class="kl-piece" src="images/animations/compositor.gif" alt="A moving object redrawn" width="288" height="216">
+<p>Nothing is drawn to a buffer and copied: <a href="asm/60605.html">REDRAW_OBJECT</a> rebuilds only the rectangle of the screen an object covers -- a byte wider than its sprite and three rows more above and below -- straight onto the screen, from the clean copy of the room, the object's own sprite and mask, and whatever overlaps it: objects in front leave their pixels on the screen, objects behind are drawn in first (<a href="asm/58340.html">COMPOSITE_TO_SCREEN</a>). In room 61 the knight walks down x behind a table, towards the robed figure, which is behind him and is redrawn every pass too. Each frame is the screen after one call of the compositor, with the rectangle it rebuilt outlined (the outline is not the game's). Slowed down: each call is held for 0.4 seconds.</p>
+<p>The knight's rectangle, width and height in pixels (a byte more than its sprite, three rows more above and below): 32, 37, as the code says; the robed figure's rectangle, width and height in pixels (a byte more than its sprite, three rows more above and below): 24, 38, as the code says. A call and what follows it to the next: 30-47 ms.</p>
+<p>In the picture: the knight's redraw, 32 by 37 pixels (400 ms); the robed figure's redraw, 24 by 38 pixels (400 ms); the knight's redraw, 32 by 37 pixels (400 ms); the robed figure's redraw, 24 by 38 pixels (400 ms); the knight's redraw, 32 by 37 pixels (400 ms); the robed figure's redraw, 24 by 38 pixels (400 ms); the knight's redraw, 32 by 37 pixels (400 ms); the robed figure's redraw, 24 by 38 pixels (400 ms); the knight's redraw, 32 by 37 pixels (400 ms); the robed figure's redraw, 24 by 38 pixels (400 ms); the knight's redraw, 32 by 37 pixels (400 ms); and so on. 24 frames, 9.6 s in all.</p>
+</div>
+<h3>Doors, the title and the end</h3>
+<div class="kl-item" id="door">
+<h4>Through a door</h4>
+<img class="kl-scene" src="images/animations/door.gif" alt="Through a door" width="512" height="384">
+<p>Room 44: the knight walks up y into the door in its far wall (<a href="asm/63428.html">BUMPED</a>): the door's +17 says which way it is gone through, its +13 the room behind and its +15, +16 and +18 where he arrives. $F8EC puts him there and enters the room (<a href="asm/64800.html">ROOMST</a>): the screen goes black while room 43 is drawn, the doors and still things are drawn in, the first pass draws the rest, and the room is coloured all at once. The whole screen; the pass that went through the door is shown a television frame at a time.</p>
+<p>Where he arrives, x and z (<a href="asm/63428.html">BUMPED</a>, going along y: x as far on from the door's +15 as he was from its corner, z its +18): 92, 80, as the code says. The pass that took him through lasted 2164 ms, nearly all of it room 43 being drawn, black on black.</p>
+<p>In the picture: room 44, LIFE 99 (pass) x4 (130 ms); room 43, LIFE 99 (television frame) x3 (2270 ms); room 43, LIFE 99 (pass) x6 (680 ms). 13 frames, 3.1 s in all.</p>
+</div>
+<div class="kl-item" id="title">
+<h4>The title page, and a game starting</h4>
+<img class="kl-scene" src="images/animations/title.gif" alt="The title page, and a game starting" width="512" height="384">
+<p>From the loaded tape: the loading tune over the loading screen until a key (<a href="asm/49152.html">LOADING_TUNE</a>), then the title (<a href="asm/61541.html">TITLE_SCREEN</a>): room 79 drawn black on black, coloured, and the title page's words printed a character at a time through the compositor (<a href="asm/46726.html">TITLE_PAGE_TEXT</a>, <a href="asm/60414.html">PRINT</a>), then the wait for a key (PAUS). A key starts a game: room 29 is drawn, again unseen, and appears after its first pass. Read a television frame at a time, and pass by pass once the game is running.</p>
+<p>Black while a picture is drawn: 979 ms, 1862 ms.</p>
+<p>In the picture: the loading tune/SPACE held (160 ms); SPACE held/television frame (980 ms); television frame x9 (180 ms); television frame/television frame, waiting for a key (820 ms); SPACE held/television frame (1950 ms); pass x3 (210 ms). 16 frames, 4.3 s in all.</p>
+</div>
+<div class="kl-item" id="game-over">
+<h4>GAME OVER</h4>
+<img class="kl-scene" src="images/animations/game-over.gif" alt="GAME OVER" width="512" height="384">
+<p>Room 9's bridge over the pit: the knight walks off its near edge (A), falls, and meets the slab of kind 7 at the bottom, which takes all his LIFE (<a href="asm/63833.html">OBJECTS_MEET</a>) -- he vanishes as he touches it. The main loop sees LIFE at 00 and returns from <a href="asm/64800.html">ROOMST</a>; <a href="asm/61541.html">TITLE_SCREEN</a> draws room 1 behind GAME OVER and waits for a key. Nothing staged but the knight's place on the bridge.</p>
+<p>Black while a picture is drawn: 40 ms.</p>
+<p>In the picture: room 9, LIFE 99 (pass) x33 (1910 ms); room 9, LIFE 00 (pass) (20 ms); room 1, LIFE 00 (television frame) (40 ms); room 1, LIFE 00 (television frame)/room 1, LIFE 00 (television frame, waiting for a key) (1520 ms). 36 frames, 3.5 s in all.</p>
+</div>
+<div class="kl-item" id="ending-failed">
+<h4>The end of the quest, failed</h4>
+<img class="kl-scene" src="images/animations/ending-failed.gif" alt="The end of the quest, failed" width="512" height="384">
+<p>Room 31's door into room 81 needs thing 8 in the place in use. Here thing 8, picked up in room 61, is the only thing carried, and walking through the door ends the game (<a href="asm/64800.html">ROOMST</a>): room 81, the verdict, the two closing lines (<a href="asm/57330.html">MESS2</a>), and a wait for a key before GAME OVER.</p>
+<p>Black while a picture is drawn: 20 ms.</p>
+<p>In the picture: room 31, LIFE 99 (pass) x9 (420 ms); room 81, LIFE 99 (television frame) x7 (140 ms); room 81, LIFE 99 (television frame)/room 81, LIFE 99 (television frame, waiting for a key) (1520 ms). 17 frames, 2.1 s in all.</p>
+</div>
+<div class="kl-item" id="ending-done">
+<h4>The end of the quest, done</h4>
+<img class="kl-scene" src="images/animations/ending-done.gif" alt="The end of the quest, done" width="512" height="384">
+<p>The same, carrying thing 5 as well, picked up in room 33 first: <a href="asm/64800.html">ROOMST</a> looks for it among the five places, and the verdict is the other one.</p>
+<p>Black while a picture is drawn: 20 ms.</p>
+<p>In the picture: room 31, LIFE 99 (pass) x9 (420 ms); room 81, LIFE 99 (television frame) x7 (140 ms); room 81, LIFE 99 (television frame)/room 81, LIFE 99 (television frame, waiting for a key) (1520 ms). 17 frames, 2.1 s in all.</p>
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F7C4</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63418.html">F7BA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63428">Map</a></td>
+<td class="next">
+Next: <a href="63750.html">F906</a>
+</td>
+</tr>
+</table>
+<div class="description">F7C4: Something is in the way: a door takes the knight through, anything else is met</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="63068.html">ANIMATE_AND_MOVE</a>.
+</div>
+<div class="paragraph">
+Reached when a step would make the object's box meet another record's (<a href="64677.html">FIND_OBSTACLE</a>), IX being the one it meets. Anything but a door (kind 1 in the low nibble of +12, the eleven-byte records of the object table) goes to <a href="63833.html">OBJECTS_MEET</a>. A door stops anyone but the knight, like a wall. For him: The key. If the door's +14 holds a thing's number, the thing in the place in use must be that one, or it is LOCKED (message 2). With the place empty, IX becomes nought and the test reads byte 19 of the ROM, $FF, which is no thing's number, so it is LOCKED. Eight things open doors (numbers 1 to 8; 21 doors need one). The way. The door's +17 has the direction bits (<a href="62869.html">KNIGHT_CONTROLS</a>) of the way through it, and he must be going that way this pass: x or y for a doorway, up or down for a hole (twelve doors). Walking into a door any other way is stopped as by a wall. Going down happens by gravity alone, as he stands over the hole; going up needs a jump. Room 61. The only way out of room 61 also needs the thing of kind 11 to be lying in the room (bit 1 of IY+$11) -- measured: without it he stands on the hole; with it he drops to room 60. Where he arrives. For a doorway along y he must be wholly within the door's width; he arrives as far along x from the door's +15 as he was from the door's corner, at y = +18 (less his depth if he walked down y). For one along x, within its depth; as far along y from +18, at x = +15 (less his width if he walked down x). For a hole his x and y are carried across relative to the door (+15 and +18) and his top is set to +16 (plus his height going up; that case never ran in the build's sessions). Through a doorway his height must lie wholly within the door's, and carries across relative to +16. The room behind. Every thing among the first 163 records of the object table whose record puts it in the room he is going to is tested against where he would arrive, its box made from the table's position and its template's sizes; if one is there, it is BLOCKED (message 1) and he stays. A thing with bit 4 of its +12 -- in the table, only the trolls -- does not count (measured, by moving thing 1 into room 30 where the door from room 29 lands him: BLOCKED; with bit 4 set he went through).
+</div>
+<div class="paragraph">
+Then the room changes (Krumlinde's RTN_Trigger_Room_Change): the room number is the door's +13, the knight's record is moved to where he arrives, the things' places are saved (<a href="63750.html">SAVE_OBJECT_POSITIONS</a>), and the new room is entered (<a href="64800.html">ROOMST</a>), which goes back to the main loop.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record in the way</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The object's x after the step (D its top, H its y; C, E, L its sizes)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED</td>
+<td class="address-2"><span id="63428"></span>F7C4</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">Not a door: meet it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63431"></span>F7C7</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63433"></span>F7C9</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63435"></span>F7CB</td>
+<td class="instruction">JP NZ,<a href="63833.html">OBJECTS_MEET</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63438"></span>F7CE</td>
+<td class="instruction">SET 7,(IY+$7B)</td>
+<td class="comment-1" rowspan="1">A door was met this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63442"></span>F7D2</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+<td class="comment-1" rowspan="3">Only the knight goes through; for anything else it is a wall (<a href="64131.html">MEET_DECOY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63445"></span>F7D5</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63447"></span>F7D7</td>
+<td class="instruction">JP NZ,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63450"></span>F7DA</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="3">No key needed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63453"></span>F7DD</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63454"></span>F7DE</td>
+<td class="instruction">JR Z,<a href="63428.html#63487">DOOR_WAY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63456"></span>F7E0</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="10">The thing in the place in use (nought, the ROM, if none)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63457"></span>F7E1</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63458"></span>F7E2</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63460"></span>F7E4</td>
+<td class="instruction">LD L,(IY+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63463"></span>F7E7</td>
+<td class="instruction">LD H,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63465"></span>F7E9</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63466"></span>F7EA</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63467"></span>F7EB</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63468"></span>F7EC</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63469"></span>F7ED</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63471"></span>F7EF</td>
+<td class="instruction">CP (IX+$13)</td>
+<td class="comment-1" rowspan="5">Is it the key?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63474"></span>F7F2</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63476"></span>F7F4</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63477"></span>F7F5</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63478"></span>F7F6</td>
+<td class="instruction">JR Z,<a href="63428.html#63487">DOOR_WAY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63480"></span>F7F8</td>
+<td class="instruction">LD (IY+$07),$02</td>
+<td class="comment-1" rowspan="2">No: LOCKED, and it is a wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63484"></span>F7FC</td>
+<td class="instruction">JP <a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">DOOR_WAY</td>
+<td class="address-2"><span id="63487"></span>F7FF</td>
+<td class="instruction">LD A,(IX+$11)</td>
+<td class="comment-1" rowspan="2">Krumlinde's RTN_Check_Door_Keys, though the key is already settled here. C = the way through the door</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63490"></span>F802</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63491"></span>F803</td>
+<td class="instruction">AND (IY+$7C)</td>
+<td class="comment-1" rowspan="2">Is he going that way? This is AND (IY+$7C): Krumlinde has a DB and a label at its second byte, and reads the rest as AND (HL) and LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63494"></span>F806</td>
+<td class="instruction">JP Z,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63497"></span>F809</td>
+<td class="instruction">LD A,(<a href="65408.html#65460">ROOM</a>)</td>
+<td class="comment-1" rowspan="3">In room 61...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63500"></span>F80C</td>
+<td class="instruction">CP $3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63502"></span>F80E</td>
+<td class="instruction">JR NZ,<a href="63428.html#63511">DOOR_ARRIVAL</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63504"></span>F810</td>
+<td class="instruction">BIT 1,(IY+$11)</td>
+<td class="comment-1" rowspan="2">...only if the thing of kind 11 lies there</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63508"></span>F814</td>
+<td class="instruction">JP Z,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">DOOR_ARRIVAL</td>
+<td class="address-2"><span id="63511"></span>F817</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+<td class="comment-1" rowspan="1">B, D, H = where he is (before the step)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63514"></span>F81A</td>
+<td class="instruction">LD L,(IX+$0F)</td>
+<td class="comment-1" rowspan="2">L = the x he arrives at, E = the y (the door's +15 and +18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63517"></span>F81D</td>
+<td class="instruction">LD E,(IX+$12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63520"></span>F820</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">Is the way along y (neither x nor height)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63521"></span>F821</td>
+<td class="instruction">AND $3C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63523"></span>F823</td>
+<td class="instruction">JR NZ,<a href="63428.html#63557">BUMPED_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63525"></span>F825</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="7">Along y: he must be wholly within the door's width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63526"></span>F826</td>
+<td class="instruction">SUB (IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63529"></span>F829</td>
+<td class="instruction">JP C,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63532"></span>F82C</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63533"></span>F82D</td>
+<td class="instruction">ADD A,(IY+$6D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63536"></span>F830</td>
+<td class="instruction">SUB (IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63539"></span>F833</td>
+<td class="instruction">JP NC,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63542"></span>F836</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="3">x: as far along from +15 as he was from the door's corner</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63543"></span>F837</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63544"></span>F838</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63545"></span>F839</td>
+<td class="instruction">LD H,E</td>
+<td class="comment-1" rowspan="3">y: +18 when going up y...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63546"></span>F83A</td>
+<td class="instruction">BIT 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63548"></span>F83C</td>
+<td class="instruction">JR NZ,<a href="63428.html#63617">BUMPED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63550"></span>F83E</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="4">...or his depth less, going down y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63551"></span>F83F</td>
+<td class="instruction">SUB (IY+$6F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63554"></span>F842</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63555"></span>F843</td>
+<td class="instruction">JR <a href="63428.html#63617">BUMPED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_0</td>
+<td class="address-2"><span id="63557"></span>F845</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="3">A hole (up or down)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63558"></span>F846</td>
+<td class="instruction">AND $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63560"></span>F848</td>
+<td class="instruction">JR Z,<a href="63428.html#63586">BUMPED_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63562"></span>F84A</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">x: carried across relative to the door</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63563"></span>F84B</td>
+<td class="instruction">SUB (IX+$06)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63566"></span>F84E</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63567"></span>F84F</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63568"></span>F850</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="4">And y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63569"></span>F851</td>
+<td class="instruction">SUB (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63572"></span>F854</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63573"></span>F855</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63574"></span>F856</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="1">His top: the door's +16...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63577"></span>F859</td>
+<td class="instruction">BIT 4,C</td>
+<td class="comment-1" rowspan="2">...when going down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63579"></span>F85B</td>
+<td class="instruction">JR Z,<a href="63428.html#63638">BUMPED_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63581"></span>F85D</td>
+<td class="instruction">ADD A,(IY+$6E)</td>
+<td class="comment-1" rowspan="2">Going up, plus his height (never ran in the build's sessions)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63584"></span>F860</td>
+<td class="instruction">JR <a href="63428.html#63638">BUMPED_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_1</td>
+<td class="address-2"><span id="63586"></span>F862</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="7">Along x: he must be wholly within the door's depth</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63587"></span>F863</td>
+<td class="instruction">SUB (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63590"></span>F866</td>
+<td class="instruction">JP C,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63593"></span>F869</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63594"></span>F86A</td>
+<td class="instruction">ADD A,(IY+$6F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63597"></span>F86D</td>
+<td class="instruction">SUB (IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63600"></span>F870</td>
+<td class="instruction">JP NC,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63603"></span>F873</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="1">(A wasted load: A is loaded again at once)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63604"></span>F874</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="3">y: as far along from +18 as he was from the door's corner</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63605"></span>F875</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63606"></span>F876</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63607"></span>F877</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="2">x: +15 when going up x...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63608"></span>F878</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63609"></span>F879</td>
+<td class="instruction">BIT 3,C</td>
+<td class="comment-1" rowspan="4">...or his width less, going down x</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63611"></span>F87B</td>
+<td class="instruction">JR NZ,<a href="63428.html#63617">BUMPED_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63613"></span>F87D</td>
+<td class="instruction">SUB (IY+$6D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63616"></span>F880</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_2</td>
+<td class="address-2"><span id="63617"></span>F881</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="3">Through a doorway: his top must be below the door's top...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63618"></span>F882</td>
+<td class="instruction">SUB (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63621"></span>F885</td>
+<td class="instruction">JP NC,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63624"></span>F888</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="4">...and his feet not below the door's foot</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63625"></span>F889</td>
+<td class="instruction">SUB (IY+$6E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63628"></span>F88C</td>
+<td class="instruction">ADD A,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63631"></span>F88F</td>
+<td class="instruction">JP NC,<a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63634"></span>F892</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="2">His top: as far below +16 as it was below the door's top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63637"></span>F895</td>
+<td class="instruction">ADD A,D</td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_3</td>
+<td class="address-2"><span id="63638"></span>F896</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="1">D = his top on arrival</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63639"></span>F897</td>
+<td class="instruction">CALL <a href="63418.html">WORKING_SIZES</a></td>
+<td class="comment-1" rowspan="2">C, E, L = his sizes; keep all six in the other set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63642"></span>F89A</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63643"></span>F89B</td>
+<td class="instruction">LD C,(IX+$0D)</td>
+<td class="comment-1" rowspan="1">C = the room behind the door (+13)</td>
+</tr>
+<tr>
+<td class="asm-label">ARRIVAL_CHECK</td>
+<td class="address-1"><span id="63646"></span>F89E</td>
+<td class="instruction">LD HL,$A91F</td>
+<td class="comment-1" rowspan="2">HL five bytes before the object table, so that each step of five and the byte read after it moves on one six-byte record; keep the door's record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63649"></span>F8A1</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_4</td>
+<td class="address-2"><span id="63651"></span>F8A3</td>
+<td class="instruction">LD DE,$0005</td>
+<td class="comment-1" rowspan="5">Next record: E = its room, A = its type</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63654"></span>F8A6</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63655"></span>F8A7</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63656"></span>F8A8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63657"></span>F8A9</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63658"></span>F8AA</td>
+<td class="instruction">CP $46</td>
+<td class="comment-1" rowspan="2">The first eleven-byte record ends the things: none is in the way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63660"></span>F8AC</td>
+<td class="instruction">JR NC,<a href="63428.html#63724">GO_THROUGH_DOOR</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63662"></span>F8AE</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="3">A thing in another room: next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63663"></span>F8AF</td>
+<td class="instruction">CP C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63664"></span>F8B0</td>
+<td class="instruction">JR NZ,<a href="63428.html#63651">BUMPED_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63666"></span>F8B2</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="7">Make a record of it at IY+$4B: its +12 byte and its place (x, top, y) go to +5 to +8 (+5 and +6 are PRINT_X and PRINT_Y; whatever prints next sets them again)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63667"></span>F8B3</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63668"></span>F8B4</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63669"></span>F8B5</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63670"></span>F8B6</td>
+<td class="instruction">LD DE,$FFD0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63673"></span>F8B9</td>
+<td class="instruction">LD BC,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63676"></span>F8BC</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63678"></span>F8BE</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="7">Its template (<a href="46900.html">TEMPLATES</a>): the sizes, at byte 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63679"></span>F8BF</td>
+<td class="instruction">LD HL,<a href="46726.html#46895">$B72F</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63682"></span>F8C2</td>
+<td class="instruction">LD DE,$000B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63685"></span>F8C5</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label">BUMPED_5</td>
+<td class="address-2"><span id="63686"></span>F8C6</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63687"></span>F8C7</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63688"></span>F8C8</td>
+<td class="instruction">JR NZ,<a href="63428.html#63686">BUMPED_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63690"></span>F8CA</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="3">To +9 to +11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63691"></span>F8CB</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63694"></span>F8CE</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63696"></span>F8D0</td>
+<td class="instruction">LD IX,<a href="65408.html#65483">ARRIVAL_BOX</a></td>
+<td class="comment-1" rowspan="4">Would he arrive in its box? (the box test in <a href="64732.html">TEST_ONE_RECORD</a>, with his arrival in the other set)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63700"></span>F8D4</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63701"></span>F8D5</td>
+<td class="instruction">CALL <a href="64732.html#64754">BOX_OVERLAP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63704"></span>F8D8</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63705"></span>F8D9</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">No: next thing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63706"></span>F8DA</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63707"></span>F8DB</td>
+<td class="instruction">JR NC,<a href="63428.html#63651">BUMPED_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63709"></span>F8DD</td>
+<td class="instruction">BIT 4,(IX+$05)</td>
+<td class="comment-1" rowspan="2">A thing with bit 4 of +12 does not count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63713"></span>F8E1</td>
+<td class="instruction">JR NZ,<a href="63428.html#63651">BUMPED_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63715"></span>F8E3</td>
+<td class="instruction">LD (IY+$07),$01</td>
+<td class="comment-1" rowspan="3">Anything else: BLOCKED, and it is a wall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63719"></span>F8E7</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63721"></span>F8E9</td>
+<td class="instruction">JP <a href="64131.html#64156">BLOCKED_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label">GO_THROUGH_DOOR</td>
+<td class="address-2"><span id="63724"></span>F8EC</td>
+<td class="instruction">LD (IY+$34),C</td>
+<td class="comment-1" rowspan="1">Krumlinde's RTN_Trigger_Room_Change. The room is the one behind the door</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63727"></span>F8EF</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="4">Drop the scan's IX, and the two words the main loop left (<a href="65095.html">MAIN_LOOP</a>): <a href="64800.html">ROOMST</a> goes back into the loop itself</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63728"></span>F8F0</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63729"></span>F8F1</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63730"></span>F8F2</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63731"></span>F8F3</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="2">Move the knight to where he arrives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63735"></span>F8F7</td>
+<td class="instruction">CALL <a href="58615.html">ISO_MOVE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63738"></span>F8FA</td>
+<td class="instruction">LD A,(<a href="65408.html#65522">WORK_BEHAVIOUR</a>)</td>
+<td class="comment-1" rowspan="2">With the state he had</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63741"></span>F8FD</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63744"></span>F900</td>
+<td class="instruction">CALL <a href="63750.html">SAVE_OBJECT_POSITIONS</a></td>
+<td class="comment-1" rowspan="1">Save where the things of the room are (<a href="63750.html">SAVE_OBJECT_POSITIONS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63747"></span>F903</td>
+<td class="instruction">JP <a href="64800.html">ROOMST</a></td>
+<td class="comment-1" rowspan="1">And enter the new one</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63418.html">F7BA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63428">Map</a></td>
+<td class="next">
+Next: <a href="63750.html">F906</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

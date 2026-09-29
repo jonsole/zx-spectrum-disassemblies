@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FE15</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64800.html">FD20</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65045">Map</a></td>
+<td class="next">
+Next: <a href="65095.html">FE47</a>
+</td>
+</tr>
+</table>
+<div class="description">FE15: Draw a room's doors and still things into its picture, and start the main loop</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Entered at its end from <a href="64800.html">ROOMST</a>, with HL at the first record after the knight's and THIS_RECORD at 7. Each record is drawn now, once, if it is a door or still: nothing in the low five bits of +16, a thing that never moves and that <a href="61920.html">CHE3D</a> never updates. With bit 4 of GAME_FLAGS set, <a href="60605.html">REDRAW_OBJECT</a> draws it among the other still things only. When all are done the screen is copied to the clean copy again (<a href="61707.html">RESTOR</a>), so from now on they are part of the room's picture, drawn again only where something passes in front of them.
+</div>
+<div class="paragraph">
+Then THINGS_NOTED is cleared and GAME_FLAGS set to 5 -- LIFE to be printed (bit 0) and the room's first pass (bit 2), everything else off, a freeze included -- and the main loop starts with its keys (<a href="65095.html">MAIN_LOOP</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_STILL_THINGS</td>
+<td class="address-2"><span id="65045"></span>FE15</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">IX = the record; THIS_RECORD = its number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65046"></span>FE16</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65048"></span>FE18</td>
+<td class="instruction">INC (IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65051"></span>FE1B</td>
+<td class="instruction">LD A,(IX+$0C)</td>
+<td class="comment-1" rowspan="4">A door: draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65054"></span>FE1E</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65056"></span>FE20</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65058"></span>FE22</td>
+<td class="instruction">JR Z,<a href="65045.html#65065">DRAW_STILL_THINGS_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65060"></span>FE24</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Anything else only if still</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65063"></span>FE27</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_STILL_THINGS_0</td>
+<td class="address-2"><span id="65065"></span>FE29</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">Draw it (<a href="60605.html">REDRAW_OBJECT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65066"></span>FE2A</td>
+<td class="instruction">CALL Z,<a href="60605.html">REDRAW_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65069"></span>FE2D</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65070"></span>FE2E</td>
+<td class="instruction">LD DE,$0014</td>
+<td class="comment-1" rowspan="2">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65073"></span>FE31</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="65074"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="64800.html">ROOMST</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_STILL_THINGS_1</td>
+<td class="address-2"><span id="65074"></span>FE32</td>
+<td class="instruction">LD A,(<a href="65408.html">OBJECT_COUNT</a>)</td>
+<td class="comment-1" rowspan="3">Until the last in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65077"></span>FE35</td>
+<td class="instruction">CP (IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65080"></span>FE38</td>
+<td class="instruction">JR NZ,<a href="65045.html#65045">DRAW_STILL_THINGS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65082"></span>FE3A</td>
+<td class="instruction">CALL <a href="61707.html">RESTOR</a></td>
+<td class="comment-1" rowspan="1">Copy the screen, still things and all, to the clean copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65085"></span>FE3D</td>
+<td class="instruction">LD (IY+$11),$00</td>
+<td class="comment-1" rowspan="3">A new room's flags, and into the main loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65089"></span>FE41</td>
+<td class="instruction">LD (IY+$17),$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65093"></span>FE45</td>
+<td class="instruction">JR <a href="65095.html#65137">PASS_KEYS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64800.html">FD20</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65045">Map</a></td>
+<td class="next">
+Next: <a href="65095.html">FE47</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F157</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61735.html">F127</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61783">Map</a></td>
+<td class="next">
+Next: <a href="61849.html">F199</a>
+</td>
+</tr>
+</table>
+<div class="description">F157: Mirror a run of sprite planes in place, if they face the other way</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="61735.html">MITRO</a>.
+</div>
+<div class="paragraph">
+The author's MW. Nothing is done if bit 5 of the record's +$0E, the way the sprites face now, already matches bit 5 of E. Otherwise every row of every plane is turned end for end: each byte's bits reversed into E and pushed, and then popped back over the row, which reverses the bytes' order too.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The new facing</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The width in bytes</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The first plane</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+<tr>
+<td class="register">C'</td>
+<td class="register-desc">The number of planes</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MW</td>
+<td class="address-2"><span id="61783"></span>F157</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="6">Already that way round: nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61786"></span>F15A</td>
+<td class="instruction">BIT 5,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61788"></span>F15C</td>
+<td class="instruction">JR NZ,<a href="61783.html#61792">MW0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61790"></span>F15E</td>
+<td class="instruction">XOR $20</td>
+</tr>
+<tr>
+<td class="asm-label">MW0</td>
+<td class="address-2"><span id="61792"></span>F160</td>
+<td class="instruction">BIT 5,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61794"></span>F162</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61795"></span>F163</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">MIR0: each plane, its height in rows (in the alternate B)</td>
+</tr>
+<tr>
+<td class="asm-label">MIR0</td>
+<td class="address-2"><span id="61796"></span>F164</td>
+<td class="instruction">LD B,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label">MIR1</td>
+<td class="address-2"><span id="61799"></span>F167</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">MIR1: each row, its width in bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61800"></span>F168</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label">MIR2</td>
+<td class="address-2"><span id="61801"></span>F169</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="20">MIR2: each byte's bits reversed, and pushed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61802"></span>F16A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61803"></span>F16B</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61804"></span>F16C</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61806"></span>F16E</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61807"></span>F16F</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61809"></span>F171</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61810"></span>F172</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61812"></span>F174</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61813"></span>F175</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61815"></span>F177</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61816"></span>F178</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61818"></span>F17A</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61819"></span>F17B</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61821"></span>F17D</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61822"></span>F17E</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61824"></span>F180</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61825"></span>F181</td>
+<td class="instruction">RL E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61827"></span>F183</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61828"></span>F184</td>
+<td class="instruction">DJNZ <a href="61783.html#61801">MIR2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61830"></span>F186</td>
+<td class="instruction">LD E,C</td>
+<td class="comment-1" rowspan="5">Back to the row's start</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61831"></span>F187</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61833"></span>F189</td>
+<td class="instruction">LD B,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61834"></span>F18A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61835"></span>F18B</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label">MIR3</td>
+<td class="address-2"><span id="61837"></span>F18D</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="4">MIR3: the bytes written back, last first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61838"></span>F18E</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61839"></span>F18F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61840"></span>F190</td>
+<td class="instruction">DJNZ <a href="61783.html#61837">MIR3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61842"></span>F192</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">The next row; the next plane</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61843"></span>F193</td>
+<td class="instruction">DJNZ <a href="61783.html#61799">MIR1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61845"></span>F195</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61846"></span>F196</td>
+<td class="instruction">JR NZ,<a href="61783.html#61796">MIR0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61848"></span>F198</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61735.html">F127</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61783">Map</a></td>
+<td class="next">
+Next: <a href="61849.html">F199</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

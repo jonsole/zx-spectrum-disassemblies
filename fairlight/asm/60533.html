@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EC75</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60492.html">EC4C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60533">Map</a></td>
+<td class="next">
+Next: <a href="60605.html">ECBD</a>
+</td>
+</tr>
+</table>
+<div class="description">EC75: Clear the panel's box for the thing in use, and number it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="60492.html">SHOW_THING_IN_USE</a>, <a href="62217.html">CREATURE_UPDATE</a> and <a href="65095.html">MAIN_LOOP</a>.
+</div>
+<div class="paragraph">
+The author's INFO0 (named by its calls in the leftover source text). The panel shows the thing in use in a box 24 pixels wide and 32 high at x 20, row 40 down, and the number of its carried place (1-5) above it at x 10, y 50. The box is put back as the clean copy of the screen (<a href="49152.html">LOADING_TUNE</a>) has it: the compositor (<a href="58340.html">COMPOSITE_TO_SCREEN</a>) is given its second plane all set, which takes every pixel from the clean copy, so whatever sprite it finds does not matter. Then the digit is printed, from SELECTED. Called on its own when a thing is dropped (<a href="62217.html">CREATURE_UPDATE</a>) or an empty place is chosen (<a href="65095.html">MAIN_LOOP</a>), and by <a href="60492.html">SHOW_THING_IN_USE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_THING_BOX</td>
+<td class="address-2"><span id="60533"></span>EC75</td>
+<td class="instruction">LD B,$20</td>
+<td class="comment-1" rowspan="4">the second plane all set: every pixel from the clean copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60535"></span>EC77</td>
+<td class="instruction">LD HL,<a href="54932.html#55808">BUFFER_DA00</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60538"></span>EC7A</td>
+<td class="instruction">LD DE,$FFFF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60541"></span>EC7D</td>
+<td class="instruction">CALL <a href="61520.html#61525">FILL_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60544"></span>EC80</td>
+<td class="instruction">LD HL,<a href="54932.html#55552">BUFFER_D900</a></td>
+<td class="comment-1" rowspan="3">the first plane clear</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60547"></span>EC83</td>
+<td class="instruction">LD B,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60549"></span>EC85</td>
+<td class="instruction">CALL <a href="61520.html#61522">CLEAR_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60552"></span>EC88</td>
+<td class="instruction">LD HL,$2814</td>
+<td class="comment-1" rowspan="4">the box: x 20, row 40, 24 by 32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60555"></span>EC8B</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60558"></span>EC8E</td>
+<td class="instruction">LD HL,$2018</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60561"></span>EC91</td>
+<td class="instruction">LD (<a href="65408.html#65510">SECOND_POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60564"></span>EC94</td>
+<td class="instruction">LD HL,<a href="54932.html#55296">BUFFER_D800</a></td>
+<td class="comment-1" rowspan="1">not used: <a href="58340.html">COMPOSITE_TO_SCREEN</a> loads HL itself</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60567"></span>EC97</td>
+<td class="instruction">LD (IY+$71),$00</td>
+<td class="comment-1" rowspan="3">nothing else to merge; 4 bytes wide</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60571"></span>EC9B</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60573"></span>EC9D</td>
+<td class="instruction">LD (<a href="65408.html#65523">DRAW_WIDTH</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60576"></span>ECA0</td>
+<td class="instruction">CALL <a href="58340.html">COMPOSITE_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1">put the box back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60579"></span>ECA3</td>
+<td class="instruction">LD A,(<a href="65408.html#65438">SELECTED</a>)</td>
+<td class="comment-1" rowspan="5">the place in use ($9F-$A7 in twos) as a digit 1-5, into the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60582"></span>ECA6</td>
+<td class="instruction">SUB $9E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60584"></span>ECA8</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60585"></span>ECA9</td>
+<td class="instruction">ADD A,$1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60587"></span>ECAB</td>
+<td class="instruction">LD ($ECB4),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60590"></span>ECAE</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1">print it (the string follows the CALL, laid out by the data generator)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60593"></span>ECB1</td>
+<td class="instruction">DEFB $C8,$0A,$32</td>
+<td class="comment-1" rowspan="1">Print at x 10, y 50</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60596"></span>ECB4</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">" "</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60597"></span>ECB5</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60598"></span>ECB6</td>
+<td class="instruction">LD HL,$2814</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60601"></span>ECB9</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60604"></span>ECBC</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60492.html">EC4C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60533">Map</a></td>
+<td class="next">
+Next: <a href="60605.html">ECBD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F65C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62869.html">F595</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63068">Map</a></td>
+<td class="next">
+Next: <a href="63408.html">F7B0</a>
+</td>
+</tr>
+</table>
+<div class="description">F65C: Show the frame, then move the object and redraw it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The rest of the author's ANIM (<a href="62869.html">KNIGHT_CONTROLS</a>), and then the common end of every object's update: INPE sets the sprite, KON6 takes the direction, NOPROP adds gravity, NOG makes the direction into the three axes of the step, and the step is tried against every other record (<a href="64677.html">FIND_OBSTACLE</a>). If something is in the way, <a href="63428.html">BUMPED</a> deals with it: a door may take the knight to another room, anything else is met (<a href="63833.html">OBJECTS_MEET</a>) and the step tried again axis by axis (<a href="64131.html">MEET_DECOY</a>), which comes back to TRY_STEP here. When the step is clear the record gets the new state and place (<a href="58615.html">ISO_MOVE</a>), and the object is redrawn (<a href="60605.html">REDRAW_OBJECT</a>).
+</div>
+<div class="paragraph">
+Gravity: unless the direction has bit 1 (rising), the up bit is cleared (by the constant $EF in IY+$0B) and down added (from the constant in IY+$05), so everything falls two units a pass until it is stopped. A fall sets bit 7 of the state, in the air, and while that is set <a href="61920.html">CHE3D</a> does not run the object's own case but keeps it going the way +18 says. A fall keeps only the down bit (and the low two), so everything falls straight down, the knight at the end of a jump too (measured). The air ends when the fall is stopped, or when the count in +15 runs out (it is 1 while falling, 3 for a bounce), and if it was in the air at the start of the pass and did not move at all, the object is updated again at once (<a href="61920.html">CHE3D</a>) as a thing on the ground. Bit 6 of IY+$7B, which <a href="64131.html">MEET_DECOY</a> sets when the step was stopped by an object of kind 2 or 3, makes it bounce: three passes going up.
+</div>
+<div class="paragraph">
+The knight's screen position is worked out afresh on each pass: his record is first put back to one fixed point on the floor (50, 78, 50) and its place on the screen, and <a href="58615.html">ISO_MOVE</a> moves him from there. Everything else is moved from where it was.
+</div>
+<div class="paragraph">
+On the first pass in a room (bit 2 of IY+$17, which the room's entry sets and <a href="65095.html">MAIN_LOOP</a> clears) nothing moves: the direction is cleared, but all three axis bits are set, so the test runs on a box one unit up x, two down and one down y from where the object is, and whatever that meets is dealt with as usual (<a href="63428.html">BUMPED</a>); then the record is only drawn. What the offset box is for is not worked out.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The first frame of the run</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The size of one frame</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The frame, plus one</td>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The next frame</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The object's +17</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE</td>
+<td class="address-2"><span id="63068"></span>F65C</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="1">HL = the frame to show</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63069"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62869.html">KNIGHT_CONTROLS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_0</td>
+<td class="address-2"><span id="63069"></span>F65D</td>
+<td class="instruction">DJNZ <a href="63068.html#63068">ANIMATE_AND_MOVE</a></td>
+<td class="comment-1" rowspan="1">}</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63071"></span>F65F</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="6">The last frame of the run</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63072"></span>F660</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63073"></span>F661</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63074"></span>F662</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63075"></span>F663</td>
+<td class="instruction">RRA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63076"></span>F664</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63078"></span>F666</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="6">Past it: go back, and next time show frame 1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63079"></span>F667</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63080"></span>F668</td>
+<td class="instruction">JR NC,<a href="63068.html#63088">ANIMATE_AND_MOVE_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63082"></span>F66A</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63084"></span>F66C</td>
+<td class="instruction">OR $81</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63086"></span>F66E</td>
+<td class="instruction">JR <a href="63068.html#63091">ANIMATE_AND_MOVE_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_1</td>
+<td class="address-2"><span id="63088"></span>F670</td>
+<td class="instruction">AND $F8</td>
+<td class="comment-1" rowspan="3">Otherwise the next frame</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63090"></span>F672</td>
+<td class="instruction">OR B</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_2</td>
+<td class="address-2"><span id="63091"></span>F673</td>
+<td class="instruction">LD (IX+$11),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63094"></span>F676</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1">The way to go</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63095"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="61920.html">CHE3D</a>, <a href="62217.html">CREATURE_UPDATE</a> and <a href="62869.html">KNIGHT_CONTROLS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SET_SPRITE_AND_MOVE</td>
+<td class="address-2"><span id="63095"></span>F677</td>
+<td class="instruction">LD (IX+$04),L</td>
+<td class="comment-1" rowspan="2">The author's INPE: the sprite is HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63098"></span>F67A</td>
+<td class="instruction">LD (IX+$05),H</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63101"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="61920.html">CHE3D</a> and <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">MOVE_IN_DIRECTION</td>
+<td class="address-2"><span id="63101"></span>F67D</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="1">The author's KON6: the way to go is C</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63102"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ADD_GRAVITY</td>
+<td class="address-2"><span id="63102"></span>F67E</td>
+<td class="instruction">BIT 1,A</td>
+<td class="comment-1" rowspan="2">The author's NOPROP. Rising (bit 1): no gravity this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63104"></span>F680</td>
+<td class="instruction">JR NZ,<a href="63068.html#63116">SKIP_GRAVITY</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63106"></span>F682</td>
+<td class="instruction">AND (IY+$0B)</td>
+<td class="comment-1" rowspan="5">Otherwise no up (IY+$0B holds $EF), and down (IY+$05 holds $23; its low two bits are not used)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63109"></span>F685</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63110"></span>F686</td>
+<td class="instruction">LD A,(<a href="65408.html#65413">GRAVITY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63113"></span>F689</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63115"></span>F68B</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63116"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="61920.html">CHE3D</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">SKIP_GRAVITY</td>
+<td class="address-2"><span id="63116"></span>F68C</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="3">The author's NOG. C will be the axes of the step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63118"></span>F68E</td>
+<td class="instruction">BIT 2,(IY+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63122"></span>F692</td>
+<td class="instruction">JR Z,<a href="63068.html#63127">ANIMATE_AND_MOVE_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63124"></span>F694</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">The first pass in a room: no way to go, but a test on all three axes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63125"></span>F695</td>
+<td class="instruction">LD C,$07</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63127"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_3</td>
+<td class="address-2"><span id="63127"></span>F697</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+<td class="comment-1" rowspan="2">The way to go this pass: IY+$71 (which <a href="64131.html">MEET_DECOY</a> may change) and IY+$7C (which it does not)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63130"></span>F69A</td>
+<td class="instruction">LD (<a href="65408.html#65532">ASKED_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63133"></span>F69D</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="4">Down or up x: an x step (bit 0 of IY+$7B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63134"></span>F69E</td>
+<td class="instruction">AND $0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63136"></span>F6A0</td>
+<td class="instruction">JR Z,<a href="63068.html#63140">ANIMATE_AND_MOVE_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63138"></span>F6A2</td>
+<td class="instruction">SET 0,C</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_4</td>
+<td class="address-2"><span id="63140"></span>F6A4</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">Up or down: a step in height (bit 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63141"></span>F6A5</td>
+<td class="instruction">AND $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63143"></span>F6A7</td>
+<td class="instruction">JR Z,<a href="63068.html#63147">ANIMATE_AND_MOVE_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63145"></span>F6A9</td>
+<td class="instruction">SET 1,C</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_5</td>
+<td class="address-2"><span id="63147"></span>F6AB</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="4">Up or down y: a y step (bit 2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63148"></span>F6AC</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63150"></span>F6AE</td>
+<td class="instruction">JR Z,<a href="63068.html#63154">ANIMATE_AND_MOVE_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63152"></span>F6B0</td>
+<td class="instruction">SET 2,C</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_6</td>
+<td class="address-2"><span id="63154"></span>F6B2</td>
+<td class="instruction">LD (IY+$7B),C</td>
+<td class="comment-1" rowspan="1">IY+$7B = the axes of the step</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63157"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="64131.html">MEET_DECOY</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TRY_STEP</td>
+<td class="address-2"><span id="63157"></span>F6B5</td>
+<td class="instruction">RES 7,(IY+$7B)</td>
+<td class="comment-1" rowspan="1"><a href="64131.html">MEET_DECOY</a> comes back here: no door met yet (bit 7 of IY+$7B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63161"></span>F6B9</td>
+<td class="instruction">LD C,(IY+$7B)</td>
+<td class="comment-1" rowspan="3">B, D, H = where it would be after the step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63164"></span>F6BC</td>
+<td class="instruction">CALL <a href="63408.html">WORKING_POSITION</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63167"></span>F6BF</td>
+<td class="instruction">CALL <a href="64576.html">STEP_ALL_AXES</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63170"></span>F6C2</td>
+<td class="instruction">LD A,(<a href="65408.html#65531">STEP_AXES</a>)</td>
+<td class="comment-1" rowspan="3">Not moving: nothing to test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63173"></span>F6C5</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63175"></span>F6C7</td>
+<td class="instruction">JR Z,<a href="63068.html#63186">COMMIT_STEP</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63177"></span>F6C9</td>
+<td class="instruction">CALL <a href="63418.html">WORKING_SIZES</a></td>
+<td class="comment-1" rowspan="3">With its sizes, does it meet anything? If so, see what (IX is what it met)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63180"></span>F6CC</td>
+<td class="instruction">CALL <a href="64677.html">FIND_OBSTACLE</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63183"></span>F6CF</td>
+<td class="instruction">JP C,<a href="63428.html">BUMPED</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63186"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="63833.html">OBJECTS_MEET</a> and <a href="64121.html">MOVER_VANISHES</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">COMMIT_STEP</td>
+<td class="address-2"><span id="63186"></span>F6D2</td>
+<td class="instruction">LD IX,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="3">The step is clear. The record gets the state from the working copy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63190"></span>F6D6</td>
+<td class="instruction">LD A,(<a href="65408.html#65522">WORK_BEHAVIOUR</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63193"></span>F6D9</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63196"></span>F6DC</td>
+<td class="instruction">BIT 2,(IY+$17)</td>
+<td class="comment-1" rowspan="2">The first pass in a room: just draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63200"></span>F6E0</td>
+<td class="instruction">JP NZ,<a href="63068.html#63402">REDRAW_THIS_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63203"></span>F6E3</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="3">The knight?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63205"></span>F6E5</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63207"></span>F6E7</td>
+<td class="instruction">JR NZ,<a href="63068.html#63229">ANIMATE_AND_MOVE_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63209"></span>F6E9</td>
+<td class="instruction">LD (IX+$00),$74</td>
+<td class="comment-1" rowspan="5">Put his record back to the fixed point, so that his screen place comes out afresh</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63213"></span>F6ED</td>
+<td class="instruction">LD (IX+$01),$22</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63217"></span>F6F1</td>
+<td class="instruction">LD (IX+$06),$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63221"></span>F6F5</td>
+<td class="instruction">LD (IX+$07),$4E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63225"></span>F6F9</td>
+<td class="instruction">LD (IX+$08),$32</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_7</td>
+<td class="address-2"><span id="63229"></span>F6FD</td>
+<td class="instruction">CALL <a href="58615.html">ISO_MOVE</a></td>
+<td class="comment-1" rowspan="1">Move it: the new place, and the screen position from it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63232"></span>F700</td>
+<td class="instruction">LD E,(IX+$0E)</td>
+<td class="comment-1" rowspan="2">E = the state; D = the way it went (after any change by <a href="64131.html">MEET_DECOY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63235"></span>F703</td>
+<td class="instruction">LD D,(IY+$71)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63238"></span>F706</td>
+<td class="instruction">BIT 7,E</td>
+<td class="comment-1" rowspan="3">On the ground, that becomes its way (+13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63240"></span>F708</td>
+<td class="instruction">JR NZ,<a href="63068.html#63245">ANIMATE_AND_MOVE_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63242"></span>F70A</td>
+<td class="instruction">LD (IX+$0D),D</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_8</td>
+<td class="address-2"><span id="63245"></span>F70D</td>
+<td class="instruction">BIT 4,E</td>
+<td class="comment-1" rowspan="9">Riding on something that moves (state bit 4): take its way (IY+$7F), keeping the low bits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63247"></span>F70F</td>
+<td class="instruction">JR Z,<a href="63068.html#63262">ANIMATE_AND_MOVE_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63249"></span>F711</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63250"></span>F712</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63252"></span>F714</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63253"></span>F715</td>
+<td class="instruction">LD A,(<a href="65408.html#65535">RIDE_DIRECTION</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63256"></span>F718</td>
+<td class="instruction">AND $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63258"></span>F71A</td>
+<td class="instruction">OR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63259"></span>F71B</td>
+<td class="instruction">LD (IX+$0D),A</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_9</td>
+<td class="address-2"><span id="63262"></span>F71E</td>
+<td class="instruction">BIT 1,(IY+$7B)</td>
+<td class="comment-1" rowspan="4">Moved in height, going down: falling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63266"></span>F722</td>
+<td class="instruction">JR Z,<a href="63068.html#63295">ANIMATE_AND_MOVE_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63268"></span>F724</td>
+<td class="instruction">BIT 5,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63270"></span>F726</td>
+<td class="instruction">JR Z,<a href="63068.html#63295">ANIMATE_AND_MOVE_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63272"></span>F728</td>
+<td class="instruction">LD (IX+$0F),$01</td>
+<td class="comment-1" rowspan="4">In the air; keep going down (with the low bits)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63276"></span>F72C</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63277"></span>F72D</td>
+<td class="instruction">AND $23</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63279"></span>F72F</td>
+<td class="instruction">SET 7,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63281"></span>F731</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="7">The knight counts the passes he falls for (IY+$14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63282"></span>F732</td>
+<td class="instruction">LD A,(<a href="65408.html#65411">THIS_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63285"></span>F735</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63287"></span>F737</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63288"></span>F738</td>
+<td class="instruction">JR NZ,<a href="63068.html#63321">ANIMATE_AND_MOVE_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63290"></span>F73A</td>
+<td class="instruction">INC (IY+$14)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63293"></span>F73D</td>
+<td class="instruction">JR <a href="63068.html#63321">ANIMATE_AND_MOVE_12</a></td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_10</td>
+<td class="address-2"><span id="63295"></span>F73F</td>
+<td class="instruction">BIT 6,(IY+$7B)</td>
+<td class="comment-1" rowspan="2">Stopped by an object of kind 2 or 3 (bit 6 of IY+$7B, from <a href="64131.html">MEET_DECOY</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63299"></span>F743</td>
+<td class="instruction">JR Z,<a href="63068.html#63311">ANIMATE_AND_MOVE_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63301"></span>F745</td>
+<td class="instruction">SET 7,E</td>
+<td class="comment-1" rowspan="4">Bounce: in the air, going up for three passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63303"></span>F747</td>
+<td class="instruction">LD (IX+$0F),$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63307"></span>F74B</td>
+<td class="instruction">LD B,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63309"></span>F74D</td>
+<td class="instruction">JR <a href="63068.html#63351">ANIMATE_AND_MOVE_15</a></td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_11</td>
+<td class="address-2"><span id="63311"></span>F74F</td>
+<td class="instruction">BIT 7,E</td>
+<td class="comment-1" rowspan="2">On the ground: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63313"></span>F751</td>
+<td class="instruction">JR Z,<a href="63068.html#63382">ANIMATE_AND_MOVE_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63315"></span>F753</td>
+<td class="instruction">DEC (IX+$0F)</td>
+<td class="comment-1" rowspan="2">In the air: count down, and at nought it is out of the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63318"></span>F756</td>
+<td class="instruction">JR Z,<a href="63068.html#63342">ANIMATE_AND_MOVE_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63320"></span>F758</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="1">Keep going the way it went</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_12</td>
+<td class="address-2"><span id="63321"></span>F759</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="6">Mid-jump (state 5): the way asked for, before <a href="64131.html">MEET_DECOY</a> changed it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63322"></span>F75A</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63323"></span>F75B</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63325"></span>F75D</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63327"></span>F75F</td>
+<td class="instruction">JR NZ,<a href="63068.html#63332">ANIMATE_AND_MOVE_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63329"></span>F761</td>
+<td class="instruction">LD B,(IY+$7C)</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_13</td>
+<td class="address-2"><span id="63332"></span>F764</td>
+<td class="instruction">CP $08</td>
+<td class="comment-1" rowspan="4">The knight in the air with no step in height has landed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63334"></span>F766</td>
+<td class="instruction">JR NZ,<a href="63068.html#63351">ANIMATE_AND_MOVE_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63336"></span>F768</td>
+<td class="instruction">BIT 1,(IY+$7B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63340"></span>F76C</td>
+<td class="instruction">JR NZ,<a href="63068.html#63351">ANIMATE_AND_MOVE_15</a></td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_14</td>
+<td class="address-2"><span id="63342"></span>F76E</td>
+<td class="instruction">RES 7,E</td>
+<td class="comment-1" rowspan="3">Out of the air; carry on the way +13 says</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63344"></span>F770</td>
+<td class="instruction">LD (IX+$0F),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63348"></span>F774</td>
+<td class="instruction">LD B,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_15</td>
+<td class="address-2"><span id="63351"></span>F777</td>
+<td class="instruction">LD (IX+$12),B</td>
+<td class="comment-1" rowspan="1">Its way while in the air</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63354"></span>F77A</td>
+<td class="instruction">LD A,(<a href="65408.html#65531">STEP_AXES</a>)</td>
+<td class="comment-1" rowspan="3">It moved: keep the new state</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63357"></span>F77D</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63359"></span>F77F</td>
+<td class="instruction">JR NZ,<a href="63068.html#63382">ANIMATE_AND_MOVE_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63361"></span>F781</td>
+<td class="instruction">BIT 7,(IY+$67)</td>
+<td class="comment-1" rowspan="2">It did not move, and was not in the air at the start of the pass: keep the state</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63365"></span>F785</td>
+<td class="instruction">JR Z,<a href="63068.html#63382">ANIMATE_AND_MOVE_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63367"></span>F787</td>
+<td class="instruction">RES 7,E</td>
+<td class="comment-1" rowspan="5">It was in the air and could not move at all: out of the air, and update it again at once</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63369"></span>F789</td>
+<td class="instruction">LD (IX+$0E),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63372"></span>F78C</td>
+<td class="instruction">LD (IX+$0F),$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63376"></span>F790</td>
+<td class="instruction">LD HL,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63379"></span>F793</td>
+<td class="instruction">JP <a href="61920.html">CHE3D</a></td>
+</tr>
+<tr>
+<td class="asm-label">ANIMATE_AND_MOVE_16</td>
+<td class="address-2"><span id="63382"></span>F796</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="2">The new state</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63383"></span>F797</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63386"></span>F79A</td>
+<td class="instruction">AND $0F</td>
+<td class="comment-1" rowspan="2">Anything but a thing lying (state 0) is redrawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63388"></span>F79C</td>
+<td class="instruction">JR NZ,<a href="63068.html#63402">REDRAW_THIS_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63390"></span>F79E</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+<td class="comment-1" rowspan="2">A thing that is carried too</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63394"></span>F7A2</td>
+<td class="instruction">JR NZ,<a href="63068.html#63402">REDRAW_THIS_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63396"></span>F7A4</td>
+<td class="instruction">LD A,(<a href="65408.html#65531">STEP_AXES</a>)</td>
+<td class="comment-1" rowspan="3">A thing lying still needs no redraw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63399"></span>F7A7</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63401"></span>F7A9</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63402"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62217.html">CREATURE_UPDATE</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">REDRAW_THIS_OBJECT</td>
+<td class="address-2"><span id="63402"></span>F7AA</td>
+<td class="instruction">LD HL,(<a href="65408.html#65533">WORK_RECORD</a>)</td>
+<td class="comment-1" rowspan="2">Redraw the object, in its new place</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63405"></span>F7AD</td>
+<td class="instruction">JP <a href="60605.html">REDRAW_OBJECT</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62869.html">F595</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63068">Map</a></td>
+<td class="next">
+Next: <a href="63408.html">F7B0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

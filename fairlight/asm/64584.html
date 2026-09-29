@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at FC48</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64576.html">FC40</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64584">Map</a></td>
+<td class="next">
+Next: <a href="64614.html">FC66</a>
+</td>
+</tr>
+</table>
+<div class="description">FC48: Aim a chasing creature at the knight, or at a decoy (the author's ZOOMIN)</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62199.html">STEER</a>.
+</div>
+<div class="paragraph">
+Called by <a href="62199.html">STEER</a> when a chaser's timer (+15) runs out: the guards (behaviours 6, 9 and 10), the troll (7) and the wraith (11, and 15 once woken). The target is the knight's record (<a href="48272.html">KNIGHT</a>), except for a behaviour-9 guard while a decoy is in the room (bit 0 of THINGS_NOTED): then it is the decoy's record, which <a href="61920.html">CHE3D</a> keeps in DECOY. IY is pointed at the target for <a href="64614.html">AIM_AT</a>, so (IY+6) and (IY+8) there are the target's x and z rather than variables -- which is why THINGS_NOTED is read by its address here -- and then set back to <a href="65408.html">OBJECT_COUNT</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">The chaser's behaviour byte (+14)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The chaser's record</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">The new heading</td>
+</tr>
+<tr>
+<td class="register">D</td>
+<td class="register-desc">How far off the target is along that axis</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ZOOMIN</td>
+<td class="address-2"><span id="64584"></span>FC48</td>
+<td class="instruction">LD A,E</td>
+<td class="comment-1" rowspan="5">The target is the knight...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64585"></span>FC49</td>
+<td class="instruction">LD IY,<a href="48272.html">KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64589"></span>FC4D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64591"></span>FC4F</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64593"></span>FC51</td>
+<td class="instruction">JR NZ,<a href="64584.html#64606">ZOOMIN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64595"></span>FC53</td>
+<td class="instruction">LD A,(<a href="65408.html#65425">THINGS_NOTED</a>)</td>
+<td class="comment-1" rowspan="3">...unless this is a behaviour-9 guard and a decoy has been seen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64598"></span>FC56</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64600"></span>FC58</td>
+<td class="instruction">JR Z,<a href="64584.html#64606">ZOOMIN_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64602"></span>FC5A</td>
+<td class="instruction">LD IY,(<a href="65408.html#65423">DECOY</a>)</td>
+<td class="comment-1" rowspan="1">The decoy's record</td>
+</tr>
+<tr>
+<td class="asm-label">ZOOMIN_0</td>
+<td class="address-2"><span id="64606"></span>FC5E</td>
+<td class="instruction">CALL <a href="64614.html">AIM_AT</a></td>
+<td class="comment-1" rowspan="1">Work out the heading</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64609"></span>FC61</td>
+<td class="instruction">LD IY,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="2">IY back on the variables</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="64613"></span>FC65</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="64576.html">FC40</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#64584">Map</a></td>
+<td class="next">
+Next: <a href="64614.html">FC66</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

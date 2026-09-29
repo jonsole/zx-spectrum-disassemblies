@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at E597</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58754.html">E582</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58775">Map</a></td>
+<td class="next">
+Next: <a href="58810.html">E5BA</a>
+</td>
+</tr>
+</table>
+<div class="description">E597: Draw a room from its record</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="58715.html">DRAW_CURRENT_ROOM</a>.
+</div>
+<div class="paragraph">
+The screen is cleared (<a href="58810.html">CLEAR_ROOM_SCREEN</a>) with black ink on black paper, so the drawing cannot be seen until <a href="61691.html">ATTRI</a> colours it; the record's first byte is kept as the room's colour (IY+$0E); and its commands are carried out one at a time by <a href="58856.html">DO_ROOM_COMMAND</a>, until the $E5 that ends them. The format is laid out command by command in each room's entry (room 1's is <a href="26800.html">ROOM1</a>).
+</div>
+<div class="paragraph">
+The loop (RUN_ROOM_COMMANDS, after the colour byte) is also how a part is drawn: room codes $E0 and $E1 (<a href="59547.html">MORE_ROOM_COMMANDS</a>) find the part in the table at <a href="30092.html">PART1</a> and run its commands through it, recursively. A part has no colour byte.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The room's record, at its colour byte</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_ROOM_RECORD</td>
+<td class="address-2"><span id="58775"></span>E597</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">The attributes' byte 0, and the screen cleared.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58776"></span>E598</td>
+<td class="instruction">LD (<a href="65408.html#65512">WORK_SPRITE</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58779"></span>E59B</td>
+<td class="instruction">CALL <a href="58810.html">CLEAR_ROOM_SCREEN</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58782"></span>E59E</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">The room's colour.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58785"></span>E5A1</td>
+<td class="instruction">LD (<a href="65408.html#65422">ROOM_COLOUR</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58788"></span>E5A4</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="58790"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="59547.html">MORE_ROOM_COMMANDS</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">RUN_ROOM_COMMANDS</td>
+<td class="address-2"><span id="58790"></span>E5A6</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">The next command; $E5 ends the room, or the part.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58793"></span>E5A9</td>
+<td class="instruction">CP $E5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58795"></span>E5AB</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58796"></span>E5AC</td>
+<td class="instruction">LD D,(IY+$6B)</td>
+<td class="comment-1" rowspan="2">Carry it out, with D the mode byte (IY+$6B).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58799"></span>E5AF</td>
+<td class="instruction">CALL <a href="58856.html">DO_ROOM_COMMAND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58802"></span>E5B2</td>
+<td class="instruction">LD IY,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="1">IY back at the variables after every command, though none of them moves it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58806"></span>E5B6</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="2">On past the command's last byte.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58808"></span>E5B8</td>
+<td class="instruction">JR <a href="58775.html#58790">RUN_ROOM_COMMANDS</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58754.html">E582</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58775">Map</a></td>
+<td class="next">
+Next: <a href="58810.html">E5BA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

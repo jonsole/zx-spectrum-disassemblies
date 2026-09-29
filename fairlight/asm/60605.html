@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at ECBD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60533.html">EC75</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60605">Map</a></td>
+<td class="next">
+Next: <a href="60743.html">ED47</a>
+</td>
+</tr>
+</table>
+<div class="description">ECBD: Redraw an object, and every other object that overlaps it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="62762.html">PICK_UP_LOOK_ON</a>, <a href="63068.html">ANIMATE_AND_MOVE</a>, <a href="63833.html">OBJECTS_MEET</a> and <a href="65045.html">DRAW_STILL_THINGS</a>.
+</div>
+<div class="paragraph">
+The author's SRP (named by its call in the leftover source text's pick-up code). Draws the object whose record is at HL where it now stands -- or rubs it out, if it has been carried off or is gone (bit 5 of +16) -- together with every other object whose sprite overlaps it on the screen, each in front of or behind it as their places say, and puts the result on the screen. The record's first twelve bytes are copied to the variables from IY+$64 on (the room drawing's points, which it is finished with), and the box to redraw is the sprite's, with three rows more at the top and three at the bottom.
+</div>
+<div class="paragraph">
+The work is done in the compositor's planes. The first (BUFFER_D800) is cleared; then either the object's sprite is drawn into them (<a href="61069.html">DRAW_SPRITE</a>, with $80) or the second (BUFFER_D900) is filled, which lets the clean copy of the room show through where it was. Then every record from the knight's (the seventh) to the last in use, but this one, goes to <a href="60743.html">CULL_OBJECT</a>, which lists at BUFFER_DA00 those that overlap the box (IY+$7F counts them, less one) and compares each one's depth with the corner of this object's box (<a href="61494.html">FAR_CORNER</a>). If any of them needs drawing, <a href="60870.html">SORT_AND_DRAW_BEHIND</a> sorts them and draws them into the planes, and at the end <a href="58340.html">COMPOSITE_TO_SCREEN</a> puts the box onto the screen.
+</div>
+<div class="paragraph">
+Used when a thing is picked up (<a href="62762.html">PICK_UP_LOOK_ON</a>, to rub it out), as objects move (<a href="63068.html">ANIMATE_AND_MOVE</a>, <a href="63833.html">OBJECTS_MEET</a>), and when a room is entered (<a href="65045.html">DRAW_STILL_THINGS</a> draws each object that stays put into the picture before it becomes the clean copy; bit 4 of IY+$17 is set then, and nothing is rubbed out).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The object's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">REDRAW_OBJECT</td>
+<td class="address-2"><span id="60605"></span>ECBD</td>
+<td class="instruction">LD DE,<a href="65408.html#65508">POINT</a></td>
+<td class="comment-1" rowspan="5">the record's first twelve bytes to IY+$64 on; IX the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60608"></span>ECC0</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60609"></span>ECC1</td>
+<td class="instruction">POP IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60611"></span>ECC3</td>
+<td class="instruction">LD BC,$000C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60614"></span>ECC6</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60616"></span>ECC8</td>
+<td class="instruction">LD A,(<a href="65408.html#65512">WORK_SPRITE</a>)</td>
+<td class="comment-1" rowspan="3">no sprite: nothing to draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60619"></span>ECCB</td>
+<td class="instruction">OR (IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60622"></span>ECCE</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60623"></span>ECCF</td>
+<td class="instruction">LD HL,<a href="54932.html#55552">BUFFER_D900</a></td>
+<td class="comment-1" rowspan="2">the first plane cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60626"></span>ECD2</td>
+<td class="instruction">CALL <a href="61516.html">CLEAR_256_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60629"></span>ECD5</td>
+<td class="instruction">LD (IY+$7F),$FF</td>
+<td class="comment-1" rowspan="2">none listed yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60633"></span>ECD9</td>
+<td class="instruction">LD (IY+$72),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60637"></span>ECDD</td>
+<td class="instruction">LD A,(<a href="65408.html#65510">SECOND_POINT</a>)</td>
+<td class="comment-1" rowspan="5">the width in bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60640"></span>ECE0</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60642"></span>ECE2</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60644"></span>ECE4</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60646"></span>ECE6</td>
+<td class="instruction">LD (<a href="65408.html#65523">DRAW_WIDTH</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60649"></span>ECE9</td>
+<td class="instruction">BIT 4,(IY+$17)</td>
+<td class="comment-1" rowspan="4">carried or gone, and the room not being entered?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60653"></span>ECED</td>
+<td class="instruction">JR NZ,<a href="60605.html#60674">REDRAW_OBJECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60655"></span>ECEF</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60659"></span>ECF3</td>
+<td class="instruction">JR Z,<a href="60605.html#60674">REDRAW_OBJECT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60661"></span>ECF5</td>
+<td class="instruction">LD HL,<a href="54932.html#55808">BUFFER_DA00</a></td>
+<td class="comment-1" rowspan="5">then the clean copy shows through: the second plane all set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60664"></span>ECF8</td>
+<td class="instruction">LD DE,$FFFF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60667"></span>ECFB</td>
+<td class="instruction">LD B,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60669"></span>ECFD</td>
+<td class="instruction">CALL <a href="61520.html#61525">FILL_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60672"></span>ED00</td>
+<td class="instruction">JR <a href="60605.html#60679">REDRAW_OBJECT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">REDRAW_OBJECT_0</td>
+<td class="address-2"><span id="60674"></span>ED02</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="2">else its sprite into the planes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60676"></span>ED04</td>
+<td class="instruction">CALL <a href="61069.html">DRAW_SPRITE</a></td>
+</tr>
+<tr>
+<td class="asm-label">REDRAW_OBJECT_1</td>
+<td class="address-2"><span id="60679"></span>ED07</td>
+<td class="instruction">CALL <a href="61494.html">FAR_CORNER</a></td>
+<td class="comment-1" rowspan="1">the corner of its box that depths are compared with</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60682"></span>ED0A</td>
+<td class="instruction">LD A,(<a href="65408.html#65511">SECOND_POINT_ROW</a>)</td>
+<td class="comment-1" rowspan="6">three rows more above and below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60685"></span>ED0D</td>
+<td class="instruction">ADD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60687"></span>ED0F</td>
+<td class="instruction">LD (<a href="65408.html#65511">SECOND_POINT_ROW</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60690"></span>ED12</td>
+<td class="instruction">LD A,(<a href="65408.html#65509">POINT_ROW</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60693"></span>ED15</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60695"></span>ED17</td>
+<td class="instruction">LD (<a href="65408.html#65509">POINT_ROW</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60698"></span>ED1A</td>
+<td class="instruction">LD IX,<a href="48272.html">KNIGHT</a></td>
+<td class="comment-1" rowspan="4">from the knight's record, the seventh; nothing to merge yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60702"></span>ED1E</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60703"></span>ED1F</td>
+<td class="instruction">LD (<a href="65408.html#65521">WORK_DIRECTION</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60706"></span>ED22</td>
+<td class="instruction">LD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label">REDRAW_OBJECT_2</td>
+<td class="address-2"><span id="60708"></span>ED24</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="4">each record but this one: does it overlap?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60709"></span>ED25</td>
+<td class="instruction">LD (<a href="65408.html#65529">DRAW_INDEX</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60712"></span>ED28</td>
+<td class="instruction">CP (IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60715"></span>ED2B</td>
+<td class="instruction">CALL NZ,<a href="60743.html">CULL_OBJECT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60718"></span>ED2E</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">the next record, keeping DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60719"></span>ED2F</td>
+<td class="instruction">LD DE,$0014</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60722"></span>ED32</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60724"></span>ED34</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60725"></span>ED35</td>
+<td class="instruction">LD A,(<a href="65408.html#65529">DRAW_INDEX</a>)</td>
+<td class="comment-1" rowspan="3">up to the last in use</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60728"></span>ED38</td>
+<td class="instruction">CP (IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60731"></span>ED3B</td>
+<td class="instruction">JR NZ,<a href="60605.html#60708">REDRAW_OBJECT_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60733"></span>ED3D</td>
+<td class="instruction">BIT 1,(IY+$71)</td>
+<td class="comment-1" rowspan="2">sort and draw those that must be</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60737"></span>ED41</td>
+<td class="instruction">CALL NZ,<a href="60870.html">SORT_AND_DRAW_BEHIND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60740"></span>ED44</td>
+<td class="instruction">JP <a href="58340.html">COMPOSITE_TO_SCREEN</a></td>
+<td class="comment-1" rowspan="1">onto the screen</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60533.html">EC75</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60605">Map</a></td>
+<td class="next">
+Next: <a href="60743.html">ED47</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

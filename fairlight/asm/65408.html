@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Game status buffer entry at FF80</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-g">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Game status buffer</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="65386.html">FF6A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65408">Map</a></td>
+<td class="next">
+</td>
+</tr>
+</table>
+<div class="description">FF80: The game's variables</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+IY holds <a href="65408.html">OBJECT_COUNT</a> throughout the game, so most of these are reached as IY+n: the author's source text calls this base V, as in (V+3). Only two places move IY: ZOOMIN (<a href="64584.html">ZOOMIN</a>) points it at a chaser's target for a moment, and <a href="64800.html">ROOMST</a> steps it through the carried things. On the tape the first 61 bytes, up to OBJECTS_PLACED, hold the values a game starts with; the start-up copies them to the master copy (<a href="25500.html">MASTER_OBJECTS</a>) and a new game copies them back. The rest are set before they are read; on the tape many hold the ends of the ROM's user-defined graphics, like <a href="65386.html">UDG_LEFTOVERS</a>.
+</div>
+<div class="paragraph">
+From POINT up the bytes have several lives, one at a time. While a room is drawn they are the drawing's state, twenty of them (from ORIGIN) reset from <a href="58754.html">ROOM_DEFAULTS</a> for each room. While an object is updated (<a href="61920.html">CHE3D</a>), POINT to WORK_HEADING are a copy of its record's first 19 bytes -- the author's T, as in (T+13) -- so that IY+$64 is the record's +0, IY+$6A its x (+6), IY+$6B its y (+7), IY+$6C its z (+8), IY+$70 its kind (+12) and so on; FOUND_RECORD (T+20), STEP_AXES, ASKED_DIRECTION, WORK_RECORD and RIDE_DIRECTION go with them. While a sprite is drawn (<a href="60605.html">REDRAW_OBJECT</a>) the same bytes hold the rectangle being redrawn, from a copy of +0 to +11, and the drawing's counters; and DRAW_LIST, lower down, takes a list of 30 bytes that runs over the printer's and the room drawing's bytes. Each use sets what it reads first.
+</div>
+<div class="paragraph">
+The labels are for the use the object code makes of a byte where it reads it by address, and for the drawing's otherwise.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_COUNT</td>
+<td class="address-1"><span id="65408"></span>FF80</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Records in use, counted from <a href="48152.html">FIXED_RECORDS</a>: the six fixed ones, the knight's (7), then the carried things' and the room's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65409"></span>FF81</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label">STRIKES_AT</td>
+<td class="address-1"><span id="65410"></span>FF82</td>
+<td class="instruction">DEFB $0B</td>
+<td class="comment-1" rowspan="1">The low byte of the strike counter of the fighter <a href="64677.html">FIND_OBSTACLE</a> last passed ($98 to $9D)</td>
+</tr>
+<tr>
+<td class="asm-label">THIS_RECORD</td>
+<td class="address-1"><span id="65411"></span>FF83</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The number of the record being updated or drawn, counted from <a href="48152.html">FIXED_RECORDS</a> (the knight is 7)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65412"></span>FF84</td>
+<td class="instruction">DEFB $80</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label">GRAVITY</td>
+<td class="address-1"><span id="65413"></span>FF85</td>
+<td class="instruction">DEFB $23</td>
+<td class="comment-1" rowspan="1">$23, never written: its top six bits are ORed into the direction of a thing not rising -- bit 5, down (<a href="63068.html">ANIMATE_AND_MOVE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">OPTIONS</td>
+<td class="address-1"><span id="65414"></span>FF86</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Bit 3: the Kempston joystick is in use (9 turns it on and off)</td>
+</tr>
+<tr>
+<td class="asm-label">MESSAGE</td>
+<td class="address-1"><span id="65415"></span>FF87</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The message <a href="57400.html">SHOW_MESSAGE</a> is to show: 1 BLOCKED, 2 LOCKED, 3 TOO HEAVY; 0 none</td>
+</tr>
+<tr>
+<td class="asm-label">MESSAGE_TIMER</td>
+<td class="address-1"><span id="65416"></span>FF88</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="6">MESSAGE_TIMER: passes the message stays up (10). Then two bytes not used; NO_RISE_MASK (IY+$0B), $EF and never written: ANDed with the direction of a thing not rising, it takes out bit 4, up (<a href="63068.html">ANIMATE_AND_MOVE</a>); and two more not used</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65417"></span>FF89</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65418"></span>FF8A</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label">NO_RISE_MASK</td>
+<td class="address-1"><span id="65419"></span>FF8B</td>
+<td class="instruction">DEFB $EF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65420"></span>FF8C</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65421"></span>FF8D</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM_COLOUR</td>
+<td class="address-1"><span id="65422"></span>FF8E</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The room's colour, from its first byte</td>
+</tr>
+<tr>
+<td class="asm-label">DECOY</td>
+<td class="address-1"><span id="65423"></span>FF8F</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The record of a decoy (kind 8) in the room, noted by <a href="61920.html">CHE3D</a> for the guards of behaviour 9</td>
+</tr>
+<tr>
+<td class="asm-label">THINGS_NOTED</td>
+<td class="address-1"><span id="65425"></span>FF91</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Bit 0: a decoy is in the room (DECOY); bit 1: a thing of kind 11 is, which wakes the creature of behaviour 15 and lets the doors of room 61 be used (<a href="61920.html">CHE3D</a>, <a href="63428.html">BUMPED</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED_WEIGHT</td>
+<td class="address-1"><span id="65426"></span>FF92</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The weight of what is carried; 8 or more is too heavy</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65427"></span>FF93</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="2">Not used; then FALL_COUNT (IY+$14), the passes the knight has been falling: each over 20 costs 1 LIFE when he lands (<a href="62217.html">CREATURE_UPDATE</a>; measured in the simulator)</td>
+</tr>
+<tr>
+<td class="asm-label">FALL_COUNT</td>
+<td class="address-1"><span id="65428"></span>FF94</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label">LIFE_TENS</td>
+<td class="address-1"><span id="65429"></span>FF95</td>
+<td class="instruction">DEFB $09</td>
+<td class="comment-1" rowspan="1">LIFE: the tens</td>
+</tr>
+<tr>
+<td class="asm-label">LIFE_UNITS</td>
+<td class="address-1"><span id="65430"></span>FF96</td>
+<td class="instruction">DEFB $09</td>
+<td class="comment-1" rowspan="1">LIFE: the units</td>
+</tr>
+<tr>
+<td class="asm-label">GAME_FLAGS</td>
+<td class="address-1"><span id="65431"></span>FF97</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Bit 0: LIFE to be printed; 1: the knight's sword out; 2: the room's first pass; 3: the knight's idle pose; 4: still things being drawn into the room; 6: a message showing; 7: the creatures frozen</td>
+</tr>
+<tr>
+<td class="asm-label">STRIKES_LEFT</td>
+<td class="address-1"><span id="65432"></span>FF98</td>
+<td class="instruction">DEFB $00,$3E,$08,$08,$08,$08</td>
+<td class="comment-1" rowspan="1">Six fighters' strikes left, 4 each when a room is entered (<a href="64677.html">FIND_OBSTACLE</a> deals them out)</td>
+</tr>
+<tr>
+<td class="asm-label">SELECTED</td>
+<td class="address-1"><span id="65438"></span>FF9E</td>
+<td class="instruction">DEFB $9F</td>
+<td class="comment-1" rowspan="1">The low byte of the word in CARRIED for the thing in use ($9F to $A7)</td>
+</tr>
+<tr>
+<td class="asm-label">CARRIED</td>
+<td class="address-1"><span id="65439"></span>FF9F</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="5">The records of the five things carried</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65441"></span>FFA1</td>
+<td class="instruction">DEFB $00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65443"></span>FFA3</td>
+<td class="instruction">DEFB $00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65445"></span>FFA5</td>
+<td class="instruction">DEFB $00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65447"></span>FFA7</td>
+<td class="instruction">DEFB $00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65449"></span>FFA9</td>
+<td class="instruction">DEFB $44,$48,$70,$48,$44,$42,$00,$00</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65457"></span>FFB1</td>
+<td class="instruction">DEFB $40,$00,$00</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label">ROOM</td>
+<td class="address-1"><span id="65460"></span>FFB4</td>
+<td class="instruction">DEFB $1D</td>
+<td class="comment-1" rowspan="1">The room the knight is in</td>
+</tr>
+<tr>
+<td class="asm-label">PARTS_TABLE</td>
+<td class="address-1"><span id="65461"></span>FFB5</td>
+<td class="instruction">DEFB $8C,$75</td>
+<td class="comment-1" rowspan="1">Where the parts are (<a href="30092.html">PART1</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65463"></span>FFB7</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label">FREE_RECORD</td>
+<td class="address-1"><span id="65464"></span>FFB8</td>
+<td class="instruction">DEFB $00,$00</td>
+<td class="comment-1" rowspan="1">The next free object record</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECT_TABLE_AT</td>
+<td class="address-1"><span id="65466"></span>FFBA</td>
+<td class="instruction">DEFB $24,$A9</td>
+<td class="comment-1" rowspan="1">Where the object table is (<a href="43300.html">OBJECTS</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">OBJECTS_PLACED</td>
+<td class="address-1"><span id="65468"></span>FFBC</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="8">Bit 0: the object table's things have been placed in this room (room code $E4, <a href="59547.html">MORE_ROOM_COMMANDS</a>); the rest not used</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65469"></span>FFBD</td>
+<td class="instruction">DEFB $42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65470"></span>FFBE</td>
+<td class="instruction">DEFB $42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65471"></span>FFBF</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65472"></span>FFC0</td>
+<td class="instruction">DEFB $00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65473"></span>FFC1</td>
+<td class="instruction">DEFB $42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65474"></span>FFC2</td>
+<td class="instruction">DEFB $62</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65475"></span>FFC3</td>
+<td class="instruction">DEFB $52</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65476"></span>FFC4</td>
+<td class="instruction">DEFB $4A,$46</td>
+<td class="comment-1" rowspan="1">Not used</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_LIST</td>
+<td class="address-1"><span id="65478"></span>FFC6</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">30 bytes to the end of AWAY_FRAMES: the numbers of the records to draw, in order, copied from BUFFER_DA00 by <a href="60870.html">SORT_AND_DRAW_BEHIND</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65479"></span>FFC7</td>
+<td class="instruction">DEFB $00,$00,$3C,$42</td>
+<td class="comment-1" rowspan="1">More of DRAW_LIST</td>
+</tr>
+<tr>
+<td class="asm-label">ARRIVAL_BOX</td>
+<td class="address-1"><span id="65483"></span>FFCB</td>
+<td class="instruction">DEFB $42,$42,$42,$3C,$00</td>
+<td class="comment-1" rowspan="1">The door code (<a href="63428.html">BUMPED</a>) points IX here, so that a record's +5 to +11 are PRINT_X and the six bytes after it: the box of a door's far side</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_X</td>
+<td class="address-1"><span id="65488"></span>FFD0</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Where the next character is printed: x</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_Y</td>
+<td class="address-1"><span id="65489"></span>FFD1</td>
+<td class="instruction">DEFB $7C</td>
+<td class="comment-1" rowspan="1">And y</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65490"></span>FFD2</td>
+<td class="instruction">DEFB $42,$42,$7C,$40,$40,$00,$00,$3C</td>
+<td class="comment-1" rowspan="1">The rest of ARRIVAL_BOX, and more of DRAW_LIST</td>
+</tr>
+<tr>
+<td class="asm-label">PLACED_TYPE</td>
+<td class="address-1"><span id="65498"></span>FFDA</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">The type of the object being placed (<a href="60186.html">PLACE_OBJECT</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">PLACED_NUMBER</td>
+<td class="address-1"><span id="65499"></span>FFDB</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">Counts the object table's entries as <a href="60108.html">PLACE_ROOM_OBJECTS</a> walks it: the number it gives a record at +$13 (it wraps round after 255)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65500"></span>FFDC</td>
+<td class="instruction">DEFB $52,$4A,$3C</td>
+<td class="comment-1" rowspan="1">More of DRAW_LIST</td>
+</tr>
+<tr>
+<td class="asm-label">ORIGIN</td>
+<td class="address-1"><span id="65503"></span>FFDF</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Added to x (+6) of each object the room places (IY+$5F-$61; room code $E4 $05)</td>
+</tr>
+<tr>
+<td class="asm-label">ORIGIN_Y</td>
+<td class="address-1"><span id="65504"></span>FFE0</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Added to its y, the height (+7)</td>
+</tr>
+<tr>
+<td class="asm-label">ORIGIN_Z</td>
+<td class="address-1"><span id="65505"></span>FFE1</td>
+<td class="instruction">DEFB $7C</td>
+<td class="comment-1" rowspan="1">Added to its z (+8)</td>
+</tr>
+<tr>
+<td class="asm-label">AWAY_FRAMES</td>
+<td class="address-1"><span id="65506"></span>FFE2</td>
+<td class="instruction">DEFB $42,$42</td>
+<td class="comment-1" rowspan="1">How far the knight's frames for walking away (+x or +z) lie beyond those for walking towards the viewer, set just before <a href="61849.html">FACING</a> adds it</td>
+</tr>
+<tr>
+<td class="asm-label">POINT</td>
+<td class="address-1"><span id="65508"></span>FFE4</td>
+<td class="instruction">DEFB $7C</td>
+<td class="comment-1" rowspan="1">The room drawing's first point: column. While an object is updated, its +0; in <a href="64800.html">ROOMST</a>, where the next carried record goes</td>
+</tr>
+<tr>
+<td class="asm-label">POINT_ROW</td>
+<td class="address-1"><span id="65509"></span>FFE5</td>
+<td class="instruction">DEFB $44</td>
+<td class="comment-1" rowspan="1">And row. While an object is updated, its +1</td>
+</tr>
+<tr>
+<td class="asm-label">SECOND_POINT</td>
+<td class="address-1"><span id="65510"></span>FFE6</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">The second point: column. While an object is updated, its +2</td>
+</tr>
+<tr>
+<td class="asm-label">SECOND_POINT_ROW</td>
+<td class="address-1"><span id="65511"></span>FFE7</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">And row. While an object is updated, its +14 as it was when the update began (<a href="61920.html">CHE3D</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_SPRITE</td>
+<td class="address-1"><span id="65512"></span>FFE8</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">While an object is updated or drawn, its sprite (+4, +5, a word); zero, and the byte the screen is cleared with, when a room is drawn (<a href="58810.html">CLEAR_ROOM_SCREEN</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65513"></span>FFE9</td>
+<td class="instruction">DEFB $3C</td>
+<td class="comment-1" rowspan="2">The sprite's high byte; then LINE_PAGE (IY+$6A): 0 to draw a room's lines on the screen, $80 in the clean copy (room code $E4), and while an object is updated, its x (+6)</td>
+</tr>
+<tr>
+<td class="asm-label">LINE_PAGE</td>
+<td class="address-1"><span id="65514"></span>FFEA</td>
+<td class="instruction">DEFB $40</td>
+</tr>
+<tr>
+<td class="asm-label">MODE</td>
+<td class="address-1"><span id="65515"></span>FFEB</td>
+<td class="instruction">DEFB $3C</td>
+<td class="comment-1" rowspan="1">The room drawing's mode bits (room codes $C1-$CE, $E4 $04); while an object is updated, its y (+7)</td>
+</tr>
+<tr>
+<td class="asm-label">REPEATS</td>
+<td class="address-1"><span id="65516"></span>FFEC</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="1">How many times the room drawing repeats (room code $D5); while an object is updated, its z (+8)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="65517"></span>FFED</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">Kept with REPEATS by room code $E1; while an object is updated, its x length (+9)</td>
+</tr>
+<tr>
+<td class="asm-label">REPEAT_FROM</td>
+<td class="address-1"><span id="65518"></span>FFEE</td>
+<td class="instruction">DEFB $3C,$00</td>
+<td class="comment-1" rowspan="1">Where the repeat goes back to; while an object is updated, its height and z length (+10, +11)</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_KIND</td>
+<td class="address-1"><span id="65520"></span>FFF0</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">While an object is updated, its kind byte (+12)</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_DIRECTION</td>
+<td class="address-1"><span id="65521"></span>FFF1</td>
+<td class="instruction">DEFB $FE</td>
+<td class="comment-1" rowspan="1">Its direction (+13): 0 bounces, 1 rises, 2 -x, 3 +x, 4 up, 5 down, 6 +z, 7 -z; the sprite drawing's flags</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_BEHAVIOUR</td>
+<td class="address-1"><span id="65522"></span>FFF2</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Its behaviour byte (+14)</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_WIDTH</td>
+<td class="address-1"><span id="65523"></span>FFF3</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">A sprite's width in bytes, while it is drawn; while an object is updated, its timer (+15)</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_WEIGHT</td>
+<td class="address-1"><span id="65524"></span>FFF4</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Its +16: 16 more than its weight, 0 if still; the length of the draw list while sprites are drawn</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_ANIMATION</td>
+<td class="address-1"><span id="65525"></span>FFF5</td>
+<td class="instruction">DEFB $10</td>
+<td class="comment-1" rowspan="1">Its animation byte (+17); rows, while a sprite is drawn</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_HEADING</td>
+<td class="address-1"><span id="65526"></span>FFF6</td>
+<td class="instruction">DEFB $10,$00</td>
+<td class="comment-1" rowspan="1">Its heading (+18); SP while <a href="61520.html">CLEAR_512_BELOW</a> borrows it; the fill's pointer to the row below</td>
+</tr>
+<tr>
+<td class="asm-label">FOUND_RECORD</td>
+<td class="address-1"><span id="65528"></span>FFF8</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The number of the record <a href="64677.html">FIND_OBSTACLE</a> found (the author's T+20); SP while <a href="58810.html">CLEAR_ROOM_SCREEN</a> borrows it; the fill's texture; a sprite row's bytes (<a href="61069.html">DRAW_SPRITE</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_INDEX</td>
+<td class="address-1"><span id="65529"></span>FFF9</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">The record <a href="60605.html">REDRAW_OBJECT</a> is looking at</td>
+</tr>
+<tr>
+<td class="asm-label">CLEAR_END</td>
+<td class="address-1"><span id="65530"></span>FFFA</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">Where <a href="58810.html">CLEAR_ROOM_SCREEN</a>'s clearing stopped</td>
+</tr>
+<tr>
+<td class="asm-label">STEP_AXES</td>
+<td class="address-1"><span id="65531"></span>FFFB</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">A move's axes: bit 0 x, 1 y, 2 z; 5 landed, 6 a climb, 7 into a door; the fill's pointer to this row</td>
+</tr>
+<tr>
+<td class="asm-label">ASKED_DIRECTION</td>
+<td class="address-1"><span id="65532"></span>FFFC</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">The direction a move asked for, before collisions changed it</td>
+</tr>
+<tr>
+<td class="asm-label">WORK_RECORD</td>
+<td class="address-1"><span id="65533"></span>FFFD</td>
+<td class="instruction">DEFB $42</td>
+<td class="comment-1" rowspan="1">The record being updated; the fill's pointer to the row above</td>
+</tr>
+<tr>
+<td class="asm-label">DRAW_COUNT</td>
+<td class="address-1"><span id="65534"></span>FFFE</td>
+<td class="instruction">DEFB $3C</td>
+<td class="comment-1" rowspan="1">Counts down the draw list; the high byte of WORK_RECORD</td>
+</tr>
+<tr>
+<td class="asm-label">RIDE_DIRECTION</td>
+<td class="address-1"><span id="65535"></span>FFFF</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">The direction of what the mover has landed on; the last entry in the draw list at BUFFER_DA00 ($FF: none)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="65386.html">FF6A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#65408">Map</a></td>
+<td class="next">
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

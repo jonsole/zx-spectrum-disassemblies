@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at EBFE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60405.html">EBF5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60414">Map</a></td>
+<td class="next">
+Next: <a href="60475.html">EC3B</a>
+</td>
+</tr>
+</table>
+<div class="description">EBFE: Print the string after the call</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="46726.html">TITLE_PAGE_TEXT</a>, <a href="57330.html">MESS2</a>, <a href="57400.html">SHOW_MESSAGE</a>, <a href="60405.html">PRINT_CHAR</a>, <a href="60533.html">CLEAR_THING_BOX</a>, <a href="61541.html">TITLE_SCREEN</a>, <a href="64800.html">ROOMST</a> and <a href="65095.html">MAIN_LOOP</a>.
+</div>
+<div class="paragraph">
+The game's text printer, the author's PRINT (the name the leftover source text calls it by). The string is the bytes after the CALL: characters of the font (<a href="47832.html">FONT</a>), $C8 and two bytes to move the printing position (PRINT_X, in pixels from the left, and PRINT_Y, in rows counted up from the bottom), and $A4 to end it; the printer returns to the byte after the $A4. A string can be only a $C8 and its position, to set it for <a href="60405.html">PRINT_CHAR</a>.
+</div>
+<div class="paragraph">
+Each character is an 8 by 8 picture put on the screen by the compositor (<a href="58340.html">COMPOSITE_TO_SCREEN</a>, at its second entry point, 15 bytes in), 8 pixels to the right of the one before. With its first two planes (BUFFER_D800 and BUFFER_D900) cleared and nothing else to merge, the compositor puts the character over the 8 by 8 pixels under it and leaves its neighbours alone, so text need not sit on the character grid. The printer uses the room drawing's point variables for the place and size, which the drawing is finished with.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT</td>
+<td class="address-2"><span id="60414"></span>EBFE</td>
+<td class="instruction">LD (IY+$73),$01</td>
+<td class="comment-1" rowspan="4">one byte wide; the first two planes cleared</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60418"></span>EC02</td>
+<td class="instruction">LD HL,<a href="54932.html#55808">BUFFER_DA00</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60421"></span>EC05</td>
+<td class="instruction">LD B,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60423"></span>EC07</td>
+<td class="instruction">CALL <a href="61520.html#61522">CLEAR_BELOW</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60426"></span>EC0A</td>
+<td class="instruction">LD (IY+$71),$00</td>
+<td class="comment-1" rowspan="1">nothing else to merge</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="60430"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="60475.html">PRINT_FIND_GLYPH</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_NEXT_CHAR</td>
+<td class="address-2"><span id="60430"></span>EC0E</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">the next byte of the string; $A4 ends it, returning past it</td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_0</td>
+<td class="address-2"><span id="60431"></span>EC0F</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60432"></span>EC10</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60433"></span>EC11</td>
+<td class="instruction">CP $A4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60435"></span>EC13</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60436"></span>EC14</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60437"></span>EC15</td>
+<td class="instruction">CP $C8</td>
+<td class="comment-1" rowspan="10">$C8: a new printing position</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60439"></span>EC17</td>
+<td class="instruction">JR NZ,<a href="60414.html#60454">PRINT_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60441"></span>EC19</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60442"></span>EC1A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60443"></span>EC1B</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60444"></span>EC1C</td>
+<td class="instruction">LD (<a href="65408.html#65488">PRINT_X</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60447"></span>EC1F</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60448"></span>EC20</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60449"></span>EC21</td>
+<td class="instruction">LD (<a href="65408.html#65489">PRINT_Y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60452"></span>EC24</td>
+<td class="instruction">JR <a href="60414.html#60431">PRINT_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">PRINT_1</td>
+<td class="address-2"><span id="60454"></span>EC26</td>
+<td class="instruction">LD DE,$0008</td>
+<td class="comment-1" rowspan="5">an 8 by 8 picture at the printing position</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60457"></span>EC29</td>
+<td class="instruction">LD HL,$0808</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60460"></span>EC2C</td>
+<td class="instruction">LD (<a href="65408.html#65510">SECOND_POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60463"></span>EC2F</td>
+<td class="instruction">LD HL,(<a href="65408.html#65488">PRINT_X</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60466"></span>EC32</td>
+<td class="instruction">LD (<a href="65408.html#65508">POINT</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60469"></span>EC35</td>
+<td class="instruction">LD HL,<a href="47832.html">FONT</a></td>
+<td class="comment-1" rowspan="3">the character's 8 bytes in the font</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60472"></span>EC38</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="60473"></span>EC39</td>
+<td class="instruction">JR <a href="60475.html#60476">PRINT_FIND_GLYPH_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="60405.html">EBF5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#60414">Map</a></td>
+<td class="next">
+Next: <a href="60475.html">EC3B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>

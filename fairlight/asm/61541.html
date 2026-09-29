@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fairlight: Routine at F065</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../fairlight.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Fairlight" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61520.html">F050</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61541">Map</a></td>
+<td class="next">
+Next: <a href="61650.html">F0D2</a>
+</td>
+</tr>
+</table>
+<div class="description">F065: The title, a game, GAME OVER, and round again</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50300.html">START</a>.
+</div>
+<div class="paragraph">
+Reached from the start-up (<a href="50300.html">START</a>) and never left. The title is room 79 drawn (<a href="58715.html">DRAW_CURRENT_ROOM</a>), coloured (<a href="61691.html">ATTRI</a>), with the title page printed over it (<a href="46726.html">TITLE_PAGE_TEXT</a>) and, in Release 2, 9-JOY beside the controls; then it waits for a key. ROOM is kept round the drawing, though the copy from the master a moment later sets it anyway.
+</div>
+<div class="paragraph">
+A key starts a game (NEW_GAME, at offset 36). The master copies made at start-up (<a href="25500.html">MASTER_OBJECTS</a>) go back: the object table's first 1200 bytes, and the 61 bytes of variables from IY on. TELE, the author's name for offset 54, puts the knight's record back as a game starts it and enters the room ROOM names (<a href="64800.html">ROOMST</a>). That call returns only when the game is over: LIFE gone, the quest's last room reached, or 0 pressed with SYMBOL SHIFT (<a href="65095.html">MAIN_LOOP</a>). Then <a href="63750.html">SAVE_OBJECT_POSITIONS</a> puts the room's things back into the object table, and room 1 is drawn as the backdrop for GAME OVER, which waits for the keys to be let go and one pressed (<a href="61650.html">WAIT</a>) before the title comes round again.
+</div>
+<div class="paragraph">
+TELE is also where the thing that carries the knight off (type 9, <a href="65095.html">MAIN_LOOP</a>) goes, with ROOM set to 30, so he arrives as a new game starts him. The knight's +$0E is kept through the copy: its bits 5 and 6 say which way his sprites face, and they are turned round in place (<a href="61719.html">MIMAN</a>), so the record must go on agreeing with them.
+</div>
+<div class="paragraph">
+In Release 1 the routine begins by setting IY, turning interrupts off and making the start-up's copies, which Release 2 moved into <a href="50300.html">START</a>, and there is no 9-JOY. The name the author gave this routine is lost but for its last letter, G (<a href="56633.html">SYMBOL_TABLE</a>). Krumlinde's name for it is RTN_Title_Screen_Loop.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TITLE_SCREEN</td>
+<td class="address-2"><span id="61541"></span>F065</td>
+<td class="instruction">LD A,(<a href="65408.html#65460">ROOM</a>)</td>
+<td class="comment-1" rowspan="6">The title: room 79, with ROOM kept round it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61544"></span>F068</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61545"></span>F069</td>
+<td class="instruction">LD (IY+$34),$4F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61549"></span>F06D</td>
+<td class="instruction">CALL <a href="58715.html">DRAW_CURRENT_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61552"></span>F070</td>
+<td class="instruction">POP AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61553"></span>F071</td>
+<td class="instruction">LD (<a href="65408.html#65460">ROOM</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61556"></span>F074</td>
+<td class="instruction">CALL <a href="61691.html">ATTRI</a></td>
+<td class="comment-1" rowspan="1">Coloured</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61559"></span>F077</td>
+<td class="instruction">CALL <a href="46726.html">TITLE_PAGE_TEXT</a></td>
+<td class="comment-1" rowspan="1">The title page's text</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61562"></span>F07A</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1">And Release 2's note that 9 turns the joystick on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61565"></span>F07D</td>
+<td class="instruction">DEFB $C8,$C8,$50</td>
+<td class="comment-1" rowspan="1">Print at x 200, y 80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61568"></span>F080</td>
+<td class="instruction">DEFB $24,$26,$0A,$0F,$19</td>
+<td class="comment-1" rowspan="1">"9-JOY"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61573"></span>F085</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61574"></span>F086</td>
+<td class="instruction">CALL <a href="61650.html#61656">PAUS</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">NEW_GAME</td>
+<td class="address-1"><span id="61577"></span>F089</td>
+<td class="instruction">LD HL,<a href="25500.html">MASTER_OBJECTS</a></td>
+<td class="comment-1" rowspan="4">NEW_GAME: the object table's master copy back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61580"></span>F08C</td>
+<td class="instruction">LD DE,<a href="43300.html">OBJECTS</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61583"></span>F08F</td>
+<td class="instruction">LD BC,$04B0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61586"></span>F092</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61588"></span>F094</td>
+<td class="instruction">LD DE,<a href="65408.html">OBJECT_COUNT</a></td>
+<td class="comment-1" rowspan="3">And the variables' (HL runs on from the one to the other)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61591"></span>F097</td>
+<td class="instruction">LD C,$3D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61593"></span>F099</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="61595"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="65095.html">MAIN_LOOP</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">TELE</td>
+<td class="address-2"><span id="61595"></span>F09B</td>
+<td class="instruction">LD A,(<a href="48272.html#48286">KNIGHT_FLAGS</a>)</td>
+<td class="comment-1" rowspan="6">TELE: the knight's record from the master, but for his +$0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61598"></span>F09E</td>
+<td class="instruction">LD HL,<a href="25500.html#26761">MASTER_KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61601"></span>F0A1</td>
+<td class="instruction">LD DE,<a href="48272.html">KNIGHT</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61604"></span>F0A4</td>
+<td class="instruction">LD BC,$0014</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61607"></span>F0A7</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61609"></span>F0A9</td>
+<td class="instruction">LD (<a href="48272.html#48286">KNIGHT_FLAGS</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61612"></span>F0AC</td>
+<td class="instruction">CALL <a href="64800.html">ROOMST</a></td>
+<td class="comment-1" rowspan="1">Play: back here when the game is over</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61615"></span>F0AF</td>
+<td class="instruction">CALL <a href="63750.html">SAVE_OBJECT_POSITIONS</a></td>
+<td class="comment-1" rowspan="1">The room's things back into the object table, and the creatures' sprites turned back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61618"></span>F0B2</td>
+<td class="instruction">LD (IY+$34),$01</td>
+<td class="comment-1" rowspan="2">Room 1 as GAME OVER's backdrop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61622"></span>F0B6</td>
+<td class="instruction">CALL <a href="58715.html">DRAW_CURRENT_ROOM</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61625"></span>F0B9</td>
+<td class="instruction">CALL <a href="60414.html">PRINT</a></td>
+<td class="comment-1" rowspan="1">GAME OVER</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61628"></span>F0BC</td>
+<td class="instruction">DEFB $C8,$5A,$64</td>
+<td class="comment-1" rowspan="1">Print at x 90, y 100</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61631"></span>F0BF</td>
+<td class="instruction">DEFB $07,$01,$0D,$05,$00,$0F,$16,$05</td>
+<td class="comment-1" rowspan="2">"GAME OVER"</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61639"></span>F0C7</td>
+<td class="instruction">DEFB $12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61640"></span>F0C8</td>
+<td class="instruction">DEFB $A4</td>
+<td class="comment-1" rowspan="1">End of the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61641"></span>F0C9</td>
+<td class="instruction">CALL <a href="61691.html">ATTRI</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61644"></span>F0CC</td>
+<td class="instruction">CALL <a href="61650.html">WAIT</a></td>
+<td class="comment-1" rowspan="2">Wait for the keys to be let go and one pressed; the title again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61647"></span>F0CF</td>
+<td class="instruction">JP <a href="61541.html#61541">TITLE_SCREEN</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61520.html">F050</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61541">Map</a></td>
+<td class="next">
+Next: <a href="61650.html">F0D2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image (Release 2)</div>
+<div class="copyright">&copy; 1985 The Edge / Bo Jangeborg</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_fairlight.py</code>.</div>
+</footer>
+</body>
+</html>
