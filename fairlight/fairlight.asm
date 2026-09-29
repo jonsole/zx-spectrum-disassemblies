@@ -1,4 +1,25 @@
     DEVICE ZXSPECTRUM48
+; The object record's fields: the (IX+n) offsets named in the listing.
+OBJ_SCREEN_X EQU $00
+OBJ_SCREEN_Y EQU $01
+OBJ_WIDTH EQU $02
+OBJ_ROWS EQU $03
+OBJ_SPRITE EQU $04
+OBJ_X EQU $06
+OBJ_TOP EQU $07
+OBJ_Z EQU $08
+OBJ_LEN_X EQU $09
+OBJ_HEIGHT EQU $0A
+OBJ_LEN_Z EQU $0B
+OBJ_KIND EQU $0C
+OBJ_DIRECTION EQU $0D
+OBJ_STATE EQU $0E
+OBJ_COUNT EQU $0F
+OBJ_WEIGHT EQU $10
+OBJ_FRAME EQU $11
+OBJ_COURSE EQU $12
+OBJ_NUMBER EQU $13
+OBJ_SIZE EQU $14
   ORG $5B00
 
 ; Sprite, 8 by 8 (the template for type 51)
@@ -8734,6 +8755,17 @@ FIXED_RECORDS:
 ; +12, its kind in the low nibble and flags above it; +19, its number in the
 ; object table (0 for the knight, who is not in it).
 ;
+; The listing names the fields wherever IX holds a record's address:
+; OBJ_SCREEN_X (+0), OBJ_SCREEN_Y (+1), OBJ_WIDTH (+2), OBJ_ROWS (+3),
+; OBJ_SPRITE (+4, a word), OBJ_X (+6), OBJ_TOP (+7), OBJ_Z (+8), OBJ_LEN_X
+; (+9), OBJ_HEIGHT (+10), OBJ_LEN_Z (+11), OBJ_KIND (+12), OBJ_DIRECTION (+13),
+; OBJ_STATE (+14), OBJ_COUNT (+15), OBJ_WEIGHT (+16), OBJ_FRAME (+17),
+; OBJ_COURSE (+18) and OBJ_NUMBER (+19); OBJ_SIZE is the record's twenty bytes.
+; They are EQUs at the top of the source file. A door's record uses the same
+; bytes for its own things -- +13 the room behind it, +14 the key, +15, +16 and
+; +18 where the knight arrives, +17 the way through -- and the routines that
+; read a door say so.
+;
 ; On the tape this is his record at the start of a game. START copies it to the
 ; master copy (MASTER_OBJECTS), and TITLE_SCREEN copies it back at every new
 ; game and whenever he is carried off to another room, all but +14: bit 5 of
@@ -11214,10 +11246,10 @@ COMPOSITE_TO_SCREEN_12:
 ISO_MOVE:
   PUSH HL                 ; Keep H, the new +8; HL: the sprite's place on the
   LD C,$00                ; screen, x and y.
-  LD L,(IX+$00)           ;
-  LD H,(IX+$01)           ;
+  LD L,(IX+OBJ_SCREEN_X)  ;
+  LD H,(IX+OBJ_SCREEN_Y)  ;
   LD A,B                  ; How far +6 moves (not at all: on to the height).
-  SUB (IX+$06)            ;
+  SUB (IX+OBJ_X)          ;
   JR Z,ISO_MOVE_3         ;
   LD E,A                  ; Further: half of it, rounded down; bit 0 of C set
   JR C,ISO_MOVE_0         ; if it was odd.
@@ -11238,16 +11270,16 @@ ISO_MOVE_2:
   LD A,E                  ;
   ADD A,L                 ;
   LD L,A                  ;
-  LD (IX+$06),B           ;
+  LD (IX+OBJ_X),B         ;
 ISO_MOVE_3:
   LD A,D                  ; y up by the change in the height; the new +7.
-  SUB (IX+$07)            ;
+  SUB (IX+OBJ_TOP)        ;
   ADD A,H                 ;
   LD H,A                  ;
-  LD (IX+$07),D           ;
+  LD (IX+OBJ_TOP),D       ;
   POP DE                  ; How far +8 moves.
   LD A,D                  ;
-  SUB (IX+$08)            ;
+  SUB (IX+OBJ_Z)          ;
   LD E,A                  ;
   JR C,ISO_MOVE_4         ; Further: half of it, and a row more if +6 moved an
   SRL A                   ; odd amount the same way.
@@ -11271,9 +11303,9 @@ ISO_MOVE_6:
   LD A,L                  ;
   SUB E                   ;
   LD L,A                  ;
-  LD (IX+$08),D           ; The new +8, and the sprite's new place.
-  LD (IX+$00),L           ;
-  LD (IX+$01),H           ;
+  LD (IX+OBJ_Z),D         ; The new +8, and the sprite's new place.
+  LD (IX+OBJ_SCREEN_X),L  ;
+  LD (IX+OBJ_SCREEN_Y),H  ;
   RET                     ;
 
 ; Draw the room the knight is in
@@ -11463,23 +11495,23 @@ PATCH_RECORDS:
 DO_ROOM_COMMAND_0:
   ADD HL,DE               ;
   DJNZ DO_ROOM_COMMAND_0  ;
-  LD A,(HL)               ; Its six bytes into the floor's and the ceiling's
-  INC HL                  ; +7, the walls' +6 (records 3 and 4) and the other
-  LD (IX+$07),A           ; walls' +8 (records 5 and 6).
-  LD A,(HL)               ;
-  INC HL                  ;
-  LD (IX+$1B),A           ;
-  LD A,(HL)               ;
-  INC HL                  ;
-  LD (IX+$2E),A           ;
-  LD A,(HL)               ;
-  INC HL                  ;
-  LD (IX+$42),A           ;
-  LD A,(HL)               ;
-  INC HL                  ;
-  LD (IX+$58),A           ;
-  LD A,(HL)               ;
-  LD (IX+$6C),A           ;
+  LD A,(HL)                    ; Its six bytes into the floor's and the
+  INC HL                       ; ceiling's +7, the walls' +6 (records 3 and 4)
+  LD (IX+OBJ_TOP),A            ; and the other walls' +8 (records 5 and 6).
+  LD A,(HL)                    ;
+  INC HL                       ;
+  LD (IX+OBJ_SIZE+OBJ_TOP),A   ;
+  LD A,(HL)                    ;
+  INC HL                       ;
+  LD (IX+$02*OBJ_SIZE+OBJ_X),A ;
+  LD A,(HL)                    ;
+  INC HL                       ;
+  LD (IX+$03*OBJ_SIZE+OBJ_X),A ;
+  LD A,(HL)                    ;
+  INC HL                       ;
+  LD (IX+$04*OBJ_SIZE+OBJ_Z),A ;
+  LD A,(HL)                    ;
+  LD (IX+$05*OBJ_SIZE+OBJ_Z),A ;
   POP IX
   RET
 DO_ROOM_COMMAND_1:
@@ -12501,12 +12533,12 @@ PLACE_ROOM_OBJECTS_1:
   JR PLACE_ROOM_OBJECTS_0   ;
 PLACE_ROOM_OBJECTS_2:
   CALL PLACE_OBJECT       ; yes: make its record
-  LD A,(PLACED_TYPE)         ; a thing: its number in the table at +19
-  CP $46                     ;
-  JR NC,PLACE_ROOM_OBJECTS_0 ;
-  LD A,(PLACED_NUMBER)       ;
-  LD (IX-$01),A              ;
-  JR PLACE_ROOM_OBJECTS_0    ;
+  LD A,(PLACED_TYPE)            ; a thing: its number in the table at +19
+  CP $46                        ;
+  JR NC,PLACE_ROOM_OBJECTS_0    ;
+  LD A,(PLACED_NUMBER)          ;
+  LD (IX+OBJ_NUMBER-OBJ_SIZE),A ;
+  JR PLACE_ROOM_OBJECTS_0       ;
 
 ; Make an object record from a type, a place and its template
 ;
@@ -12552,7 +12584,7 @@ PLACE_OBJECT:
   RES 6,(IY+$7D)          ; a type from $46: +12 is 1, and bit 6 of IY+$7D says
   CP $46                  ; so below
   JR C,PLACE_OBJECT_0     ;
-  LD (IX+$0C),$01         ;
+  LD (IX+OBJ_KIND),$01    ;
   SET 6,(IY+$7D)          ;
 PLACE_OBJECT_0:
   INC HL                  ; past the type; one more record in use
@@ -12587,7 +12619,7 @@ PLACE_FROM_TEMPLATE_0:
   JR NZ,PLACE_FROM_TEMPLATE_1 ;
   LD A,(HL)                   ;
   INC HL                      ;
-  LD (IX+$06),A               ;
+  LD (IX+OBJ_KIND-OBJ_X),A    ;
 PLACE_FROM_TEMPLATE_1:
   LD B,$03                ; its place, +6 to +8
   CALL COPY_TO_RECORD     ;
@@ -12603,48 +12635,48 @@ PLACE_FROM_TEMPLATE_1:
   EXX                        ;
   JR PLACE_FROM_TEMPLATE_3   ;
 PLACE_FROM_TEMPLATE_2:
-  LD A,(HL)               ; a small type: the template's last two bytes to +14
-  LD (IX+$02),A           ; and +16
-  INC HL                  ;
-  LD A,(HL)               ;
-  LD (IX+$04),A           ;
+  LD A,(HL)                     ; a small type: the template's last two bytes
+  LD (IX+OBJ_STATE-OBJ_KIND),A  ; to +14 and +16
+  INC HL                        ;
+  LD A,(HL)                     ;
+  LD (IX+OBJ_WEIGHT-OBJ_KIND),A ;
 PLACE_FROM_TEMPLATE_3:
   POP IX                  ; the place asked for, plus the origin
-  LD A,(IX+$06)           ;
+  LD A,(IX+OBJ_X)         ;
   ADD A,(IY+$5F)          ;
   LD B,A                  ;
-  LD A,(IX+$07)           ;
+  LD A,(IX+OBJ_TOP)       ;
   ADD A,(IY+$60)          ;
   LD D,A                  ;
-  LD A,(IX+$08)           ;
+  LD A,(IX+OBJ_Z)         ;
   ADD A,(IY+$61)          ;
   LD H,A                  ;
-  LD (IX+$06),$32         ; from the place the template's screen position is
-  LD A,(IX+$0A)           ; for, move it there (ISO_MOVE)
+  LD (IX+OBJ_X),$32       ; from the place the template's screen position is
+  LD A,(IX+OBJ_HEIGHT)    ; for, move it there (ISO_MOVE)
   ADD A,$32               ;
-  LD (IX+$07),A           ;
-  LD (IX+$08),$32         ;
+  LD (IX+OBJ_TOP),A       ;
+  LD (IX+OBJ_Z),$32       ;
   CALL ISO_MOVE           ;
   EXX                         ; a large type: done
   BIT 6,(IY+$7D)              ;
   JR NZ,PLACE_FROM_TEMPLATE_6 ;
-  LD (IX+$0F),$01         ; +15: a countdown the object code uses
-  LD A,(IX+$0E)               ; the kind of movement: 2 (no template has it)
+  LD (IX+OBJ_COUNT),$01   ; +15: a countdown the object code uses
+  LD A,(IX+OBJ_STATE)         ; the kind of movement: 2 (no template has it)
   AND $0F                     ;
   CP $02                      ;
   JR NZ,PLACE_FROM_TEMPLATE_4 ;
-  LD (IX+$0D),$05         ; its +13
+  LD (IX+OBJ_DIRECTION),$05 ; its +13
 PLACE_FROM_TEMPLATE_4:
   CP $03                      ; kind 3: +13
   JR NZ,PLACE_FROM_TEMPLATE_5 ;
-  LD (IX+$0D),$45             ;
+  LD (IX+OBJ_DIRECTION),$45   ;
 PLACE_FROM_TEMPLATE_5:
   CP $04                      ; kinds 4-10: +13 and +17
   JR C,PLACE_FROM_TEMPLATE_6  ;
   CP $0B                      ;
   JR NC,PLACE_FROM_TEMPLATE_6 ;
-  LD (IX+$0D),$05             ;
-  LD (IX+$11),$10             ;
+  LD (IX+OBJ_DIRECTION),$05   ;
+  LD (IX+OBJ_FRAME),$10       ;
 PLACE_FROM_TEMPLATE_6:
   LD DE,$0014             ; the next free record
   ADD IX,DE               ;
@@ -12874,7 +12906,7 @@ REDRAW_OBJECT:
   LD BC,$000C             ;
   LDIR                    ;
   LD A,(WORK_SPRITE)      ; no sprite: nothing to draw
-  OR (IX+$05)             ;
+  OR (IX+OBJ_SPRITE+$01)  ;
   RET Z                   ;
   LD HL,BUFFER_D900       ; the first plane cleared
   CALL CLEAR_256_BELOW    ;
@@ -12887,7 +12919,7 @@ REDRAW_OBJECT:
   LD (DRAW_WIDTH),A       ;
   BIT 4,(IY+$17)          ; carried or gone, and the room not being entered?
   JR NZ,REDRAW_OBJECT_0   ;
-  BIT 5,(IX+$10)          ;
+  BIT 5,(IX+OBJ_WEIGHT)   ;
   JR Z,REDRAW_OBJECT_0    ;
   LD HL,BUFFER_DA00       ; then the clean copy shows through: the second plane
   LD DE,$FFFF             ; all set
@@ -12957,34 +12989,34 @@ REDRAW_OBJECT_2:
 ; E Its floor
 ; C Its far edge along +8
 CULL_OBJECT:
-  LD A,(IX+$0C)           ; A door skips the flag tests
+  LD A,(IX+OBJ_KIND)      ; A door skips the flag tests
   AND $0F                 ;
   CP $01                  ;
   JR Z,CULL_OBJECT_1      ;
   BIT 4,(IY+$17)          ; In the scenery pass, leave out live objects
   JR Z,CULL_OBJECT_0      ;
-  LD A,(IX+$10)           ;
+  LD A,(IX+OBJ_WEIGHT)    ;
   AND $1F                 ;
   RET NZ                  ;
 CULL_OBJECT_0:
-  BIT 5,(IX+$10)          ; Leave out anything taken out of the room
+  BIT 5,(IX+OBJ_WEIGHT)   ; Leave out anything taken out of the room
   RET NZ                  ;
 CULL_OBJECT_1:
-  LD A,(IX+$00)           ; Across: out if the object lies wholly right or
+  LD A,(IX+OBJ_SCREEN_X)  ; Across: out if the object lies wholly right or
   SUB (IY+$64)            ; wholly left of the region
   JR C,CULL_OBJECT_2      ;
   SUB (IY+$66)            ;
   RET NC                  ;
   JR CULL_OBJECT_3        ;
 CULL_OBJECT_2:
-  ADD A,(IX+$02)          ;
+  ADD A,(IX+OBJ_WIDTH)    ;
   RET NC                  ;
   RET Z                   ;
 CULL_OBJECT_3:
-  LD A,(IX+$01)           ; Down: y is the top row and the sprite hangs +3 rows
+  LD A,(IX+OBJ_SCREEN_Y)  ; Down: y is the top row and the sprite hangs +3 rows
   SUB (IY+$65)            ; below it; out if wholly below or above
   JR C,CULL_OBJECT_4      ;
-  SUB (IX+$03)            ;
+  SUB (IX+OBJ_ROWS)       ;
   RET NC                  ;
   JR CULL_OBJECT_5        ;
 CULL_OBJECT_4:
@@ -12992,8 +13024,8 @@ CULL_OBJECT_4:
   RET NC                  ;
   RET Z                   ;
 CULL_OBJECT_5:
-  LD A,(IX+$04)           ; No sprite, nothing to draw
-  OR (IX+$05)             ;
+  LD A,(IX+OBJ_SPRITE)    ; No sprite, nothing to draw
+  OR (IX+OBJ_SPRITE+$01)  ;
   RET Z                   ;
   CALL IS_IN_FRONT        ; In front of the redrawn object: its cover into page
   XOR A                   ; $D8, and done
@@ -13008,7 +13040,7 @@ CULL_OBJECT_5:
   LD (HL),A               ;
   BIT 4,(IY+$17)          ; Scenery behind does not need the list drawn, except
   JR NZ,CULL_OBJECT_6     ; in the scenery pass
-  LD A,(IX+$10)           ;
+  LD A,(IX+OBJ_WEIGHT)    ;
   AND $1F                 ;
   RET Z                   ;
 CULL_OBJECT_6:
@@ -13137,11 +13169,11 @@ SORT_AND_DRAW_BEHIND_6:
   CALL RECORD_FROM_NUMBER ;
   BIT 1,(IY+$71)               ; Until then, skip scenery and doors; draw from
   JR NZ,SORT_AND_DRAW_BEHIND_7 ; the first live object on
-  LD A,(IX+$0C)                ;
+  LD A,(IX+OBJ_KIND)           ;
   AND $0F                      ;
   CP $01                       ;
   JR Z,SORT_AND_DRAW_BEHIND_8  ;
-  LD A,(IX+$10)                ;
+  LD A,(IX+OBJ_WEIGHT)         ;
   AND $1F                      ;
   JR Z,SORT_AND_DRAW_BEHIND_8  ;
   SET 1,(IY+$71)               ;
@@ -13179,14 +13211,14 @@ SORT_AND_DRAW_BEHIND_8:
 IS_IN_FRONT:
   LD A,D                  ; Not in front if its +6 is at or beyond the other's
   RES 0,(IY+$71)          ; far edge
-  CP (IX+$06)             ;
+  CP (IX+OBJ_X)           ;
   RET C                   ;
   RET Z                   ;
   LD A,E                  ; Or its top is at or below the other's floor
-  CP (IX+$07)             ;
+  CP (IX+OBJ_TOP)         ;
   RET NC                  ;
   LD A,C                  ; Or its +8 is at or beyond the other's far edge
-  CP (IX+$08)             ;
+  CP (IX+OBJ_Z)           ;
   RET C                   ;
   RET Z                   ;
   SET 0,(IY+$71)          ; In front
@@ -13233,7 +13265,7 @@ DRAW_SPRITE:
   PUSH BC                 ; The sprite's width in bytes, kept at IY+$78
   PUSH DE                 ;
   LD C,A                  ;
-  LD A,(IX+$02)           ;
+  LD A,(IX+OBJ_WIDTH)     ;
   SRL A                   ;
   SRL A                   ;
   SRL A                   ;
@@ -13241,19 +13273,19 @@ DRAW_SPRITE:
   LD (FOUND_RECORD),A     ;
   XOR A                   ; One plane's size: width times height
 DRAW_SPRITE_0:
-  ADD A,(IX+$03)          ;
+  ADD A,(IX+OBJ_ROWS)     ;
   DJNZ DRAW_SPRITE_0      ;
-  LD H,(IX+$05)           ; The sprite; every mode but 8 draws the second
-  LD L,(IX+$04)           ; plane, the mask
-  BIT 3,C                 ;
-  JR NZ,DRAW_SPRITE_1     ;
-  LD E,A                  ;
-  LD D,$00                ;
-  ADD HL,DE               ;
+  LD H,(IX+OBJ_SPRITE+$01) ; The sprite; every mode but 8 draws the second
+  LD L,(IX+OBJ_SPRITE)     ; plane, the mask
+  BIT 3,C                  ;
+  JR NZ,DRAW_SPRITE_1      ;
+  LD E,A                   ;
+  LD D,$00                 ;
+  ADD HL,DE                ;
 DRAW_SPRITE_1:
   EX DE,HL                ; DE: where to read from
   LD A,(POINT_ROW)        ; Does the sprite start above the region's top row?
-  SUB (IX+$01)            ;
+  SUB (IX+OBJ_SCREEN_Y)   ;
   JR C,DRAW_SPRITE_3      ;
   LD B,A                  ; No: skip the buffer's rows above it (a count of 0
   XOR A                   ; goes round 256 times and comes back to no rows)
@@ -13266,11 +13298,11 @@ DRAW_SPRITE_2:
   LD A,(POINT_ROW)        ; And draw down to the region's bottom, or the
   SUB (IY+$67)            ; sprite's height if that is less
   LD B,A                  ;
-  LD A,(IX+$01)           ;
+  LD A,(IX+OBJ_SCREEN_Y)  ;
   SUB B                   ;
-  CP (IX+$03)             ;
+  CP (IX+OBJ_ROWS)        ;
   JR C,DRAW_SPRITE_5      ;
-  LD A,(IX+$03)           ;
+  LD A,(IX+OBJ_ROWS)      ;
   JR DRAW_SPRITE_5        ;
 DRAW_SPRITE_3:
   CPL                     ; Yes: skip the sprite's rows above the region
@@ -13286,14 +13318,14 @@ DRAW_SPRITE_4:
   ADD HL,DE               ;
   EX DE,HL                ;
   LD HL,BUFFER_D900       ; And draw from the buffer's top down to the sprite's
-  LD A,(IX+$01)           ; bottom
-  SUB (IX+$03)            ;
+  LD A,(IX+OBJ_SCREEN_Y)  ; bottom
+  SUB (IX+OBJ_ROWS)       ;
   LD B,A                  ;
   LD A,(POINT_ROW)        ;
   SUB B                   ;
 DRAW_SPRITE_5:
   LD (IY+$75),A           ; The rows to draw
-  LD A,(IX+$00)           ; 7 minus (x mod 8) into the JR's displacement: that
+  LD A,(IX+OBJ_SCREEN_X)  ; 7 minus (x mod 8) into the JR's displacement: that
   CPL                     ; many of the seven RRCAs are jumped over
   AND $07                 ;
   LD ($EFD1),A            ;
@@ -13315,7 +13347,7 @@ DRAW_SPRITE_7:
   LD A,(POINT)            ; Columns from the region's left byte to the
   AND $F8                 ; sprite's; bit 4 if the sprite starts left of it
   LD B,A                  ;
-  LD A,(IX+$00)           ;
+  LD A,(IX+OBJ_SCREEN_X)  ;
   AND $F8                 ;
   SUB B                   ;
   JR NC,DRAW_SPRITE_8     ;
@@ -13567,14 +13599,14 @@ DRAW_SPRITE_ROWS_20:
 ; O:E The floor
 ; O:C The far edge along +8
 FAR_CORNER:
-  LD A,(IX+$06)
-  ADD A,(IX+$09)
+  LD A,(IX+OBJ_X)
+  ADD A,(IX+OBJ_LEN_X)
   LD D,A
-  LD A,(IX+$07)
-  SUB (IX+$0A)
+  LD A,(IX+OBJ_TOP)
+  SUB (IX+OBJ_HEIGHT)
   LD E,A
-  LD A,(IX+$08)
-  ADD A,(IX+$0B)
+  LD A,(IX+OBJ_Z)
+  ADD A,(IX+OBJ_LEN_Z)
   LD C,A
   RET
 
@@ -13890,7 +13922,7 @@ MW1:
   RES 6,E                 ;
 MW2:
   LD (IY+$72),E           ; MW2: the new facing for the record
-  LD A,(IX+$02)           ; The width in bytes (the carry is clear from the
+  LD A,(IX+OBJ_WIDTH)     ; The width in bytes (the carry is clear from the
   RRA                     ; AND)
   RRA                     ;
   RRA                     ;
@@ -13919,7 +13951,7 @@ MW2:
 ; IX The record
 ; C' The number of planes
 MW:
-  LD A,(IX+$0E)           ; Already that way round: nothing to do
+  LD A,(IX+OBJ_STATE)     ; Already that way round: nothing to do
   BIT 5,E                 ;
   JR NZ,MW0               ;
   XOR $20                 ;
@@ -13928,7 +13960,7 @@ MW0:
   RET NZ                  ;
   EXX                     ; MIR0: each plane, its height in rows (in the
 MIR0:
-  LD B,(IX+$03)           ; alternate B)
+  LD B,(IX+OBJ_ROWS)      ; alternate B)
 MIR1:
   EXX                     ; MIR1: each row, its width in bytes
   LD B,C                  ;
@@ -14123,14 +14155,14 @@ DE2:
 CHE3D:
   PUSH HL                 ; No sprite: nothing to do
   POP IX                  ;
-  LD A,(IX+$04)           ;
-  OR (IX+$05)             ;
+  LD A,(IX+OBJ_SPRITE)    ;
+  OR (IX+OBJ_SPRITE+$01)  ;
   RET Z                   ;
-  LD A,(IX+$0C)           ; A door: dealt with where it is met
+  LD A,(IX+OBJ_KIND)      ; A door: dealt with where it is met
   AND $0F                 ;
   CP $01                  ;
   RET Z                   ;
-  LD A,(IX+$10)           ; Taken out of the room, or scenery
+  LD A,(IX+OBJ_WEIGHT)    ; Taken out of the room, or scenery
   BIT 5,A                 ;
   RET NZ                  ;
   AND $1F                 ;
@@ -14145,7 +14177,7 @@ CHE3D:
   JP NZ,SKIP_GRAVITY      ;
   BIT 7,A                 ; Carried along: on in the direction in +$12
   JR Z,I0                 ;
-  LD A,(IX+$12)           ;
+  LD A,(IX+OBJ_COURSE)    ;
   JP ADD_GRAVITY          ;
 I0:
   LD C,(IY+$71)           ; I0: C its last movement (+$0D), HL its sprite; bit
@@ -14212,7 +14244,7 @@ I4:
 I5:
   CP $05                  ; I5: state 5, the jump: when +$0F has counted down,
   JR NZ,I9                ; back to state 8, and only the fall
-  DEC (IX+$0F)            ;
+  DEC (IX+OBJ_COUNT)      ;
   JR NZ,I50               ;
   LD A,E                  ;
   AND $F0                 ;
@@ -14232,7 +14264,7 @@ I9:
   BIT 6,A                 ;
   JR NZ,I91               ;
   INC A                   ; Rising: +$11 counts up; it stands still
-  LD (IX+$11),A           ;
+  LD (IX+OBJ_FRAME),A     ;
   CP $40                  ;
   JR NC,I92               ;
   LD C,$01                ;
@@ -14249,7 +14281,7 @@ I9:
 I95:
   JP SET_SPRITE_AND_MOVE  ; I95: into +4 and +5 (INPE)
 I92:
-  LD (IX+$11),$51         ; I92: risen: +$11 to $51
+  LD (IX+OBJ_FRAME),$51   ; I92: risen: +$11 to $51
 I91:
   CALL STEER              ; I91: turn after the knight now and then (ZZ1), and
   JR GUARD_FRAMES         ; walk with state 6's sprites (I600)
@@ -14275,12 +14307,12 @@ I91:
 ;     the course was set again this pass; nought if it was not
 STEER:
   LD A,(WORK_HEADING)     ; The course it is on (+18, from the working copy)
-  DEC (IX+$0F)            ; Count this pass off the record's +15; at nought,
+  DEC (IX+OBJ_COUNT)      ; Count this pass off the record's +15; at nought,
   LD D,$00                ; take a new course (and distance) from ZOOMIN
   CALL Z,ZOOMIN           ;
   AND $FC                 ; Only the way to go, not the low bits: in C, and
   LD C,A                  ; kept at +18
-  LD (IX+$12),A           ;
+  LD (IX+OBJ_COURSE),A    ;
   RET                     ;
 
 ; Update an object by its state: guards, the troll, the wraith, the floating
@@ -14362,7 +14394,7 @@ GUARD_MOVES:
   JR Z,GUARD_FRAMES       ;
   CP $1E                  ;
   JR C,GUARD_FRAMES       ;
-  LD (IX+$0F),$01         ; Far off: look again next pass
+  LD (IX+OBJ_COUNT),$01   ; Far off: look again next pass
   LD A,E                  ; A state-6 guard walks along x
   AND $0F                 ;
   CP $06                  ;
@@ -14420,7 +14452,7 @@ CREATURE_UPDATE_6:
 CREATURE_UPDATE_7:
   LD C,$02                ; No way to go, and bit 1: it does not fall
 CREATURE_UPDATE_8:
-  SET 4,(IX+$11)          ; Make sure the run is at least three frames (the
+  SET 4,(IX+OBJ_FRAME)    ; Make sure the run is at least three frames (the
                           ; last frame, bits 3-5 of +17, at least 2)
   JP ANIM                 ; Step through the frames
 CREATURE_UPDATE_9:
@@ -14455,7 +14487,7 @@ CREATURE_UPDATE_12:
 CREATURE_UPDATE_13:
   CP $07                  ; State 7: the troll
   JR NZ,KNIGHT_UPDATE     ;
-  RES 4,(IX+$0C)          ; Clear bit 4 of its +12, which makes a touch cost
+  RES 4,(IX+OBJ_KIND)     ; Clear bit 4 of its +12, which makes a touch cost
                           ; the knight 10 LIFE (OBJECTS_MEET): the troll's
                           ; object-table records have it set, so it lasts only
                           ; until the troll's first pass (the working copy
@@ -14484,22 +14516,22 @@ KNIGHT_UPDATE:
   JR NZ,PICK_OR_DROP      ;
   CALL IN31               ; No key: the Kempston joystick, if it is on (IN31)
   JP NZ,STICK_DIRECTION   ;
-  LD C,(IX+$0D)           ; Nothing pressed. C = the way he was going, which
+  LD C,(IX+OBJ_DIRECTION) ; Nothing pressed. C = the way he was going, which
                           ; matters only if he stands on something that moves
   LD A,(WORK_ANIMATION)   ; Back to the first frame of a run (+17's bits 0-2)
   AND $F8                 ;
-  LD (IX+$11),A           ;
-  DEC (IX+$12)             ; Count down to a change of stance (+18)
+  LD (IX+OBJ_FRAME),A     ;
+  DEC (IX+OBJ_COURSE)      ; Count down to a change of stance (+18)
   JR NZ,CREATURE_UPDATE_15 ;
   LD A,(GAME_FLAGS)       ; Start or end a fidget (bit 3 of IY+$17)
   XOR $08                 ;
   LD (GAME_FLAGS),A       ;
   BIT 3,A                  ; A fidget lasts 14 passes...
-  LD (IX+$12),$0E          ;
+  LD (IX+OBJ_COURSE),$0E   ;
   JR NZ,CREATURE_UPDATE_15 ;
   LD A,R                  ; ...and the stillness between them 128 to 255, at
   OR $80                  ; random
-  LD (IX+$12),A           ;
+  LD (IX+OBJ_COURSE),A    ;
 CREATURE_UPDATE_15:
   RES 1,(IY+$17)          ; His sword is not out
   BIT 4,E                  ; Riding on something that moves (state bit 4): keep
@@ -14555,14 +14587,14 @@ DROP_THING:
   JR DROP_TEST            ;
 CREATURE_UPDATE_19:
   LD A,H                  ; Down y (bit 6): its own depth short of him
-  SUB (IX+$0B)            ;
+  SUB (IX+OBJ_LEN_Z)      ;
   LD H,A                  ;
   JR DROP_TEST            ;
 CREATURE_UPDATE_20:
   BIT 6,E                 ; Down x (both bits): its own width short of him
   JR Z,CREATURE_UPDATE_21 ;
   LD A,B                  ;
-  SUB (IX+$09)            ;
+  SUB (IX+OBJ_LEN_X)      ;
   LD B,A                  ;
   JR DROP_TEST            ;
 CREATURE_UPDATE_21:
@@ -14570,9 +14602,9 @@ CREATURE_UPDATE_21:
   ADD A,(IY+$6F)          ;
   LD H,A                  ;
 DROP_TEST:
-  LD C,(IX+$09)           ; Krumlinde's DropItem_TestPlacement. Would the
-  LD E,(IX+$0A)           ; thing's own box there meet anything? (It is still
-  LD L,(IX+$0B)           ; marked as carried, so it does not meet itself)
+  LD C,(IX+OBJ_LEN_X)     ; Krumlinde's DropItem_TestPlacement. Would the
+  LD E,(IX+OBJ_HEIGHT)    ; thing's own box there meet anything? (It is still
+  LD L,(IX+OBJ_LEN_Z)     ; marked as carried, so it does not meet itself)
   PUSH IX                 ;
   CALL FIND_OBSTACLE      ;
   EXX                     ; Keep the place's address in the other register set
@@ -14591,7 +14623,7 @@ DROP_COMMIT:
   EXX                     ;
   CALL ISO_MOVE           ; Move the thing to the spot (its top level with his,
                           ; so it starts in the air)
-  LD A,(IX+$10)            ; Its weight: +16 less 16, and nought if that is
+  LD A,(IX+OBJ_WEIGHT)     ; Its weight: +16 less 16, and nought if that is
   AND $1F                  ; below it
   SUB $10                  ;
   JR NC,CREATURE_UPDATE_22 ;
@@ -14601,9 +14633,9 @@ CREATURE_UPDATE_22:
   LD A,(CARRIED_WEIGHT)   ; Off what he carries (CARRIED_WEIGHT, IY+$12)
   SUB L                   ;
   LD (CARRIED_WEIGHT),A   ;
-  RES 5,(IX+$10)          ; No longer carried
-  SET 4,(IX+$0E)          ; For one pass it goes where +13 says: up, and not
-  LD (IX+$0D),$12         ; falling (bits 4 and 1); then it falls
+  RES 5,(IX+OBJ_WEIGHT)   ; No longer carried
+  SET 4,(IX+OBJ_STATE)      ; For one pass it goes where +13 says: up, and not
+  LD (IX+OBJ_DIRECTION),$12 ; falling (bits 4 and 1); then it falls
   LD C,(IY+$34)           ; The object table: it is in this room now
   CALL SET_THING_ROOM     ;
   CALL CLEAR_THING_BOX    ; Empty the panel's box for the place
@@ -14639,7 +14671,7 @@ KNIGHT_DONE:
 ; IX The thing's record
 ; C The room, or $FE for none
 SET_THING_ROOM:
-  LD B,(IX+$13)           ; HL = six bytes before the object table, plus six
+  LD B,(IX+OBJ_NUMBER)    ; HL = six bytes before the object table, plus six
   LD HL,$A91E             ; for each step of the thing's number
   LD DE,$0006             ;
 SET_THING_ROOM_0:
@@ -14711,13 +14743,13 @@ PICK_UP_LOOK_ON:
 ; This entry point is used by the routine at PICK_UP.
 PICK_UP_LOOK_ON_0:
   JR NC,KNIGHT_DONE       ; Nothing more: the pick-up ends with a redraw
-  BIT 5,(IX+$0C)          ; Not a thing that can be carried: look on
+  BIT 5,(IX+OBJ_KIND)     ; Not a thing that can be carried: look on
   JR Z,PICK_UP_LOOK_ON    ;
-  LD A,(IX+$0C)           ; A door: stop
+  LD A,(IX+OBJ_KIND)      ; A door: stop
   AND $0F                 ;
   CP $01                  ;
   JR Z,KNIGHT_DONE        ;
-  LD A,(IX+$10)           ; Its weight: +16 less 16, nought if below
+  LD A,(IX+OBJ_WEIGHT)    ; Its weight: +16 less 16, nought if below
   AND $1F                 ;
   SUB $10                 ;
   JR NC,PICK_UP_LOOK_ON_1 ;
@@ -14737,8 +14769,8 @@ TAKE_THING:
   LD (HL),E               ;
   INC HL                  ;
   LD (HL),D               ;
-  SET 5,(IX+$10)          ; Carried, and not in the air
-  RES 7,(IX+$0E)          ;
+  SET 5,(IX+OBJ_WEIGHT)   ; Carried, and not in the air
+  RES 7,(IX+OBJ_STATE)    ;
   RES 1,(IY+$11)          ; The thing of kind 11 may not lie in the room any
                           ; more
   LD C,$FE                ; In no room
@@ -14876,16 +14908,16 @@ KNIGHT_FIGHT:
   CALL FACING             ;
   BIT 1,(IY+$17)          ; Is his sword out?
   JR NZ,KNIGHT_CONTROLS_8 ;
-  DEC (IX+$0F)            ; Not yet: the step forward, until +15 runs out
+  DEC (IX+OBJ_COUNT)      ; Not yet: the step forward, until +15 runs out
   JR NZ,KNIGHT_CONTROLS_9 ;
   SET 1,(IY+$17)          ; Out with the sword, for three passes (this pass
-  LD (IX+$0F),$03         ; still steps)
+  LD (IX+OBJ_COUNT),$03   ; still steps)
   JR SET_SPRITE_AND_MOVE  ;
 KNIGHT_CONTROLS_8:
   LD C,$00                ; Sword out: stand
-  DEC (IX+$0F)              ; For three passes
+  DEC (IX+OBJ_COUNT)        ; For three passes
   JR NZ,SET_SPRITE_AND_MOVE ;
-  LD (IX+$0F),$03         ; Then away with it, three passes more
+  LD (IX+OBJ_COUNT),$03   ; Then away with it, three passes more
   RES 1,(IY+$17)          ;
 KNIGHT_CONTROLS_9:
   LD DE,$00BA             ; The stepping frame, one on from the other
@@ -14894,8 +14926,8 @@ KNIGHT_CONTROLS_9:
 KNIGHT_JUMP:
   SET 4,C                 ; Jump: up, and not falling, as well as the way he
   SET 1,C                 ; walks
-  LD (IX+$0F),$08         ; For 8 passes (+15), going this way (+18)
-  LD (IX+$12),C           ;
+  LD (IX+OBJ_COUNT),$08   ; For 8 passes (+15), going this way (+18)
+  LD (IX+OBJ_COURSE),C    ;
   LD A,E                  ; State 5, rising, with his facing kept; show the
   AND $70                 ; first frame of the walk
   OR $05                  ;
@@ -14907,7 +14939,7 @@ KNIGHT_CONTROLS_10:
 ; This entry point is used by the routines at CHE3D and CREATURE_UPDATE.
 ANIM:
   PUSH BC                 ; The author's ANIM. Keep the way to go
-  LD A,(IX+$11)           ; C = +17; B = the frame, plus one
+  LD A,(IX+OBJ_FRAME)     ; C = +17; B = the frame, plus one
   LD C,A                  ;
   AND $07                 ;
   INC A                   ;
@@ -14983,13 +15015,13 @@ ANIMATE_AND_MOVE_1:
   AND $F8                 ; Otherwise the next frame
   OR B                    ;
 ANIMATE_AND_MOVE_2:
-  LD (IX+$11),A           ;
+  LD (IX+OBJ_FRAME),A     ;
   POP BC                  ; The way to go
 ; This entry point is used by the routines at CHE3D, CREATURE_UPDATE and
 ; KNIGHT_CONTROLS.
 SET_SPRITE_AND_MOVE:
-  LD (IX+$04),L           ; The author's INPE: the sprite is HL
-  LD (IX+$05),H           ;
+  LD (IX+OBJ_SPRITE),L     ; The author's INPE: the sprite is HL
+  LD (IX+OBJ_SPRITE+$01),H ;
 ; This entry point is used by the routines at CHE3D and CREATURE_UPDATE.
 MOVE_IN_DIRECTION:
   LD A,C                  ; The author's KON6: the way to go is C
@@ -15046,25 +15078,25 @@ TRY_STEP:
 COMMIT_STEP:
   LD IX,(WORK_RECORD)     ; The step is clear. The record gets the state from
   LD A,(WORK_BEHAVIOUR)   ; the working copy
-  LD (IX+$0E),A           ;
+  LD (IX+OBJ_STATE),A     ;
   BIT 2,(IY+$17)           ; The first pass in a room: just draw it
   JP NZ,REDRAW_THIS_OBJECT ;
   AND $0F                  ; The knight?
   CP $08                   ;
   JR NZ,ANIMATE_AND_MOVE_7 ;
-  LD (IX+$00),$74         ; Put his record back to the fixed point, so that his
-  LD (IX+$01),$22         ; screen place comes out afresh
-  LD (IX+$06),$32         ;
-  LD (IX+$07),$4E         ;
-  LD (IX+$08),$32         ;
+  LD (IX+OBJ_SCREEN_X),$74 ; Put his record back to the fixed point, so that
+  LD (IX+OBJ_SCREEN_Y),$22 ; his screen place comes out afresh
+  LD (IX+OBJ_X),$32        ;
+  LD (IX+OBJ_TOP),$4E      ;
+  LD (IX+OBJ_Z),$32        ;
 ANIMATE_AND_MOVE_7:
   CALL ISO_MOVE           ; Move it: the new place, and the screen position
                           ; from it
-  LD E,(IX+$0E)           ; E = the state; D = the way it went (after any
+  LD E,(IX+OBJ_STATE)     ; E = the state; D = the way it went (after any
   LD D,(IY+$71)           ; change by MEET_DECOY)
   BIT 7,E                  ; On the ground, that becomes its way (+13)
   JR NZ,ANIMATE_AND_MOVE_8 ;
-  LD (IX+$0D),D            ;
+  LD (IX+OBJ_DIRECTION),D  ;
 ANIMATE_AND_MOVE_8:
   BIT 4,E                 ; Riding on something that moves (state bit 4): take
   JR Z,ANIMATE_AND_MOVE_9 ; its way (IY+$7F), keeping the low bits
@@ -15074,13 +15106,13 @@ ANIMATE_AND_MOVE_8:
   LD A,(RIDE_DIRECTION)   ;
   AND $FC                 ;
   OR C                    ;
-  LD (IX+$0D),A           ;
+  LD (IX+OBJ_DIRECTION),A ;
 ANIMATE_AND_MOVE_9:
   BIT 1,(IY+$7B)           ; Moved in height, going down: falling
   JR Z,ANIMATE_AND_MOVE_10 ;
   BIT 5,D                  ;
   JR Z,ANIMATE_AND_MOVE_10 ;
-  LD (IX+$0F),$01         ; In the air; keep going down (with the low bits)
+  LD (IX+OBJ_COUNT),$01   ; In the air; keep going down (with the low bits)
   LD A,D                  ;
   AND $23                 ;
   SET 7,E                 ;
@@ -15095,13 +15127,13 @@ ANIMATE_AND_MOVE_10:
   BIT 6,(IY+$7B)           ; Stopped by an object of kind 2 or 3 (bit 6 of
   JR Z,ANIMATE_AND_MOVE_11 ; IY+$7B, from MEET_DECOY)
   SET 7,E                 ; Bounce: in the air, going up for three passes
-  LD (IX+$0F),$03         ;
+  LD (IX+OBJ_COUNT),$03   ;
   LD B,$12                ;
   JR ANIMATE_AND_MOVE_15  ;
 ANIMATE_AND_MOVE_11:
   BIT 7,E                  ; On the ground: done
   JR Z,ANIMATE_AND_MOVE_16 ;
-  DEC (IX+$0F)             ; In the air: count down, and at nought it is out of
+  DEC (IX+OBJ_COUNT)       ; In the air: count down, and at nought it is out of
   JR Z,ANIMATE_AND_MOVE_14 ; the air
   LD A,D                  ; Keep going the way it went
 ANIMATE_AND_MOVE_12:
@@ -15118,26 +15150,26 @@ ANIMATE_AND_MOVE_13:
   JR NZ,ANIMATE_AND_MOVE_15 ;
 ANIMATE_AND_MOVE_14:
   RES 7,E                 ; Out of the air; carry on the way +13 says
-  LD (IX+$0F),$01         ;
-  LD B,(IX+$0D)           ;
+  LD (IX+OBJ_COUNT),$01   ;
+  LD B,(IX+OBJ_DIRECTION) ;
 ANIMATE_AND_MOVE_15:
-  LD (IX+$12),B           ; Its way while in the air
+  LD (IX+OBJ_COURSE),B    ; Its way while in the air
   LD A,(STEP_AXES)          ; It moved: keep the new state
   AND $07                   ;
   JR NZ,ANIMATE_AND_MOVE_16 ;
   BIT 7,(IY+$67)           ; It did not move, and was not in the air at the
   JR Z,ANIMATE_AND_MOVE_16 ; start of the pass: keep the state
   RES 7,E                 ; It was in the air and could not move at all: out of
-  LD (IX+$0E),E           ; the air, and update it again at once
-  LD (IX+$0F),$01         ;
+  LD (IX+OBJ_STATE),E     ; the air, and update it again at once
+  LD (IX+OBJ_COUNT),$01   ;
   LD HL,(WORK_RECORD)     ;
   JP CHE3D                ;
 ANIMATE_AND_MOVE_16:
   LD A,E                  ; The new state
-  LD (IX+$0E),A           ;
+  LD (IX+OBJ_STATE),A     ;
   AND $0F                  ; Anything but a thing lying (state 0) is redrawn
   JR NZ,REDRAW_THIS_OBJECT ;
-  BIT 5,(IX+$10)           ; A thing that is carried too
+  BIT 5,(IX+OBJ_WEIGHT)    ; A thing that is carried too
   JR NZ,REDRAW_THIS_OBJECT ;
   LD A,(STEP_AXES)        ; A thing lying still needs no redraw
   AND $07                 ;
@@ -15227,7 +15259,7 @@ WORKING_SIZES:
 ; IX The record in the way
 ; B The object's x after the step (D its top, H its y; C, E, L its sizes)
 BUMPED:
-  LD A,(IX+$0C)           ; Not a door: meet it
+  LD A,(IX+OBJ_KIND)      ; Not a door: meet it
   AND $0F                 ;
   CP $01                  ;
   JP NZ,OBJECTS_MEET      ;
@@ -15235,7 +15267,7 @@ BUMPED:
   LD A,(THIS_RECORD)      ; Only the knight goes through; for anything else it
   CP $07                  ; is a wall (MEET_DECOY)
   JP NZ,BLOCKED_MOVE      ;
-  LD A,(IX+$0E)           ; No key needed
+  LD A,(IX+OBJ_STATE)     ; No key needed
   AND A                   ;
   JR Z,DOOR_WAY           ;
   PUSH HL                 ; The thing in the place in use (nought, the ROM, if
@@ -15248,7 +15280,7 @@ BUMPED:
   LD D,(HL)               ;
   PUSH DE                 ;
   POP IX                  ;
-  CP (IX+$13)             ; Is it the key?
+  CP (IX+OBJ_NUMBER)      ; Is it the key?
   POP IX                  ;
   POP DE                  ;
   POP HL                  ;
@@ -15256,7 +15288,7 @@ BUMPED:
   LD (IY+$07),$02         ; No: LOCKED, and it is a wall
   JP BLOCKED_MOVE         ;
 DOOR_WAY:
-  LD A,(IX+$11)           ; Krumlinde's RTN_Check_Door_Keys, though the key is
+  LD A,(IX+OBJ_FRAME)     ; Krumlinde's RTN_Check_Door_Keys, though the key is
   LD C,A                  ; already settled here. C = the way through the door
   AND (IY+$7C)            ; Is he going that way? This is AND (IY+$7C):
   JP Z,BLOCKED_MOVE       ; Krumlinde has a DB and a label at its second byte,
@@ -15268,17 +15300,17 @@ DOOR_WAY:
   JP Z,BLOCKED_MOVE       ;
 DOOR_ARRIVAL:
   CALL WORKING_POSITION   ; B, D, H = where he is (before the step)
-  LD L,(IX+$0F)           ; L = the x he arrives at, E = the y (the door's +15
-  LD E,(IX+$12)           ; and +18)
+  LD L,(IX+OBJ_COUNT)     ; L = the x he arrives at, E = the y (the door's +15
+  LD E,(IX+OBJ_COURSE)    ; and +18)
   LD A,C                  ; Is the way along y (neither x nor height)?
   AND $3C                 ;
   JR NZ,BUMPED_0          ;
   LD A,B                  ; Along y: he must be wholly within the door's width
-  SUB (IX+$06)            ;
+  SUB (IX+OBJ_X)          ;
   JP C,BLOCKED_MOVE       ;
   LD B,A                  ;
   ADD A,(IY+$6D)          ;
-  SUB (IX+$09)            ;
+  SUB (IX+OBJ_LEN_X)      ;
   JP NC,BLOCKED_MOVE      ;
   LD A,L                  ; x: as far along from +15 as he was from the door's
   ADD A,B                 ; corner
@@ -15295,25 +15327,25 @@ BUMPED_0:
   AND $30                 ;
   JR Z,BUMPED_1           ;
   LD A,B                  ; x: carried across relative to the door
-  SUB (IX+$06)            ;
+  SUB (IX+OBJ_X)          ;
   ADD A,L                 ;
   LD B,A                  ;
   LD A,H                  ; And y
-  SUB (IX+$08)            ;
+  SUB (IX+OBJ_Z)          ;
   ADD A,E                 ;
   LD H,A                  ;
-  LD A,(IX+$10)           ; His top: the door's +16...
+  LD A,(IX+OBJ_WEIGHT)    ; His top: the door's +16...
   BIT 4,C                 ; ...when going down
   JR Z,BUMPED_3           ;
   ADD A,(IY+$6E)          ; Going up, plus his height (never ran in the build's
   JR BUMPED_3             ; sessions)
 BUMPED_1:
   LD A,H                  ; Along x: he must be wholly within the door's depth
-  SUB (IX+$08)            ;
+  SUB (IX+OBJ_Z)          ;
   JP C,BLOCKED_MOVE       ;
   LD H,A                  ;
   ADD A,(IY+$6F)          ;
-  SUB (IX+$0B)            ;
+  SUB (IX+OBJ_LEN_Z)      ;
   JP NC,BLOCKED_MOVE      ;
   LD A,H                  ; (A wasted load: A is loaded again at once)
   LD A,E                  ; y: as far along from +18 as he was from the door's
@@ -15327,19 +15359,19 @@ BUMPED_1:
   LD B,A                  ;
 BUMPED_2:
   LD A,D                  ; Through a doorway: his top must be below the door's
-  SUB (IX+$07)            ; top...
+  SUB (IX+OBJ_TOP)        ; top...
   JP NC,BLOCKED_MOVE      ;
   LD D,A                  ; ...and his feet not below the door's foot
   SUB (IY+$6E)            ;
-  ADD A,(IX+$0A)          ;
+  ADD A,(IX+OBJ_HEIGHT)   ;
   JP NC,BLOCKED_MOVE      ;
-  LD A,(IX+$10)           ; His top: as far below +16 as it was below the
+  LD A,(IX+OBJ_WEIGHT)    ; His top: as far below +16 as it was below the
   ADD A,D                 ; door's top
 BUMPED_3:
   LD D,A                  ; D = his top on arrival
   CALL WORKING_SIZES      ; C, E, L = his sizes; keep all six in the other set
   EXX                     ;
-  LD C,(IX+$0D)           ; C = the room behind the door (+13)
+  LD C,(IX+OBJ_DIRECTION) ; C = the room behind the door (+13)
 ARRIVAL_CHECK:
   LD HL,$A91F             ; HL five bytes before the object table, so that each
   PUSH IX                 ; step of five and the byte read after it moves on
@@ -15380,8 +15412,8 @@ BUMPED_5:
   POP BC                  ; No: next thing
   POP HL                  ;
   JR NC,BUMPED_4          ;
-  BIT 4,(IX+$05)          ; A thing with bit 4 of +12 does not count
-  JR NZ,BUMPED_4          ;
+  BIT 4,(IX+OBJ_SPRITE+$01) ; A thing with bit 4 of +12 does not count
+  JR NZ,BUMPED_4            ;
   LD (IY+$07),$01         ; Anything else: BLOCKED, and it is a wall
   POP IX                  ;
   JP BLOCKED_MOVE         ;
@@ -15395,7 +15427,7 @@ GO_THROUGH_DOOR:
   LD IX,(WORK_RECORD)     ; Move the knight to where he arrives
   CALL ISO_MOVE           ;
   LD A,(WORK_BEHAVIOUR)   ; With the state he had
-  LD (IX+$0E),A           ;
+  LD (IX+OBJ_STATE),A     ;
   CALL SAVE_OBJECT_POSITIONS ; Save where the things of the room are
                              ; (SAVE_OBJECT_POSITIONS)
   JP ROOMST               ; And enter the new one
@@ -15435,19 +15467,19 @@ SAVE_OBJECT_POSITIONS:
   LD IX,RECORDS           ; IX = the first record after his; B = how many there
   LD B,A                  ; are
 SAVE_OBJECT_POSITIONS_0:
-  LD A,(IX+$0C)           ; Stop at the first door (kind 1 in +12)
+  LD A,(IX+OBJ_KIND)      ; Stop at the first door (kind 1 in +12)
   AND $0F                 ;
   CP $01                  ;
   RET Z                   ;
   PUSH BC                      ; HL = the thing's entry plus 3: six bytes a
-  LD B,(IX+$13)                ; number, counted on from just below the table;
+  LD B,(IX+OBJ_NUMBER)         ; number, counted on from just below the table;
   LD DE,$0006                  ; kept on the stack
   LD HL,$A921                  ;
 SAVE_OBJECT_POSITIONS_1:
   ADD HL,DE                    ;
   DJNZ SAVE_OBJECT_POSITIONS_1 ;
   PUSH HL                      ;
-  LD A,(IX+$0E)           ; B = its behaviour byte (+14); C = 8, facing +x, for
+  LD A,(IX+OBJ_STATE)     ; B = its behaviour byte (+14); C = 8, facing +x, for
   LD B,A                  ; the mirror routines
   LD C,$08                ;
   AND $0F                 ;
@@ -15531,17 +15563,17 @@ OBJECTS_MEET:
   JR NZ,OBJECTS_MEET_1    ;
   CALL DECLI1             ;
 OBJECTS_MEET_0:
-  LD A,(IX+$10)           ; A still thing: on to the next test
+  LD A,(IX+OBJ_WEIGHT)    ; A still thing: on to the next test
   AND $1F                 ;
   JR Z,OBJECTS_MEET_1     ;
-  SET 4,(IX+$0E)          ; Knock it: next time it moves by the direction $12,
-  LD (IX+$0D),$12         ; up
+  SET 4,(IX+OBJ_STATE)      ; Knock it: next time it moves by the direction
+  LD (IX+OBJ_DIRECTION),$12 ; $12, up
   LD IX,(WORK_RECORD)     ; The mover vanishes
-  SET 5,(IX+$10)          ;
+  SET 5,(IX+OBJ_WEIGHT)   ;
   CALL WORKING_POSITION   ; where it was, and is erased (ANIMATE_AND_MOVE)
   JP COMMIT_STEP          ;
 OBJECTS_MEET_1:
-  BIT 4,(IX+$0C)          ; Does the other hurt, and is the mover the knight?
+  BIT 4,(IX+OBJ_KIND)     ; Does the other hurt, and is the mover the knight?
   JR Z,OBJECTS_MEET_2     ;
   LD A,(THIS_RECORD)      ;
   CP $07                  ;
@@ -15564,17 +15596,17 @@ OBJECTS_MEET_3:
 OBJECTS_MEET_4:
   BIT 1,(IY+$17)          ; The knight: is his sword out?
   JR NZ,OBJECTS_MEET_5    ;
-  BIT 7,(IX+$0C)          ; No: a fighter touched costs him 1 LIFE
+  BIT 7,(IX+OBJ_KIND)     ; No: a fighter touched costs him 1 LIFE
   JR NZ,OBJECTS_MEET_3    ;
   JR OBJECTS_MEET_8       ;
 OBJECTS_MEET_5:
-  BIT 6,(IX+$0C)          ; Yes: can the other be killed (bit 6)?
+  BIT 6,(IX+OBJ_KIND)     ; Yes: can the other be killed (bit 6)?
   JR Z,OBJECTS_MEET_8     ;
   LD L,(IY+$02)           ; Take a strike off its counter (the address's low
   LD H,$FF                ; byte in IY+2)
   DEC (HL)                ;
   JR NZ,OBJECTS_MEET_8    ;
-  LD A,(IX+$0E)           ; None left: is it a guard (behaviour 6, 9 or 10)?
+  LD A,(IX+OBJ_STATE)     ; None left: is it a guard (behaviour 6, 9 or 10)?
   AND $0F                 ;
   CP $06                  ;
   JR Z,OBJECTS_MEET_6     ;
@@ -15584,14 +15616,14 @@ OBJECTS_MEET_5:
   JR Z,OBJECTS_MEET_6     ;
 ; This entry point is used by the routine at MEET_DECOY.
 OTHER_VANISHES:
-  SET 5,(IX+$10)          ; OTHER_VANISHES: bit 5 of its +16
+  SET 5,(IX+OBJ_WEIGHT)   ; OTHER_VANISHES: bit 5 of its +16
   JR OBJECTS_MEET_7       ;
 OBJECTS_MEET_6:
-  LD (IX+$04),$B8         ; The guard's helmet: its sprite, behaviour 0 with a
-  LD (IX+$05),$A4         ; hop, a fighter that can be picked up, direction $12
-  LD (IX+$0E),$10         ;
-  LD (IX+$0C),$A0         ;
-  LD (IX+$0D),$12         ;
+  LD (IX+OBJ_SPRITE),$B8     ; The guard's helmet: its sprite, behaviour 0 with
+  LD (IX+OBJ_SPRITE+$01),$A4 ; a hop, a fighter that can be picked up,
+  LD (IX+OBJ_STATE),$10      ; direction $12
+  LD (IX+OBJ_KIND),$A0       ;
+  LD (IX+OBJ_DIRECTION),$12  ;
 OBJECTS_MEET_7:
   LD A,(THIS_RECORD)      ; Finish the mover's move (BLOCKED_MOVE, MEET_DECOY)
   PUSH AF                 ;
@@ -15611,10 +15643,10 @@ OBJECTS_MEET_8:
   AND $0F                 ; that can be picked up?
   CP $0D                  ;
   JR NZ,OBJECTS_MEET_9    ;
-  BIT 5,(IX+$0C)          ;
+  BIT 5,(IX+OBJ_KIND)     ;
   JR NZ,OBJECTS_MEET_11   ;
 OBJECTS_MEET_9:
-  LD A,(IX+$0E)           ; A wraith (behaviour 11) met by a thing of kind 6 or
+  LD A,(IX+OBJ_STATE)     ; A wraith (behaviour 11) met by a thing of kind 6 or
   AND $0F                 ; 10?
   CP $0B                  ;
   JR NZ,OBJECTS_MEET_12   ;
@@ -15629,14 +15661,14 @@ OBJECTS_MEET_10:
   LD IX,(WORK_RECORD)     ; vanishes...
   LD C,$FE                ;
   CALL SET_THING_ROOM     ;
-  SET 5,(IX+$10)          ;
+  SET 5,(IX+OBJ_WEIGHT)   ;
   POP IX                  ;
 OBJECTS_MEET_11:
   LD C,$FE                ; ...and so does the other
   CALL SET_THING_ROOM     ;
   JR OTHER_VANISHES       ;
 OBJECTS_MEET_12:
-  LD A,(IX+$0C)           ; Kind 7, the pit floor?
+  LD A,(IX+OBJ_KIND)      ; Kind 7, the pit floor?
   AND $0F                 ;
   CP $07                  ;
   JR NZ,MEET_DECOY        ;
@@ -15684,7 +15716,7 @@ SKIPPED_REMOVAL:
 ;
 ; IX The mover's record
 MOVER_VANISHES:
-  SET 5,(IX+$10)          ; Hidden
+  SET 5,(IX+OBJ_WEIGHT)   ; Hidden
   CALL WORKING_POSITION   ; Finish the move at the old position
   JP COMMIT_STEP          ;
 
@@ -15749,7 +15781,7 @@ BLOCKED_MOVE:
   CALL TEST_OTHER         ;
   JR NC,MEET_DECOY_3      ;
   RES 0,C                 ; Blocked: x out of the move
-  LD A,(IX+$0C)           ; Along x into a kind-3 step: a climb
+  LD A,(IX+OBJ_KIND)      ; Along x into a kind-3 step: a climb
   AND $0F                 ;
   CP $03                  ;
   JR NZ,MEET_DECOY_0      ;
@@ -15773,17 +15805,17 @@ MEET_DECOY_3:
   RES 1,C                 ; Blocked: y out
   BIT 7,C                 ; Nothing rides a door
   JR NZ,MEET_DECOY_5      ;
-  LD D,(IX+$0E)           ; Coming down onto it (bit 5 of the direction)?
+  LD D,(IX+OBJ_STATE)     ; Coming down onto it (bit 5 of the direction)?
   BIT 5,(IY+$71)          ;
   JR Z,MEET_DECOY_5       ;
   SET 5,C                 ; A landing
   LD A,D                  ; What it lands on has a behaviour: ride with its
   AND $1F                 ; direction (+13)
-  LD A,(IX+$0D)           ;
+  LD A,(IX+OBJ_DIRECTION) ;
   JR NZ,MEET_DECOY_4      ;
   BIT 7,D                 ; Or is coasting: ride with its heading (+18)
   JR Z,MEET_DECOY_5       ;
-  LD A,(IX+$12)           ;
+  LD A,(IX+OBJ_COURSE)    ;
 MEET_DECOY_4:
   SET 4,(IY+$72)          ; Riding: bit 4 of the mover's +14, and the way to go
   LD (RIDE_DIRECTION),A   ;
@@ -15803,7 +15835,7 @@ MEET_DECOY_8:
   CALL TEST_OTHER         ;
   JR NC,MEET_DECOY_12     ;
   RES 2,C                 ; Blocked: z out
-  LD A,(IX+$0C)           ; Along z into a kind-2 step: a climb
+  LD A,(IX+OBJ_KIND)      ; Along z into a kind-2 step: a climb
   AND $0F                 ;
   CP $02                  ;
   JR NZ,MEET_DECOY_9      ;
@@ -15909,7 +15941,7 @@ MEET_DECOY_27:
   LD A,C                  ; No push after a landing or into a door
   AND $A0                 ;
   JR NZ,MEET_DECOY_28     ;
-  LD A,(IX+$10)           ; Nor of a still thing
+  LD A,(IX+OBJ_WEIGHT)    ; Nor of a still thing
   AND $1F                 ;
   JR Z,MEET_DECOY_28      ;
   LD B,A                  ; Pushed if no more than 5 heavier than the mover
@@ -15919,15 +15951,15 @@ MEET_DECOY_27:
   SUB B                   ;
   JR C,MEET_DECOY_28      ;
   INC A                   ; Coasting for the difference plus 6 passes
-  LD (IX+$0F),A           ;
-  SET 7,(IX+$0E)          ;
+  LD (IX+OBJ_COUNT),A     ;
+  SET 7,(IX+OBJ_STATE)    ;
   LD A,(ASKED_DIRECTION)  ; heading the way the mover asked to go, with its own
   AND $FC                 ; bounce and rise bits
   LD B,A                  ;
-  LD A,(IX+$0D)           ;
+  LD A,(IX+OBJ_DIRECTION) ;
   AND $03                 ;
   OR B                    ;
-  LD (IX+$12),A           ;
+  LD (IX+OBJ_COURSE),A    ;
 MEET_DECOY_28:
   JP TRY_STEP             ; Try what is left of the move again
 
@@ -16072,9 +16104,9 @@ ZOOMIN_0:
 AIM_AT:
   LD A,(IY+$06)           ; Look again in 10 passes
   ADD A,$02               ;
-  LD (IX+$0F),$0A         ;
+  LD (IX+OBJ_COUNT),$0A   ;
   PUSH HL                 ; Keep HL
-  SUB (IX+$06)            ; Along x: H = +x (8) or -x (4), D = how far
+  SUB (IX+OBJ_X)          ; Along x: H = +x (8) or -x (4), D = how far
   LD H,$08                ;
   JR NC,AIM_AT_0          ;
   NEG                     ;
@@ -16083,7 +16115,7 @@ AIM_AT_0:
   LD D,A                  ;
   LD A,(IY+$08)           ; Along z: L = +z ($40) or -z ($80)
   ADD A,$02               ;
-  SUB (IX+$08)            ;
+  SUB (IX+OBJ_Z)          ;
   LD L,$40                ;
   JR NC,AIM_AT_1          ;
   NEG                     ;
@@ -16096,7 +16128,7 @@ AIM_AT_1:
 AIM_AT_2:
   CP $0E                  ; Near along z: look again in 3 passes
   JR NC,AIM_AT_3          ;
-  LD (IX+$0F),$03         ;
+  LD (IX+OBJ_COUNT),$03   ;
 AIM_AT_3:
   LD A,H                  ; A = the heading
   POP HL                  ;
@@ -16155,7 +16187,7 @@ FIND_OBSTACLE:
   ADD IX,DE               ;
 FIND_OBSTACLE_0:
   EXX                     ; A fighter?
-  BIT 7,(IX+$0C)          ;
+  BIT 7,(IX+OBJ_KIND)     ;
   JR Z,FIND_OBSTACLE_1    ;
   DEC (IY+$02)            ; The next counter down, the sixth at most
   LD A,(STRIKES_AT)       ;
@@ -16198,16 +16230,16 @@ TEST_ONE_RECORD:
   LD A,(FOUND_RECORD)     ; The mover's own record: no
   SUB (IY+$03)            ;
   RET Z                   ;
-  LD A,(IX+$0C)           ; A door: always
+  LD A,(IX+OBJ_KIND)      ; A door: always
   AND $0F                 ;
   CP $01                  ;
   JR Z,BOX_OVERLAP        ;
   AND A                   ; Anything else, unless hidden
-  BIT 5,(IX+$10)          ;
+  BIT 5,(IX+OBJ_WEIGHT)   ;
   RET NZ                  ;
 ; This entry point is used by the routines at CHE3D and BUMPED.
 BOX_OVERLAP:
-  LD A,(IX+$08)           ; BOX_OVERLAP: z -- the record's corner less the
+  LD A,(IX+OBJ_Z)         ; BOX_OVERLAP: z -- the record's corner less the
   SUB H                   ; box's must lie between minus the record's length
   JR C,TEST_ONE_RECORD_0  ; and the box's
   SUB L                   ;
@@ -16215,10 +16247,10 @@ BOX_OVERLAP:
   JR TEST_ONE_RECORD_1    ;
 TEST_ONE_RECORD_0:
   NEG                     ;
-  SUB (IX+$0B)            ;
+  SUB (IX+OBJ_LEN_Z)      ;
   RET NC                  ;
 TEST_ONE_RECORD_1:
-  LD A,(IX+$06)           ; x the same way
+  LD A,(IX+OBJ_X)         ; x the same way
   SUB B                   ;
   JR C,TEST_ONE_RECORD_2  ;
   SUB C                   ;
@@ -16226,13 +16258,13 @@ TEST_ONE_RECORD_1:
   JR TEST_ONE_RECORD_3    ;
 TEST_ONE_RECORD_2:
   NEG                     ;
-  SUB (IX+$09)            ;
+  SUB (IX+OBJ_LEN_X)      ;
   RET NC                  ;
 TEST_ONE_RECORD_3:
-  LD A,(IX+$07)           ; y, from the tops down: the carry from the last
+  LD A,(IX+OBJ_TOP)       ; y, from the tops down: the carry from the last
   SUB D                   ; subtraction is the answer
   JR C,TEST_ONE_RECORD_4  ;
-  SUB (IX+$0A)            ;
+  SUB (IX+OBJ_HEIGHT)     ;
   RET                     ;
 TEST_ONE_RECORD_4:
   NEG                     ;
@@ -16292,7 +16324,7 @@ ROOMST_0:
   INC HL                  ;
   PUSH DE                 ;
   POP IX                  ;
-  LD A,(IX+$13)           ; Number 5 in the object table: print success
+  LD A,(IX+OBJ_NUMBER)    ; Number 5 in the object table: print success
   CP $05                  ;
   JR Z,ROOMST_1           ;
   DJNZ ROOMST_0           ; Try the next place; after the last, print failure
@@ -16397,11 +16429,11 @@ DRAW_STILL_THINGS:
   PUSH HL                 ; IX = the record; THIS_RECORD = its number
   POP IX                  ;
   INC (IY+$03)            ;
-  LD A,(IX+$0C)            ; A door: draw it
+  LD A,(IX+OBJ_KIND)       ; A door: draw it
   AND $0F                  ;
   CP $01                   ;
   JR Z,DRAW_STILL_THINGS_0 ;
-  LD A,(IX+$10)           ; Anything else only if still
+  LD A,(IX+OBJ_WEIGHT)    ; Anything else only if still
   AND $1F                 ;
 DRAW_STILL_THINGS_0:
   PUSH HL                 ; Draw it (REDRAW_OBJECT)
@@ -16499,7 +16531,7 @@ MAIN_LOOP_2:
   LD D,(HL)               ;
   PUSH DE                 ;
   POP IX                  ;
-  LD A,(IX+$0C)           ; Kind 9?
+  LD A,(IX+OBJ_KIND)      ; Kind 9?
   AND $0F                 ;
   CP $09                  ;
   JR NZ,MAIN_LOOP_3       ;
