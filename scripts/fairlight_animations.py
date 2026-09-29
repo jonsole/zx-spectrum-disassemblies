@@ -407,14 +407,17 @@ def started(snapshot: Path) -> Game:
 # drawn by themselves by the game's own redraw.
 # --------------------------------------------------------------------------
 
-# A picture of a thing alone is what the Sprites page shows: white where the
-# sprite's image is set, black where its mask alone covers the background,
-# and clear where the background shows through. In a GIF that is three
-# colours, the first transparent; it is given the Sprites page's blue-grey
-# for a viewer that ignores transparency, and the page shows them on that
-# blue-grey too (kl-sprite).
-ALONE_CLEAR, ALONE_BLACK, ALONE_WHITE = 0, 1, 2
-_ALONE_PALETTE = [0x5A, 0x5A, 0x8C, 0, 0, 0, 0xFF, 0xFF, 0xFF] + [0] * (768 - 9)
+# A picture of a thing alone is what the Sprites page shows, in the game's
+# colours: Fairlight draws black ink on each room's paper, so the sprite's
+# image is black ink, the solid part of its mask the Spectrum's white paper
+# (fairlight_data.sprite_image), and it is clear where the background shows
+# through. In a GIF that is three colours, the first transparent; it is given
+# the Sprites page's blue-grey for a viewer that ignores transparency, and
+# the page shows them on that blue-grey too (kl-sprite).
+ALONE_CLEAR, ALONE_INK, ALONE_PAPER = 0, 1, 2
+_ALONE_BACKING = (0x5A, 0x5A, 0x8C)
+_ALONE_PALETTE = (list(_ALONE_BACKING) + list(fd.INK_RGB) + list(fd.PAPER_RGB)
+                  + [0] * (768 - 9))
 ALONE_SCALE = 3                   # on the page, three times the Spectrum's size
 # Where the spare machine draws a thing: x on a byte boundary, so that the
 # compositor shifts nothing, and the top row well inside the screen.
@@ -489,9 +492,9 @@ class Rig:
         for y in range(height):
             for x in range(width):
                 if image_rows[y][x]:
-                    pixels[x, y] = (255, 255, 255, 255)
+                    pixels[x, y] = fd.INK_RGB + (255,)
                 elif not mask_rows[y][x]:
-                    pixels[x, y] = (0, 0, 0, 255)
+                    pixels[x, y] = fd.PAPER_RGB + (255,)
         # Checked against the sprite's bytes as the listing reads them
         # (fairlight_data.sprite_image): where the mask is set the background
         # shows, whatever the image says, as the compositor has it.
@@ -669,9 +672,13 @@ def save_alone_gif(path: Path, frames: list[tuple], size: tuple[int, int]) -> No
         top = size[1] - picture.height
         for y in range(picture.height):
             for x in range(picture.width):
-                red, _, _, alpha = source[x, y]
+                red, green, blue, alpha = source[x, y]
                 if alpha:
-                    pixels[x, top + y] = ALONE_WHITE if red else ALONE_BLACK
+                    colour = (red, green, blue)
+                    if colour not in (fd.INK_RGB, fd.PAPER_RGB):
+                        raise ValueError(f"animations: {path.name} has a pixel neither ink "
+                                         "nor paper")
+                    pixels[x, top + y] = ALONE_INK if colour == fd.INK_RGB else ALONE_PAPER
         images.append(canvas)
     if len(images) == 1:
         images[0].save(path, transparency=ALONE_CLEAR)
@@ -685,7 +692,7 @@ def save_alone_gif(path: Path, frames: list[tuple], size: tuple[int, int]) -> No
             got = gif.convert("RGBA")
             want = meant.convert("RGBA")
             for (r1, g1, b1, a1), (r2, g2, b2, _) in zip(got.getdata(), want.getdata()):
-                expected = None if (r2, g2, b2) == (0x5A, 0x5A, 0x8C) else (r2, g2, b2)
+                expected = None if (r2, g2, b2) == _ALONE_BACKING else (r2, g2, b2)
                 if (expected is None and a1) or (expected is not None and
                                                  (not a1 or (r1, g1, b1) != expected)):
                     raise RuntimeError(f"animations: {path.name} frame {n} did not read back "
@@ -2324,9 +2331,10 @@ def build(snapshot: Path, html_dir: Path, log=print) -> dict[str, str]:
              "machine, once over a clean copy of zeros and once over ones: a pixel set in "
              "the first is the image, one clear in the second the solid part of the mask. "
              "Every picture was checked against the sprite's bytes as the listing reads them, "
-             "and the bytes against the tape's, as they are or turned round. White is the "
-             "image, black the mask where the image is clear, the rest transparent, shown on "
-             "the Sprites page's blue-grey. Each picture stands on its bottom left corner, "
+             "and the bytes against the tape's, as they are or turned round. They are in "
+             "the game's colours, black ink on paper: the image black, the solid part of "
+             "the mask the Spectrum's white paper (a room's own colour in the game), the "
+             "rest transparent, shown on the Sprites page's blue-grey. Each picture stands on its bottom left corner, "
              "and is shown for as long as its pass stayed on the screen. Where the way a "
              "creature faces changes its picture, its table has a GIF for each way.</p>",
              "<p>Under each: what it shows and how it was staged; what was measured in the "

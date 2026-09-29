@@ -96,18 +96,27 @@ SPRITE_SCALE = 2
 TEXTURE_SCALE = 2
 CHAR_SCALE = 4
 
-WHITE = (255, 255, 255, 255)
-BLACK = (0, 0, 0, 255)
-CLEAR = (0, 0, 0, 0)
 INKS = [(0, 0, 0), (0, 0, 0xD7), (0xD7, 0, 0), (0xD7, 0, 0xD7),
         (0, 0xD7, 0), (0, 0xD7, 0xD7), (0xD7, 0xD7, 0), (0xD7, 0xD7, 0xD7)]
 BRIGHT = [(0, 0, 0), (0, 0, 0xFF), (0xFF, 0, 0), (0xFF, 0, 0xFF),
           (0, 0xFF, 0), (0, 0xFF, 0xFF), (0xFF, 0xFF, 0), (0xFF, 0xFF, 0xFF)]
-# A part's picture: what it drew bright, the room so far dim.
-PART_INK = (255, 255, 255)
-PART_CLEARED = (220, 60, 60)
-ROOM_INK = (95, 95, 125)
-ROOM_PAPER = (0, 0, 0)
+# A piece shown alone is drawn as the game draws it: black ink on paper,
+# the paper the Spectrum's white when no room's colour is given (the same
+# colours as fairlight_data.sprite_image). Transparent is left clear, and
+# the page shows it on its blue-grey (kl-sprite).
+INK = fd.INK_RGB + (255,)
+PAPER = fd.PAPER_RGB + (255,)
+CLEAR = (0, 0, 0, 0)
+# The attribute a piece is printed in on its own: black ink on white paper,
+# not BRIGHT.
+ALONE_ATTRIBUTE = 0x38
+# A part's picture is in the colours of the room it is drawn in: what the
+# part drew in the room's ink, the room so far drawn a mix of its ink and
+# paper (ROOM_SO_FAR of the way from paper to ink), on its paper. Where the
+# part cleared ink is shown in the page's own colour, magenta, which no
+# room has for its paper or its ink.
+ROOM_SO_FAR = 0.4
+PART_CLEARED = (230, 0, 230)
 
 # Short names for what each object type's picture shows, given after drawing
 # each one. A name is a claim about the picture only; what the game does with
@@ -207,6 +216,12 @@ def _operand(memory, address: int, opcode: list[int], size: int = 2) -> int:
                          + " ".join(f"{b:02X}" for b in opcode))
     at = address + len(opcode)
     return memory[at] if size == 1 else _word(memory, at)
+
+
+def attribute_colours(attr: int) -> tuple:
+    """The ink and the paper an attribute gives, BRIGHT if it says so."""
+    table = BRIGHT if attr & 0x40 else INKS
+    return table[attr & 7], table[attr >> 3 & 7]
 
 
 def screen_image(memory, box=None):
@@ -473,7 +488,8 @@ class Rig:
     @staticmethod
     def _three_colour(dark, light, box):
         """Image from the run on zeros, solid from the run on ones; box is
-        (x, y, width, height) with y from the top."""
+        (x, y, width, height) with y from the top. The image is ink, the
+        solid part paper, the rest clear (see INK and PAPER)."""
         from PIL import Image
 
         x0, y0, width, height = box
@@ -482,9 +498,9 @@ class Rig:
         for y in range(height):
             for x in range(width):
                 if _pixel(dark, x0 + x, y0 + y):
-                    pixels[x, y] = WHITE
+                    pixels[x, y] = INK
                 elif not _pixel(light, x0 + x, y0 + y):
-                    pixels[x, y] = BLACK
+                    pixels[x, y] = PAPER
         return image
 
     @staticmethod
@@ -535,7 +551,7 @@ class Rig:
     # ---- the printer ----------------------------------------------------
 
     def printed(self, memory, string: list[int], font: int | None = None,
-                clear: bool = True, attribute: int = 0x47):
+                clear: bool = True, attribute: int = ALONE_ATTRIBUTE):
         """A string printed by the game's PRINT, from a CALL in scratch
         memory with the string after it; the font's address patched in
         PRINT_FIND_GLYPH if given."""
@@ -653,9 +669,9 @@ class Data:
 def sprite_expected(memory, address: int, width: int, height: int):
     """A sprite from its bytes as the compositor (#R$E3E4) shows the object it
     redraws: where the mask has a bit set the room shows through, whatever the
-    image has; elsewhere the image's bit is ink and a clear one solid paper.
-    (fairlight_data.sprite_image makes an image bit ink even where the mask is
-    set; the game does not, and a few sprites have such pixels.)"""
+    image has (a few sprites have pixels with both set); elsewhere the image's
+    bit is ink and a clear one solid paper -- black on white, as INK and
+    PAPER. fairlight_data.sprite_image draws the same, at its own scale."""
     from PIL import Image
 
     columns = width // 8
@@ -669,7 +685,7 @@ def sprite_expected(memory, address: int, width: int, height: int):
             for bit in range(8):
                 if mask & (0x80 >> bit):
                     continue
-                pixels[column * 8 + bit, row] = WHITE if bits & (0x80 >> bit) else BLACK
+                pixels[column * 8 + bit, row] = INK if bits & (0x80 >> bit) else PAPER
     return image
 
 
@@ -852,7 +868,8 @@ def _textures_page(data: Data, rig: Rig, listing: Listing, image_dir: Path) -> s
                  "with codes $FC or $FD, so the game never shows them; they are, most likely, "
                  "a Swedish author's character definitions left where the textures were "
                  "assembled (inferred). Printed here by the game's own printer (#R$EBFE), with "
-                 "the font's address in PRINT_FIND_GLYPH pointed at them:</p>")
+                 "the font's address in PRINT_FIND_GLYPH pointed at them, in black on "
+                 "white:</p>")
     lines.append(_img(f"{IMAGES}/swedish_letters.png", letters, "The eight characters",
                       CHAR_SCALE))
     lines.append("<p>They are not drawn in the game's font's style but in the ROM's: compared "
@@ -880,12 +897,17 @@ def _room_links(data: Data, listing: Listing, rooms) -> str:
     return ", ".join(f'<a href="Rooms.html#room{room}">{room}</a>' for room in sorted(rooms))
 
 
-def _part_picture(before, after, margin: int = 8):
-    """The screen after a part: what it drew bright, the rest of the room dim;
-    cut to what it changed. None if it changed nothing."""
+def _part_picture(before, after, colour: int, margin: int = 8):
+    """The screen after a part, in the colours of the room it was drawn in
+    (the room's colour byte, an attribute): what the part drew in the room's
+    ink, the rest of the room faded towards its paper, on its paper; where
+    the part cleared ink, PART_CLEARED. Cut to what it changed. None if it
+    changed nothing."""
     from PIL import Image
 
-    image = Image.new("RGB", (256, 192), ROOM_PAPER)
+    ink, paper = attribute_colours(colour)
+    room_ink = tuple(round(p + ROOM_SO_FAR * (i - p)) for i, p in zip(ink, paper))
+    image = Image.new("RGB", (256, 192), paper)
     pixels = image.load()
     xs, ys = [], []
     for y in range(192):
@@ -898,11 +920,11 @@ def _part_picture(before, after, margin: int = 8):
                 mask = 0x80 >> bit
                 x = column * 8 + bit
                 if (a ^ b) & mask:
-                    pixels[x, y] = PART_INK if b & mask else PART_CLEARED
+                    pixels[x, y] = ink if b & mask else PART_CLEARED
                     xs.append(x)
                     ys.append(y)
                 elif b & mask:
-                    pixels[x, y] = ROOM_INK
+                    pixels[x, y] = room_ink
     if not xs:
         return None
     box = (max(0, min(xs) - margin), max(0, min(ys) - margin),
@@ -924,6 +946,7 @@ def _parts_page(data: Data, rig: Rig, listing: Listing, image_dir: Path) -> str:
             raise ValueError(f"graphics: room {room} drew parts {sorted(set(calls))}, and its "
                              f"commands name {sorted(data.room_parts[room])}")
     rows = []
+    clearing = []           # the parts that clear ink the room had drawn
     for part in range(1, fd.PART_COUNT + 1):
         address, length = data.parts[part - 1]
         direct = data.part_direct[part - 1]
@@ -931,12 +954,17 @@ def _parts_page(data: Data, rig: Rig, listing: Listing, image_dir: Path) -> str:
         if part in first:
             room, call = first[part]
             before, after = rig.part_in_room(room, call)
-            how = f"as room {room} draws it"
+            colour = data.memory[data.rooms[room - 1][0] + 2]
+            how = f"as room {room} draws it, in its colours"
         else:
-            state = rig.drawing([0x38, 0xE0, part, 0xE5], f"part {part}")
+            colour = ALONE_ATTRIBUTE
+            state = rig.drawing([colour, 0xE0, part, 0xE5], f"part {part}")
             before, after = [0] * 0x1800, list(state[0x4000:0x5800])
-            how = "alone, from the drawing's starting state: no room draws it"
-        picture = _part_picture(before, after)
+            how = ("alone, from the drawing's starting state, in black on white: "
+                   "no room draws it")
+        picture = _part_picture(before, after, colour)
+        if any(a & ~b for a, b in zip(before, after)):
+            clearing.append(part)
         if picture is not None:
             _scaled(picture, SCREEN_SCALE).save(image_dir / name)
             cell = (f"<p>{_img(f'{IMAGES}/{name}', picture, f'Part {part}', SCREEN_SCALE)}"
@@ -995,12 +1023,20 @@ def _parts_page(data: Data, rig: Rig, listing: Listing, image_dir: Path) -> str:
              "<p>So each part is shown here as the game draws it in a real room: the first room, "
              f"in room order, whose drawing calls it, drawn by {listing.ref(DRAW_CURRENT_ROOM)} "
              "in SkoolKit's simulator and stopped where DRAW_PART calls the interpreter for the "
-             "part and where that call returns. What the part changed on the screen is white "
-             "(red where it cleared ink), and the room as far as it had been drawn is grey; "
-             "the picture is cut to what the part changed, and includes what the parts it "
-             "calls draw. A large white area is a fill, usually with solid ink (texture 3), "
-             "which the rooms use for what lies beyond their walls. The room's colours are left out: "
-             "a room is drawn black on black and coloured all at once afterwards. The parts "
+             "part and where that call returns. A room is drawn black on black and coloured "
+             "all at once afterwards (#R$F0FB); each picture here is in the colours that room "
+             "is then given, its ink on its paper, and a part no room draws is in black on "
+             "white. What the part drew is "
+             "in the room's ink, and the room as far as it had been drawn is faded towards "
+             "the paper"
+             + ((", with magenta, the page's own colour and not the game's, where the part "
+                 "cleared ink the room had drawn (part"
+                 + ("s " if len(clearing) > 1 else " ")
+                 + ", ".join(f'<a href="#part{p}">{p}</a>' for p in clearing) + ")")
+                if clearing else "")
+             + "; the picture is cut to what the part changed, and includes what the parts it "
+             "calls draw. A large black area is a fill, usually with solid ink (texture 3), "
+             "which the rooms use for what lies beyond their walls. The parts "
              "each room drew in the simulator were checked against the parts its commands "
              f"name, for every room. <a href=\"#part{busiest}\">Part {busiest}</a> is the one most "
              f"rooms draw ({len(data.part_rooms[busiest])} of them): the corner in front of the "
@@ -1133,8 +1169,10 @@ def _templates_page(data: Data, rig: Rig, listing: Listing, image_dir: Path,
              f"{listing.ref(PLACE_OBJECT)} in SkoolKit's simulator, standing on the floor at "
              f"100, 100, and drawn by {listing.ref(REDRAW_OBJECT)} with no other object in the "
              "room, over a clean copy of zeros and again of ones, which separates the image "
-             "(white) from the solid part (black) and the transparent (clear, here the "
-             "blue-grey). Every picture was checked against the sprite's bytes. "
+             "from the solid part and the transparent. They are in the game's colours: the "
+             "image black ink, the solid part paper -- the Spectrum's white here, a room's own "
+             "colour in the game -- and the transparent part clear, on the page's blue-grey. "
+             "Every picture was checked against the sprite's bytes. "
              f"{_plural(len(no_sprite), 'small type')} have no sprite ("
              + ", ".join(f'<a href="#type{k}">{k}</a>' for k in no_sprite)
              + "): they are invisible boxes a room puts where its drawing shows something "
@@ -1388,7 +1426,9 @@ def _sprites_page(data: Data, rig: Rig, listing: Listing, image_dir: Path,
              "mask of the same size; its width and height are not in the sprite but in the "
              "record that shows it (+2, +3), and so in the template or the code that sets "
              "the sprite. Where the image has a bit set the pixel is ink; where neither has "
-             "it is solid paper; where only the mask has, the room shows through -- here the "
+             "it is solid paper; where the mask has, the room shows through. Fairlight draws "
+             "black ink on each room's coloured paper, and so are the sprites here: black ink "
+             "on the Spectrum's white paper, and the see-through part clear, on the page's "
              "blue-grey.</p>",
              f"<p>Each picture is drawn by the game: a record holding the sprite, drawn by "
              f"{listing.ref(REDRAW_OBJECT)} in SkoolKit's simulator with no other object in "
@@ -1545,9 +1585,13 @@ def _font_page(data: Data, rig: Rig, listing: Listing, image_dir: Path, code_sta
         x, top = 8 + 16 * (code % 10), 191 - (180 - 16 * (code // 10))
         image = screen_image(state, (x, top, x + 8, top + 8))
         expected = memory[FONT + 8 * code:FONT + 8 * code + 8]
-        drawn = [sum(0x80 >> b for b in range(8) if image.getpixel((b, r))[0] > 128)
+        # Printed black on white: a pixel is ink where it is black, and
+        # every other pixel must be the paper.
+        drawn = [sum(0x80 >> b for b in range(8) if image.getpixel((b, r)) == INK[:3])
                  for r in range(8)]
-        if drawn != list(expected):
+        stray = [image.getpixel((b, r)) for r in range(8) for b in range(8)
+                 if image.getpixel((b, r)) not in (INK[:3], PAPER[:3])]
+        if drawn != list(expected) or stray:
             raise ValueError(f"graphics: character {code} as the printer draws it is not "
                              "its bytes")
         name = f"char{code:02d}.png"
@@ -1611,7 +1655,9 @@ def _font_page(data: Data, rig: Rig, listing: Listing, image_dir: Path, code_sta
                 if same_as_rom else "None of the characters is the ROM's (compared at this build)")
              + ".</p>",
              "<p>Printed here by the game's own PRINT, from a CALL with a string of all forty, "
-             "each character at its own place; each was checked against its bytes:</p>",
+             "each character at its own place, on a screen coloured black ink on white paper "
+             "(in the game they take the room's colours); each was checked against its "
+             "bytes:</p>",
              '<table class="kl-table">' + rows + "</table>",
              "<p>Character 39 is not a letter but a small round picture, a curl inside a ring; "
              + (", ".join(f"{c} ({_esc(fd.glyph_text(c)) if c != 39 else 'the picture'})"

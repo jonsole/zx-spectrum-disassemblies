@@ -198,10 +198,20 @@ SPECTRUM = [(0, 0, 0), (0, 0, 0xD7), (0xD7, 0, 0), (0xD7, 0, 0xD7),
 SPECTRUM_BRIGHT = [(0, 0, 0), (0, 0, 0xFF), (0xFF, 0, 0), (0xFF, 0, 0xFF),
                    (0, 0xFF, 0), (0, 0xFF, 0xFF), (0xFF, 0xFF, 0), (0xFF, 0xFF, 0xFF)]
 INKS = ["black", "blue", "red", "magenta", "green", "cyan", "yellow", "white"]
-BACKGROUND = (20, 20, 60)
-PAPER = (16, 16, 60)
-INK = (230, 230, 230)
-MAP_INK = (255, 200, 60)       # pixels of the clean copy, the fill's map
+BACKGROUND = (20, 20, 60)     # the page's own: between pictures in a strip
+# Fairlight draws black ink on each room's coloured paper. A picture from the
+# screen takes the colours of its attributes (or of the room it shows); one
+# with no colours of its own -- a texture's cells, a screen still black on
+# black -- is black ink on the Spectrum's white paper, as a sprite alone is
+# (fairlight_data.sprite_image).
+INK = fd.INK_RGB
+PAPER = fd.PAPER_RGB
+# The fill's map is the page's own picture, not the game's: the clean copy's
+# set pixels orange on dark blue.
+MAP_INK = (255, 200, 60)
+MAP_PAPER = (16, 16, 60)
+# Behind a sprite's see-through part: the Sprites page's blue-grey (kl-sprite).
+SPRITE_BACKING = (0x5A, 0x5A, 0x8C)
 
 
 def record(number: int) -> int:
@@ -409,8 +419,10 @@ def _row_address(y: int) -> int:
 
 def screen_image(memory, colour: int | None = None, base: int = 0x4000):
     """The display file as a 256 by 192 picture, in its attributes -- or all
-    in `colour`, for a room still being drawn black on black. `base` $C000
-    reads the clean copy, which is laid out like the screen."""
+    in `colour`, for a room still being drawn black on black. Where the ink
+    and the paper are one colour the pixels could not be seen, and are shown
+    black on white. `base` $C000 reads the clean copy, which is laid out like
+    the screen."""
     from PIL import Image
 
     image = Image.new("RGB", (256, 192))
@@ -430,7 +442,8 @@ def screen_image(memory, colour: int | None = None, base: int = 0x4000):
 
 
 def map_image(memory):
-    """The clean copy at #R$C000 -- the fill's map -- in its own colours."""
+    """The clean copy at #R$C000 -- the fill's map -- in the page's own
+    colours, MAP_INK on MAP_PAPER: it has none of its own."""
     from PIL import Image
 
     image = Image.new("RGB", (256, 192))
@@ -440,7 +453,7 @@ def map_image(memory):
         for column in range(32):
             byte = memory[row + column]
             for bit in range(8):
-                pixels[column * 8 + bit, y] = MAP_INK if byte & (0x80 >> bit) else PAPER
+                pixels[column * 8 + bit, y] = MAP_INK if byte & (0x80 >> bit) else MAP_PAPER
     return image
 
 
@@ -491,12 +504,13 @@ def label(image, text: str, colour=(255, 255, 80)):
 
 
 def sprite_of(memory, address: int, width: int, height: int, scale: int = 1):
-    """A sprite drawn as the listing draws it (fairlight_data.sprite_image),
-    on the page's mid-tone, so that its solid black and its holes both show."""
+    """A sprite drawn as the listing draws it (fairlight_data.sprite_image:
+    black ink on white paper) on the Sprites page's blue-grey, so that its
+    solid part and its see-through part both show."""
     from PIL import Image
 
     image = fd.sprite_image(memory, address, width, height, scale)
-    out = Image.new("RGB", image.size, (90, 90, 140))
+    out = Image.new("RGB", image.size, SPRITE_BACKING)
     out.paste(image, (0, 0), image)
     return out
 
@@ -1388,7 +1402,8 @@ def texture_cells(memory, index: int, scale: int = 8):
     """A texture's 32 bytes as its four 8 by 8 cells, apart, each in the
     order the fill reads it: bytes 0-7 and 8-15 on the top row (the character
     rows in which y, counted from the bottom, has bit 3 set), 16-23 and 24-31
-    below; each cell's first byte its top row."""
+    below; each cell's first byte its top row. Black ink on white paper, as
+    fairlight_data.texture_image draws the texture laid."""
     from PIL import Image, ImageDraw
 
     cell = 8 * scale
@@ -1535,10 +1550,11 @@ def _room_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, log
         strip([screen_image(_as_memory(fill_screen), colour),
                map_image(_as_memory(fill_screen, fill_clean))], gap=8),
         "The screen and the clean copy after the first fill"),
-        f"After the first fill of room {STAGE_ROOM}: the screen (left) and the clean copy "
-        "at $C000 (right), which the fill works against. $E2 copied the outline "
-        "there; the fill marked every pixel it painted, so the painted area is solid in "
-        "the copy while on the screen it has the texture.")
+        f"After the first fill of room {STAGE_ROOM}: the screen (left), in the room's "
+        "colours, and the clean copy at $C000 (right), which the fill works against, in "
+        "this page's own colours -- a set pixel orange on dark blue -- since it has none. "
+        "$E2 copied the outline there; the fill marked every pixel it painted, so the "
+        "painted area is solid in the copy while on the screen it has the texture.")
 
     log("  the fills, counted...")
     fills = fill_counts(snapshot, STAGE_ROOM)
@@ -1570,7 +1586,8 @@ def _room_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, log
         "Room 2's invisible outline"),
         f"Room {OUTLINE_ROOM}: the screen when $E4 $00 has cleared the clean copy and "
         "the outline has been drawn into it (left: the screen has not changed); the clean "
-        "copy then (middle: only the outline); and the screen after the fill inside it "
+        "copy then (middle: only the outline, orange on dark blue as above); and the "
+        "screen after the fill inside it "
         "(right), which lays a second texture over part of a wall that is textured "
         "already.")
     no_outline = command_trace(snapshot, OUTLINE_ROOM,
@@ -1592,7 +1609,7 @@ def _room_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, log
         "Texture 6: its four cells, and as the fill lays it"),
         "Texture 6 (fill code $EC, #R$E164): its 32 bytes as the four cells the fill "
         "reads, labelled with their bytes (left), and laid as the fill lays it, two tiles "
-        "each way (right). Its bricks are 16 pixels long, which is what the left and "
+        "each way (right), black ink on white paper. Its bricks are 16 pixels long, which is what the left and "
         "right cells are for; its top and bottom pairs happen to be the same.")
     _check(0xE6 + 22 not in fill_codes and 0xE6 + 23 not in fill_codes,
            "a room fills with texture 22 or 23")
@@ -1883,6 +1900,7 @@ def _room_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, log
 # --------------------------------------------------------------------------
 
 FRAME_ROOM = 2              # the knight beside the troll
+# The pages' labels in the pictures, a colour each (the page's, not the game's).
 PAGE_COLOURS = {0xD8: (240, 120, 60), 0xD9: (90, 200, 250), 0xDA: (200, 120, 240),
                 0xDB: (240, 230, 120)}
 
@@ -1928,38 +1946,52 @@ def frame_capture(snapshot: Path, d6: int, d8: int) -> dict:
     game.run_to(_word(memory, sp))
     after = bytes(memory[0x4000:0x5800])
     return {"region": region, "pages": pages, "listed": listed, "before": before,
-            "after": after, "clean": clean, "troll": troll_record(memory),
+            "after": after, "clean": clean, "colour": memory[ROOM_COLOUR],
+            "troll": troll_record(memory),
             "knight": tuple(memory[KNIGHT + 6:KNIGHT + 9]),
             "troll at": tuple(memory[troll + 6:troll + 9])}
 
 
-def page_image(data: bytes, region: dict, colour, scale: int = 3):
+def attribute_colours(attr: int) -> tuple:
+    """The ink and the paper an attribute gives, BRIGHT if it says so; black
+    on white where they are one colour (see screen_image)."""
+    palette = SPECTRUM_BRIGHT if attr & 0x40 else SPECTRUM
+    ink, paper = palette[attr & 7], palette[(attr >> 3) & 7]
+    return (INK, PAPER) if ink == paper else (ink, paper)
+
+
+def page_image(data: bytes, region: dict, colour: int, scale: int = 3):
     """A compositor page as the region's rows: the region's width in bytes
-    and one more, as many rows as it is high, wrapping within the page."""
+    and one more, as many rows as it is high, wrapping within the page. A
+    page has no colours of its own; it is drawn in `colour`, the attribute
+    of the room it was made in, a set bit as ink."""
     from PIL import Image
 
+    ink, paper = attribute_colours(colour)
     stride = region["bytes"] + 1
     rows = region["h"]
-    image = Image.new("RGB", (stride * 8, rows), PAPER)
+    image = Image.new("RGB", (stride * 8, rows), paper)
     pixels = image.load()
     for row in range(rows):
         for column in range(stride):
             byte = data[(row * stride + column) & 0xFF]
             for bit in range(8):
                 if byte & (0x80 >> bit):
-                    pixels[column * 8 + bit, row] = colour
+                    pixels[column * 8 + bit, row] = ink
     return big(image, scale)
 
 
-def region_image(screen: bytes, region: dict, base_colour=None, scale: int = 3):
+def region_image(screen: bytes, region: dict, colour: int, scale: int = 3):
     """The rectangle of the screen (or the clean copy) the compositor rebuilds:
     from the byte x is in, the width in bytes and one more, from the top row
-    down as many rows as the region is high."""
+    down as many rows as the region is high; in `colour`, the attribute of
+    the room it shows."""
     from PIL import Image
 
+    ink, paper = attribute_colours(colour)
     stride = region["bytes"] + 1
     rows = region["h"]
-    image = Image.new("RGB", (stride * 8, rows), PAPER)
+    image = Image.new("RGB", (stride * 8, rows), paper)
     pixels = image.load()
     for row in range(rows):
         y = 191 - region["y"] + row
@@ -1972,7 +2004,7 @@ def region_image(screen: bytes, region: dict, base_colour=None, scale: int = 3):
             byte = screen[address + column]
             for bit in range(8):
                 if byte & (0x80 >> bit):
-                    pixels[column * 8 + bit, row] = base_colour or INK
+                    pixels[column * 8 + bit, row] = ink
     return big(image, scale)
 
 
@@ -2018,10 +2050,13 @@ def _sprite_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, l
         from PIL import ImageDraw
 
         region = capture["region"]
-        # The screen round the rectangle, the rectangle outlined.
+        colour = capture["colour"]
+        # The screen round the rectangle, the rectangle outlined; everything
+        # in the room's colours, the pages too, which have none of their own
+        # (a set bit ink). Each page's label is in a colour of its own.
         left = max(0, min(256 - 104, (region["x"] & 0xF8) - 36))
         top = max(0, min(192 - region["h"] - 40, 191 - region["y"] - 20))
-        context = screen_image(_as_memory(capture["after"]), 0x38).crop(
+        context = screen_image(_as_memory(capture["after"]), colour).crop(
             (left, top, left + 104, top + region["h"] + 40))
         context = big(context, 3)
         draw = ImageDraw.Draw(context)
@@ -2030,12 +2065,12 @@ def _sprite_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, l
         draw.rectangle([x0 - 1, y0 - 1, x0 + (region["bytes"] + 1) * 24,
                         y0 + region["h"] * 3], outline=(255, 60, 60))
         images = [context]
-        images.append(label(region_image(capture["before"], region), "before"))
-        images.append(label(region_image(capture["clean"], region, MAP_INK), "clean"))
+        images.append(label(region_image(capture["before"], region, colour), "before"))
+        images.append(label(region_image(capture["clean"], region, colour), "clean"))
         for number in PAGE_COLOURS:
-            images.append(label(page_image(capture["pages"][number], region,
-                                           PAGE_COLOURS[number]), f"${number:02X}"))
-        images.append(label(region_image(capture["after"], region), "after"))
+            images.append(label(page_image(capture["pages"][number], region, colour),
+                                f"${number:02X}", PAGE_COLOURS[number]))
+        images.append(label(region_image(capture["after"], region, colour), "after"))
         return pictures.piece(name, strip(images, gap=8), "The knight's redraw")
 
     behind_img = row(behind, "sprites_behind.png")
@@ -2121,7 +2156,9 @@ def _sprite_drawing_page(snapshot: Path, listing: Listing, pictures: Pictures, l
                "clean copy there; page $D8, empty, for nothing "
                "stands in front of him; page $D9, his mask with three rows of nothing above "
                "and below; page $DA, the cover of what is behind him; page $DB, what that "
-               "shows; and the screen after the compositor."),
+               "shows; and the screen after the compositor. All are in the room's colours, "
+               "black ink on its paper; the clean copy and the pages have no colours of "
+               "their own, and a bit set in them is shown as ink."),
         f"<p>The list at page $DA held records {listed(behind)} -- the troll is record "
         f"{troll_number}, and record {[n for n in behind['listed'] if n != troll_number][0]} "
         "one of the things stacked by the wall -- and page $DB what they show. Then "
@@ -2341,11 +2378,13 @@ def _movement_page(snapshot: Path, listing: Listing, pictures: Pictures, log) ->
                       BOX_COLOURS[kind]))
     fixed = [list(live[record(n):record(n) + RECORD]) for n in range(1, 7)]
     from PIL import Image
-    dimmed = Image.blend(screen_image(live, 0x0F), Image.new("RGB", (256, 192), PAPER), 0.55)
+    # The room in its own colours, darkened so that the boxes stand out.
+    dimmed = Image.blend(screen_image(live), Image.new("RGB", (256, 192), (0, 0, 0)), 0.5)
     room_picture = outline_boxes(big(dimmed, 3), boxes, 3, width=2)
     boxes_fig = figure(pictures.stage("movement_boxes.png", room_picture,
                                       f"Room {BOX_ROOM} with every record's box drawn"),
-                       f"Room {BOX_ROOM}, dimmed, with the box of every record from the "
+                       f"Room {BOX_ROOM}, in its own colours darkened, with the box of every "
+                       "record from the "
                        "knight's on drawn over it, projected the way #R$E4F7 moves sprites: "
                        + ", ".join(f"{swatch(BOX_COLOURS[k])}{w}" for k, w in (
                            ("knight", "the knight"), ("sprite", "objects with sprites"),

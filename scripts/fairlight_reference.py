@@ -214,8 +214,8 @@ def _screen(memory, scale: int = 2):
     """The Spectrum's screen from its memory, colours and all."""
     from PIL import Image
 
-    normal = [(0, 0, 0), (0, 0, 205), (205, 0, 0), (205, 0, 205), (0, 205, 0), (0, 205, 205),
-              (205, 205, 0), (205, 205, 205)]
+    normal = [(0, 0, 0), (0, 0, 0xD7), (0xD7, 0, 0), (0xD7, 0, 0xD7), (0, 0xD7, 0), (0, 0xD7, 0xD7),
+              (0xD7, 0xD7, 0), (0xD7, 0xD7, 0xD7)]
     bright = [(0, 0, 0), (0, 0, 255), (255, 0, 0), (255, 0, 255), (0, 255, 0), (0, 255, 255),
               (255, 255, 0), (255, 255, 255)]
     image = Image.new("RGB", (256, 192))

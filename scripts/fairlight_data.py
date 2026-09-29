@@ -644,14 +644,22 @@ def data_blocks(memory, frames, code: set[int]) -> str:
 # --------------------------------------------------------------------------
 
 SCALE = 3
+# A piece shown alone -- a sprite, a texture -- is drawn as the game draws
+# it: black ink on paper. The game's own paper is each room's colour; alone,
+# it is the Spectrum's white, $D7 of each of red, green and blue (not
+# BRIGHT).
+INK_RGB = (0, 0, 0)
+PAPER_RGB = (0xD7, 0xD7, 0xD7)
 
 
 def sprite_image(memory, address: int, width: int, height: int, scale: int = SCALE):
     """The sprite as #R$EE8D draws it and the compositor (#R$E3E4) shows
-    it: where the mask has a bit set the background shows (clear here),
-    whatever the image says -- 37 pixels of nine sprites have both set, and
-    the room shows through them; elsewhere the image's bit set is ink and
-    clear is solid black."""
+    it, in the game's colours: where the mask has a bit set the background
+    shows (clear here), whatever the image says -- 37 pixels of nine sprites
+    have both set, and the room shows through them; elsewhere the image's
+    bit set is ink and clear is solid paper. Fairlight draws black ink on
+    each room's coloured paper, so a sprite alone is black on the
+    Spectrum's white paper (INK_RGB on PAPER_RGB)."""
     from PIL import Image
 
     columns = width // 8
@@ -665,19 +673,21 @@ def sprite_image(memory, address: int, width: int, height: int, scale: int = SCA
             for bit in range(8):
                 if mask & (0x80 >> bit):
                     continue
-                pixels[column * 8 + bit, row] = ((255, 255, 255, 255) if bits & (0x80 >> bit)
-                                                 else (0, 0, 0, 255))
+                pixels[column * 8 + bit, row] = (INK_RGB + (255,) if bits & (0x80 >> bit)
+                                                 else PAPER_RGB + (255,))
     return image.resize((width * scale, height * scale), Image.NEAREST)
 
 
 def texture_image(memory, index: int, scale: int = SCALE):
     """A texture's four columns of eight bytes drawn as a 16 by 16 tile, the
     first two columns side by side above the other two, and the tile
-    repeated twice each way so that the pattern can be seen."""
+    repeated twice each way so that the pattern can be seen: a set bit
+    black ink, a clear one the Spectrum's white paper, as a fill draws it in
+    a room with black ink on white."""
     from PIL import Image
 
     base = TEXTURES + 32 * index
-    tile = Image.new("RGB", (16, 16), (0, 0, 0))
+    tile = Image.new("RGB", (16, 16), PAPER_RGB)
     pixels = tile.load()
     for half in range(2):
         for side in range(2):
@@ -685,7 +695,7 @@ def texture_image(memory, index: int, scale: int = SCALE):
                 bits = memory[base + 16 * half + 8 * side + row]
                 for bit in range(8):
                     if bits & (0x80 >> bit):
-                        pixels[8 * side + bit, 8 * half + row] = (255, 255, 255)
+                        pixels[8 * side + bit, 8 * half + row] = INK_RGB
     image = Image.new("RGB", (32, 32))
     for x in (0, 16):
         for y in (0, 16):
