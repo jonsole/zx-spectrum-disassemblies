@@ -986,6 +986,83 @@ PLACEHOLDER = {"c": "SUB", "b": "DATA", "t": "TEXT", "w": "WORDS", "s": "SPACE",
                "u": "UNUSED", "g": "VAR", "i": "IGNORED"}
 
 
+# The object record's fields, by offset: the names the listing gives an
+# (IX+n) that indexes a record (the layout is at #R$BC90), written into the
+# .asm as EQUs so that it still assembles to the same bytes.
+RECORD_FIELDS = {0x00: "OBJ_SCREEN_X", 0x01: "OBJ_SCREEN_Y", 0x02: "OBJ_WIDTH",
+                 0x03: "OBJ_ROWS", 0x04: "OBJ_SPRITE", 0x05: "OBJ_SPRITE+1",
+                 0x06: "OBJ_X", 0x07: "OBJ_TOP", 0x08: "OBJ_Z", 0x09: "OBJ_LEN_X",
+                 0x0A: "OBJ_HEIGHT", 0x0B: "OBJ_LEN_Z", 0x0C: "OBJ_KIND",
+                 0x0D: "OBJ_DIRECTION", 0x0E: "OBJ_STATE", 0x0F: "OBJ_COUNT",
+                 0x10: "OBJ_WEIGHT", 0x11: "OBJ_FRAME", 0x12: "OBJ_COURSE",
+                 0x13: "OBJ_NUMBER"}
+RECORD_SIZE = 20
+# The routines in which IX is always an object record's first byte when it
+# is indexed: their R lines in the annotations say so, and IX moves only by
+# whole records ($14) or is saved and restored whole. Left out: the room
+# drawing ($E597, $E5E8, $E89B, $EACC), the compositor ($E3E4) and the copy
+# ($EBEA), where IX walks bytes; and $EB4C before $EB86, where the copy has
+# left IX partway into the record, so that (IX+$06) there is +12. From its
+# POP IX on, IX is the record again.
+RECORD_IX_ROUTINES = {0xE4F7, 0xEB1A, 0xECBD, 0xED47, 0xEDC6, 0xEE73, 0xEE8D,
+                      0xF036, 0xF127, 0xF157, 0xF1E0, 0xF2F7, 0xF309, 0xF4E6,
+                      0xF52A, 0xF595, 0xF65C, 0xF7C4, 0xF906, 0xF959, 0xFA79,
+                      0xFA83, 0xFC66,
+                      0xFCA5, 0xFCDC, 0xFD20, 0xFE15, 0xFE47}
+# ...and PATCH_RECORDS, which sets IX to the first of the six box records
+# ($BC18) and writes one field in each: (IX+$2E) is the third's +6, written
+# (IX+2*OBJ_SIZE+OBJ_X).
+RECORD_IX_RANGES = [(0xEB86, 0xEBEA), (0xE60B, 0xE634)]
+# Four places where IX is partway into a record, or past it, named from
+# where it stands: #R$EB4C's copy leaves it at +6 and then at +12 (a small
+# type), and after #R$EB1A it is the next free record, so the one just made
+# is 20 bytes back.
+RECORD_IX_PARTWAY = {0xEB5E: ('(IX+$06)', '(IX+OBJ_KIND-OBJ_X)'),
+                     0xEB7E: ('(IX+$02)', '(IX+OBJ_STATE-OBJ_KIND)'),
+                     0xEB83: ('(IX+$04)', '(IX+OBJ_WEIGHT-OBJ_KIND)'),
+                     0xEB15: ('(IX-$01)', '(IX+OBJ_NUMBER-OBJ_SIZE)')}
+
+
+def name_record_fields(skool_text: str) -> str:
+    """Write (IX+n) as (IX+field) wherever IX is an object record."""
+    out, entry = [], None
+    for line in skool_text.split(NEWLINE):
+        match = re.match(r"^([bcgistuw])\$([0-9A-F]{4})", line)
+        if match:
+            entry = int(match.group(2), 16)
+        instruction = re.match(r"^[ *c]\$([0-9A-F]{4}) ", line)
+        if instruction:
+            address = int(instruction.group(1), 16)
+            if address in RECORD_IX_PARTWAY:
+                old, new = RECORD_IX_PARTWAY[address]
+                if old not in line:
+                    raise ValueError(f"${address:04X} has no {old} to name")
+                line = line.replace(old, new)
+            elif entry in RECORD_IX_ROUTINES or any(a <= address < b for a, b in RECORD_IX_RANGES):
+                line = re.sub(r"\(IX\+\$([0-9A-F]{2})\)",
+                              lambda m: f"(IX+{_field_name(int(m.group(1), 16))})", line)
+        out.append(line)
+    return NEWLINE.join(out)
+
+
+def _field_name(offset: int) -> str:
+    """A field of this record, or of the one `offset // 20` records on."""
+    records, field = divmod(offset, RECORD_SIZE)
+    if records == 0:
+        return RECORD_FIELDS[field]
+    return f"{records}*OBJ_SIZE+{RECORD_FIELDS[field]}" if records > 1 else f"OBJ_SIZE+{RECORD_FIELDS[field]}"
+
+
+def record_equates() -> str:
+    """The fields' EQUs, for the top of the .asm."""
+    lines = ["; The object record's fields: the (IX+n) offsets named in the listing."]
+    for offset, name in sorted(RECORD_FIELDS.items()):
+        if "+" not in name:
+            lines.append(f"{name} EQU ${offset:02X}")
+    lines.append(f"OBJ_SIZE EQU ${RECORD_SIZE:02X}")
+    return NEWLINE.join(lines) + NEWLINE
+
+
 def label_unlabelled(skool_text: str) -> str:
     """Give each entry the annotations leave without a label a placeholder
     one -- SUB for code, DATA for data and so on, then its address -- so
@@ -1079,14 +1156,13 @@ def build_asm(snapshot: Path, code_map: Path, ctl: Path, skool: Path, asm: Path)
         ctls += ["-c", str(ANNOTATIONS)]
     ctls += ["-c", str(OUT_DIR / "fairlight-strings.ctl")]
     # ListRefs=2: every entry gets its "Used by the routines at ..." line.
-    skool.write_text(label_unlabelled(_capture(sna2skool.main,
-                                               ["-H", "-I", "ListRefs=2", *ctls,
-                                                str(snapshot)], warnings)),
+    skool.write_text(name_record_fields(label_unlabelled(_capture(
+        sna2skool.main, ["-H", "-I", "ListRefs=2", *ctls, str(snapshot)], warnings))),
                      encoding="utf-8")
 
     _log("Generating assembly...")
     text = _capture(skool2asm.main, ["-H", "-c", str(skool)], warnings)
-    asm.write_text("    DEVICE ZXSPECTRUM48\n" + text, encoding="utf-8")
+    asm.write_text("    DEVICE ZXSPECTRUM48\n" + record_equates() + text, encoding="utf-8")
     report = OUT_DIR / "fairlight-warnings.txt"
     report.write_text(NEWLINE.join(warnings) + NEWLINE, encoding="utf-8")
     _log(f"  {len(warnings)} warning(s)" + (f" -- see {report.name}" if warnings else ""))

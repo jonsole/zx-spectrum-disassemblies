@@ -46,9 +46,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 # What the bugs and pokes are about, and what the listing must still say
 # --------------------------------------------------------------------------
 
-SET_THING_ROOM = 0xF4E6     # ROMM: LD B,(IX+$13), the thing's number
+SET_THING_ROOM = 0xF4E6     # ROMM: LD B,(IX+OBJ_NUMBER), the thing's number
 SET_THING_LOOP = 0xF4F0     # DJNZ $F4EF: six bytes a number, B times
-SAVE_POSITIONS = 0xF91A     # EEN: LD B,(IX+$13), the same count
+SAVE_POSITIONS = 0xF91A     # EEN: LD B,(IX+OBJ_NUMBER), the same count
 FREEZE_TEST = 0xF263        # I3: CP $05, the jump let through the freeze
 FREEZE_JUMP = 0xF265        # JR NZ,$F22C, everything else to I00
 I01 = 0xF245                # CP $0B: the type once, the state after a decoy
@@ -68,7 +68,7 @@ ROOM_ZERO = 0xFD26          # ROOMST: AND A, then RET Z for room 0
 START_DI = 0xC487           # DI, for good
 
 EXPECTED_INSTRUCTIONS = {
-    SET_THING_ROOM: "LD B,(IX+$13)", SET_THING_LOOP: "DJNZ $F4EF", SAVE_POSITIONS: "LD B,(IX+$13)",
+    SET_THING_ROOM: "LD B,(IX+OBJ_NUMBER)", SET_THING_LOOP: "DJNZ $F4EF", SAVE_POSITIONS: "LD B,(IX+OBJ_NUMBER)",
     FREEZE_TEST: "CP $05", FREEZE_JUMP: "JR NZ,$F22C", I01: "CP $0B",
     STALE_MEET: "LD A,($FFF8)", STALE_MEET_STORE: "LD ($FF83),A",
     STALE_PICK: "LD A,($FFF8)", STALE_PICK_STORE: "LD ($FF83),A", TAKE_THING: "LD ($FF92),A",
