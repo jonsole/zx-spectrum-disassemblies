@@ -9,7 +9,7 @@ a snapshot you can debug at source level.
 |---|---|---|
 | Atic Atac (1983, Ultimate) | **100%** &mdash; 30208 of 30208 bytes, every routine, table and variable named, every address the code or the comments use a label or an equate, a map of the castle and every room drawn with what is in it | `scripts/build_aticatac.py` |
 | Manic Miner (1983, Bug-Byte) | partial | `scripts/build_manicminer.py` |
-| Fairlight (1985, The Edge) | partial | `scripts/build_fairlight.py` |
+| Fairlight (1985, The Edge) | **100%** &mdash; 42240 bytes from $5B00, the 41607 the protected tape loads (Release 2) and the loader's own; all 373 entries titled, described and labelled, the author's own names where his leftover source gives them; 3476 of 3545 instructions seen to run; the rooms, the parts they are drawn from, the object table, templates, font, textures, sprites and text laid out record by record from the game at build time (credit below) | `scripts/build_fairlight.py` |
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, all 844 entries titled and described, no placeholder names, the rooms laid out record by record from the game at build time (map credited below) | `scripts/build_knightlore.py` |
 | Pentagram (1986, Ultimate) | **100%** &mdash; 41472 bytes from $5E00, the 31390 the tape loads and the buffers above; all 592 entries titled, described and labelled, 4089 of 4185 instructions seen to run; the rooms, templates and sprites laid out record by record from the game at build time | `scripts/build_pentagram.py` |
 | Alien 8 (1985, Ultimate) | **100%** &mdash; 42240 bytes from $5B00, the 40195 the tape loads and the variables below; all 622 entries titled, described and labelled, 4550 of 4602 instructions seen to run; the rooms, templates, places and sprites laid out record by record from the game at build time | `scripts/build_alien8.py` |
@@ -17,7 +17,7 @@ a snapshot you can debug at source level.
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 | Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; no placeholder titles, each sprite frame and each row of the city an entry of its own | `scripts/build_antattack.py` |
 
-The Hobbit's, Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's and Nightshade's HTML disassemblies are published at
+The Hobbit's, Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's, Nightshade's and Fairlight's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
 page on how the game works and deep dives on the parser, the characters,
 fighting, the text and the pictures; a map with its layers, and pages for its
@@ -41,7 +41,11 @@ animations and sounds, and its bugs, tested pokes and trivia; and Nightshade
 with how it works (the protection, how the scrolling town is drawn,
 movement, the creatures, the quest), the whole town map with its layers,
 its buildings and cell types, its graphics, animations and sounds, and its
-bugs, tested pokes and trivia.
+bugs, tested pokes and trivia; and Fairlight with how it works (the protected
+loader, how a room is drawn from its commands, how a moving object is
+composited, movement and collision, things and creatures), the castle map
+with its layers, every room, its textures, parts, object types, sprites and
+font, animations and the loading tune, and its bugs, tested pokes and trivia.
 
 ## What is committed where
 
@@ -51,7 +55,7 @@ the other. Point a build script at a tape you own and it produces the game's
 bytes locally, under `game_disassembly/`, which is gitignored.
 
 The one exception is the `gh-pages` branch, which publishes The Hobbit's,
-Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's and Nightshade's built HTML disassemblies for the site above. That output does quote the game &mdash; its
+Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's, Nightshade's and Fairlight's built HTML disassemblies for the site above. That output does quote the game &mdash; its
 code, its text and its pictures &mdash; for the purpose of study, as other
 published SkoolKit disassemblies do. It is built locally with
 the game's build script and `--html`, and copied there by
@@ -75,6 +79,7 @@ python scripts/build_antattack.py --tape "Ant Attack.tzx" --html
 python scripts/build_pentagram.py --tape "Pentagram.tzx" --html
 python scripts/build_alien8.py --tape "Alien 8 (1985)(Ultimate).tap" --html
 python scripts/build_nightshade.py --tape "Nightshade (1985)(Ultimate).tzx" --html
+python scripts/build_fairlight.py --tape "Fairlight (1985)(The Edge)(Release 2).tzx" --html
 ```
 
 The build ends by reassembling what it disassembled and comparing it with the
@@ -157,7 +162,8 @@ prose and addresses only, with no bytes of the game. So far:
 [The Hobbit](notes/hobbit/README.md), [Atic Atac](notes/aticatac/README.md),
 [Knight Lore](notes/knightlore/README.md),
 [Ant Attack](notes/antattack/README.md), [Pentagram](notes/pentagram/README.md),
-[Alien 8](notes/alien8/README.md) and [Nightshade](notes/nightshade/README.md).
+[Alien 8](notes/alien8/README.md), [Nightshade](notes/nightshade/README.md) and
+[Fairlight](notes/fairlight/README.md).
 
 ## Debugging
 
@@ -173,6 +179,12 @@ The Atic Atac graphics names, and the technique of rendering sprites from the
 game's own bytes with `#UDGARRAY` rather than pasting in screenshots, are from
 [pobtastic's Atic Atac disassembly](https://skoolkit.arcadegeek.co.uk/ultimate/aticatac/).
 Comparing the two corrected several things here.
+
+Fairlight's disassembly was read beside **Ville Krumlinde**'s
+([FairlightZ80](https://github.com/VilleKrumlinde/FairlightZ80)), from which
+some names and facts are taken, each checked against the game; it carries no
+licence, so none of its prose is reproduced. `scripts/build_fairlight_krumlinde.py`
+assembles his source as it is, for stepping through in the emulator.
 
 Knight Lore's code map &mdash; which bytes are instructions, which are data, and
 what the routines are called &mdash; is derived from the disassembly by

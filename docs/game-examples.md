@@ -30,12 +30,17 @@ other program.
 A second, larger game disassembly — [VilleKrumlinde/FairlightZ80](https://github.com/VilleKrumlinde/FairlightZ80),
 a hand-annotated reconstruction of the 1985 isometric adventure, complete
 with a written analysis of its render pipeline, room bytecode format and
-textured flood fill. `scripts/build_fairlight.py` fetches it, assembles it
-with `sjasmplus`, and wraps the result into a `.sna`:
+textured flood fill. `scripts/build_fairlight_krumlinde.py` fetches it,
+assembles it with `sjasmplus`, and wraps the result into a `.sna`:
 
 ```sh
-.venv-win\Scripts\python.exe scripts\build_fairlight.py
+.venv-win\Scripts\python.exe scripts\build_fairlight_krumlinde.py
 ```
+
+(It was `build_fairlight.py` until this project's own disassembly of
+Fairlight from the tape took that name: `scripts/build_fairlight.py --tape
+"tapes/Fairlight (1985)(The Edge)(Release 2).tzx"`, described in
+`notes/fairlight/`. This one now writes to `game_disassembly/fairlight_krumlinde/`.)
 
 Two differences from Manic Miner. The upstream repo ships assembler source
 directly (no `skool2asm` step), and because it was reconstructed from a
