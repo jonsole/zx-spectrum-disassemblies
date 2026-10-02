@@ -21,7 +21,7 @@ What it is made of:
                      inlined, run unchanged with a host of the page's own
   each game's art    sprites.json and graphics.json: Knight Lore's and
                      Pentagram's from their Filmation remakes in
-                     examples/filmation/<game>, Alien 8's from
+                     examples/filmation/<game>/metadata, Alien 8's from
                      room_editor_art.py -- names, rectangles, boxes and pixel
                      nudges
   the user guide     docs/room-editor-guide.md, made HTML for the page's Help
@@ -56,8 +56,8 @@ DESIGNER = FILMATION / "vscode"
 # Filmation remakes' own, or -- Alien 8 has no remake -- what
 # room_editor_art.py harvests from the disassembly.
 ART = {
-    "knightlore": FILMATION / "knightlore",
-    "pentagram": FILMATION / "pentagram",
+    "knightlore": FILMATION / "knightlore" / "metadata",
+    "pentagram": FILMATION / "pentagram" / "metadata",
     "alien8": SCRIPTS / "room_editor_art" / "alien8",
 }
 GAMES = tuple(ART)

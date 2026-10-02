@@ -197,12 +197,15 @@ def filmation():
     remake's own is touched: the one file read from it, graphics.json, is
     copied, not opened for writing.
     """
-    if not (REMAKE / "rooms.py").is_file() or not DESIGNER.is_file():
+    if not (REMAKE / "scripts" / "rooms.py").is_file() or not DESIGNER.is_file():
         sys.exit(f"The room designer and the Filmation decoders are not at "
                  f"{FILMATION}.\nThis script is used from the "
                  f"zx-spectrum-emulator checkout this repository is a "
                  f"submodule of.")
-    for path in (FILMATION, REMAKE):
+    # The shared modules are in examples/filmation/scripts, the game's own in
+    # knightlore/scripts. CASTLE has no metadata/ in it, so they treat it as
+    # laid out flat (examples/filmation/scripts/layout.py) and write there.
+    for path in (FILMATION / "scripts", REMAKE / "scripts"):
         if str(path) not in sys.path:
             sys.path.insert(0, str(path))
     import castle                                               # noqa: E402
@@ -669,7 +672,7 @@ def extract(snapshot: Path, force: bool) -> None:
     gmap, _ = kl_extract.graphic_map(ram, addresses)
     kl_extract.write_graphic_map(gmap)
     for leaf in (sheet.GRAPHICS_FILE, sheet.SPRITES_FILE):
-        shutil.copyfile(REMAKE / leaf, CASTLE / leaf)
+        shutil.copyfile(REMAKE / "metadata" / leaf, CASTLE / leaf)
     sheet.make(sprite_sheet)
     # Only the sheet wanted those two; the files the designer reads are
     # everything that is left.
