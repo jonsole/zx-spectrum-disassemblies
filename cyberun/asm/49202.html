@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C032</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49123.html">BFE3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49202">Map</a></td>
+<td class="next">
+Next: <a href="49382.html">C0E6</a>
+</td>
+</tr>
+</table>
+<div class="description">C032: Erase and redraw the six stars of one layer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49123.html">draw_stars</a>.
+</div>
+<div class="paragraph">
+One layer of <a href="49123.html">draw_stars</a>. For each star: if it was drawn last pass (bit 0 of its x in the table is the 'drawn' flag) its old place is its position plus the layer's old offsets, and the erase is set up there. Its new place is tested by <a href="49422.html">star_in_sight</a> and, if it is inside the play area, the drawing is set up too. <a href="41731.html">draw_sprite_pair</a>, the sprite compositor, then erases and draws in one go, and the new attribute cell is made white.
+</div>
+<div class="paragraph">
+A star's image is a graphic number kept in the layer's frame slot: the layer's base number (7, 9 or 11, at +1 of the slot) plus bit 0 of the star's x, since x is held in 2-pixel steps and an odd x takes a copy of the image one pixel further right (see <a href="49540.html">star_offsets</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The layer's frame slot (two bytes: the frame drawn, then the layer's base graphic number)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer</td>
+<td class="address-2"><span id="49202"></span>C032</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="2">Keep the frame slot; six stars.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49204"></span>C034</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_0</td>
+<td class="address-2"><span id="49206"></span>C036</td>
+<td class="instruction">CALL <a href="41706.html">clear_sprite_pair</a></td>
+<td class="comment-1" rowspan="2">Reset the mover (<a href="41706.html">clear_sprite_pair</a>) and the 'anything to do' flag at <a href="52412.html">star_drawn</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49209"></span>C039</td>
+<td class="instruction">LD (<a href="52412.html">star_drawn</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49212"></span>C03C</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">Not drawn last pass: nothing to erase.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49213"></span>C03D</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49215"></span>C03F</td>
+<td class="instruction">LD HL,(<a href="49384.html">star_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49218"></span>C042</td>
+<td class="instruction">BIT 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49220"></span>C044</td>
+<td class="instruction">JR Z,<a href="49202.html#49257">draw_star_layer_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49222"></span>C046</td>
+<td class="instruction">LD BC,$0006</td>
+<td class="comment-1" rowspan="13">Its old place: the star's x (flag off) and y plus the layer's old offsets (six bytes on from the new ones), into the mover's old position at <a href="41427.html">old_sprite_x</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49225"></span>C049</td>
+<td class="instruction">LD HL,(<a href="49382.html">star_layer_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49228"></span>C04C</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49229"></span>C04D</td>
+<td class="instruction">LD DE,(<a href="49384.html">star_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49233"></span>C051</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49234"></span>C052</td>
+<td class="instruction">AND $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49236"></span>C054</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49237"></span>C055</td>
+<td class="instruction">LD (<a href="41427.html">old_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49240"></span>C058</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49241"></span>C059</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49242"></span>C05A</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49243"></span>C05B</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49244"></span>C05C</td>
+<td class="instruction">LD (<a href="41428.html">old_sprite_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49247"></span>C05F</td>
+<td class="instruction">LD A,(<a href="52412.html">star_drawn</a>)</td>
+<td class="comment-1" rowspan="4">There is something to do.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49250"></span>C062</td>
+<td class="instruction">OR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49252"></span>C064</td>
+<td class="instruction">LD (<a href="52412.html">star_drawn</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49255"></span>C067</td>
+<td class="instruction">JR <a href="49202.html#49259">draw_star_layer_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_1</td>
+<td class="address-2"><span id="49257"></span>C069</td>
+<td class="instruction">JR <a href="49202.html#49287">draw_star_layer_3</a></td>
+<td class="comment-1" rowspan="1">A jump to a jump: the way round for 'not drawn'.</td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_2</td>
+<td class="address-2"><span id="49259"></span>C06B</td>
+<td class="instruction">LD A,(<a href="41427.html">old_sprite_x</a>)</td>
+<td class="comment-1" rowspan="7">The old image: the layer's base number plus bit 0 of x; then x made even for the screen address.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49262"></span>C06E</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49264"></span>C070</td>
+<td class="instruction">ADD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49267"></span>C073</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49270"></span>C076</td>
+<td class="instruction">LD A,(<a href="41427.html">old_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49273"></span>C079</td>
+<td class="instruction">AND $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49275"></span>C07B</td>
+<td class="instruction">LD (<a href="41427.html">old_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49278"></span>C07E</td>
+<td class="instruction">CALL <a href="41375.html">graphic_frame_list</a></td>
+<td class="comment-1" rowspan="3">Set up the erase: the image's address (<a href="41375.html">graphic_frame_list</a>), its height clipped to the play area, and the eraser for its width.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49281"></span>C081</td>
+<td class="instruction">CALL <a href="41450.html">old_sprite_header</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49284"></span>C084</td>
+<td class="instruction">CALL <a href="41524.html">set_old_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_3</td>
+<td class="address-2"><span id="49287"></span>C087</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="6">Work out the new place (the code at <a href="49422.html">star_in_sight</a>); out of sight, clear the 'drawn' flag.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49288"></span>C088</td>
+<td class="instruction">CALL <a href="49422.html">star_in_sight</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49291"></span>C08B</td>
+<td class="instruction">JR NZ,<a href="49202.html#49300">draw_star_layer_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49293"></span>C08D</td>
+<td class="instruction">LD HL,(<a href="49384.html">star_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49296"></span>C090</td>
+<td class="instruction">RES 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49298"></span>C092</td>
+<td class="instruction">JR <a href="49202.html#49333">draw_star_layer_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_4</td>
+<td class="address-2"><span id="49300"></span>C094</td>
+<td class="instruction">LD HL,(<a href="49384.html">star_pointer</a>)</td>
+<td class="comment-1" rowspan="12">In sight: set the flag, choose the image for the new x, and set up the drawing the same way.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49303"></span>C097</td>
+<td class="instruction">SET 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49305"></span>C099</td>
+<td class="instruction">LD A,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49308"></span>C09C</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49310"></span>C09E</td>
+<td class="instruction">ADD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49313"></span>C0A1</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49316"></span>C0A4</td>
+<td class="instruction">LD A,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49319"></span>C0A7</td>
+<td class="instruction">AND $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49321"></span>C0A9</td>
+<td class="instruction">LD (<a href="41429.html">new_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49324"></span>C0AC</td>
+<td class="instruction">CALL <a href="41375.html">graphic_frame_list</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49327"></span>C0AF</td>
+<td class="instruction">CALL <a href="41433.html">new_sprite_header</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49330"></span>C0B2</td>
+<td class="instruction">CALL <a href="41543.html">set_new_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_5</td>
+<td class="address-2"><span id="49333"></span>C0B5</td>
+<td class="instruction">LD A,(<a href="52412.html">star_drawn</a>)</td>
+<td class="comment-1" rowspan="7">Anything to erase or draw: do it, and make the star's new attribute cell white ($47).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49336"></span>C0B8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49337"></span>C0B9</td>
+<td class="instruction">JR Z,<a href="49202.html#49350">draw_star_layer_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49339"></span>C0BB</td>
+<td class="instruction">CALL <a href="41731.html">draw_sprite_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49342"></span>C0BE</td>
+<td class="instruction">LD HL,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49345"></span>C0C1</td>
+<td class="instruction">CALL <a href="41328.html">pixel_to_attribute</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49348"></span>C0C4</td>
+<td class="instruction">LD (HL),$47</td>
+</tr>
+<tr>
+<td class="asm-label">draw_star_layer_6</td>
+<td class="address-2"><span id="49350"></span>C0C6</td>
+<td class="instruction">LD DE,(<a href="49384.html">star_pointer</a>)</td>
+<td class="comment-1" rowspan="4">On to the next star's two bytes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49354"></span>C0CA</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49355"></span>C0CB</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49356"></span>C0CC</td>
+<td class="instruction">LD (<a href="49384.html">star_pointer</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49360"></span>C0D0</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="4">Six stars.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49362"></span>C0D2</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49363"></span>C0D3</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49364"></span>C0D4</td>
+<td class="instruction">JP NZ,<a href="49202.html#49206">draw_star_layer_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49367"></span>C0D7</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="8">The next layer's frame slot and offsets are two bytes on.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49369"></span>C0D9</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49371"></span>C0DB</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49373"></span>C0DD</td>
+<td class="instruction">LD HL,(<a href="49382.html">star_layer_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49376"></span>C0E0</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49377"></span>C0E1</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49378"></span>C0E2</td>
+<td class="instruction">LD (<a href="49382.html">star_layer_pointer</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49381"></span>C0E5</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49123.html">BFE3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49202">Map</a></td>
+<td class="next">
+Next: <a href="49382.html">C0E6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

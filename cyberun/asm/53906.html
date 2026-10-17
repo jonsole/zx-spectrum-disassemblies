@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at D292</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53437.html">D0BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53906">Map</a></td>
+<td class="next">
+Next: <a href="53952.html">D2C0</a>
+</td>
+</tr>
+</table>
+<div class="description">D292: Test whether a piece in a left-hand map cell ends before the play area's left edge</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53437.html">draw_landscape</a>.
+</div>
+<div class="paragraph">
+Used by <a href="53437.html">draw_landscape</a> for each piece of the two left-hand map cells of the 2x2 window (bit 1 of the cell counter <a href="23581.html">ground_cell</a> clear). It finds the piece's rightmost x within the cell from the piece's collision box and compares it with <a href="52805.html">view_x</a>, the in-cell x that sits at the play area's left edge. A piece that ends left of it cannot be seen and is skipped without walking its steps.
+</div>
+<div class="paragraph">
+The box (IX) is five bytes of a map cell's collision-box list (<a href="23424.html">loader_entry</a>, <a href="23461.html">ground_cell_bottom_left</a>, <a href="23498.html">ground_cell_top_right</a> or <a href="23535.html">ground_cell_bottom_right</a>: the view's page, the one below, right, below-right). It holds the piece's start x at +0 and, for a flat piece, its length in pixels at +2; for a sloped piece +2 holds the x of its far end, and +0 its start x (moved on by a step's width for a piece running left, <a href="58395.html">direction_flag</a> = 1). +4 is a class byte from <a href="53420.html">piece_classes</a> for the collision code (<a href="47649.html">collide_with_landscape</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">Piece's collision box</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">In-cell x at the play area's left edge (<a href="52805.html">view_x</a>)</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z clear (NZ) if the piece is wholly left of the edge</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_left_edge</td>
+<td class="address-2"><span id="53906"></span>D292</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+<td class="comment-1" rowspan="6">Flat piece (no rise, <a href="52791.html">piece_rise</a> zero): right end = start x + length.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53909"></span>D295</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53910"></span>D296</td>
+<td class="instruction">JR NZ,<a href="53906.html#53920">piece_off_left_edge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53912"></span>D298</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53915"></span>D29B</td>
+<td class="instruction">ADD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53918"></span>D29E</td>
+<td class="instruction">JR <a href="53906.html#53948">piece_off_left_edge_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_left_edge_0</td>
+<td class="address-2"><span id="53920"></span>D2A0</td>
+<td class="instruction">LD A,(<a href="52825.html">piece_dx_copy</a>)</td>
+<td class="comment-1" rowspan="6">A vertical wall (no run, <a href="52825.html">piece_dx_copy</a> zero) is 8 pixels wide.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53923"></span>D2A3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53924"></span>D2A4</td>
+<td class="instruction">JR NZ,<a href="53906.html#53933">piece_off_left_edge_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53926"></span>D2A6</td>
+<td class="instruction">LD A,(<a href="52803.html">piece_page_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53929"></span>D2A9</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53931"></span>D2AB</td>
+<td class="instruction">JR <a href="53906.html#53948">piece_off_left_edge_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_left_edge_1</td>
+<td class="address-2"><span id="53933"></span>D2AD</td>
+<td class="instruction">LD A,(<a href="58395.html">direction_flag</a>)</td>
+<td class="comment-1" rowspan="6">A sloped piece: its right end is +0 if it runs left (<a href="58395.html">direction_flag</a> = 1), else +2.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53936"></span>D2B0</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53938"></span>D2B2</td>
+<td class="instruction">JR Z,<a href="53906.html#53945">piece_off_left_edge_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53940"></span>D2B4</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53943"></span>D2B7</td>
+<td class="instruction">JR <a href="53906.html#53948">piece_off_left_edge_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_left_edge_2</td>
+<td class="address-2"><span id="53945"></span>D2B9</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_left_edge_3</td>
+<td class="address-2"><span id="53948"></span>D2BC</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="4">NZ (skip) if the right end is left of the edge; Z otherwise.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53949"></span>D2BD</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53950"></span>D2BE</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53951"></span>D2BF</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53437.html">D0BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53906">Map</a></td>
+<td class="next">
+Next: <a href="53952.html">D2C0</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

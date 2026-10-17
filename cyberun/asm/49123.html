@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BFE3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49080.html">BFB8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49123">Map</a></td>
+<td class="next">
+Next: <a href="49202.html">C032</a>
+</td>
+</tr>
+</table>
+<div class="description">BFE3: Move and draw the three layers of parallax stars</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+Called each pass from <a href="56824.html">scroll_landscape</a> after the landscape. Only in the top four rows of the map (the view's map row <a href="52824.html">view_row</a> below 4: open sky) are there stars; lower down this returns at once. It runs in the build's tour at map row 3.
+</div>
+<div class="paragraph">
+There are three layers of six stars. Each layer keeps an x and a y offset (in <a href="49540.html">star_offsets</a>) that is moved each pass by the scroll steps (<a href="52411.html">scroll_across</a> across, <a href="52410.html">scroll_down</a> down) scaled for the layer by <a href="49490.html">parallax_step</a>: a quarter for the far layer, a half for the middle one, the whole step for the near one. A star's place on the screen is its fixed position in <a href="49382.html">star_layer_pointer</a> plus its layer's offset, wrapping at 256 both ways, so the layers slide past one another at three speeds: parallax for six additions a pass. Last pass's offsets are kept so each star can be erased where it was drawn.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_stars</td>
+<td class="address-2"><span id="49123"></span>BFE3</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+<td class="comment-1" rowspan="3">No stars below map row 3.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49126"></span>BFE6</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49128"></span>BFE8</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49129"></span>BFE9</td>
+<td class="instruction">LD BC,$0006</td>
+<td class="comment-1" rowspan="4">Keep last pass's offsets (six bytes) for the erasing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49132"></span>BFEC</td>
+<td class="instruction">LD HL,<a href="49540.html">star_offsets</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49135"></span>BFEF</td>
+<td class="instruction">LD DE,<a href="49546.html">star_offsets_before</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49138"></span>BFF2</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49140"></span>BFF4</td>
+<td class="instruction">LD B,$03</td>
+<td class="comment-1" rowspan="2">Three layers, B=3 (the far one) first.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49142"></span>BFF6</td>
+<td class="instruction">LD IX,<a href="49540.html">star_offsets</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_stars_0</td>
+<td class="address-2"><span id="49146"></span>BFFA</td>
+<td class="instruction">LD HL,(<a href="52410.html">scroll_down</a>)</td>
+<td class="comment-1" rowspan="5">Across: the horizontal step (H, from <a href="52411.html">scroll_across</a>) scaled for the layer and added to the layer's x offset.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49149"></span>BFFD</td>
+<td class="instruction">CALL <a href="49490.html">parallax_step</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49152"></span>C000</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49153"></span>C001</td>
+<td class="instruction">ADD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49156"></span>C004</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49159"></span>C007</td>
+<td class="instruction">LD H,L</td>
+<td class="comment-1" rowspan="8">Down: the vertical step (L, from <a href="52410.html">scroll_down</a>) scaled the same way and added to its y offset.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49160"></span>C008</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49162"></span>C00A</td>
+<td class="instruction">CALL <a href="49490.html">parallax_step</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49165"></span>C00D</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49166"></span>C00E</td>
+<td class="instruction">ADD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49169"></span>C011</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49172"></span>C014</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49174"></span>C016</td>
+<td class="instruction">DJNZ <a href="49123.html#49146">draw_stars_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49176"></span>C018</td>
+<td class="instruction">LD HL,<a href="49386.html">star_positions</a></td>
+<td class="comment-1" rowspan="6">Point at the first star in <a href="49382.html">star_layer_pointer</a>, the first layer's frame slot (<a href="49571.html">star_frames</a>) and its offsets.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49179"></span>C01B</td>
+<td class="instruction">LD (<a href="49384.html">star_pointer</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49182"></span>C01E</td>
+<td class="instruction">LD IX,<a href="49571.html">star_frames</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49186"></span>C022</td>
+<td class="instruction">LD HL,<a href="49540.html">star_offsets</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49189"></span>C025</td>
+<td class="instruction">LD (<a href="49382.html">star_layer_pointer</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49192"></span>C028</td>
+<td class="instruction">LD B,$03</td>
+</tr>
+<tr>
+<td class="asm-label">draw_stars_1</td>
+<td class="address-2"><span id="49194"></span>C02A</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">Draw the three layers.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49195"></span>C02B</td>
+<td class="instruction">CALL <a href="49202.html">draw_star_layer</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49198"></span>C02E</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49199"></span>C02F</td>
+<td class="instruction">DJNZ <a href="49123.html#49194">draw_stars_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49201"></span>C031</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49080.html">BFB8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49123">Map</a></td>
+<td class="next">
+Next: <a href="49202.html">C032</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

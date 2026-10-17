@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A0DB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41163.html">A0CB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41179">Map</a></td>
+<td class="next">
+Next: <a href="41237.html">A115</a>
+</td>
+</tr>
+</table>
+<div class="description">A0DB: Print one character at double size</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The double-size half of the character printer <a href="41137.html">print_char</a>, reached through its self-modified JR at the end of <a href="41137.html">print_char</a> when <a href="41237.html">print_string</a> has patched that JR's displacement to $10 for a string whose attribute byte has bit 7 set. Each of the glyph's seven rows (stored bottom row first) is split into its two nibbles; each nibble is doubled to a whole byte through the table <a href="23684.html">double_bits</a> (bit n of the nibble becomes bits 2n and 2n+1), and the two bytes are written side by side on two pixel lines, so the character comes out 16 pixels wide and 14 lines high, drawn upwards from the line HL starts on.
+</div>
+<div class="paragraph">
+HL must start on an odd pixel line within its cell (normally the bottom line, 7): the plain DEC H between the two lines of each row never crosses a cell boundary only because each pair starts on an odd line. Then a 2x2 block of attributes is coloured: the cell, the cell above, and the two to their right.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The glyph (7 bytes, bottom row first)</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">Screen address of the character's bottom-left byte</td>
+</tr>
+<tr>
+<td class="register">B'</td>
+<td class="register-desc">The attribute</td>
+</tr>
+<tr>
+<td class="register">DE'</td>
+<td class="register-desc">32, one attribute row</td>
+</tr>
+<tr>
+<td class="register">HL'</td>
+<td class="register-desc">Attribute address of the character's bottom-left cell</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">print_char_double</td>
+<td class="address-2"><span id="41179"></span>A0DB</td>
+<td class="instruction">LD A,$07</td>
+<td class="comment-1" rowspan="2">Seven rows; B is the page of the nibble-doubling table <a href="23684.html">double_bits</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41181"></span>A0DD</td>
+<td class="instruction">LD B,$5C</td>
+</tr>
+<tr>
+<td class="asm-label">print_char_double_0</td>
+<td class="address-2"><span id="41183"></span>A0DF</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1">Keep the row count in A'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41184"></span>A0E0</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="8">The left half: the glyph byte's high nibble, doubled through the table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41185"></span>A0E1</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41187"></span>A0E3</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41189"></span>A0E5</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41191"></span>A0E7</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41193"></span>A0E9</td>
+<td class="instruction">ADD A,$84</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41195"></span>A0EB</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41196"></span>A0EC</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41197"></span>A0ED</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="4">Write it on this line and the one above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41198"></span>A0EE</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41199"></span>A0EF</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41200"></span>A0F0</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41201"></span>A0F1</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="6">The right half: the low nibble, doubled</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41202"></span>A0F2</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41203"></span>A0F3</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41205"></span>A0F5</td>
+<td class="instruction">ADD A,$84</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41207"></span>A0F7</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41208"></span>A0F8</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41209"></span>A0F9</td>
+<td class="instruction">LD (HL),A</td>
+<td class="comment-1" rowspan="4">Write it on both lines too, and step back to the left column (now on the upper line)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41210"></span>A0FA</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41211"></span>A0FB</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41212"></span>A0FC</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41213"></span>A0FD</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="2">Next glyph row; move up one more pixel line</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41214"></span>A0FE</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41217"></span>A101</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="3">Until all seven rows are drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41218"></span>A102</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41219"></span>A103</td>
+<td class="instruction">JR NZ,<a href="41179.html#41183">print_char_double_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41221"></span>A105</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="10">Colour the 2x2 block of cells: this one, the one above, above-right and right; HL' ends two cells on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41222"></span>A106</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41223"></span>A107</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41225"></span>A109</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41226"></span>A10A</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41227"></span>A10B</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41228"></span>A10C</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41229"></span>A10D</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41230"></span>A10E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41231"></span>A10F</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41232"></span>A110</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="5">Restore the glyph pointer and step the screen address two columns on, for the next character</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41233"></span>A111</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41234"></span>A112</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41235"></span>A113</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41236"></span>A114</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41163.html">A0CB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41179">Map</a></td>
+<td class="next">
+Next: <a href="41237.html">A115</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

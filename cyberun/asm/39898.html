@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 9BDA</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39894.html">9BD6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39898">Map</a></td>
+<td class="next">
+Next: <a href="40206.html">9D0E</a>
+</td>
+</tr>
+</table>
+<div class="description">9BDA: Draw the flickering beams, and test them against the ship</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+Called by <a href="56824.html">scroll_landscape</a>, not while <a href="23612.html">map_rebuild</a> is set. A beam crosses a screen whose landscape piece is $A6, at a fixed height in it, unless the thing that makes it has been shot: a bit in the player's record, found by <a href="44040.html">map_square_bit</a> and tested by a BIT instruction this routine writes into itself (the third after the CALL to <a href="44040.html">map_square_bit</a>). Each pass the old beams are rubbed out (<a href="40229.html">erase_flicker_beam</a>) and drawn again in the four screens around the view (the four pieces in <a href="56455.html">map_window_pointer</a>, in the order 0, 2, 1, 3; bit 0 the page row below, bit 1 the column to the right). A beam is a one-line row of bytes ORed onto the screen in the current pattern, rotated to follow the fine scroll, its characters coloured (<a href="51601.html">fill_attributes</a>) and its extent kept in <a href="40259.html">flicker_beam_records</a> for rubbing out (<a href="40240.html">draw_flicker_beam</a> draws it, <a href="40275.html">place_flicker_beam</a> places it).
+</div>
+<div class="paragraph">
+The pattern changes when its timer runs out: half the time one of the eight at <a href="40361.html">flicker_beam_patterns</a> in a random bright colour, for 1-32 passes; otherwise none, for 1-16. A beam that touches the ship's box (40 by 16) damages it (<a href="40206.html">beam_hits_ship</a>), then not again for 16 passes.
+</div>
+<div class="paragraph">
+All of it, the pattern changes included, ran in the build's sessions.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams</td>
+<td class="address-2"><span id="39898"></span>9BDA</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="3">Not while <a href="23612.html">map_rebuild</a> is set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39901"></span>9BDD</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39902"></span>9BDE</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39903"></span>9BDF</td>
+<td class="instruction">LD A,(<a href="40239.html">beam_grace</a>)</td>
+<td class="comment-1" rowspan="6">Counting down after a hit: no box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39906"></span>9BE2</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39907"></span>9BE3</td>
+<td class="instruction">JR Z,<a href="39898.html#39915">draw_beams_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39909"></span>9BE5</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39910"></span>9BE6</td>
+<td class="instruction">LD (<a href="40239.html">beam_grace</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39913"></span>9BE9</td>
+<td class="instruction">JR <a href="39898.html#39934">draw_beams_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_0</td>
+<td class="address-2"><span id="39915"></span>9BEB</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="8">The ship's box at <a href="43940.html">collision_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39918"></span>9BEE</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39920"></span>9BF0</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39921"></span>9BF1</td>
+<td class="instruction">LD L,$64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39923"></span>9BF3</td>
+<td class="instruction">LD D,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39925"></span>9BF5</td>
+<td class="instruction">LD E,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39927"></span>9BF7</td>
+<td class="instruction">LD (<a href="43940.html">collision_box</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39930"></span>9BFA</td>
+<td class="instruction">LD (<a href="43942.html">collision_box_size</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_1</td>
+<td class="address-2"><span id="39934"></span>9BFE</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="16">No beam piece in view and none drawn: done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39936"></span>9C00</td>
+<td class="instruction">LD IY,<a href="40259.html">flicker_beam_records</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39940"></span>9C04</td>
+<td class="instruction">LD HL,<a href="56465.html">map_window_tile_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_2</td>
+<td class="address-2"><span id="39943"></span>9C07</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39944"></span>9C08</td>
+<td class="instruction">CP $A6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39946"></span>9C0A</td>
+<td class="instruction">JR Z,<a href="39898.html#39966">draw_beams_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39948"></span>9C0C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39949"></span>9C0D</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39952"></span>9C10</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39953"></span>9C11</td>
+<td class="instruction">JR NZ,<a href="39898.html#39966">draw_beams_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39955"></span>9C13</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39957"></span>9C15</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39959"></span>9C17</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39961"></span>9C19</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39963"></span>9C1B</td>
+<td class="instruction">DJNZ <a href="39898.html#39943">draw_beams_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39965"></span>9C1D</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_3</td>
+<td class="address-2"><span id="39966"></span>9C1E</td>
+<td class="instruction">LD IX,<a href="39894.html">beam_state</a></td>
+<td class="comment-1" rowspan="3">The timer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39970"></span>9C22</td>
+<td class="instruction">DEC (IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39973"></span>9C25</td>
+<td class="instruction">JR NZ,<a href="39898.html#40032">draw_beams_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39975"></span>9C27</td>
+<td class="instruction">LD (IX+$00),$00</td>
+<td class="comment-1" rowspan="4">Half the time, no beam</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39979"></span>9C2B</td>
+<td class="instruction">LD A,(<a href="39883.html">random_a</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39982"></span>9C2E</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39984"></span>9C30</td>
+<td class="instruction">JR Z,<a href="39898.html#40021">draw_beams_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39986"></span>9C32</td>
+<td class="instruction">LD A,(<a href="39884.html">random_b</a>)</td>
+<td class="comment-1" rowspan="7">A random bright colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39989"></span>9C35</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39991"></span>9C37</td>
+<td class="instruction">JR NZ,<a href="39898.html#39995">draw_beams_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39993"></span>9C39</td>
+<td class="instruction">LD A,$05</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_4</td>
+<td class="address-2"><span id="39995"></span>9C3B</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39996"></span>9C3C</td>
+<td class="instruction">ADD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39998"></span>9C3E</td>
+<td class="instruction">LD (IX+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40001"></span>9C41</td>
+<td class="instruction">LD A,(<a href="39883.html">random_a</a>)</td>
+<td class="comment-1" rowspan="9">A random pattern, for up to 32 passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40004"></span>9C44</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40006"></span>9C46</td>
+<td class="instruction">XOR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40007"></span>9C47</td>
+<td class="instruction">LD HL,<a href="40361.html">flicker_beam_patterns</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40010"></span>9C4A</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40013"></span>9C4D</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40014"></span>9C4E</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40017"></span>9C51</td>
+<td class="instruction">LD B,$1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40019"></span>9C53</td>
+<td class="instruction">JR <a href="39898.html#40023">draw_beams_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_5</td>
+<td class="address-2"><span id="40021"></span>9C55</td>
+<td class="instruction">LD B,$0F</td>
+<td class="comment-1" rowspan="1">Or none, for up to 16</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_6</td>
+<td class="address-2"><span id="40023"></span>9C57</td>
+<td class="instruction">LD A,(<a href="39884.html">random_b</a>)</td>
+<td class="comment-1" rowspan="5">The timer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40026"></span>9C5A</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40027"></span>9C5B</td>
+<td class="instruction">AND B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40028"></span>9C5C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40029"></span>9C5D</td>
+<td class="instruction">LD (IX+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_7</td>
+<td class="address-2"><span id="40032"></span>9C60</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">None drawn yet; the four screens</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40033"></span>9C61</td>
+<td class="instruction">LD ($9BD9),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40036"></span>9C64</td>
+<td class="instruction">LD IY,<a href="40259.html">flicker_beam_records</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_8</td>
+<td class="address-2"><span id="40040"></span>9C68</td>
+<td class="instruction">LD (<a href="23582.html">row_count</a>),A</td>
+<td class="comment-1" rowspan="9">Rub out the beam drawn there last pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40043"></span>9C6B</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40046"></span>9C6E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40047"></span>9C6F</td>
+<td class="instruction">JR Z,<a href="39898.html#40064">draw_beams_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40049"></span>9C71</td>
+<td class="instruction">LD L,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40052"></span>9C74</td>
+<td class="instruction">LD H,(IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40055"></span>9C77</td>
+<td class="instruction">LD B,(IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40058"></span>9C7A</td>
+<td class="instruction">LD C,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40061"></span>9C7D</td>
+<td class="instruction">CALL <a href="40229.html">erase_flicker_beam</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_9</td>
+<td class="address-2"><span id="40064"></span>9C80</td>
+<td class="instruction">LD (IY+$00),$00</td>
+<td class="comment-1" rowspan="1">None now</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40068"></span>9C84</td>
+<td class="instruction">LD A,(<a href="23582.html">row_count</a>)</td>
+<td class="comment-1" rowspan="9">This screen's row and column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40071"></span>9C87</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40074"></span>9C8A</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40076"></span>9C8C</td>
+<td class="instruction">JR Z,<a href="39898.html#40079">draw_beams_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40078"></span>9C8E</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_10</td>
+<td class="address-2"><span id="40079"></span>9C8F</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40081"></span>9C91</td>
+<td class="instruction">JR Z,<a href="39898.html#40084">draw_beams_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40083"></span>9C93</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_11</td>
+<td class="address-2"><span id="40084"></span>9C94</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40085"></span>9C95</td>
+<td class="instruction">CALL <a href="44040.html">map_square_bit</a></td>
+<td class="comment-1" rowspan="6">Its beam-maker shot? (the BIT is written here)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40088"></span>9C98</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40089"></span>9C99</td>
+<td class="instruction">ADD A,$46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40091"></span>9C9B</td>
+<td class="instruction">LD ($9C9F),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40094"></span>9C9E</td>
+<td class="instruction">BIT 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40096"></span>9CA0</td>
+<td class="instruction">JR NZ,<a href="39898.html#40174">draw_beams_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40098"></span>9CA2</td>
+<td class="instruction">LD HL,<a href="56465.html">map_window_tile_bytes</a></td>
+<td class="comment-1" rowspan="9">A beam piece, and a pattern</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40101"></span>9CA5</td>
+<td class="instruction">LD A,(<a href="23582.html">row_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40104"></span>9CA8</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40107"></span>9CAB</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40108"></span>9CAC</td>
+<td class="instruction">CP $A6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40110"></span>9CAE</td>
+<td class="instruction">JR NZ,<a href="39898.html#40174">draw_beams_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40112"></span>9CB0</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40115"></span>9CB3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40116"></span>9CB4</td>
+<td class="instruction">JR Z,<a href="39898.html#40174">draw_beams_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40118"></span>9CB6</td>
+<td class="instruction">LD HL,(<a href="52805.html">view_x</a>)</td>
+<td class="comment-1" rowspan="6">Where it is on the screen; none in view</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40121"></span>9CB9</td>
+<td class="instruction">LD DE,(<a href="52801.html">origin_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40125"></span>9CBD</td>
+<td class="instruction">CALL <a href="40275.html">place_flicker_beam</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40128"></span>9CC0</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40129"></span>9CC1</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40130"></span>9CC2</td>
+<td class="instruction">JR Z,<a href="39898.html#40174">draw_beams_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40132"></span>9CC4</td>
+<td class="instruction">CALL <a href="40240.html">draw_flicker_beam</a></td>
+<td class="comment-1" rowspan="1">Draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40135"></span>9CC7</td>
+<td class="instruction">LD HL,(<a href="49027.html">sprite_screen_pos</a>)</td>
+<td class="comment-1" rowspan="7">Its width, for the colour and the test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40138"></span>9CCA</td>
+<td class="instruction">LD A,(IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40141"></span>9CCD</td>
+<td class="instruction">LD (<a href="46629.html">shot_colour_patch</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40144"></span>9CD0</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40145"></span>9CD1</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40146"></span>9CD2</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40147"></span>9CD3</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40148"></span>9CD4</td>
+<td class="instruction">LD A,(<a href="40239.html">beam_grace</a>)</td>
+<td class="comment-1" rowspan="5">Not counting down: test it against the ship</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40151"></span>9CD7</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40152"></span>9CD8</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40153"></span>9CD9</td>
+<td class="instruction">CALL Z,<a href="40206.html">beam_hits_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40156"></span>9CDC</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40157"></span>9CDD</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="6">Colour it; a beam drawn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40160"></span>9CE0</td>
+<td class="instruction">LD ($B627),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40163"></span>9CE3</td>
+<td class="instruction">LD DE,<a href="46629.html">shot_colour_patch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40166"></span>9CE6</td>
+<td class="instruction">CALL <a href="51601.html">fill_attributes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40169"></span>9CE9</td>
+<td class="instruction">OR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40171"></span>9CEB</td>
+<td class="instruction">LD ($9BD9),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_12</td>
+<td class="address-2"><span id="40174"></span>9CEE</td>
+<td class="instruction">INC IY</td>
+<td class="comment-1" rowspan="11">Next screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40176"></span>9CF0</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40178"></span>9CF2</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40180"></span>9CF4</td>
+<td class="instruction">INC IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40182"></span>9CF6</td>
+<td class="instruction">LD A,(<a href="23582.html">row_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40185"></span>9CF9</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40187"></span>9CFB</td>
+<td class="instruction">JR Z,<a href="39898.html#40198">draw_beams_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40189"></span>9CFD</td>
+<td class="instruction">XOR $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40191"></span>9CFF</td>
+<td class="instruction">JP NZ,<a href="39898.html#40040">draw_beams_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40194"></span>9D02</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40195"></span>9D03</td>
+<td class="instruction">JP <a href="39898.html#40040">draw_beams_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_beams_13</td>
+<td class="address-2"><span id="40198"></span>9D06</td>
+<td class="instruction">LD A,($9BD9)</td>
+<td class="comment-1" rowspan="4">The sound when any was drawn (<a href="29391.html">sound_beams</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40201"></span>9D09</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40202"></span>9D0A</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40203"></span>9D0B</td>
+<td class="instruction">JP <a href="29391.html">sound_beams</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39894.html">9BD6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39898">Map</a></td>
+<td class="next">
+Next: <a href="40206.html">9D0E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

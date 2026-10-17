@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E4CF</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58535.html">E4A7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58575">Map</a></td>
+<td class="next">
+Next: <a href="58609.html">E4F1</a>
+</td>
+</tr>
+</table>
+<div class="description">E4CF: Draw a two-byte-wide terrain step</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Directions 1 and 8 at shift 0 (here), the one-byte slopes shifted by 2, 4 or 6 (directions 2, 3, 9 and 10, at the second INC L), and the wall shifted (direction 14, at the LD B,A). Two POPs a pair of rows: a row left to right, up, a row right to left, up; about 105 T-states a pair.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the number of pairs of rows</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the screen address of the bottom row's first byte, less one or two</td>
+</tr>
+<tr>
+<td class="register">SP</td>
+<td class="register-desc">the graphic</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">blit_two</td>
+<td class="address-2"><span id="58575"></span>E4CF</td>
+<td class="instruction">INC L</td>
+<td class="comment-1" rowspan="3">Step right into the column; B counts the pairs of rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58576"></span>E4D0</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58577"></span>E4D1</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_two_0</td>
+<td class="address-2"><span id="58578"></span>E4D2</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="5">Pop two bytes: a row left to right; up a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58579"></span>E4D3</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58580"></span>E4D4</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58581"></span>E4D5</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58582"></span>E4D6</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58583"></span>E4D7</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="5">Pop two more: the row above, right to left; up a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58584"></span>E4D8</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58585"></span>E4D9</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58586"></span>E4DA</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58587"></span>E4DB</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58588"></span>E4DC</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="13">Into the next character row up if this one is done; the next pair; leave HL as the column for the next step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58589"></span>E4DD</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58590"></span>E4DE</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58592"></span>E4E0</td>
+<td class="instruction">JR NZ,<a href="58575.html#58604">blit_two_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58594"></span>E4E2</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58595"></span>E4E3</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58597"></span>E4E5</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58598"></span>E4E6</td>
+<td class="instruction">JR C,<a href="58575.html#58604">blit_two_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58600"></span>E4E8</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58601"></span>E4E9</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58603"></span>E4EB</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_two_1</td>
+<td class="address-2"><span id="58604"></span>E4EC</td>
+<td class="instruction">DJNZ <a href="58575.html#58578">blit_two_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58606"></span>E4EE</td>
+<td class="instruction">JP <a href="55057.html">after_step_drawn</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58535.html">E4A7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58575">Map</a></td>
+<td class="next">
+Next: <a href="58609.html">E4F1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

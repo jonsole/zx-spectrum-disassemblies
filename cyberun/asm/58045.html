@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Data at E2BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58038.html">E2B6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58045">Map</a></td>
+<td class="next">
+Next: <a href="58109.html">E2FD</a>
+</td>
+</tr>
+</table>
+<div class="description">E2BD: Landscape pieces: blitters and graphics at a shift of 2 pixels</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The first of four tables of 16 entries, one per piece direction (the high nibble of the piece's direction-and-steps byte in its tile record, kept in (IX+3)), chosen by <a href="53437.html">draw_landscape</a> from the fine scroll position and kept in <a href="52413.html">shift_table</a>: this one for a shift of 2 pixels, <a href="58109.html">piece_blitters_shift4</a> for 4, <a href="58173.html">piece_blitters_shift6</a> for 6 and <a href="58237.html">piece_blitters_shift0</a> for 0. Each entry is two words: the blitter that draws a step of the piece, which <a href="54041.html">landscape_step_loop</a> loads into IY and <a href="55043.html">step_dispatch</a> jumps to, and the step's graphic at that shift, which it keeps in <a href="52807.html">piece_graphic</a> and starts SP from.
+</div>
+<div class="paragraph">
+The directions: 0 is flat, three bytes wide; 1, 2 and 3 are slopes that climb to the right (8 rows over 16 pixels, 8 rows over 8, 16 rows over 8), 4, 5 and 6 the same three climbing to the left; 7 to 13 are 0 to 6 upside down (ceilings: rock above, sky below), and 14 and 15 are a 16-row wall facing either way. Each graphic holds three variants of the step one above the other (9 or 17 rows each; 28 rows for a flat step); <a href="54041.html">landscape_step_loop</a> picks one and the count of row pairs comes in A.
+</div>
+<div class="paragraph">
+Only nine graphics are stored: a step climbing to the left is its partner's graphic started one row later and drawn by a blitter that mirrors each byte through the bit-reversed table at <a href="63744.html">bit_reverse_table</a> (<a href="58668.html">blit_mirror_two</a>, <a href="58715.html">blit_mirror_one</a>). That works because the graphics zig-zag: each pair of rows is stored left to right and then right to left, so read one row later every row's bytes come in the other order. A mirrored shifted step uses the partner's graphic at the opposite shift: a slope climbing left at a shift of 2 is the right-climbing one at 6, mirrored.
+</div>
+<div class="paragraph">
+The blitters: <a href="57933.html">blit_flat_step</a> for the flat steps at every shift; at shift 0 <a href="58575.html">blit_two</a> (two bytes wide), <a href="58507.html">blit_one</a> (one byte), and their mirrored twins <a href="58668.html">blit_mirror_two</a> (entered one DEC L early, at the end of <a href="58609.html">blit_mirror_three</a>) and <a href="58715.html">blit_mirror_one</a>; at shifts 2 to 6, one byte wider, <a href="58535.html">blit_three</a> (entered at its second INC L), <a href="58575.html">blit_two</a> (at its second INC L) and the mirrored <a href="58609.html">blit_mirror_three</a> (at its second DEC L) and <a href="58668.html">blit_mirror_two</a>. The walls (directions 14 and 15) enter one instruction later than the slopes, skipping the INC L or DEC L that places a slope in its column.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">piece_blitters_shift2</td>
+<td class="address-1"><span id="58045"></span>E2BD</td>
+<td class="instruction">DEFW <a href="57933.html">blit_flat_step</a></td>
+<td class="comment-1" rowspan="4">Shift 2: directions 0 (flat) and 1 (climbs right, 16 pixels)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58047"></span>E2BF</td>
+<td class="instruction">DEFW <a href="60008.html">flat_piece_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58049"></span>E2C1</td>
+<td class="instruction">DEFW <a href="58535.html#58536">$E4A8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58051"></span>E2C3</td>
+<td class="instruction">DEFW <a href="59396.html">slope_1_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58053"></span>E2C5</td>
+<td class="instruction">DEFW <a href="58575.html#58576">$E4D0</a></td>
+<td class="comment-1" rowspan="4">Directions 2 and 3 (climb right, 8 pixels: 8 and 16 rows)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58055"></span>E2C7</td>
+<td class="instruction">DEFW <a href="59210.html">slope_2_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58057"></span>E2C9</td>
+<td class="instruction">DEFW <a href="58575.html#58576">$E4D0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58059"></span>E2CB</td>
+<td class="instruction">DEFW <a href="59678.html">slope_3_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58061"></span>E2CD</td>
+<td class="instruction">DEFW <a href="58609.html#58610">$E4F2</a></td>
+<td class="comment-1" rowspan="4">Directions 4 and 5 (climb left: mirrors of 1 and 2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58063"></span>E2CF</td>
+<td class="instruction">DEFW $E8C1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58065"></span>E2D1</td>
+<td class="instruction">DEFW <a href="58668.html">blit_mirror_two</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58067"></span>E2D3</td>
+<td class="instruction">DEFW $E7C8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58069"></span>E2D5</td>
+<td class="instruction">DEFW <a href="58668.html">blit_mirror_two</a></td>
+<td class="comment-1" rowspan="4">Directions 6 (mirror of 3) and 7 (flat, upside down)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58071"></span>E2D7</td>
+<td class="instruction">DEFW $E9FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58073"></span>E2D9</td>
+<td class="instruction">DEFW <a href="57933.html">blit_flat_step</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58075"></span>E2DB</td>
+<td class="instruction">DEFW <a href="60260.html">flat_piece_two_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58077"></span>E2DD</td>
+<td class="instruction">DEFW <a href="58535.html#58536">$E4A8</a></td>
+<td class="comment-1" rowspan="4">Directions 8 and 9 (1 and 2 upside down)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58079"></span>E2DF</td>
+<td class="instruction">DEFW <a href="61082.html">slope_8_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58081"></span>E2E1</td>
+<td class="instruction">DEFW <a href="58575.html#58576">$E4D0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58083"></span>E2E3</td>
+<td class="instruction">DEFW <a href="60896.html">slope_9_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58085"></span>E2E5</td>
+<td class="instruction">DEFW <a href="58575.html#58576">$E4D0</a></td>
+<td class="comment-1" rowspan="4">Directions 10 and 11 (3 and 4 upside down)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58087"></span>E2E7</td>
+<td class="instruction">DEFW <a href="61361.html">slope_10_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58089"></span>E2E9</td>
+<td class="instruction">DEFW <a href="58609.html#58610">$E4F2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58091"></span>E2EB</td>
+<td class="instruction">DEFW $EF57</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58093"></span>E2ED</td>
+<td class="instruction">DEFW <a href="58668.html">blit_mirror_two</a></td>
+<td class="comment-1" rowspan="4">Directions 12 and 13 (5 and 6 upside down)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58095"></span>E2EF</td>
+<td class="instruction">DEFW $EE5E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58097"></span>E2F1</td>
+<td class="instruction">DEFW <a href="58668.html">blit_mirror_two</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58099"></span>E2F3</td>
+<td class="instruction">DEFW $F08F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58101"></span>E2F5</td>
+<td class="instruction">DEFW <a href="58575.html#58577">$E4D1</a></td>
+<td class="comment-1" rowspan="4">Directions 14 and 15 (wall, and its mirror)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58103"></span>E2F7</td>
+<td class="instruction">DEFW <a href="60566.html">wall_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58105"></span>E2F9</td>
+<td class="instruction">DEFW <a href="58668.html#58669">$E52D</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58107"></span>E2FB</td>
+<td class="instruction">DEFW $ED74</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58038.html">E2B6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58045">Map</a></td>
+<td class="next">
+Next: <a href="58109.html">E2FD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A149</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41237.html">A115</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41289">Map</a></td>
+<td class="next">
+Next: <a href="41328.html">A170</a>
+</td>
+</tr>
+</table>
+<div class="description">A149: Turn pixel coordinates into a screen address</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="40275.html">place_flicker_beam</a>, <a href="40702.html">dissolve_play_area</a>, <a href="40748.html">clear_play_area</a>, <a href="41237.html">print_string</a>, <a href="41574.html">set_direct_new</a>, <a href="41611.html">record_screen_address</a>, <a href="41731.html">draw_sprite_pair</a>, <a href="41974.html">copy_box_in</a>, <a href="43173.html">load_ore</a>, <a href="43575.html">toggle_carried_part</a>, <a href="49791.html">draw_carried_piece</a>, <a href="50209.html">draw_ship_image</a>, <a href="50413.html">draw_trail</a>, <a href="50687.html">side_jet</a>, <a href="50898.html">lift_jet</a>, <a href="51567.html">draw_bitmap</a>, <a href="52343.html">update_fuel_gauge</a>, <a href="55607.html">step_screen_address</a>, <a href="55720.html">fill_behind_moving_piece</a> and <a href="56697.html">fly_in_step</a>.
+</div>
+<div class="paragraph">
+The standard Spectrum screen-address calculation from a pixel position: L is x (0-255, its low three bits dropped) and H is y (0-191 from the top). Everything in the game that draws on the screen uses this.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">x in pixels</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">y in pixels</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The screen byte containing the pixel</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">pixel_to_screen</td>
+<td class="address-2"><span id="41289"></span>A149</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">The column, x divided by 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41290"></span>A14A</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41292"></span>A14C</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41294"></span>A14E</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41296"></span>A150</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41298"></span>A152</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41299"></span>A153</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="6">Bits 3-5 of y become bits 5-7 of the low byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41300"></span>A154</td>
+<td class="instruction">RLC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41302"></span>A156</td>
+<td class="instruction">RLC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41304"></span>A158</td>
+<td class="instruction">AND $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41306"></span>A15A</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41307"></span>A15B</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41308"></span>A15C</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="3">Bits 0-2 of y are the pixel line within the cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41309"></span>A15D</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41311"></span>A15F</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41312"></span>A160</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="10">Bits 6-7 of y pick the third of the screen; combine with the pixel line</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41313"></span>A161</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41315"></span>A163</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41317"></span>A165</td>
+<td class="instruction">RRC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41319"></span>A167</td>
+<td class="instruction">AND $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41321"></span>A169</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41323"></span>A16B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41324"></span>A16C</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41325"></span>A16D</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41326"></span>A16E</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41327"></span>A16F</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41237.html">A115</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41289">Map</a></td>
+<td class="next">
+Next: <a href="41328.html">A170</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

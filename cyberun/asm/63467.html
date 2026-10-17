@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F7EB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63461.html">F7E5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63467">Map</a></td>
+<td class="next">
+Next: <a href="63574.html">F856</a>
+</td>
+</tr>
+</table>
+<div class="description">F7EB: Build the landscape pieces' shifted copies</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="63616.html">sprite_buffer_two</a>.
+</div>
+<div class="paragraph">
+Called once, at the start (<a href="63595.html">build_shift_tables</a>), with the shift tables from <a href="64000.html">shift_tables</a> in place. Clears the work bytes from <a href="23580.html">scratch_count</a>, 38 of them, and makes, for each of the nine stored terrain-piece graphics, its copies shifted right by 2, 4 and 6 pixels, one after another at the address given: with <a href="63801.html">shift_slope_piece</a> for the slopes and the wall, with <a href="63714.html">shift_flat_piece</a> for the two flat pieces. The three ceiling slopes are made with <a href="23589.html">piece_step_x</a> set, which pads them with the checkerboard on the left instead of the right.
+</div>
+<div class="paragraph">
+The tape holds the copies' places as zeros (the generator ORs into them), except that the flat pieces' copies are only partly made here; the rest of them came on the tape (see <a href="63714.html">shift_flat_piece</a>). Each graphic starts with a header (<a href="63637.html">read_piece_header</a>), which is why the source addresses here are two or three bytes before those in the tables at <a href="58045.html">piece_blitters_shift2</a>.
+</div>
+<div class="paragraph">
+This routine and the ones after it to <a href="63801.html">shift_slope_piece</a>'s end run once. Afterwards their bytes are reused: a sprite-compositing buffer of up to 256 bytes starts 21 bytes into this routine, inside the operand of a CALL, so it cannot have a label of its own (<a href="41974.html">copy_box_in</a> copies into it with LDI and <a href="42136.html">dissolve_sprite</a> reads it back; <a href="47255.html">old_beam_frame</a> builds a sprite there and <a href="47285.html">new_beam_frame</a> another from its 128th byte, <a href="63616.html">sprite_buffer_two</a>), over the end of this routine and the ones up to <a href="63744.html">bit_reverse_table</a>; and from <a href="63744.html">bit_reverse_table</a> the bit-reversed table <a href="63574.html">build_bit_reverse</a> makes, over the rest.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">build_shifted_pieces</td>
+<td class="address-2"><span id="63467"></span>F7EB</td>
+<td class="instruction">LD HL,<a href="23580.html">scratch_count</a></td>
+<td class="comment-1" rowspan="3">Clear the work bytes <a href="23580.html">scratch_count</a> to <a href="23617.html">basic_leftovers</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63470"></span>F7EE</td>
+<td class="instruction">LD B,$26</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63472"></span>F7F0</td>
+<td class="instruction">CALL <a href="62219.html">clear_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63475"></span>F7F3</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Floors: no padding on the left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63476"></span>F7F4</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63479"></span>F7F7</td>
+<td class="instruction">LD HL,<a href="59210.html">slope_2_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 2 (one byte wide, 9 rows), shifted to <a href="59210.html">slope_2_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63482"></span>F7FA</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63483"></span>F7FB</td>
+<td class="instruction">LD HL,<a href="58955.html">slope_2_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63486"></span>F7FE</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63489"></span>F801</td>
+<td class="instruction">LD HL,<a href="59396.html">slope_1_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 1 (two bytes wide, 9 rows), to <a href="59396.html">slope_1_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63492"></span>F804</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63493"></span>F805</td>
+<td class="instruction">LD HL,<a href="59042.html">slope_1_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63496"></span>F808</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63499"></span>F80B</td>
+<td class="instruction">LD HL,<a href="59678.html">slope_3_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 3 (one byte wide, 17 rows), to <a href="59678.html">slope_3_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63502"></span>F80E</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63503"></span>F80F</td>
+<td class="instruction">LD HL,<a href="59155.html">slope_3_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63506"></span>F812</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63509"></span>F815</td>
+<td class="instruction">LD HL,<a href="60566.html">wall_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 14 (the wall), to <a href="60566.html">wall_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63512"></span>F818</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63513"></span>F819</td>
+<td class="instruction">LD HL,<a href="60512.html">wall_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63516"></span>F81C</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63519"></span>F81F</td>
+<td class="instruction">LD HL,<a href="60008.html">flat_piece_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 0 (flat), to <a href="60008.html">flat_piece_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63522"></span>F822</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63523"></span>F823</td>
+<td class="instruction">LD HL,<a href="58753.html">flat_piece_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63526"></span>F826</td>
+<td class="instruction">CALL <a href="63714.html">shift_flat_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63529"></span>F829</td>
+<td class="instruction">LD HL,<a href="60260.html">flat_piece_two_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 7 (the flat ceiling), to <a href="60260.html">flat_piece_two_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63532"></span>F82C</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63533"></span>F82D</td>
+<td class="instruction">LD HL,<a href="58839.html">flat_piece_two_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63536"></span>F830</td>
+<td class="instruction">CALL <a href="63714.html">shift_flat_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63539"></span>F833</td>
+<td class="instruction">OR $FF</td>
+<td class="comment-1" rowspan="2">Ceilings: checkerboard on the left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63541"></span>F835</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63544"></span>F838</td>
+<td class="instruction">LD HL,<a href="60896.html">slope_9_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 9, to <a href="60896.html">slope_9_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63547"></span>F83B</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63548"></span>F83C</td>
+<td class="instruction">LD HL,<a href="58925.html">slope_9_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63551"></span>F83F</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63554"></span>F842</td>
+<td class="instruction">LD HL,<a href="61082.html">slope_8_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 8, to <a href="61082.html">slope_8_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63557"></span>F845</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63558"></span>F846</td>
+<td class="instruction">LD HL,<a href="58985.html">slope_8_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63561"></span>F849</td>
+<td class="instruction">CALL <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63564"></span>F84C</td>
+<td class="instruction">LD HL,<a href="61361.html">slope_10_shifted</a></td>
+<td class="comment-1" rowspan="4">Direction 10, to <a href="61361.html">slope_10_shifted</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63567"></span>F84F</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63568"></span>F850</td>
+<td class="instruction">LD HL,<a href="59101.html">slope_10_gfx</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63571"></span>F853</td>
+<td class="instruction">JP <a href="63801.html">shift_slope_piece</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63461.html">F7E5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63467">Map</a></td>
+<td class="next">
+Next: <a href="63574.html">F856</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C6D2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50896.html">C6D0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50898">Map</a></td>
+<td class="next">
+Next: <a href="51087.html">C78F</a>
+</td>
+</tr>
+</table>
+<div class="description">C6D2: Erase and redraw the lift jet under the ship</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="38258.html">draw_rocket</a>, <a href="50413.html">draw_trail</a> and <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+The add-on fitted when +$0B of the player's record (<a href="62951.html">score</a>) is set (which also raises the top vertical speed <a href="23615.html">top_climb</a> to 4, <a href="45033.html">build_ship_sprite</a>, and lets the ship climb above map row 5, <a href="45333.html">read_controls</a>) is drawn under the ship on even passes: graphic $12, or $11 while thrusting (control bit 3). It is drawn mirrored and not in turn (bit 6 of +3 flips each time), so it seems to spin. While the finished rocket lifts off it is drawn at the rocket's height. With the ship dying (death byte 10 or more) it is only erased, which is why the death sequence (<a href="62528.html">play</a>) calls this once at its start. Its 2x2 attribute patch is white. It ran in the build's every-add-on session, all but the lift-off branch: the launch session had no lift jet.
+</div>
+<div class="paragraph">
+Stage 0 took this for the death sequence; it is not: the death sequence calls it to take the jet off the screen.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet</td>
+<td class="address-2"><span id="50898"></span>C6D2</td>
+<td class="instruction">LD A,(<a href="62962.html">addon_five</a>)</td>
+<td class="comment-1" rowspan="3">Not fitted: return.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50901"></span>C6D5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50902"></span>C6D6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50903"></span>C6D7</td>
+<td class="instruction">LD IX,<a href="51087.html">lift_jet_record</a></td>
+<td class="comment-1" rowspan="4">Its record (<a href="51087.html">lift_jet_record</a>); nothing to erase yet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50907"></span>C6DB</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50910"></span>C6DE</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50913"></span>C6E1</td>
+<td class="instruction">LD (<a href="41609.html">direct_old_line</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50916"></span>C6E4</td>
+<td class="instruction">BIT 7,(IX+$03)</td>
+<td class="comment-1" rowspan="10">Drawn last pass: set up the erase, mirrored if it was.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50920"></span>C6E8</td>
+<td class="instruction">JR Z,<a href="50898.html#50947">lift_jet_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50922"></span>C6EA</td>
+<td class="instruction">CALL <a href="51107.html">sprite_graphic_width</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50925"></span>C6ED</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50928"></span>C6F0</td>
+<td class="instruction">LD HL,($C790)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50931"></span>C6F3</td>
+<td class="instruction">LD IY,<a href="42549.html">direct_erase_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50935"></span>C6F7</td>
+<td class="instruction">BIT 6,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50939"></span>C6FB</td>
+<td class="instruction">JR Z,<a href="50898.html#50947">lift_jet_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50941"></span>C6FD</td>
+<td class="instruction">LD IY,<a href="42932.html">mirrored_erase_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50945"></span>C701</td>
+<td class="instruction">LD B,$F9</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_0</td>
+<td class="address-2"><span id="50947"></span>C703</td>
+<td class="instruction">RES 7,(IX+$03)</td>
+<td class="comment-1" rowspan="2">Not drawn now.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50951"></span>C707</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50952"></span>C708</td>
+<td class="instruction">LD A,(<a href="50896.html">lift_jet_skip</a>)</td>
+<td class="comment-1" rowspan="3">Skipped this pass (<a href="50896.html">lift_jet_skip</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50955"></span>C70B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50956"></span>C70C</td>
+<td class="instruction">JR NZ,<a href="50898.html#51060">lift_jet_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50958"></span>C70E</td>
+<td class="instruction">LD (IX+$00),$12</td>
+<td class="comment-1" rowspan="4">Graphic $12; dying or docking, just erase.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50962"></span>C712</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50965"></span>C715</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50967"></span>C717</td>
+<td class="instruction">JR NC,<a href="50898.html#51060">lift_jet_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50969"></span>C719</td>
+<td class="instruction">LD A,(<a href="23607.html">controls_now</a>)</td>
+<td class="comment-1" rowspan="4">Thrusting: graphic $11.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50972"></span>C71C</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50974"></span>C71E</td>
+<td class="instruction">JR Z,<a href="50898.html#50980">lift_jet_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50976"></span>C720</td>
+<td class="instruction">LD (IX+$00),$11</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_1</td>
+<td class="address-2"><span id="50980"></span>C724</td>
+<td class="instruction">CALL <a href="51107.html">sprite_graphic_width</a></td>
+<td class="comment-1" rowspan="6">Its height; drawn, and mirrored if it was not last time.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50983"></span>C727</td>
+<td class="instruction">LD (<a href="23581.html">ground_cell</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50986"></span>C72A</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50989"></span>C72D</td>
+<td class="instruction">XOR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50991"></span>C72F</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50993"></span>C731</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50996"></span>C734</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="8">The rocket lifting off: at the rocket's height, graphic $11.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50999"></span>C737</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51000"></span>C738</td>
+<td class="instruction">JR Z,<a href="50898.html#51014">lift_jet_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51002"></span>C73A</td>
+<td class="instruction">LD A,($96B2)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51005"></span>C73D</td>
+<td class="instruction">ADD A,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51007"></span>C73F</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51008"></span>C740</td>
+<td class="instruction">LD (IX+$00),$11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51012"></span>C744</td>
+<td class="instruction">JR <a href="50898.html#51031">lift_jet_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_2</td>
+<td class="address-2"><span id="51014"></span>C746</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="9">Otherwise $1D rows below the ship's screen row (<a href="23608.html">ship_line</a>), 8 less for graphic $12.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51017"></span>C749</td>
+<td class="instruction">ADD A,$1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51019"></span>C74B</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51020"></span>C74C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51023"></span>C74F</td>
+<td class="instruction">CP $11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51025"></span>C751</td>
+<td class="instruction">JR Z,<a href="50898.html#51031">lift_jet_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51027"></span>C753</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51028"></span>C754</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51030"></span>C756</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_3</td>
+<td class="address-2"><span id="51031"></span>C757</td>
+<td class="instruction">LD L,$68</td>
+<td class="comment-1" rowspan="7">x $68, or $80 with the mirrored drawer.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51033"></span>C759</td>
+<td class="instruction">BIT 6,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51037"></span>C75D</td>
+<td class="instruction">LD IX,<a href="42626.html">direct_draw_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51041"></span>C761</td>
+<td class="instruction">JR Z,<a href="50898.html#51051">lift_jet_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51043"></span>C763</td>
+<td class="instruction">LD IX,<a href="42980.html">mirrored_draw_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51047"></span>C767</td>
+<td class="instruction">LD B,$F9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51049"></span>C769</td>
+<td class="instruction">LD L,$80</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_4</td>
+<td class="address-2"><span id="51051"></span>C76B</td>
+<td class="instruction">LD ($C793),HL</td>
+<td class="comment-1" rowspan="3">Its place and screen address, kept for the next erase.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51054"></span>C76E</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51057"></span>C771</td>
+<td class="instruction">LD ($C790),HL</td>
+</tr>
+<tr>
+<td class="asm-label">lift_jet_5</td>
+<td class="address-2"><span id="51060"></span>C774</td>
+<td class="instruction">CALL <a href="42399.html">draw_direct_pair</a></td>
+<td class="comment-1" rowspan="3">Erase and draw; the skip flag is used up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51063"></span>C777</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51064"></span>C778</td>
+<td class="instruction">LD (<a href="50896.html">lift_jet_skip</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51067"></span>C77B</td>
+<td class="instruction">LD A,($C792)</td>
+<td class="comment-1" rowspan="10">Drawn: a white 2x2 patch 7 rows above it at x $70.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51070"></span>C77E</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51072"></span>C780</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51073"></span>C781</td>
+<td class="instruction">LD HL,($C793)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51076"></span>C784</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51077"></span>C785</td>
+<td class="instruction">SUB $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51079"></span>C787</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51080"></span>C788</td>
+<td class="instruction">LD L,$70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51082"></span>C78A</td>
+<td class="instruction">LD A,$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51084"></span>C78C</td>
+<td class="instruction">JP <a href="50687.html#50856">side_jet_4</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50896.html">C6D0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50898">Map</a></td>
+<td class="next">
+Next: <a href="51087.html">C78F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

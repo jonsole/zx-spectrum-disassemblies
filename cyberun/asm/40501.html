@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 9E35</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40430.html">9DEE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40501">Map</a></td>
+<td class="next">
+Next: <a href="40570.html">9E7A</a>
+</td>
+</tr>
+</table>
+<div class="description">9E35: Test an object against one landscape piece</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48147.html">hit_slope</a>.
+</div>
+<div class="paragraph">
+Called by <a href="48147.html">hit_slope</a> for each of a landscape piece's collision records. The object's box is in <a href="52794.html">box_x</a>-<a href="52797.html">box_width</a>, its x, bottom line, height and width (made by <a href="48783.html">place_collision_box</a>). Bits 6-7 of the record's flags pick one of four slope shapes -- the same slope mirrored left to right and upside down (<a href="40613.html">test_slope_reversed</a>, <a href="40640.html">test_slope_upside_down</a>, <a href="40665.html">test_slope_both_ways</a>); which way each faces is not yet worked out. A touch leaves <a href="23580.html">scratch_count</a> 1 and the depth into the slope in <a href="23578.html">touch_depth</a>.
+</div>
+<div class="paragraph">
+All four shapes ran in the build's sessions; the RET after the four tests cannot be reached.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The collision record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">test_landscape_piece</td>
+<td class="address-2"><span id="40501"></span>9E35</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">The object's box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40502"></span>9E36</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40505"></span>9E39</td>
+<td class="instruction">LD HL,(<a href="52794.html">box_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40508"></span>9E3C</td>
+<td class="instruction">LD DE,(<a href="52796.html">box_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40512"></span>9E40</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="3">The steepness</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40515"></span>9E43</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40517"></span>9E45</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40518"></span>9E46</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="10">The shape</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40521"></span>9E49</td>
+<td class="instruction">AND $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40523"></span>9E4B</td>
+<td class="instruction">JR Z,<a href="40501.html#40541">test_landscape_piece_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40525"></span>9E4D</td>
+<td class="instruction">CP $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40527"></span>9E4F</td>
+<td class="instruction">JP Z,<a href="40613.html">test_slope_reversed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40530"></span>9E52</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40532"></span>9E54</td>
+<td class="instruction">JP Z,<a href="40640.html">test_slope_upside_down</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40535"></span>9E57</td>
+<td class="instruction">CP $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40537"></span>9E59</td>
+<td class="instruction">JP Z,<a href="40665.html">test_slope_both_ways</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40540"></span>9E5C</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">test_landscape_piece_0</td>
+<td class="address-2"><span id="40541"></span>9E5D</td>
+<td class="instruction">CALL <a href="40430.html">test_slope</a></td>
+<td class="comment-1" rowspan="1">The first shape</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="40544"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="40665.html">test_slope_both_ways</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">test_landscape_piece_1</td>
+<td class="address-2"><span id="40544"></span>9E60</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="5">In range: no touch yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40547"></span>9E63</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40548"></span>9E64</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40549"></span>9E65</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40550"></span>9E66</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40553"></span>9E69</td>
+<td class="instruction">LD A,D</td>
+<td class="comment-1" rowspan="7">The object's right edge short of the slope: no touch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40554"></span>9E6A</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40555"></span>9E6B</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40556"></span>9E6C</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40559"></span>9E6F</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40560"></span>9E70</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40561"></span>9E71</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40562"></span>9E72</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="3">How far in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40564"></span>9E74</td>
+<td class="instruction">LD (<a href="23578.html">touch_depth</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="40567"></span>9E77</td>
+<td class="instruction">JP <a href="40379.html#40402">overlap_found</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="40430.html">9DEE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#40501">Map</a></td>
+<td class="next">
+Next: <a href="40570.html">9E7A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

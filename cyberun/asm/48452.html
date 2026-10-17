@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BD44</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48447.html">BD3F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48452">Map</a></td>
+<td class="next">
+Next: <a href="48573.html">BDBD</a>
+</td>
+</tr>
+</table>
+<div class="description">BD44: Bounce off a slope that is not 45 degrees</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="48147.html">hit_slope</a>.
+</div>
+<div class="paragraph">
+The new speeds are a mix of the old: across = 3/8 across + 3/8 up and down, up and down = -3/4 up and down + 3/4 across, the terms from the other speed negated or not (<a href="48584.html">slope_negate</a>) as two JRs in this routine decide: their displacements are patched to 0 to run the CALL after each (from here) or to 3 to jump over it (from <a href="48573.html">bounce_shallow</a>). For kind 3 slopes the speeds are swapped before and after (<a href="48600.html">swap_speeds</a>), which mirrors the mix about the diagonal: the same rule serves the steep slopes and the shallow. Each result is clamped (<a href="51328.html">clamp_object_speed</a>). The factors shrink the speed, so a bounce loses energy.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the box</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">bounce_shallow_negate</td>
+<td class="address-2"><span id="48452"></span>BD44</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">the negations on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48453"></span>BD45</td>
+<td class="instruction">LD ($BD85),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48456"></span>BD48</td>
+<td class="instruction">LD ($BD74),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="48459"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="48573.html">bounce_shallow</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">bounce_shallow_negate_0</td>
+<td class="address-2"><span id="48459"></span>BD4B</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="7">(<a href="48573.html">bounce_shallow</a>'s entry) the box's kind in C; kind 3: swap the speeds first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48462"></span>BD4E</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48463"></span>BD4F</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48465"></span>BD51</td>
+<td class="instruction">PUSH AF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48466"></span>BD52</td>
+<td class="instruction">LD IX,(<a href="47625.html">collision_object</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48470"></span>BD56</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48472"></span>BD58</td>
+<td class="instruction">CALL Z,<a href="48600.html">swap_speeds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48475"></span>BD5B</td>
+<td class="instruction">LD H,(IX+$07)</td>
+<td class="comment-1" rowspan="4">3/8 of the speed across, kept for later</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48478"></span>BD5E</td>
+<td class="instruction">LD L,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48481"></span>BD61</td>
+<td class="instruction">CALL <a href="48625.html">three_eighths</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48484"></span>BD64</td>
+<td class="instruction">LD (<a href="23573.html">saved_step_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48487"></span>BD67</td>
+<td class="instruction">LD H,(IX+$07)</td>
+<td class="comment-1" rowspan="4">3/4 of it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48490"></span>BD6A</td>
+<td class="instruction">LD L,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48493"></span>BD6D</td>
+<td class="instruction">CALL <a href="48638.html">double_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48496"></span>BD70</td>
+<td class="instruction">CALL <a href="48625.html">three_eighths</a></td>
+</tr>
+<tr>
+<td class="asm-label">bounce_shallow_negate_1</td>
+<td class="address-2"><span id="48499"></span>BD73</td>
+<td class="instruction">JR <a href="48452.html#48499">bounce_shallow_negate_1</a></td>
+<td class="comment-1" rowspan="1">patched: run the CALL or jump over it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48501"></span>BD75</td>
+<td class="instruction">CALL <a href="48584.html">slope_negate</a></td>
+<td class="comment-1" rowspan="1">negate it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48504"></span>BD78</td>
+<td class="instruction">LD (<a href="23575.html">saved_step_y</a>),HL</td>
+<td class="comment-1" rowspan="4">keep it; 3/8 of the speed up and down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48507"></span>BD7B</td>
+<td class="instruction">LD H,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48510"></span>BD7E</td>
+<td class="instruction">LD L,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48513"></span>BD81</td>
+<td class="instruction">CALL <a href="48625.html">three_eighths</a></td>
+</tr>
+<tr>
+<td class="asm-label">bounce_shallow_negate_2</td>
+<td class="address-2"><span id="48516"></span>BD84</td>
+<td class="instruction">JR <a href="48452.html#48516">bounce_shallow_negate_2</a></td>
+<td class="comment-1" rowspan="1">patched: run the CALL or jump over it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48518"></span>BD86</td>
+<td class="instruction">CALL <a href="48584.html">slope_negate</a></td>
+<td class="comment-1" rowspan="1">negate it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48521"></span>BD89</td>
+<td class="instruction">LD DE,(<a href="23573.html">saved_step_x</a>)</td>
+<td class="comment-1" rowspan="5">across: plus the 3/8 across, clamped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48525"></span>BD8D</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48526"></span>BD8E</td>
+<td class="instruction">CALL <a href="51328.html">clamp_object_speed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48529"></span>BD91</td>
+<td class="instruction">LD (IX+$07),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48532"></span>BD94</td>
+<td class="instruction">LD (IX+$08),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48535"></span>BD97</td>
+<td class="instruction">LD H,(IX+$09)</td>
+<td class="comment-1" rowspan="10">up and down: 3/4 of it negated, plus the 3/4 across, clamped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48538"></span>BD9A</td>
+<td class="instruction">LD L,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48541"></span>BD9D</td>
+<td class="instruction">CALL <a href="48638.html">double_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48544"></span>BDA0</td>
+<td class="instruction">CALL <a href="48625.html">three_eighths</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48547"></span>BDA3</td>
+<td class="instruction">CALL <a href="48584.html">slope_negate</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48550"></span>BDA6</td>
+<td class="instruction">LD DE,(<a href="23575.html">saved_step_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48554"></span>BDAA</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48555"></span>BDAB</td>
+<td class="instruction">CALL <a href="51328.html">clamp_object_speed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48558"></span>BDAE</td>
+<td class="instruction">LD (IX+$09),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48561"></span>BDB1</td>
+<td class="instruction">LD (IX+$0A),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48564"></span>BDB4</td>
+<td class="instruction">POP AF</td>
+<td class="comment-1" rowspan="4">kind 3: swap back; push the object out (<a href="48219.html">leave_slope</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48565"></span>BDB5</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48567"></span>BDB7</td>
+<td class="instruction">CALL Z,<a href="48600.html">swap_speeds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48570"></span>BDBA</td>
+<td class="instruction">JP <a href="48219.html">leave_slope</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48447.html">BD3F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48452">Map</a></td>
+<td class="next">
+Next: <a href="48573.html">BDBD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

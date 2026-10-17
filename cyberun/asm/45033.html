@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AFE9</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45015.html">AFD7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45033">Map</a></td>
+<td class="next">
+Next: <a href="45212.html">B09C</a>
+</td>
+</tr>
+</table>
+<div class="description">AFE9: Build the ship's sprite from its add-ons</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50209.html">draw_ship_image</a> and <a href="56481.html">start_landscape</a>.
+</div>
+<div class="paragraph">
+The ship's sprite is put together in a buffer of 50 rows of 6 bytes (300 bytes) at <a href="63161.html">ship_picture</a>, drawn from the bottom row up: the bare ship (84 bytes from <a href="51345.html">bare_ship</a>, 14 rows) goes in rows 26-39, the top of the picture without add-on 9, and every add-on fitted -- the nine bytes from <a href="62958.html">addon_slots</a>, add-on n's slot holding n or 0 -- is masked and drawn in at its own place (<a href="45212.html">fit_addon</a>), each hanging below the ship. The sprite's height in rows (<a href="49577.html">ship_height</a>) is the most any add-on needs, at least 14, and drawing starts that many rows below row 40 (<a href="49578.html">ship_graphic</a>). Add-on 9 sits on top of the ship, rows 36-50, and adds 11 rows to the height after the start is worked out, so the picture then ends at row 50 -- one row past the buffer, in <a href="63461.html">spare_after_ship</a>. Called from <a href="50147.html">draw_ship</a> when an add-on is fitted, and from <a href="56481.html">start_landscape</a>.
+</div>
+<div class="paragraph">
+The ship's top stays where it was on the screen and its bottom line (<a href="51459.html">ship_screen_y</a>) moves down by the rows added, and the ship's world position (its record at <a href="51429.html">ship_record</a>) moves with it, so the ship does not jump; <a href="23608.html">ship_line</a>, the line its shots come out of, is 8 below its top.
+</div>
+<div class="paragraph">
+The add-ons' effects set here: 4 doubles the top speed across (<a href="23614.html">top_speed</a> 4 instead of 2); 5 doubles the top climb (<a href="23615.html">top_climb</a>); 9 adds 11 rows to the height, into which the tail of <a href="43173.html">load_ore</a> draws the ore collected (<a href="51461.html">ore</a> rows); a rocket part being carried (<a href="62977.html">rocket_part_carried</a> not $FF) is hung under the ship again by <a href="43575.html">toggle_carried_part</a>'s second entry. Add-on 2 always comes with add-on 1: its slot is set to twice add-on 1's. All of it ran in the build's every-add-on session; with every add-on fitted the picture is 51 rows, rows 0-50, its top row in <a href="63461.html">spare_after_ship</a> (simulated for the Graphics page).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">build_ship_sprite</td>
+<td class="address-2"><span id="45033"></span>AFE9</td>
+<td class="instruction">LD A,(<a href="62958.html">addon_slots</a>)</td>
+<td class="comment-1" rowspan="3">add-on 2 comes and goes with add-on 1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45036"></span>AFEC</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45037"></span>AFED</td>
+<td class="instruction">LD (<a href="62959.html">addon_two</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45040"></span>AFF0</td>
+<td class="instruction">LD A,$02</td>
+<td class="comment-1" rowspan="3">the top speeds across and up: 2 a pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45042"></span>AFF2</td>
+<td class="instruction">LD (<a href="23614.html">top_speed</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45045"></span>AFF5</td>
+<td class="instruction">LD (<a href="23615.html">top_climb</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45048"></span>AFF8</td>
+<td class="instruction">LD BC,$0054</td>
+<td class="comment-1" rowspan="4">the bare ship into the last 14 rows of the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45051"></span>AFFB</td>
+<td class="instruction">LD DE,$F755</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45054"></span>AFFE</td>
+<td class="instruction">LD HL,<a href="51345.html">bare_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45057"></span>B001</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45059"></span>B003</td>
+<td class="instruction">LD IX,<a href="62958.html">addon_slots</a></td>
+<td class="comment-1" rowspan="4">the nine add-on slots; 14 rows so far</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45063"></span>B007</td>
+<td class="instruction">LD A,$0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45065"></span>B009</td>
+<td class="instruction">LD (<a href="49577.html">ship_height</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45068"></span>B00C</td>
+<td class="instruction">LD B,$09</td>
+</tr>
+<tr>
+<td class="asm-label">build_ship_sprite_0</td>
+<td class="address-2"><span id="45070"></span>B00E</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="7">draw in each one fitted (<a href="45212.html">fit_addon</a>), which may make the sprite taller</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45071"></span>B00F</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45074"></span>B012</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45075"></span>B013</td>
+<td class="instruction">CALL NZ,<a href="45212.html">fit_addon</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45078"></span>B016</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45080"></span>B018</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45081"></span>B019</td>
+<td class="instruction">DJNZ <a href="45033.html#45070">build_ship_sprite_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45083"></span>B01B</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+<td class="comment-1" rowspan="13">drawing starts at row 40 less the height: <a href="49578.html">ship_graphic</a> = <a href="63161.html">ship_picture</a> + 6 * (40 - height)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45086"></span>B01E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45087"></span>B01F</td>
+<td class="instruction">LD A,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45089"></span>B021</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45090"></span>B022</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45091"></span>B023</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45092"></span>B024</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45093"></span>B025</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45094"></span>B026</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45095"></span>B027</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45097"></span>B029</td>
+<td class="instruction">LD HL,<a href="63161.html">ship_picture</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45100"></span>B02C</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45101"></span>B02D</td>
+<td class="instruction">LD (<a href="49578.html">ship_graphic</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45104"></span>B030</td>
+<td class="instruction">LD A,(<a href="51459.html">ship_screen_y</a>)</td>
+<td class="comment-1" rowspan="7">the bottom line on screen: $6F plus the rows above 14, to the bottom of its cell</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45107"></span>B033</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45108"></span>B034</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45111"></span>B037</td>
+<td class="instruction">SUB $0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45113"></span>B039</td>
+<td class="instruction">ADD A,$6F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45115"></span>B03B</td>
+<td class="instruction">OR $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45117"></span>B03D</td>
+<td class="instruction">LD (<a href="51459.html">ship_screen_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45120"></span>B040</td>
+<td class="instruction">SUB B</td>
+<td class="comment-1" rowspan="6">the change, as the y speed of the ship's record: move it that far</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45121"></span>B041</td>
+<td class="instruction">LD (<a href="51438.html">ship_dy</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45124"></span>B044</td>
+<td class="instruction">LD IX,<a href="51429.html">ship_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45128"></span>B048</td>
+<td class="instruction">CALL <a href="47547.html">move_down</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45131"></span>B04B</td>
+<td class="instruction">LD (IX+$04),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45134"></span>B04E</td>
+<td class="instruction">LD (IX+$05),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45137"></span>B051</td>
+<td class="instruction">CALL <a href="47596.html">ship_speed_from_scroll</a></td>
+<td class="comment-1" rowspan="1">and clear its speed again (<a href="47596.html">ship_speed_from_scroll</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45140"></span>B054</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+<td class="comment-1" rowspan="6">the line the shots come out of: 9 below the line above the sprite</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45143"></span>B057</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45144"></span>B058</td>
+<td class="instruction">LD A,(IX+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45147"></span>B05B</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45148"></span>B05C</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45150"></span>B05E</td>
+<td class="instruction">LD (<a href="23608.html">ship_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45153"></span>B061</td>
+<td class="instruction">LD A,(<a href="62961.html">addon_four</a>)</td>
+<td class="comment-1" rowspan="5">add-on 4: top speed across 4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45156"></span>B064</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45157"></span>B065</td>
+<td class="instruction">JR Z,<a href="45033.html#45164">build_ship_sprite_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45159"></span>B067</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45161"></span>B069</td>
+<td class="instruction">LD (<a href="23614.html">top_speed</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">build_ship_sprite_1</td>
+<td class="address-2"><span id="45164"></span>B06C</td>
+<td class="instruction">LD A,(<a href="62962.html">addon_five</a>)</td>
+<td class="comment-1" rowspan="5">add-on 5: top climb 4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45167"></span>B06F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45168"></span>B070</td>
+<td class="instruction">JR Z,<a href="45033.html#45175">build_ship_sprite_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45170"></span>B072</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45172"></span>B074</td>
+<td class="instruction">LD (<a href="23615.html">top_climb</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">build_ship_sprite_2</td>
+<td class="address-2"><span id="45175"></span>B077</td>
+<td class="instruction">LD A,(<a href="62977.html">rocket_part_carried</a>)</td>
+<td class="comment-1" rowspan="9">carrying a rocket part: hang it under the ship again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45178"></span>B07A</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45179"></span>B07B</td>
+<td class="instruction">JR Z,<a href="45033.html#45194">build_ship_sprite_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45181"></span>B07D</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45182"></span>B07E</td>
+<td class="instruction">OR $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45184"></span>B080</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45187"></span>B083</td>
+<td class="instruction">CALL <a href="43575.html#43668">toggle_carried_part_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45190"></span>B086</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45191"></span>B087</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">build_ship_sprite_3</td>
+<td class="address-2"><span id="45194"></span>B08A</td>
+<td class="instruction">LD A,(<a href="62966.html">addon_nine</a>)</td>
+<td class="comment-1" rowspan="7">add-on 9: 11 more rows, up to row 50 (<a href="63461.html">spare_after_ship</a>); then the rows of the tail of <a href="43173.html">load_ore</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45197"></span>B08D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45198"></span>B08E</td>
+<td class="instruction">JP Z,<a href="43173.html#43225">load_ore_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45201"></span>B091</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45204"></span>B094</td>
+<td class="instruction">ADD A,$0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45206"></span>B096</td>
+<td class="instruction">LD (<a href="49577.html">ship_height</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45209"></span>B099</td>
+<td class="instruction">JP <a href="43173.html#43225">load_ore_3</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45015.html">AFD7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45033">Map</a></td>
+<td class="next">
+Next: <a href="45212.html">B09C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

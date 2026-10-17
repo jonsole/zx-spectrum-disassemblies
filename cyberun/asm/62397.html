@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F3BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62391.html">F3B7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62397">Map</a></td>
+<td class="next">
+Next: <a href="62489.html">F419</a>
+</td>
+</tr>
+</table>
+<div class="description">F3BD: Set up a new game</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62498.html">game</a>.
+</div>
+<div class="paragraph">
+Called by <a href="62498.html">game</a> after the menu. Clears bits 6 and 7 of the 290 bytes from <a href="23700.html">map_object_kinds</a> (<a href="39562.html">mask_world_objects</a> with E = $3F): each player's mark on the level's objects, bit 7 for player 1 and bit 6 for player 2 (see <a href="62528.html">play</a>). Clears both player records (<a href="62366.html">clear_player_record</a>) and gives each five lives; if the score lines were left the other way round by the last game (the byte at <a href="51702.html">p1_lives_text</a> is $A0) they are put back with <a href="62865.html">swap_players</a>, <a href="51740.html">player_in_play</a> being set to $99 meanwhile so that it does not also change the current player. Player 1 is current; with one player, player 2 has no lives. Each player's control method is copied from the menu, the two scores on the panel are set to six noughts ($1A is the font's 0), and each player's table of the level's objects is filled in by <a href="24851.html">deal_places</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">new_game</td>
+<td class="address-2"><span id="62397"></span>F3BD</td>
+<td class="instruction">LD E,$3F</td>
+<td class="comment-1" rowspan="2">Clear both players' marks on the level's objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62399"></span>F3BF</td>
+<td class="instruction">CALL <a href="39562.html">mask_world_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62402"></span>F3C2</td>
+<td class="instruction">LD HL,<a href="62951.html">score</a></td>
+<td class="comment-1" rowspan="4">Clear both records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62405"></span>F3C5</td>
+<td class="instruction">CALL <a href="62366.html">clear_player_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62408"></span>F3C8</td>
+<td class="instruction">LD HL,<a href="63056.html">other_player_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62411"></span>F3CB</td>
+<td class="instruction">CALL <a href="62366.html">clear_player_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62414"></span>F3CE</td>
+<td class="instruction">LD A,$05</td>
+<td class="comment-1" rowspan="3">Five lives each</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62416"></span>F3D0</td>
+<td class="instruction">LD (<a href="62957.html">lives</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62419"></span>F3D3</td>
+<td class="instruction">LD ($F656),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62422"></span>F3D6</td>
+<td class="instruction">LD A,$99</td>
+<td class="comment-1" rowspan="5">Put the score lines back in order if they were swapped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62424"></span>F3D8</td>
+<td class="instruction">LD (<a href="51740.html">player_in_play</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62427"></span>F3DB</td>
+<td class="instruction">LD A,(<a href="51702.html">p1_lives_text</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62430"></span>F3DE</td>
+<td class="instruction">CP $A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62432"></span>F3E0</td>
+<td class="instruction">CALL Z,<a href="62865.html">swap_players</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62435"></span>F3E3</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Player 1 is current</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62436"></span>F3E4</td>
+<td class="instruction">LD (<a href="51740.html">player_in_play</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62439"></span>F3E7</td>
+<td class="instruction">LD A,(<a href="62178.html">player_count</a>)</td>
+<td class="comment-1" rowspan="4">One player: player 2 has no lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62442"></span>F3EA</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62443"></span>F3EB</td>
+<td class="instruction">JR NZ,<a href="62397.html#62448">new_game_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62445"></span>F3ED</td>
+<td class="instruction">LD ($F656),A</td>
+</tr>
+<tr>
+<td class="asm-label">new_game_0</td>
+<td class="address-2"><span id="62448"></span>F3F0</td>
+<td class="instruction">LD A,($870A)</td>
+<td class="comment-1" rowspan="4">Each player's control method, as chosen on the menu</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62451"></span>F3F3</td>
+<td class="instruction">LD (<a href="62979.html">control_method</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62454"></span>F3F6</td>
+<td class="instruction">LD A,($870D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62457"></span>F3F9</td>
+<td class="instruction">LD ($F66C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62460"></span>F3FC</td>
+<td class="instruction">LD B,$06</td>
+<td class="comment-1" rowspan="9">Both scores to 000000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62462"></span>F3FE</td>
+<td class="instruction">LD DE,<a href="51696.html">p1_score_digits</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62465"></span>F401</td>
+<td class="instruction">LD HL,<a href="51712.html">p2_score_digits</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62468"></span>F404</td>
+<td class="instruction">LD A,$1A</td>
+</tr>
+<tr>
+<td class="asm-label">new_game_1</td>
+<td class="address-2"><span id="62470"></span>F406</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62471"></span>F407</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62472"></span>F408</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62473"></span>F409</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62474"></span>F40A</td>
+<td class="instruction">DJNZ <a href="62397.html#62470">new_game_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62476"></span>F40C</td>
+<td class="instruction">LD DE,<a href="62980.html">player_places</a></td>
+<td class="comment-1" rowspan="4">Each player's table of the level's objects</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62479"></span>F40F</td>
+<td class="instruction">CALL <a href="24851.html">deal_places</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62482"></span>F412</td>
+<td class="instruction">LD DE,$F66D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62485"></span>F415</td>
+<td class="instruction">CALL <a href="24851.html">deal_places</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62488"></span>F418</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">Done</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62391.html">F3B7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62397">Map</a></td>
+<td class="next">
+Next: <a href="62489.html">F419</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

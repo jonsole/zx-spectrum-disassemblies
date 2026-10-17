@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Data at A80B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43010.html">A802</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43019">Map</a></td>
+<td class="next">
+Next: <a href="43123.html">A873</a>
+</td>
+</tr>
+</table>
+<div class="description">A80B: The ground-object records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Six records of 26 bytes for the things lying on the landscape: these four for the objects placed from the map (<a href="23700.html">map_object_kinds</a>) -- the installations that can be shot, collided with, landed on, mined -- and two (<a href="43123.html">pickup_record</a>, <a href="43149.html">second_pickup_record</a>) for the pick-ups, which have bit 7 of +3 set. <a href="44128.html">update_ground_objects</a> updates and draws them, <a href="43252.html">ship_hits_ground_objects</a> tests the ship against these four, <a href="43944.html">beam_hits_ground_object</a> the special beam against them. The map code (<a href="57096.html">load_map_window</a>) fills them as the view reaches them.
+</div>
+<div class="paragraph">
+The fields, as far as this range uses them (the first $18 bytes are the same as the sky objects' records at <a href="39284.html">object_records</a>, and the same routines place and draw both):
+</div>
+<div class="paragraph">
++0 the graphic number ($FF a free record), the index into the graphic table (the words from the 25th byte of <a href="44837.html">object_handlers</a>). +1 the page column and +2 the x within it (bit 0 ignored); +4 the page row and +5 the y of the bottom row within it -- see <a href="44504.html">place_on_screen</a> for the pages. +3 bit 7: a pick-up. +7 to +$0A and +$0B, +$0C, +$0E, +$0F: cleared when the record is freed (<a href="44084.html">free_object</a>; movement, not used here). +$0D the colours, two attributes in its nibbles, shown on alternate passes (<a href="44360.html">prepare_draw</a>). +$10 flags: bit 7 drawn on the screen last pass, bit 6 drawn straddling the left edge, bit 4 to be rubbed out and freed. +$11 and +$12 the screen x and y it was drawn at. +$13 bits 0-3 the frame of the graphic, which for graphic $0D is also the object's kind (from <a href="23700.html">map_object_kinds</a>; kind $0B is never collided with); for graphic $1B, the animated objects, the frame byte from <a href="57614.html">object_part_pairs</a> -- bits 4-5 a count and 6-7 its reload, with +$14 the frames it runs through (<a href="37130.html">animate_object</a>) -- and frames 4 and 5 are the fuel station's (map kind $0E), the refuel pad of <a href="43252.html">ship_hits_ground_objects</a>. +$15 bit 7: <a href="37130.html">animate_object</a> animates it. +$17 bit 3 dissolving and bits 0-2 the step. +$18 bits 1-3 not zero: the kind of shot it fires (<a href="34848.html">ground_object_fires</a>); +$18 bit 0 and +$19 the number of its byte in <a href="23700.html">map_object_kinds</a>, where it is marked gone.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ground_objects</td>
+<td class="address-1"><span id="43019"></span>A80B</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="8">One record every two lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43032"></span>A818</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43045"></span>A825</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43058"></span>A832</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43071"></span>A83F</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43084"></span>A84C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43097"></span>A859</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43110"></span>A866</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43010.html">A802</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43019">Map</a></td>
+<td class="next">
+Next: <a href="43123.html">A873</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

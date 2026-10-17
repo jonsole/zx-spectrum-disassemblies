@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at ABA8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43942.html">ABA6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43944">Map</a></td>
+<td class="next">
+Next: <a href="44040.html">AC08</a>
+</td>
+</tr>
+</table>
+<div class="description">ABA8: Test the special beam against a ground object</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+For each ground object that is not a pick-up, is on the screen, is not already dissolving and is not of kind $0B, while the special beam is out (<a href="47154.html">special_beam_on</a>): its box is set from where it was drawn (<a href="37187.html">object_box</a>), the beam's record found (<a href="47216.html">find_special_beam</a>, which leaves IY at it) and tested against the box (the entry near the start of <a href="37244.html">test_player_shots</a>, through <a href="44073.html">test_shot_box</a>). Kind $0B (a ringed planet, by its picture) is the one kind the beam cannot destroy. If that started the object dissolving (bit 3 of +$17), it is marked gone in <a href="23700.html">map_object_kinds</a>. Then, for graphic $0D only: an ore deposit (kind 8 to $0A) gives its kind to the beam's +$13, which brings the ore back to the tank (<a href="43173.html">load_ore</a>); kinds 6 and 7 set the bit for their map square in the player's record (<a href="44040.html">map_square_bit</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">beam_hits_ground_object</td>
+<td class="address-2"><span id="43944"></span>ABA8</td>
+<td class="instruction">BIT 7,(IX+$03)</td>
+<td class="comment-1" rowspan="12">Only for a ground object on the screen, not dissolving and not of kind $0B, while the beam is out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43948"></span>ABAC</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43949"></span>ABAD</td>
+<td class="instruction">LD A,(<a href="47154.html">special_beam_on</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43952"></span>ABB0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43953"></span>ABB1</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43954"></span>ABB2</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43958"></span>ABB6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43959"></span>ABB7</td>
+<td class="instruction">BIT 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43963"></span>ABBB</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43964"></span>ABBC</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43967"></span>ABBF</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43969"></span>ABC1</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43970"></span>ABC2</td>
+<td class="instruction">CALL <a href="37187.html">object_box</a></td>
+<td class="comment-1" rowspan="3">Box it, find the beam, and test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43973"></span>ABC5</td>
+<td class="instruction">CALL <a href="47216.html">find_special_beam</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43976"></span>ABC8</td>
+<td class="instruction">CALL <a href="44073.html">test_shot_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43979"></span>ABCB</td>
+<td class="instruction">BIT 3,(IX+$17)</td>
+<td class="comment-1" rowspan="2">Not hit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43983"></span>ABCF</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43984"></span>ABD0</td>
+<td class="instruction">LD A,(IX+$18)</td>
+<td class="comment-1" rowspan="7">Hit: mark it gone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43987"></span>ABD3</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43989"></span>ABD5</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43990"></span>ABD6</td>
+<td class="instruction">LD L,(IX+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43993"></span>ABD9</td>
+<td class="instruction">LD DE,<a href="23700.html">map_object_kinds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43996"></span>ABDC</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43997"></span>ABDD</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43999"></span>ABDF</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">Graphic $0D only</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44002"></span>ABE2</td>
+<td class="instruction">CP $0D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44004"></span>ABE4</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44005"></span>ABE5</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="7">Kinds 8 to $0A, ore: give the kind to the beam</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44008"></span>ABE8</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44010"></span>ABEA</td>
+<td class="instruction">JR C,<a href="43944.html#44019">beam_hits_ground_object_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44012"></span>ABEC</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44014"></span>ABEE</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44015"></span>ABEF</td>
+<td class="instruction">LD (IY+$13),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44018"></span>ABF2</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">beam_hits_ground_object_0</td>
+<td class="address-2"><span id="44019"></span>ABF3</td>
+<td class="instruction">CP $06</td>
+<td class="comment-1" rowspan="2">Kinds 6 and 7 only</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44021"></span>ABF5</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44022"></span>ABF6</td>
+<td class="instruction">LD E,(IX+$01)</td>
+<td class="comment-1" rowspan="7">Set the bit for its map square (the SET's bit number is patched in)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44025"></span>ABF9</td>
+<td class="instruction">LD D,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44028"></span>ABFC</td>
+<td class="instruction">CALL <a href="44040.html">map_square_bit</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44031"></span>ABFF</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44032"></span>AC00</td>
+<td class="instruction">ADD A,$C6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44034"></span>AC02</td>
+<td class="instruction">LD ($AC06),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44037"></span>AC05</td>
+<td class="instruction">SET 0,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44039"></span>AC07</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43942.html">ABA6</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43944">Map</a></td>
+<td class="next">
+Next: <a href="44040.html">AC08</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

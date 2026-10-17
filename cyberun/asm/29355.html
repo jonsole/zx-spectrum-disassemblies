@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 72AB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="29349.html">72A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29355">Map</a></td>
+<td class="next">
+Next: <a href="29391.html">72CF</a>
+</td>
+</tr>
+</table>
+<div class="description">72AB: Sound the ship's death</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="36162.html">update_objects</a>.
+</div>
+<div class="paragraph">
+Called by <a href="36162.html">update_objects</a> each pass once the death byte (<a href="36691.html">death_count</a>) has reached 10, until it reaches $2D: from nine passes after the ship is destroyed. Docking with the finished rocket does not play it: <a href="38258.html">draw_rocket</a> sets the death byte to 10 only for the two calls that put the ship away, and back to 0 in the same call, before <a href="36162.html">update_objects</a>, its only caller, runs in the pass. It plays the warble (<a href="29207.html">warble</a>) with the death byte - 10, then, on every eighth count, a seven-cycle zap (<a href="29262.html">zap_sweep</a>); on the other odd counts, eleven clicks with the death byte halved as the scramble (<a href="29335.html">crackle</a>); on even counts nothing more.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">sound_death</td>
+<td class="address-2"><span id="29355"></span>72AB</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Nothing from $2D on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29358"></span>72AE</td>
+<td class="instruction">CP $2D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29360"></span>72B0</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29361"></span>72B1</td>
+<td class="instruction">SUB $0A</td>
+<td class="comment-1" rowspan="2">The warble, note = death byte - 10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29363"></span>72B3</td>
+<td class="instruction">CALL <a href="29207.html">warble</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29366"></span>72B6</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="4">A multiple of 8: the zap below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29369"></span>72B9</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29370"></span>72BA</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29372"></span>72BC</td>
+<td class="instruction">JR Z,<a href="29355.html#29386">sound_death_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29374"></span>72BE</td>
+<td class="instruction">BIT 0,B</td>
+<td class="comment-1" rowspan="2">Even: nothing more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29376"></span>72C0</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29377"></span>72C1</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="5">Odd: eleven clicks, scramble = death byte / 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29378"></span>72C2</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29380"></span>72C4</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29381"></span>72C5</td>
+<td class="instruction">LD C,$0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29383"></span>72C7</td>
+<td class="instruction">JP <a href="29335.html">crackle</a></td>
+</tr>
+<tr>
+<td class="asm-label">sound_death_0</td>
+<td class="address-2"><span id="29386"></span>72CA</td>
+<td class="instruction">LD C,$07</td>
+<td class="comment-1" rowspan="2">Seven cycles of the zap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="29388"></span>72CC</td>
+<td class="instruction">JP <a href="29262.html">zap_sweep</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="29349.html">72A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#29355">Map</a></td>
+<td class="next">
+Next: <a href="29391.html">72CF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

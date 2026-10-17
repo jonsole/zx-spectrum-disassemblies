@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F311</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62219.html">F30B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62225">Map</a></td>
+<td class="next">
+Next: <a href="62366.html">F39E</a>
+</td>
+</tr>
+</table>
+<div class="description">F311: Reset the play for a new life</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+Called by <a href="62528.html">play</a> at the start of every life (and of every level). Sets the ship's colour back to white, clears the death byte <a href="36691.html">death_count</a>, the hit-immunity timer <a href="35183.html">shield_timer</a>, the end-of-level byte <a href="38571.html">launch_state</a>, the hit count and two more flags, and empties or resets the game's tables: bit 0 of the first byte of 18 two-byte entries of <a href="49382.html">star_layer_pointer</a>, 96 bytes at <a href="45946.html">shot_records</a>, the first byte of the eight 5-byte entries of <a href="38576.html">rocket_part_table</a>, 16 bytes of <a href="40239.html">beam_grace</a>'s table; then copies four records back from the starting copies that follow them (<a href="51132.html">trail_frame</a>, <a href="51087.html">lift_jet_record</a>, <a href="50882.html">side_jet_record</a>, and the 32 bytes of the ship's state in <a href="51345.html">bare_ship</a>), and resets with <a href="44084.html">free_object</a> the nine 24-byte records at <a href="39284.html">object_records</a> and the six 26-byte records at <a href="43019.html">ground_objects</a>.
+</div>
+<div class="paragraph">
+Which of these tables is which is for the ranges that hold them; here they are named by address only.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">reset_for_life</td>
+<td class="address-2"><span id="62225"></span>F311</td>
+<td class="instruction">LD A,$47</td>
+<td class="comment-1" rowspan="2">The ship's colour back to white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62227"></span>F313</td>
+<td class="instruction">LD ($F201),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62230"></span>F316</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="7">Clear the death byte, the immunity timer, the end of the level, the hits and two more flags</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62231"></span>F317</td>
+<td class="instruction">LD (<a href="36691.html">death_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62234"></span>F31A</td>
+<td class="instruction">LD (<a href="35183.html">shield_timer</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62237"></span>F31D</td>
+<td class="instruction">LD (<a href="38571.html">launch_state</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62240"></span>F320</td>
+<td class="instruction">LD (<a href="36803.html">hit_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62243"></span>F323</td>
+<td class="instruction">LD (<a href="49786.html">carried_part_redraw</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62246"></span>F326</td>
+<td class="instruction">LD (<a href="34805.html">meteor_shower</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62249"></span>F329</td>
+<td class="instruction">LD A,$18</td>
+<td class="comment-1" rowspan="2"><a href="40239.html">beam_grace</a> to 24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62251"></span>F32B</td>
+<td class="instruction">LD (<a href="40239.html">beam_grace</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62254"></span>F32E</td>
+<td class="instruction">LD HL,<a href="49386.html">star_positions</a></td>
+<td class="comment-1" rowspan="8">Bit 0 of the first byte of 18 entries of <a href="49382.html">star_layer_pointer</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62257"></span>F331</td>
+<td class="instruction">LD B,$12</td>
+</tr>
+<tr>
+<td class="asm-label">reset_for_life_0</td>
+<td class="address-2"><span id="62259"></span>F333</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62260"></span>F334</td>
+<td class="instruction">AND $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62262"></span>F336</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62263"></span>F337</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62264"></span>F338</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62265"></span>F339</td>
+<td class="instruction">DJNZ <a href="62225.html#62259">reset_for_life_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62267"></span>F33B</td>
+<td class="instruction">LD HL,<a href="45946.html">shot_records</a></td>
+<td class="comment-1" rowspan="3">96 bytes at <a href="45946.html">shot_records</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62270"></span>F33E</td>
+<td class="instruction">LD B,$60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62272"></span>F340</td>
+<td class="instruction">CALL <a href="62219.html">clear_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62275"></span>F343</td>
+<td class="instruction">LD HL,<a href="38576.html">rocket_part_table</a></td>
+<td class="comment-1" rowspan="6">The first byte of the eight 5-byte entries of <a href="38576.html">rocket_part_table</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62278"></span>F346</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">reset_for_life_1</td>
+<td class="address-2"><span id="62280"></span>F348</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62282"></span>F34A</td>
+<td class="instruction">LD A,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62284"></span>F34C</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62287"></span>F34F</td>
+<td class="instruction">DJNZ <a href="62225.html#62280">reset_for_life_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62289"></span>F351</td>
+<td class="instruction">LD HL,<a href="40259.html">flicker_beam_records</a></td>
+<td class="comment-1" rowspan="3">16 bytes of <a href="40239.html">beam_grace</a>'s table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62292"></span>F354</td>
+<td class="instruction">LD B,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62294"></span>F356</td>
+<td class="instruction">CALL <a href="62219.html">clear_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62297"></span>F359</td>
+<td class="instruction">LD DE,<a href="51132.html">trail_frame</a></td>
+<td class="comment-1" rowspan="16">Four records back to their starting values</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62300"></span>F35C</td>
+<td class="instruction">LD HL,<a href="51138.html">trail_start</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62303"></span>F35F</td>
+<td class="instruction">LD BC,$0006</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62306"></span>F362</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62308"></span>F364</td>
+<td class="instruction">LD DE,<a href="51087.html">lift_jet_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62311"></span>F367</td>
+<td class="instruction">LD HL,<a href="51093.html">lift_jet_start</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62314"></span>F36A</td>
+<td class="instruction">LD C,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62316"></span>F36C</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62318"></span>F36E</td>
+<td class="instruction">LD DE,<a href="50882.html">side_jet_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62321"></span>F371</td>
+<td class="instruction">LD HL,<a href="50889.html">side_jet_start</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62324"></span>F374</td>
+<td class="instruction">LD C,$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62326"></span>F376</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62328"></span>F378</td>
+<td class="instruction">LD C,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62330"></span>F37A</td>
+<td class="instruction">LD DE,<a href="51429.html">ship_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62333"></span>F37D</td>
+<td class="instruction">LD HL,<a href="51462.html">ship_record_start</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62336"></span>F380</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62338"></span>F382</td>
+<td class="instruction">LD IX,<a href="39284.html">object_records</a></td>
+<td class="comment-1" rowspan="4">Reset the nine records at <a href="39284.html">object_records</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62342"></span>F386</td>
+<td class="instruction">LD B,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62344"></span>F388</td>
+<td class="instruction">LD DE,$0018</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62347"></span>F38B</td>
+<td class="instruction">CALL <a href="62225.html#62358">reset_for_life_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62350"></span>F38E</td>
+<td class="instruction">LD IX,<a href="43019.html">ground_objects</a></td>
+<td class="comment-1" rowspan="3">And the six at <a href="43019.html">ground_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62354"></span>F392</td>
+<td class="instruction">LD E,$1A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62356"></span>F394</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label">reset_for_life_2</td>
+<td class="address-2"><span id="62358"></span>F396</td>
+<td class="instruction">CALL <a href="44084.html">free_object</a></td>
+<td class="comment-1" rowspan="4">The loop: B records of DE bytes from IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62361"></span>F399</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62363"></span>F39B</td>
+<td class="instruction">DJNZ <a href="62225.html#62358">reset_for_life_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62365"></span>F39D</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62219.html">F30B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62225">Map</a></td>
+<td class="next">
+Next: <a href="62366.html">F39E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

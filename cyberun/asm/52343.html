@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at CC77</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52323.html">CC63</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52343">Map</a></td>
+<td class="next">
+Next: <a href="52410.html">CCBA</a>
+</td>
+</tr>
+</table>
+<div class="description">CC77: Colour the fuel gauge, and move its fuel column a row towards the fuel level</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="56481.html">start_landscape</a> and <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+Called each pass by the play loop (<a href="62528.html">play</a>) and twice a pass in the death sequence. The fuel inside the gauge is a column three to five pixels wide that runs from the bottom of the gauge up to the level shown. It is never redrawn: each step towards the fuel's level toggles (XOR) two rows: $03,$80 (three pixels in the middle, x $F6-$F8) at one row and $04,$40 (the two pixels either side, $F5 and $F9) at the row below. Two neighbouring steps overlap, so every row inside the column ends up with all five pixels and only the top row has the narrow three: a rounded top, kept up to date by touching two rows a pass.
+</div>
+<div class="paragraph">
+Going up (filling), the toggled rows are the new level and the one below it; going down (burning), the old level and the one below, which takes the top row's three pixels away and leaves the next row's narrow three as the new top.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_fuel_gauge</td>
+<td class="address-2"><span id="52343"></span>CC77</td>
+<td class="instruction">CALL <a href="51879.html">flash_fuel_gauge</a></td>
+<td class="comment-1" rowspan="1">First the gauge's colour (<a href="51879.html">flash_fuel_gauge</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52346"></span>CC7A</td>
+<td class="instruction">LD A,(<a href="52322.html">fuel_shown</a>)</td>
+<td class="comment-1" rowspan="5">Level shown against the fuel's level: the same, then see whether it is empty.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52349"></span>CC7D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52350"></span>CC7E</td>
+<td class="instruction">LD A,($CC4C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52353"></span>CC81</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52354"></span>CC82</td>
+<td class="instruction">JR Z,<a href="52323.html">check_fuel_empty</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52356"></span>CC84</td>
+<td class="instruction">DEC B</td>
+<td class="comment-1" rowspan="7">Filling (level going up the screen): the rows from the new level; burning: from the old level, and the new level is one row lower.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52357"></span>CC85</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52358"></span>CC86</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52360"></span>CC88</td>
+<td class="instruction">JR NZ,<a href="52343.html#52365">update_fuel_gauge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52362"></span>CC8A</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52363"></span>CC8B</td>
+<td class="instruction">LD H,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52364"></span>CC8C</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label">update_fuel_gauge_0</td>
+<td class="address-2"><span id="52365"></span>CC8D</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="2">The new level shown.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52366"></span>CC8E</td>
+<td class="instruction">LD (<a href="52322.html">fuel_shown</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52369"></span>CC91</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="7">The first row: x $F0, the middle three pixels toggled.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52370"></span>CC92</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52373"></span>CC95</td>
+<td class="instruction">LD L,$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52375"></span>CC97</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52378"></span>CC9A</td>
+<td class="instruction">LD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52380"></span>CC9C</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52381"></span>CC9D</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52382"></span>CC9E</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="4">(Second byte of that row.)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52383"></span>CC9F</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52385"></span>CCA1</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52386"></span>CCA2</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52387"></span>CCA3</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="3">Not below the bottom of the tube.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52390"></span>CCA6</td>
+<td class="instruction">CP $BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52392"></span>CCA8</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52393"></span>CCA9</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="12">The row below: the two outer pixels toggled.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52394"></span>CCAA</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52395"></span>CCAB</td>
+<td class="instruction">LD L,$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52397"></span>CCAD</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52400"></span>CCB0</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52402"></span>CCB2</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52403"></span>CCB3</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52404"></span>CCB4</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52405"></span>CCB5</td>
+<td class="instruction">LD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52407"></span>CCB7</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52408"></span>CCB8</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52409"></span>CCB9</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52323.html">CC63</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52343">Map</a></td>
+<td class="next">
+Next: <a href="52410.html">CCBA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

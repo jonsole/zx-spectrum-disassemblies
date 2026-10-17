@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Where this disassembly comes from</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="cyberun.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Provenance">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Cyberun" src="images/logo.png" /></a></td>
+<td class="page-header">Where this disassembly comes from</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#tape">The tape</a></li>
+<li><a href="#code">Code and data</a></li>
+<li><a href="#extent">What is disassembled</a></li>
+<li><a href="#names">Names, and how things were checked</a></li>
+</ul>
+<div><span id="tape"></span></div>
+<div class="box box-1">
+<div class="box-title">The tape</div>
+<div class="paragraph">
+The disassembly is of the original tape, loaded the way a Spectrum loads it. SkoolKit's <code>tap2sna</code> runs the ROM's own LOAD on a simulated machine: the BASIC loader, the small block it loads and calls at 24576, and then the game's own entry at <a href="asm/23424.html">loader_entry</a>, which moves the 40K game block down from $5E80 to <a href="asm/23680.html">game_entry</a> (with the copy routine at <a href="asm/64512.html">loader_copy</a> that the first block left there) and walks down it from $FA00 with RRD, moving every byte's nibbles along by one -- the tape holds the game four bits out of step. The simulation stops at <a href="asm/23680.html">game_entry</a>, where the game's first instruction is about to run. The disassembly is of that image: the game as it runs, not as it lies on the tape.
+All three files on the tape are at the ROM's own speed, and there is no other protection.
+</div>
+</div>
+<div><span id="code"></span></div>
+<div class="box box-2">
+<div class="box-title">Code and data</div>
+<div class="paragraph">
+Which bytes are code was found by running the game, not by reading it. The build plays it in SkoolKit's simulator -- through the menu and the title tune, with each control method, on long flights both ways, through an empty tank and a game over, with two players and the pause keys, and in staged scenes for what play would not reach in a sensible time: a new life put by the game's own restart inside the finished rocket, so that it docks and launches and the planet is secured; the ship carrying a rocket part, and the full ore tank, to the rocket; all nine add-ons fitted, with the special beam and missiles fired; tours at five depths of the map -- and records every address the processor fetches an instruction from. Branches are then followed out of what ran, and out of the game's tables of entry points (the object handlers, the sprite and landscape blitters' entries) and the jumps the game patches into its own code, each of which is named in the build with the instruction that reaches it. Everything else is data.
+The listing reassembles byte for byte with sjasmplus, and the snapshot rebuilt from it is the one the tape made, byte for byte.
+</div>
+</div>
+<div><span id="extent"></span></div>
+<div class="box box-1">
+<div class="box-title">What is disassembled</div>
+<div class="paragraph">
+Everything from <a href="asm/23296.html">stack_space</a> to the top of memory. Below the game block are its stack (in the printer buffer), the loader's entry -- reused, once the game runs, for the first of the four on-screen map cells' collision-box lists -- and some forty variables in the system variables' area. Above it are the copy routine the first block left at <a href="asm/64512.html">loader_copy</a> and the loader's leftovers, over which the game's start-up builds six pages of shift tables; the start-up code itself becomes a sprite buffer and a bit-reversal table once it has run.
+</div>
+</div>
+<div><span id="names"></span></div>
+<div class="box box-2">
+<div class="box-title">Names, and how things were checked</div>
+<div class="paragraph">
+No one else's disassembly of Cyberun was used. The names are this project's, from reading and running the code; where Cyberun's code works like the other Ultimate games' in this collection, the descriptions say so. The pictures and sounds on these pages are made by the build from the game's own bytes, by running the game's own code wherever there is code to run.
+The pokes were tried in a private emulator, each against the same trial without it; what the trials gave is on the Pokes page. Claims everywhere are marked as read from the code, run in SkoolKit's simulator, or watched in the emulator.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at DD79</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56481.html">DCA1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56697">Map</a></td>
+<td class="next">
+Next: <a href="56818.html">DDF2</a>
+</td>
+</tr>
+</table>
+<div class="description">DD79: Decide whether the landscape's fly-in has finished</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+<a href="56824.html">scroll_landscape</a> comes here instead of going on with the play pass while <a href="23612.html">map_rebuild</a> is not zero. In the fly-in ($FF) the landscape keeps scrolling 4 pixels a pass: 40 passes (160 rows, one map cell) when the play area was left unfilled, or, when it was filled with the checker, until the six bytes in two rows at the ship's screen position (kept in <a href="51345.html">bare_ship</a>) are all clear -- the sky has been swept down to the ship's place. Then the colour goes on, one pass is drawn with <a href="23612.html">map_rebuild</a> = 3, and finally the window is rebuilt with objects (<a href="23612.html">map_rebuild</a> = 0), the ship's record (in <a href="51345.html">bare_ship</a>) gets the map column and row (+1, +4) and the in-cell position (+2, +5), and play begins through <a href="29168.html">sound_rising_whine</a>, which returns to the caller of <a href="56481.html">start_landscape</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step</td>
+<td class="address-2"><span id="56697"></span>DD79</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="3">The last pass done: on to play.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56700"></span>DD7C</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56702"></span>DD7E</td>
+<td class="instruction">JP Z,<a href="56697.html#56767">fly_in_step_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56705"></span>DD81</td>
+<td class="instruction">LD A,$04</td>
+<td class="comment-1" rowspan="2">Scroll 4 pixels a pass.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56707"></span>DD83</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56710"></span>DD86</td>
+<td class="instruction">LD A,(<a href="56818.html">start_filled</a>)</td>
+<td class="comment-1" rowspan="20">Filled with the checker: go on until the ship's place is clear.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56713"></span>DD89</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56714"></span>DD8A</td>
+<td class="instruction">JR Z,<a href="56697.html#56743">fly_in_step_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56716"></span>DD8C</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56718"></span>DD8E</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56721"></span>DD91</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step_0</td>
+<td class="address-2"><span id="56724"></span>DD94</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56725"></span>DD95</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56726"></span>DD96</td>
+<td class="instruction">JR NZ,<a href="56697.html#56740">fly_in_step_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56728"></span>DD98</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56729"></span>DD99</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56730"></span>DD9A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56731"></span>DD9B</td>
+<td class="instruction">JR NZ,<a href="56697.html#56740">fly_in_step_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56733"></span>DD9D</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56734"></span>DD9E</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56735"></span>DD9F</td>
+<td class="instruction">DJNZ <a href="56697.html#56724">fly_in_step_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56737"></span>DDA1</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56738"></span>DDA2</td>
+<td class="instruction">JR <a href="56697.html#56746">fly_in_step_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step_1</td>
+<td class="address-2"><span id="56740"></span>DDA4</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56741"></span>DDA5</td>
+<td class="instruction">JR <a href="56481.html#56690">start_landscape_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step_2</td>
+<td class="address-2"><span id="56743"></span>DDA7</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="2">Not filled: 40 passes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56744"></span>DDA8</td>
+<td class="instruction">DJNZ <a href="56481.html#56690">start_landscape_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step_3</td>
+<td class="address-2"><span id="56746"></span>DDAA</td>
+<td class="instruction">CALL <a href="62489.html">colour_play_area</a></td>
+<td class="comment-1" rowspan="8">Colour the play area; one more pass with the window rebuilt.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56749"></span>DDAD</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56750"></span>DDAE</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56753"></span>DDB1</td>
+<td class="instruction">LD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56755"></span>DDB3</td>
+<td class="instruction">LD (<a href="23612.html">map_rebuild</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56758"></span>DDB6</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56761"></span>DDB9</td>
+<td class="instruction">CALL <a href="57096.html">load_map_window</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56764"></span>DDBC</td>
+<td class="instruction">JP <a href="56481.html#56690">start_landscape_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">fly_in_step_4</td>
+<td class="address-2"><span id="56767"></span>DDBF</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="5">Play: rebuild the window with its objects.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56768"></span>DDC0</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56769"></span>DDC1</td>
+<td class="instruction">LD (<a href="23612.html">map_rebuild</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56772"></span>DDC4</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56775"></span>DDC7</td>
+<td class="instruction">CALL <a href="57096.html">load_map_window</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56778"></span>DDCA</td>
+<td class="instruction">LD IX,<a href="51429.html">ship_record</a></td>
+<td class="comment-1" rowspan="12">The ship's map position and in-cell position.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56782"></span>DDCE</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56785"></span>DDD1</td>
+<td class="instruction">LD (IX+$01),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56788"></span>DDD4</td>
+<td class="instruction">LD (IX+$04),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56791"></span>DDD7</td>
+<td class="instruction">LD HL,(<a href="52805.html">view_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56794"></span>DDDA</td>
+<td class="instruction">LD (IX+$02),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56797"></span>DDDD</td>
+<td class="instruction">LD (IX+$05),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56800"></span>DDE0</td>
+<td class="instruction">LD (IX+$07),$58</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56804"></span>DDE4</td>
+<td class="instruction">LD A,(IX+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56807"></span>DDE7</td>
+<td class="instruction">SUB $17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56809"></span>DDE9</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56812"></span>DDEC</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56815"></span>DDEF</td>
+<td class="instruction">JP <a href="29168.html">sound_rising_whine</a></td>
+<td class="comment-1" rowspan="1">Into play.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56481.html">DCA1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56697">Map</a></td>
+<td class="next">
+Next: <a href="56818.html">DDF2</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

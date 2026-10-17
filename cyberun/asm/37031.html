@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 90A7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37018.html">909A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37031">Map</a></td>
+<td class="next">
+Next: <a href="37069.html">90CD</a>
+</td>
+</tr>
+</table>
+<div class="description">90A7: Move an object that explodes on the landscape</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="37975.html">update_small_object</a> and <a href="38036.html">update_rammer</a>.
+</div>
+<div class="paragraph">
+Used by the small objects (<a href="37975.html">update_small_object</a>) and type $1D (<a href="38036.html">update_rammer</a>). Tests the landscape in mode $80 (<a href="23589.html">piece_step_x</a>); on a touch (<a href="23580.html">scratch_count</a>) the object starts exploding (bit 3 of +$17), stops, and makes a sound (<a href="29349.html">sound_tick</a>). Then it is moved by its velocity (<a href="48998.html">move_object</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">BC</td>
+<td class="register-desc">The box's height and width in pixels</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">move_or_explode</td>
+<td class="address-2"><span id="37031"></span>90A7</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="3">Test the landscape in mode $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37033"></span>90A9</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37036"></span>90AC</td>
+<td class="instruction">CALL <a href="36950.html">test_landscape_at</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37039"></span>90AF</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="3">No touch: just move it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37042"></span>90B2</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37043"></span>90B3</td>
+<td class="instruction">JP Z,<a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37046"></span>90B6</td>
+<td class="instruction">SET 3,(IX+$17)</td>
+<td class="comment-1" rowspan="6">Touched: it explodes, and stops</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37050"></span>90BA</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37051"></span>90BB</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37054"></span>90BE</td>
+<td class="instruction">LD (IX+$08),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37057"></span>90C1</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37060"></span>90C4</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37063"></span>90C7</td>
+<td class="instruction">CALL <a href="29349.html">sound_tick</a></td>
+<td class="comment-1" rowspan="2">A sound, and move it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37066"></span>90CA</td>
+<td class="instruction">JP <a href="48998.html">move_object</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37018.html">909A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37031">Map</a></td>
+<td class="next">
+Next: <a href="37069.html">90CD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AE98</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44504.html">ADD8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44696">Map</a></td>
+<td class="next">
+Next: <a href="44801.html">AF01</a>
+</td>
+</tr>
+</table>
+<div class="description">AE98: Colour the cells under a sprite just drawn</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="37773.html">move_missile</a>, <a href="38151.html">update_attacker</a>, <a href="38258.html">draw_rocket</a> and <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+The last step of drawing an object's sprite (<a href="37773.html">move_missile</a>, <a href="38151.html">update_attacker</a>, <a href="38258.html">draw_rocket</a>, <a href="44128.html">update_ground_objects</a> call it after <a href="44315.html">draw_object_images</a> has drawn it): works out the rectangle of character cells the sprite covers in the play area, and fills it with the attribute in <a href="44801.html">colour_patch</a>'s third byte, set by <a href="44360.html">prepare_draw</a> from the record's two colours. The rectangle's width goes into <a href="44801.html">colour_patch</a>, its height into the next byte, and <a href="51601.html">fill_attributes</a> paints it, bottom row first.
+</div>
+<div class="paragraph">
+The sprite's position is the third and fourth bytes of <a href="41427.html">old_sprite_x</a> (its x in pixels, its bottom line), its width in pixels is <a href="23593.html">sprite_width_drawn</a> (the width in bytes, multiplied by 8 in <a href="41731.html">draw_sprite_pair</a>) and its height in lines in the last byte of <a href="41427.html">old_sprite_x</a>, as <a href="41543.html">set_new_sprite</a> left them after clipping. The play area runs across from x 8 to x $E7 and down from line $18 to line $B7; the cells are clipped to it. A cell holding only the sprite's top line (the top line being the last of its cell) is not counted: (bottom OR 7 less (top - 7)) / 8 rounds that one away.
+</div>
+<div class="paragraph">
+Two more entries: <a href="46511.html">draw_shot</a> comes in at the instruction that takes the width from B, with L, H, D and B already set (the special beam), and <a href="44804.html">colour_carried_parts</a> at the height's working, with the width already in <a href="44801.html">colour_patch</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite</td>
+<td class="address-2"><span id="44696"></span>AE98</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">D = the height less one; nothing drawn, nothing to colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44699"></span>AE9B</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44700"></span>AE9C</td>
+<td class="instruction">RET M</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44701"></span>AE9D</td>
+<td class="instruction">LD D,A</td>
+<td class="comment-1" rowspan="4">HL = the position (L x, H the bottom line); B = the width in pixels</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44702"></span>AE9E</td>
+<td class="instruction">LD HL,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44705"></span>AEA1</td>
+<td class="instruction">LD A,(<a href="23593.html">sprite_width_drawn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44708"></span>AEA4</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44709"></span>AEA5</td>
+<td class="instruction">LD A,(<a href="41722.html">sprite_left_clip</a>)</td>
+<td class="comment-1" rowspan="8">cut by the play area's left edge (<a href="41722.html">sprite_left_clip</a>, the record's +10 bit 6): the visible width is taken as x + width - $A4, from x 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44712"></span>AEA8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44713"></span>AEA9</td>
+<td class="instruction">JR Z,<a href="44696.html#44723">colour_sprite_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44715"></span>AEAB</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44716"></span>AEAC</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44717"></span>AEAD</td>
+<td class="instruction">SUB $A4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44719"></span>AEAF</td>
+<td class="instruction">LD L,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44721"></span>AEB1</td>
+<td class="instruction">JR <a href="44696.html#44758">colour_sprite_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_0</td>
+<td class="address-2"><span id="44723"></span>AEB3</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="8">starting in the left border column: start a cell in, a cell narrower</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44724"></span>AEB4</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44726"></span>AEB6</td>
+<td class="instruction">JR NC,<a href="44696.html#44735">colour_sprite_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44728"></span>AEB8</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44730"></span>AEBA</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44731"></span>AEBB</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44732"></span>AEBC</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44734"></span>AEBE</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_1</td>
+<td class="address-2"><span id="44735"></span>AEBF</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="7">running past the right edge (x + width over $E8): only up to it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44736"></span>AEC0</td>
+<td class="instruction">ADD A,$17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44738"></span>AEC2</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44739"></span>AEC3</td>
+<td class="instruction">JR NC,<a href="44696.html#44746">colour_sprite_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44741"></span>AEC5</td>
+<td class="instruction">LD A,$EE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44743"></span>AEC7</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44744"></span>AEC8</td>
+<td class="instruction">JR <a href="44696.html#44758">colour_sprite_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_2</td>
+<td class="address-2"><span id="44746"></span>AECA</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">not on a cell boundary: it spans one cell more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44747"></span>AECB</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44749"></span>AECD</td>
+<td class="instruction">JR Z,<a href="44696.html#44755">colour_sprite_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44751"></span>AECF</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44752"></span>AED0</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44754"></span>AED2</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="44755"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="46511.html">draw_shot</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_3</td>
+<td class="address-2"><span id="44755"></span>AED3</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="3">A = B (the special beam joins here with B its width in pixels)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44756"></span>AED4</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44757"></span>AED5</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_4</td>
+<td class="address-2"><span id="44758"></span>AED6</td>
+<td class="instruction">SRL A</td>
+<td class="comment-1" rowspan="6">the width in cells; none, nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44760"></span>AED8</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44762"></span>AEDA</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44764"></span>AEDC</td>
+<td class="instruction">LD (<a href="44801.html">colour_patch</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44767"></span>AEDF</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44768"></span>AEE0</td>
+<td class="instruction">RET M</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="44769"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="44804.html">colour_carried_parts</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_5</td>
+<td class="address-2"><span id="44769"></span>AEE1</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="7">E = the top line less 7, but not above line $17 (the play area's top)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44770"></span>AEE2</td>
+<td class="instruction">SUB D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44771"></span>AEE3</td>
+<td class="instruction">SUB $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44773"></span>AEE5</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44774"></span>AEE6</td>
+<td class="instruction">CP $17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44776"></span>AEE8</td>
+<td class="instruction">JR NC,<a href="44696.html#44780">colour_sprite_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44778"></span>AEEA</td>
+<td class="instruction">LD E,$17</td>
+</tr>
+<tr>
+<td class="asm-label">colour_sprite_6</td>
+<td class="address-2"><span id="44780"></span>AEEC</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="9">the height in cells; none, nothing to do</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44781"></span>AEED</td>
+<td class="instruction">OR $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44783"></span>AEEF</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44784"></span>AEF0</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44786"></span>AEF2</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44788"></span>AEF4</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44790"></span>AEF6</td>
+<td class="instruction">LD ($AF02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44793"></span>AEF9</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44794"></span>AEFA</td>
+<td class="instruction">RET M</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44795"></span>AEFB</td>
+<td class="instruction">LD DE,<a href="44801.html">colour_patch</a></td>
+<td class="comment-1" rowspan="2">paint it with <a href="51601.html">fill_attributes</a>, from the cell under the bottom line upwards</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44798"></span>AEFE</td>
+<td class="instruction">JP <a href="51601.html">fill_attributes</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44504.html">ADD8</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44696">Map</a></td>
+<td class="next">
+Next: <a href="44801.html">AF01</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

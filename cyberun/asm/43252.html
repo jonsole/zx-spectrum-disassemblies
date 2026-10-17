@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A8F4</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43173.html">A8A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43252">Map</a></td>
+<td class="next">
+Next: <a href="43521.html">AA01</a>
+</td>
+</tr>
+</table>
+<div class="description">A8F4: Test the ship against the ground objects</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50036.html">ship_pass</a>.
+</div>
+<div class="paragraph">
+Once a pass (<a href="50036.html">ship_pass</a>). The ship's box is 40 pixels wide from x=$64 and as high as its picture, at its y, both less this pass's scroll steps (<a href="52410.html">scroll_down</a>: across, up and down). Each of the first four ground-object records that is on the screen, between line $28 and the bottom and between x=$30 and $A0, and not of kind $0B, is boxed by its last drawn position and its graphic's size, and tested (<a href="40369.html">boxes_overlap</a>). At the first one that touches:
+</div>
+<div class="paragraph">
+A refuel pad -- graphic $1B in frame 4 or 5, the fuel station's two frames (map kind $0E, <a href="57614.html">object_part_pairs</a>) -- fills the fuel (<a href="52299.html">fuel</a>), is used up (freed next pass and marked gone in <a href="23700.html">map_object_kinds</a>), and repairs the ship: the hit count (<a href="36803.html">hit_count</a>) is set to $FF before calling the damage handler in <a href="36692.html">contact_damage</a>, whose count then wraps to 0 and colours the ship white again. This branch never ran in the build's sessions.
+</div>
+<div class="paragraph">
+Anything else is solid: the collision flag <a href="53436.html">trail_collision</a> is set (so <a href="50147.html">draw_ship</a> redraws the ship's trail), and the ship bounces -- across (<a href="43521.html">bounce_across</a>) if the object lies beyond either side of the ship, up or down (<a href="43541.html">bounce_up_down</a>) if the ship's top is level with or below the object's bottom, and again up or down if, while the vertical scroll step is not positive, the ship's bottom is within nine lines below the object's top.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects</td>
+<td class="address-2"><span id="43252"></span>A8F4</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="3">Not once the rocket is launching (<a href="38571.html">launch_state</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43255"></span>A8F7</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43256"></span>A8F8</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43257"></span>A8F9</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="2">The four records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43259"></span>A8FB</td>
+<td class="instruction">LD IX,<a href="43019.html">ground_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43263"></span>A8FF</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+<td class="comment-1" rowspan="11">The ship's box: x=$64 and y less the scroll steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43266"></span>A902</td>
+<td class="instruction">LD L,$64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43268"></span>A904</td>
+<td class="instruction">LD A,(<a href="52411.html">scroll_across</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43271"></span>A907</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43273"></span>A909</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43274"></span>A90A</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43275"></span>A90B</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43278"></span>A90E</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43280"></span>A910</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43281"></span>A911</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43282"></span>A912</td>
+<td class="instruction">LD (<a href="52794.html">box_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43285"></span>A915</td>
+<td class="instruction">LD D,$28</td>
+<td class="comment-1" rowspan="4">40 pixels wide, the ship's height tall (kept in <a href="47625.html">collision_object</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43287"></span>A917</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43290"></span>A91A</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43291"></span>A91B</td>
+<td class="instruction">LD (<a href="47625.html">collision_object</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_0</td>
+<td class="address-2"><span id="43295"></span>A91F</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43296"></span>A920</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43298"></span>A922</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">A free record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43301"></span>A925</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43302"></span>A926</td>
+<td class="instruction">JP Z,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43305"></span>A929</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="4">Kind $0B is never collided with</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43308"></span>A92C</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43310"></span>A92E</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43312"></span>A930</td>
+<td class="instruction">JP Z,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43315"></span>A933</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Not on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43319"></span>A937</td>
+<td class="instruction">JP Z,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43322"></span>A93A</td>
+<td class="instruction">LD A,(IX+$12)</td>
+<td class="comment-1" rowspan="9">Only from line $28 down and between x=$30 and $A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43325"></span>A93D</td>
+<td class="instruction">CP $28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43327"></span>A93F</td>
+<td class="instruction">JP C,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43330"></span>A942</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43331"></span>A943</td>
+<td class="instruction">LD A,(IX+$11)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43334"></span>A946</td>
+<td class="instruction">CP $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43336"></span>A948</td>
+<td class="instruction">JP C,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43339"></span>A94B</td>
+<td class="instruction">CP $A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43341"></span>A94D</td>
+<td class="instruction">JP NC,<a href="43252.html#43387">ship_hits_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43344"></span>A950</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="11">Box the object: where it was drawn, its graphic's width in pixels and height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43345"></span>A951</td>
+<td class="instruction">LD (<a href="43940.html">collision_box</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43348"></span>A954</td>
+<td class="instruction">CALL <a href="44478.html">object_graphic</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43351"></span>A957</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43352"></span>A958</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43353"></span>A959</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43354"></span>A95A</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43355"></span>A95B</td>
+<td class="instruction">LD (<a href="43942.html">collision_box_size</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43358"></span>A95E</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43359"></span>A95F</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43360"></span>A960</td>
+<td class="instruction">LD ($ABA7),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43363"></span>A963</td>
+<td class="instruction">LD HL,(<a href="52794.html">box_x</a>)</td>
+<td class="comment-1" rowspan="5">Test the two boxes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43366"></span>A966</td>
+<td class="instruction">LD DE,(<a href="47625.html">collision_object</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43370"></span>A96A</td>
+<td class="instruction">LD (<a href="44358.html">current_object</a>),IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43374"></span>A96E</td>
+<td class="instruction">LD IX,<a href="43940.html">collision_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43378"></span>A972</td>
+<td class="instruction">CALL <a href="40369.html">boxes_overlap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43381"></span>A975</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="3">Touching?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43384"></span>A978</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43385"></span>A979</td>
+<td class="instruction">JR NZ,<a href="43252.html#43400">ship_hits_ground_objects_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_1</td>
+<td class="address-2"><span id="43387"></span>A97B</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="7">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43389"></span>A97D</td>
+<td class="instruction">LD BC,$001A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43392"></span>A980</td>
+<td class="instruction">ADD IX,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43394"></span>A982</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43395"></span>A983</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43396"></span>A984</td>
+<td class="instruction">JP NZ,<a href="43252.html#43295">ship_hits_ground_objects_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43399"></span>A987</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_2</td>
+<td class="address-2"><span id="43400"></span>A988</td>
+<td class="instruction">LD IY,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="10">A refuel pad, graphic $1B in frame 4 or 5 (the fuel station)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43404"></span>A98C</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43407"></span>A98F</td>
+<td class="instruction">CP $1B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43409"></span>A991</td>
+<td class="instruction">JR NZ,<a href="43252.html#43460">ship_hits_ground_objects_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43411"></span>A993</td>
+<td class="instruction">LD A,(IY+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43414"></span>A996</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43416"></span>A998</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43418"></span>A99A</td>
+<td class="instruction">JR Z,<a href="43252.html#43424">ship_hits_ground_objects_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43420"></span>A99C</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43422"></span>A99E</td>
+<td class="instruction">JR NZ,<a href="43252.html#43460">ship_hits_ground_objects_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_3</td>
+<td class="address-2"><span id="43424"></span>A9A0</td>
+<td class="instruction">LD HL,$4200</td>
+<td class="comment-1" rowspan="2">Fill the fuel</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43427"></span>A9A3</td>
+<td class="instruction">LD (<a href="52299.html">fuel</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43430"></span>A9A6</td>
+<td class="instruction">SET 4,(IY+$10)</td>
+<td class="comment-1" rowspan="1">Free the pad next pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43434"></span>A9AA</td>
+<td class="instruction">LD A,(IY+$18)</td>
+<td class="comment-1" rowspan="7">And mark it gone in the world's object table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43437"></span>A9AD</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43439"></span>A9AF</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43440"></span>A9B0</td>
+<td class="instruction">LD L,(IY+$19)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43443"></span>A9B3</td>
+<td class="instruction">LD DE,<a href="23700.html">map_object_kinds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43446"></span>A9B6</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43447"></span>A9B7</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43449"></span>A9B9</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="4">Repair the ship: the hit count wraps to zero in the damage handler, which colours the ship white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43451"></span>A9BB</td>
+<td class="instruction">LD (<a href="36803.html">hit_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43454"></span>A9BE</td>
+<td class="instruction">CALL <a href="36692.html#36726">damage_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43457"></span>A9C1</td>
+<td class="instruction">JP <a href="43252.html#43517">ship_hits_ground_objects_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_4</td>
+<td class="address-2"><span id="43460"></span>A9C4</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="2">Something solid was hit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43462"></span>A9C6</td>
+<td class="instruction">LD (<a href="53436.html">trail_collision</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43465"></span>A9C9</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="7">The object's box (IX is the box now) beyond x=$8B or ending short of x=$65: bounce across</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43468"></span>A9CC</td>
+<td class="instruction">CP $8B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43470"></span>A9CE</td>
+<td class="instruction">CALL NC,<a href="43521.html">bounce_across</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43473"></span>A9D1</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43476"></span>A9D4</td>
+<td class="instruction">ADD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43479"></span>A9D7</td>
+<td class="instruction">CP $65</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43481"></span>A9D9</td>
+<td class="instruction">CALL C,<a href="43521.html">bounce_across</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43484"></span>A9DC</td>
+<td class="instruction">LD A,(<a href="51459.html">ship_screen_y</a>)</td>
+<td class="comment-1" rowspan="6">The ship's top level with the object's bottom or lower: bounce up or down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43487"></span>A9DF</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43488"></span>A9E0</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43489"></span>A9E1</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43490"></span>A9E2</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43493"></span>A9E5</td>
+<td class="instruction">CALL NC,<a href="43541.html">bounce_up_down</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43496"></span>A9E8</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+<td class="comment-1" rowspan="4">Not while the vertical scroll step is positive</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43499"></span>A9EB</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43501"></span>A9ED</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43503"></span>A9EF</td>
+<td class="instruction">JR NZ,<a href="43252.html#43517">ship_hits_ground_objects_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43505"></span>A9F1</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="5">The ship's bottom within nine lines below the object's top: bounce up or down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43508"></span>A9F4</td>
+<td class="instruction">SUB (IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43511"></span>A9F7</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43513"></span>A9F9</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43514"></span>A9FA</td>
+<td class="instruction">CALL NC,<a href="43541.html">bounce_up_down</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_hits_ground_objects_5</td>
+<td class="address-2"><span id="43517"></span>A9FD</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43519"></span>A9FF</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43520"></span>AA00</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43173.html">A8A5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43252">Map</a></td>
+<td class="next">
+Next: <a href="43521.html">AA01</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

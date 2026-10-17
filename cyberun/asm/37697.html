@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 9341</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37639.html">9307</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37697">Map</a></td>
+<td class="next">
+Next: <a href="37773.html">938D</a>
+</td>
+</tr>
+</table>
+<div class="description">9341: Accelerate an object towards another</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="37639.html">update_missile</a>, <a href="38911.html">home_on_ship</a> and <a href="38967.html">turn_at_ship</a>.
+</div>
+<div class="paragraph">
+Sets the acceleration (+$0B, +$0E) to $C0 (three quarters of a pixel a pass, each pass) towards the target in each axis. In X: the same page column decides by the pixel; otherwise the target is taken to be to the left when the object is in the column after the view's (kept in <a href="56818.html">start_filled</a>), and to the right otherwise. In Y, by the whole position.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The target</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">steer_towards</td>
+<td class="address-2"><span id="37697"></span>9341</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+<td class="comment-1" rowspan="9">X: right, unless...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37701"></span>9345</td>
+<td class="instruction">LD (IX+$0C),$C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37705"></span>9349</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37708"></span>934C</td>
+<td class="instruction">CP (IY+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37711"></span>934F</td>
+<td class="instruction">JR NZ,<a href="37697.html#37723">steer_towards_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37713"></span>9351</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37716"></span>9354</td>
+<td class="instruction">CP (IY+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37719"></span>9357</td>
+<td class="instruction">JR NC,<a href="37697.html#37733">steer_towards_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37721"></span>9359</td>
+<td class="instruction">JR <a href="37697.html#37741">steer_towards_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">steer_towards_0</td>
+<td class="address-2"><span id="37723"></span>935B</td>
+<td class="instruction">LD A,(<a href="56823.html">right_map_column</a>)</td>
+<td class="comment-1" rowspan="4">...in the other page column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37726"></span>935E</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37729"></span>9361</td>
+<td class="instruction">JR Z,<a href="37697.html#37733">steer_towards_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37731"></span>9363</td>
+<td class="instruction">JR <a href="37697.html#37741">steer_towards_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">steer_towards_1</td>
+<td class="address-2"><span id="37733"></span>9365</td>
+<td class="instruction">LD (IX+$0B),$FF</td>
+<td class="comment-1" rowspan="2">Left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37737"></span>9369</td>
+<td class="instruction">LD (IX+$0C),$40</td>
+</tr>
+<tr>
+<td class="asm-label">steer_towards_2</td>
+<td class="address-2"><span id="37741"></span>936D</td>
+<td class="instruction">LD H,(IX+$04)</td>
+<td class="comment-1" rowspan="5">Y: compare the positions (page row and pixel)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37744"></span>9370</td>
+<td class="instruction">LD L,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37747"></span>9373</td>
+<td class="instruction">LD D,(IY+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37750"></span>9376</td>
+<td class="instruction">LD E,(IY+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37753"></span>9379</td>
+<td class="instruction">SBC HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37755"></span>937B</td>
+<td class="instruction">LD (IX+$0E),$00</td>
+<td class="comment-1" rowspan="3">Down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37759"></span>937F</td>
+<td class="instruction">LD (IX+$0F),$C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37763"></span>9383</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37764"></span>9384</td>
+<td class="instruction">LD (IX+$0E),$FF</td>
+<td class="comment-1" rowspan="3">Up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37768"></span>9388</td>
+<td class="instruction">LD (IX+$0F),$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37772"></span>938C</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37639.html">9307</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37697">Map</a></td>
+<td class="next">
+Next: <a href="37773.html">938D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

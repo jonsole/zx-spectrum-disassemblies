@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at D464</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54041.html">D319</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54372">Map</a></td>
+<td class="next">
+Next: <a href="54401.html">D481</a>
+</td>
+</tr>
+</table>
+<div class="description">D464: Decide how a sloped step near the right edge is clipped</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Entered from the patched JR at the end of <a href="54041.html">landscape_step_loop</a> with A = the step's run in pixels (negated here for a piece running left) and B its screen x. If the step's far side stays left of $E9 it goes on to <a href="54475.html">slope_step_at_left_edge</a>. Otherwise it crosses the play area's right edge and one of the right-clipping blitters is chosen: for a step starting left of $E0 only its rightmost column is lost (<a href="54420.html">slope_lose_last_column</a>); for one starting at $E0 or later only its first column or two are drawn, the count patched into the blitter's JR (<a href="56201.html">blit_right_clip</a> by <a href="54401.html">set_right_clip_columns</a>, or <a href="56391.html">blit_mirrored_right_clip</a> by <a href="54439.html">mirrored_slope_far_right</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">Run of the step in pixels</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">Screen x of the step</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">slope_step_at_right_edge</td>
+<td class="address-2"><span id="54372"></span>D464</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="4">Far side left of $E9: no right clipping.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54374"></span>D466</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54375"></span>D467</td>
+<td class="instruction">CP $E9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54377"></span>D469</td>
+<td class="instruction">JP C,<a href="54475.html">slope_step_at_left_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54380"></span>D46C</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="3">Starts left of $E0: <a href="54420.html">slope_lose_last_column</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54381"></span>D46D</td>
+<td class="instruction">CP $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54383"></span>D46F</td>
+<td class="instruction">JR C,<a href="54420.html">slope_lose_last_column</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54385"></span>D471</td>
+<td class="instruction">LD A,(<a href="58395.html">direction_flag</a>)</td>
+<td class="comment-1" rowspan="3">A piece running left uses the mirrored blitter (<a href="54439.html">mirrored_slope_far_right</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54388"></span>D474</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54390"></span>D476</td>
+<td class="instruction">JR Z,<a href="54439.html">mirrored_slope_far_right</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54392"></span>D478</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+<td class="comment-1" rowspan="4">Displacement for the JR in <a href="56201.html">blit_right_clip</a>: $21 less the byte advance.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54395"></span>D47B</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54396"></span>D47C</td>
+<td class="instruction">LD A,$21</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="54398"></span>D47E</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label">slope_step_at_right_edge_0</td>
+<td class="address-2"><span id="54399"></span>D47F</td>
+<td class="instruction">JR <a href="54372.html#54399">slope_step_at_right_edge_0</a></td>
+<td class="comment-1" rowspan="1">Patched by <a href="54041.html">landscape_step_loop</a> (displacement 1 on a byte boundary): into <a href="54401.html">set_right_clip_columns</a> (one less) or past its DEC A.</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="54041.html">D319</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#54372">Map</a></td>
+<td class="next">
+Next: <a href="54401.html">D481</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

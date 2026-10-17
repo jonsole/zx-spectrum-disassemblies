@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 87F6</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34805.html">87F5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34806">Map</a></td>
+<td class="next">
+Next: <a href="34835.html">8813</a>
+</td>
+</tr>
+</table>
+<div class="description">87F6: Find a free object record</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="34706.html">spawn_cloud</a>, <a href="34791.html">spawn_attacker</a> and <a href="34859.html">fire_from</a>.
+</div>
+<div class="paragraph">
+Looks along B records of 24 bytes from IX for one whose type (+0) is $FF. Gives up at once while the load (<a href="36395.html">object_load</a>) is 7 or more or the ship is dying (<a href="36691.html">death_count</a> not 0).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">How many records to look at</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The first</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z set if one was found</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The free record</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">$0018 when one was found (<a href="35283.html">start_attacker</a> relies on D being 0)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">find_free_record</td>
+<td class="address-2"><span id="34806"></span>87F6</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="7">None when the load is 7 or more, or while dying</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34807"></span>87F7</td>
+<td class="instruction">LD A,(<a href="36395.html">object_load</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34810"></span>87FA</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34812"></span>87FC</td>
+<td class="instruction">JR NC,<a href="34806.html#34832">find_free_record_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34814"></span>87FE</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34817"></span>8801</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34818"></span>8802</td>
+<td class="instruction">JR NZ,<a href="34806.html#34832">find_free_record_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34820"></span>8804</td>
+<td class="instruction">LD DE,$0018</td>
+<td class="comment-1" rowspan="6">Find one with type $FF</td>
+</tr>
+<tr>
+<td class="asm-label">find_free_record_0</td>
+<td class="address-2"><span id="34823"></span>8807</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34826"></span>880A</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34827"></span>880B</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34828"></span>880C</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34830"></span>880E</td>
+<td class="instruction">DJNZ <a href="34806.html#34823">find_free_record_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">find_free_record_1</td>
+<td class="address-2"><span id="34832"></span>8810</td>
+<td class="instruction">OR $01</td>
+<td class="comment-1" rowspan="2">None: NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34834"></span>8812</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34805.html">87F5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34806">Map</a></td>
+<td class="next">
+Next: <a href="34835.html">8813</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

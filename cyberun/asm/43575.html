@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AA37</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43559.html">AA27</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43575">Map</a></td>
+<td class="next">
+Next: <a href="43735.html">AAD7</a>
+</td>
+</tr>
+</table>
+<div class="description">AA37: Hang a rocket part under the ship, or take it off</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50209.html">draw_ship_image</a> and <a href="56481.html">start_landscape</a>.
+</div>
+<div class="paragraph">
+The ship's picture is built in RAM at <a href="63161.html">ship_picture</a>, six bytes a row, bottom row first, and a rocket part the ship carries hangs in its bottom rows. This XORs the part's graphic (from type $1E's frame list <a href="44923.html">rocket_part_frames</a>, by the part number in bits 0-3 of the ship record's +$1F) into the picture, shifted four pixels right through the shift tables' fourth and fifth pages (<a href="64000.html">shift_tables</a>) and one byte in -- so the same call puts it in and takes it out -- and clears the same place on the screen (four bytes from a byte in, the part's height up from the ship's bottom line), presumably because the direct drawer rubs the ship out with its picture as it now is, which would leave the old part's pixels behind. Called from <a href="50147.html">draw_ship</a> when bit 7 of +$1F asks for it.
+</div>
+<div class="paragraph">
+Then (also the entry at the 24th instruction, used by <a href="45033.html">build_ship_sprite</a> when it rebuilds the picture) the ship's height and the picture's start are set for whether a part hangs there (bit 6 of +$1F): five rows more and the picture from <a href="63161.html">ship_picture</a>, or five fewer and from 30 bytes into it; the ship's line for shots (<a href="23608.html">ship_line</a>) moves by three, and the ship record's screen y and position are moved to match (<a href="48998.html">move_object</a>, <a href="47596.html">ship_speed_from_scroll</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The ship's record (<a href="51429.html">ship_record</a>)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part</td>
+<td class="address-2"><span id="43575"></span>AA37</td>
+<td class="instruction">LD HL,<a href="44923.html">rocket_part_frames</a></td>
+<td class="comment-1" rowspan="6">The part's graphic</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43578"></span>AA3A</td>
+<td class="instruction">LD A,(<a href="51460.html">part_being_fitted</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43581"></span>AA3D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43583"></span>AA3F</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43584"></span>AA40</td>
+<td class="instruction">CALL <a href="41386.html">table_word</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43587"></span>AA43</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43588"></span>AA44</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="8">Its width and height; the picture's first row, a byte in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43589"></span>AA45</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43590"></span>AA46</td>
+<td class="instruction">LD (<a href="23583.html">row_count_spare</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43593"></span>AA49</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43594"></span>AA4A</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43595"></span>AA4B</td>
+<td class="instruction">LD (<a href="23584.html">pieces_left</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43598"></span>AA4E</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43599"></span>AA4F</td>
+<td class="instruction">LD HL,$F6BA</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part_0</td>
+<td class="address-2"><span id="43602"></span>AA52</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="16">Each byte, shifted four pixels right, XORed into two bytes of the picture</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part_1</td>
+<td class="address-2"><span id="43603"></span>AA53</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43604"></span>AA54</td>
+<td class="instruction">LD B,$FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43606"></span>AA56</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43607"></span>AA57</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43608"></span>AA58</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43609"></span>AA59</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43610"></span>AA5A</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43611"></span>AA5B</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43612"></span>AA5C</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43613"></span>AA5D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43614"></span>AA5E</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43615"></span>AA5F</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43616"></span>AA60</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43617"></span>AA61</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43618"></span>AA62</td>
+<td class="instruction">DJNZ <a href="43575.html#43603">toggle_carried_part_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43620"></span>AA64</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="7">Next row, six bytes on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43621"></span>AA65</td>
+<td class="instruction">LD A,(<a href="23583.html">row_count_spare</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43624"></span>AA68</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43625"></span>AA69</td>
+<td class="instruction">LD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43627"></span>AA6B</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43630"></span>AA6E</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43631"></span>AA6F</td>
+<td class="instruction">JR NZ,<a href="43575.html#43602">toggle_carried_part_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43633"></span>AA71</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+<td class="comment-1" rowspan="17">Clear the part's rows under the ship on the screen, four bytes a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43636"></span>AA74</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43639"></span>AA77</td>
+<td class="instruction">LD A,(<a href="23584.html">pieces_left</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43642"></span>AA7A</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43643"></span>AA7B</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part_2</td>
+<td class="address-2"><span id="43644"></span>AA7C</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43646"></span>AA7E</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43647"></span>AA7F</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43649"></span>AA81</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43650"></span>AA82</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43652"></span>AA84</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43653"></span>AA85</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43655"></span>AA87</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43656"></span>AA88</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43657"></span>AA89</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43658"></span>AA8A</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43661"></span>AA8D</td>
+<td class="instruction">DJNZ <a href="43575.html#43644">toggle_carried_part_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43663"></span>AA8F</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="3">Not while the view is being built (<a href="23612.html">map_rebuild</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43666"></span>AA92</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43667"></span>AA93</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="43668"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45033.html">build_ship_sprite</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part_3</td>
+<td class="address-2"><span id="43668"></span>AA94</td>
+<td class="instruction">LD A,(<a href="51460.html">part_being_fitted</a>)</td>
+<td class="comment-1" rowspan="8">A part hangs there: the picture from its first byte and five rows more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43671"></span>AA97</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43672"></span>AA98</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43675"></span>AA9B</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43676"></span>AA9C</td>
+<td class="instruction">LD (IX+$09),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43680"></span>AAA0</td>
+<td class="instruction">LD E,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43682"></span>AAA2</td>
+<td class="instruction">LD HL,<a href="63161.html">ship_picture</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43685"></span>AAA5</td>
+<td class="instruction">LD A,$05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43687"></span>AAA7</td>
+<td class="instruction">BIT 6,B</td>
+<td class="comment-1" rowspan="6">None: from 30 bytes on and five rows fewer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43689"></span>AAA9</td>
+<td class="instruction">JR NZ,<a href="43575.html#43702">toggle_carried_part_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43691"></span>AAAB</td>
+<td class="instruction">LD HL,$F6D7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43694"></span>AAAE</td>
+<td class="instruction">LD E,$FD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43696"></span>AAB0</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43698"></span>AAB2</td>
+<td class="instruction">LD (IX+$09),$F8</td>
+</tr>
+<tr>
+<td class="asm-label">toggle_carried_part_4</td>
+<td class="address-2"><span id="43702"></span>AAB6</td>
+<td class="instruction">LD (<a href="49578.html">ship_graphic</a>),HL</td>
+<td class="comment-1" rowspan="3">The ship's picture and height (in <a href="49540.html">star_offsets</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43705"></span>AAB9</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43706"></span>AABA</td>
+<td class="instruction">LD (<a href="49577.html">ship_height</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43709"></span>AABD</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="9">Adjust the ship's shot line and record to match, and recompute its position</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43712"></span>AAC0</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43713"></span>AAC1</td>
+<td class="instruction">LD (<a href="23608.html">ship_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43716"></span>AAC4</td>
+<td class="instruction">LD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43719"></span>AAC7</td>
+<td class="instruction">ADD A,(IX+$1E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43722"></span>AACA</td>
+<td class="instruction">LD (IX+$1E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43725"></span>AACD</td>
+<td class="instruction">LD (IX+$07),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43729"></span>AAD1</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43732"></span>AAD4</td>
+<td class="instruction">JP <a href="47596.html">ship_speed_from_scroll</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43559.html">AA27</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43575">Map</a></td>
+<td class="next">
+Next: <a href="43735.html">AAD7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

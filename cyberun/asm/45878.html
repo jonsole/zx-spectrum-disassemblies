@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B336</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45858.html">B322</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45878">Map</a></td>
+<td class="next">
+Next: <a href="45910.html">B356</a>
+</td>
+</tr>
+</table>
+<div class="description">B336: OR a beam onto the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="46511.html">draw_shot</a>.
+</div>
+<div class="paragraph">
+Draws a shot's beam: B bytes across, for the lines in the last byte of <a href="41427.html">old_sprite_x</a>, from the screen address in HL upwards (<a href="41411.html">line_up_hl</a>), the pattern from DE with its rows 8 bytes apart. ORed onto what is there, so the erase (<a href="45910.html">erase_laser</a>) can take it off again exactly.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">the width in bytes (0: nothing)</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the pattern</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the screen address of its bottom left</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beam</td>
+<td class="address-2"><span id="45878"></span>B336</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="5">nothing to draw; C = the width, A = the lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45879"></span>B337</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45880"></span>B338</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45881"></span>B339</td>
+<td class="instruction">LD C,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45882"></span>B33A</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beam_0</td>
+<td class="address-2"><span id="45885"></span>B33D</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="10">one line: OR the pattern on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45886"></span>B33E</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45887"></span>B33F</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45888"></span>B340</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_beam_1</td>
+<td class="address-2"><span id="45889"></span>B341</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45890"></span>B342</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45891"></span>B343</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45892"></span>B344</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45893"></span>B345</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45894"></span>B346</td>
+<td class="instruction">DJNZ <a href="45878.html#45889">draw_beam_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45896"></span>B348</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="2">the line above</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45897"></span>B349</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45900"></span>B34C</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="8">the pattern's next row, 8 bytes on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45901"></span>B34D</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45903"></span>B34F</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45904"></span>B350</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45905"></span>B351</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45906"></span>B352</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45907"></span>B353</td>
+<td class="instruction">JR NZ,<a href="45878.html#45885">draw_beam_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45909"></span>B355</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45858.html">B322</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45878">Map</a></td>
+<td class="next">
+Next: <a href="45910.html">B356</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

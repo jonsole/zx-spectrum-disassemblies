@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C1CE</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49580.html">C1AC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49614">Map</a></td>
+<td class="next">
+Next: <a href="49785.html">C279</a>
+</td>
+</tr>
+</table>
+<div class="description">C1CE: Draw the slab-and-spire load on top of the ship, or put it down on the surface</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="38258.html">draw_rocket</a>, <a href="50147.html">draw_ship</a> and <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+The load the ship picks up as an object of kind 9 (<a href="43735.html">collect_pickup</a> sets +$10 of the player's record, <a href="62967.html">player_count_nine</a>, to 9) is the slab and the spire, add-ons 10 and 11 (<a href="29752.html">addon_slab_picture</a>, <a href="29929.html">addon_spire_picture</a>), and rides on top of it in two pieces, 5 bytes wide by $23 rows and 3 wide by $2F rows, drawn by <a href="49791.html">draw_carried_piece</a> at fixed places above the ship: the slab's bottom line $0D above <a href="23608.html">ship_line</a>, which is five lines above the top of the ship's picture, and the spire's $23 higher, standing on the slab. When the ship comes down to the surface (the view's map row, +4 of the ship record, is $0B, the lowest row of the surface above the caverns, and its y in the page is $A7 or more) the load is let go: it is erased and becomes two objects, of kinds 9 and 10, the slab and the spire (<a href="49580.html">place_dropped_part</a>), at the ship's place in the world, the second $10 pixels right and $23 rows up.
+</div>
+<div class="paragraph">
+Called on even passes from <a href="50147.html">draw_ship</a>, every pass of the death sequence (<a href="62528.html">play</a>) and from <a href="38258.html">draw_rocket</a>. Nothing here ran in the build's sessions (+$10 of the player's record was always zero), so this is read only.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">carried_part</td>
+<td class="address-2"><span id="49614"></span>C1CE</td>
+<td class="instruction">LD A,(<a href="62967.html">player_count_nine</a>)</td>
+<td class="comment-1" rowspan="3">Nothing carried: return.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49617"></span>C1D1</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49618"></span>C1D2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49619"></span>C1D3</td>
+<td class="instruction">LD A,(<a href="51433.html">view_page_row</a>)</td>
+<td class="comment-1" rowspan="6">Not yet down on the surface: just draw it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49622"></span>C1D6</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49624"></span>C1D8</td>
+<td class="instruction">JP NZ,<a href="49614.html#49728">carried_part_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49627"></span>C1DB</td>
+<td class="instruction">LD A,(<a href="51434.html">view_page_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49630"></span>C1DE</td>
+<td class="instruction">CP $A7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49632"></span>C1E0</td>
+<td class="instruction">JP C,<a href="49614.html#49728">carried_part_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49635"></span>C1E3</td>
+<td class="instruction">LD A,(<a href="49785.html">carried_part_facing</a>)</td>
+<td class="comment-1" rowspan="6">Let go: bit 6 of <a href="49785.html">carried_part_facing</a> makes <a href="49791.html">draw_carried_piece</a> erase it and not draw it again; nothing is carried any more, and the ship record's +$1F is cleared.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49638"></span>C1E6</td>
+<td class="instruction">OR $40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49640"></span>C1E8</td>
+<td class="instruction">LD (<a href="49785.html">carried_part_facing</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49643"></span>C1EB</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49644"></span>C1EC</td>
+<td class="instruction">LD (<a href="62967.html">player_count_nine</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49647"></span>C1EF</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49650"></span>C1F2</td>
+<td class="instruction">LD A,(<a href="51433.html">view_page_row</a>)</td>
+<td class="comment-1" rowspan="6">The view's map cell (column in E, row in D) for both new objects (at +$41 and +$45 of the player's record, <a href="62951.html">score</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49653"></span>C1F5</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49654"></span>C1F6</td>
+<td class="instruction">LD A,(<a href="51430.html">view_page_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49657"></span>C1F9</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49658"></span>C1FA</td>
+<td class="instruction">LD (<a href="63016.html">place_nine</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49662"></span>C1FE</td>
+<td class="instruction">LD (<a href="63020.html">place_ten</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49666"></span>C202</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="14">The first piece's y in the cell from the ship's screen row (<a href="23608.html">ship_line</a>) and its screen y (<a href="51459.html">ship_screen_y</a>); its x the view's x plus 8, rounded down to 8.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49669"></span>C205</td>
+<td class="instruction">SUB $0D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49671"></span>C207</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49672"></span>C208</td>
+<td class="instruction">LD A,(<a href="51459.html">ship_screen_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49675"></span>C20B</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49676"></span>C20C</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49677"></span>C20D</td>
+<td class="instruction">LD A,(<a href="51434.html">view_page_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49680"></span>C210</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49681"></span>C211</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49682"></span>C212</td>
+<td class="instruction">LD A,(<a href="51431.html">view_page_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49685"></span>C215</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49687"></span>C217</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49689"></span>C219</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49690"></span>C21A</td>
+<td class="instruction">LD ($F62A),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49693"></span>C21D</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="7">The second piece $10 to the right and $23 higher.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49694"></span>C21E</td>
+<td class="instruction">ADD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49696"></span>C220</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49697"></span>C221</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49698"></span>C222</td>
+<td class="instruction">SUB $23</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49700"></span>C224</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49701"></span>C225</td>
+<td class="instruction">LD ($F62E),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49704"></span>C228</td>
+<td class="instruction">LD HL,<a href="63016.html">place_nine</a></td>
+<td class="comment-1" rowspan="8">Make them objects of kinds 9 and 10, in the two object records loaded into IX.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49707"></span>C22B</td>
+<td class="instruction">LD IX,<a href="43123.html">pickup_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49711"></span>C22F</td>
+<td class="instruction">LD B,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49713"></span>C231</td>
+<td class="instruction">CALL <a href="49580.html">place_dropped_part</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49716"></span>C234</td>
+<td class="instruction">LD IX,<a href="43149.html">second_pickup_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49720"></span>C238</td>
+<td class="instruction">LD HL,<a href="63020.html">place_ten</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49723"></span>C23B</td>
+<td class="instruction">LD B,$0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49725"></span>C23D</td>
+<td class="instruction">CALL <a href="49580.html">place_dropped_part</a></td>
+</tr>
+<tr>
+<td class="asm-label">carried_part_0</td>
+<td class="address-2"><span id="49728"></span>C240</td>
+<td class="instruction">LD IX,<a href="49787.html">carried_big_x</a></td>
+<td class="comment-1" rowspan="7">The 5-wide piece: its graphic, old and new widths 5, no erase unless <a href="49791.html">draw_carried_piece</a> decides on one, $23 rows; its place kept at <a href="49787.html">carried_big_x</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49732"></span>C244</td>
+<td class="instruction">LD DE,<a href="29752.html">addon_slab_picture</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49735"></span>C247</td>
+<td class="instruction">LD HL,$0505</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49738"></span>C24A</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49741"></span>C24D</td>
+<td class="instruction">LD HL,$2300</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49744"></span>C250</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49747"></span>C253</td>
+<td class="instruction">CALL <a href="49791.html">draw_carried_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49750"></span>C256</td>
+<td class="instruction">LD IX,<a href="49789.html">carried_small_x</a></td>
+<td class="comment-1" rowspan="7">The 3-wide piece: its graphic, widths 3, $2F rows; its place kept at <a href="49789.html">carried_small_x</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49754"></span>C25A</td>
+<td class="instruction">LD DE,<a href="29929.html">addon_spire_picture</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49757"></span>C25D</td>
+<td class="instruction">LD HL,$0303</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49760"></span>C260</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49763"></span>C263</td>
+<td class="instruction">LD HL,$2F00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49766"></span>C266</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49769"></span>C269</td>
+<td class="instruction">CALL <a href="49791.html">draw_carried_piece</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49772"></span>C26C</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+<td class="comment-1" rowspan="4">Remember the facing it was drawn with; the forced redraw is done.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49775"></span>C26F</td>
+<td class="instruction">LD (<a href="49785.html">carried_part_facing</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49778"></span>C272</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49779"></span>C273</td>
+<td class="instruction">LD (<a href="49786.html">carried_part_redraw</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49782"></span>C276</td>
+<td class="instruction">JP <a href="44804.html">colour_carried_parts</a></td>
+<td class="comment-1" rowspan="1">The colour patches over the two pieces (<a href="44804.html">colour_carried_parts</a>).</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49580.html">C1AC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49614">Map</a></td>
+<td class="next">
+Next: <a href="49785.html">C279</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

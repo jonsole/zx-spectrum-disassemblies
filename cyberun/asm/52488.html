@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at CD08</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52469.html">CCF5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52488">Map</a></td>
+<td class="next">
+Next: <a href="52587.html">CD6B</a>
+</td>
+</tr>
+</table>
+<div class="description">CD08: Set up a piece's steps from its direction</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53437.html">draw_landscape</a>.
+</div>
+<div class="paragraph">
+Called for each piece by <a href="53437.html">draw_landscape</a> with the piece's direction in +3 of the piece state at IX (<a href="57052.html">current_piece</a>). A tile turned upside down (<a href="53437.html">draw_landscape</a>'s $99) first remaps the direction through <a href="52756.html">upside_down_table</a>: 0-6 to 7-13 and back, which turns each piece over top to bottom. Then <a href="58328.html">set_piece_shape</a> loads the direction's three steps from <a href="58301.html">piece_shapes</a>: the x step in pixels (<a href="52789.html">piece_dx</a>), the column step in screen bytes (<a href="52790.html">piece_dcolumn</a>) and the rise in rows (<a href="52791.html">piece_rise</a>), each per step of the piece, and sets <a href="58395.html">direction_flag</a> to $FF for a piece that steps right or 1 for one that steps left.
+</div>
+<div class="paragraph">
+The directions, by their steps (x pixels, bytes, rows): 0 flat (24, 3, 0); 1 a gentle slope (16, 2, 8); 2 a steep one (8, 1, 8); 3 steeper (8, 1, 16); 4-6 the same three going left (-16, -2, 8; -8, -1, 8; -8, -1, 16); 7-13 the same seven upside down (the rise is still taken from 0-6, and <a href="23605.html">piece_ceiling</a> bit 7 marks them); 14 and 15 a wall, going right or left (0, +1 or -1, 16).
+</div>
+<div class="paragraph">
+From those: <a href="52826.html">piece_rows</a>, the rows to work on per step (<a href="52791.html">piece_rise</a>, or 4 for a flat piece); <a href="23588.html">piece_step_y</a>, the size of the column step; <a href="52825.html">piece_dx_copy</a>, the x step (0 for a wall); <a href="23589.html">piece_step_x</a>, the size of the x step, or 8 for a wall. A wall in an upside-down tile is also moved 8 pixels.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The piece state (<a href="57052.html">current_piece</a>)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">load_piece_steps</td>
+<td class="address-2"><span id="52488"></span>CD08</td>
+<td class="instruction">LD A,(<a href="23590.html">tile_upside_down</a>)</td>
+<td class="comment-1" rowspan="9">An upside-down tile: the direction through <a href="52756.html">upside_down_table</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52491"></span>CD0B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52492"></span>CD0C</td>
+<td class="instruction">JR Z,<a href="52488.html#52507">load_piece_steps_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52494"></span>CD0E</td>
+<td class="instruction">LD E,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52497"></span>CD11</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52499"></span>CD13</td>
+<td class="instruction">LD HL,<a href="52756.html">upside_down_table</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52502"></span>CD16</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52503"></span>CD17</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52504"></span>CD18</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_piece_steps_0</td>
+<td class="address-2"><span id="52507"></span>CD1B</td>
+<td class="instruction">CALL <a href="58328.html">set_piece_shape</a></td>
+<td class="comment-1" rowspan="1">The direction's steps.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52510"></span>CD1E</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+<td class="comment-1" rowspan="6">Rows per step: the rise, or 4 for a flat piece.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52513"></span>CD21</td>
+<td class="instruction">LD (<a href="52826.html">piece_rows</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52516"></span>CD24</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52517"></span>CD25</td>
+<td class="instruction">JR NZ,<a href="52488.html#52524">load_piece_steps_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52519"></span>CD27</td>
+<td class="instruction">OR $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52521"></span>CD29</td>
+<td class="instruction">LD (<a href="52826.html">piece_rows</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_piece_steps_1</td>
+<td class="address-2"><span id="52524"></span>CD2C</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+<td class="comment-1" rowspan="4">The column step, and the x step kept in <a href="52825.html">piece_dx_copy</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52527"></span>CD2F</td>
+<td class="instruction">LD (<a href="23588.html">piece_step_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52530"></span>CD32</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52533"></span>CD35</td>
+<td class="instruction">LD (<a href="52825.html">piece_dx_copy</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52536"></span>CD38</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="8">A wall (no x step): 8 pixels, with the sign of its direction.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52537"></span>CD39</td>
+<td class="instruction">JR NZ,<a href="52488.html#52548">load_piece_steps_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52539"></span>CD3B</td>
+<td class="instruction">LD A,(<a href="58395.html">direction_flag</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52542"></span>CD3E</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52544"></span>CD40</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52545"></span>CD41</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52546"></span>CD42</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52547"></span>CD43</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">load_piece_steps_2</td>
+<td class="address-2"><span id="52548"></span>CD44</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+<td class="comment-1" rowspan="8"><a href="23589.html">piece_step_x</a> the size of the x step; going left, <a href="23588.html">piece_step_y</a> the size of the column step.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52551"></span>CD47</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52553"></span>CD49</td>
+<td class="instruction">JR Z,<a href="52488.html#52568">load_piece_steps_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52555"></span>CD4B</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52557"></span>CD4D</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52560"></span>CD50</td>
+<td class="instruction">LD A,(<a href="23588.html">piece_step_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52563"></span>CD53</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52565"></span>CD55</td>
+<td class="instruction">LD (<a href="23588.html">piece_step_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_piece_steps_3</td>
+<td class="address-2"><span id="52568"></span>CD58</td>
+<td class="instruction">LD A,(<a href="23590.html">tile_upside_down</a>)</td>
+<td class="comment-1" rowspan="10">A wall upside down: 8 pixels over.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52571"></span>CD5B</td>
+<td class="instruction">CP $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52573"></span>CD5D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52574"></span>CD5E</td>
+<td class="instruction">LD A,(<a href="52825.html">piece_dx_copy</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52577"></span>CD61</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52578"></span>CD62</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52579"></span>CD63</td>
+<td class="instruction">LD A,(<a href="52803.html">piece_page_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52582"></span>CD66</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52583"></span>CD67</td>
+<td class="instruction">LD (<a href="52803.html">piece_page_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="52586"></span>CD6A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="52469.html">CCF5</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#52488">Map</a></td>
+<td class="next">
+Next: <a href="52587.html">CD6B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

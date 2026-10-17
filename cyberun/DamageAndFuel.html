@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Damage, fuel and lives</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="cyberun.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="DamageAndFuel">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Cyberun" src="images/logo.png" /></a></td>
+<td class="page-header">Damage, fuel and lives</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>Two things kill the ship: a third hit, and an empty tank. Either sets the death byte, <a href="asm/36691.html">death_count</a>, which then counts up a pass at a time through the wreck, the death sequence and the wipe of the screen, and a life is taken.</p>
+<h3>Hits</h3>
+<p>A touch with contact bit 6 -- every attacker, the rocks, bullets, pellets -- goes to <a href="asm/36692.html">contact_damage</a>, at most once every 16 passes per object; the flickering beams go through <a href="asm/40206.html">beam_hits_ship</a>. Both reach <a href="asm/36692.html">damage_ship</a>, which does nothing while the shield runs (<a href="asm/35183.html">shield_timer</a>) or the ship is already dying; otherwise a zap, <a href="asm/36803.html">hit_count</a> up by one, and the panel's ship icon recoloured by the new count, the third hit setting the death byte to 1. Ground objects never damage the ship: they are solid, and it bounces off them.</p>
+<p><b>Repair.</b> A refuel pad (<a href="asm/43252.html">ship_hits_ground_objects</a>) sets <a href="asm/36803.html">hit_count</a> to $FF and calls the same routine, which wraps the count to 0 and colours the icon white: one routine both damages and repairs.</p>
+<p>Worked example: <a href="asm/36692.html">damage_ship</a> called three times in the simulator at the start of a game, then, on a fresh copy, once more and again with the count written as $FF, as the pad does; the icon read from the screen each time:</p>
+<table class="kl-table"><tr><th>Hits</th><th>Called</th><th>Hit count</th><th>Death byte</th><th>Icon's colour</th></tr><tr><td>0</td><td></td><td>0</td><td>0</td><td>bright white</td></tr><tr><td>1</td><td><a href="asm/36692.html">damage_ship</a></td><td>1</td><td>0</td><td>bright yellow</td></tr><tr><td>2</td><td><a href="asm/36692.html">damage_ship</a></td><td>2</td><td>0</td><td>bright magenta</td></tr><tr><td>3</td><td><a href="asm/36692.html">damage_ship</a></td><td>3</td><td>1</td><td>black</td></tr><tr><td>a hit, then the pad's $FF</td><td><a href="asm/36692.html">damage_ship</a></td><td>0</td><td>0</td><td>bright white</td></tr></table>
+<div class="kl-item"><img class="kl-piece" src="images/howitworks/damage_icons.png" alt="The panel's ship icon" width="672" height="64"><p>Player 1's ship icon: before, after each hit, and after the repair.</p></div>
+<h3>The shield</h3>
+<p>The shield ring, thrown up one throw in eight by the mounds that throw bullets, sets <a href="asm/35183.html">shield_timer</a> to $FF when touched; <a href="asm/50036.html">ship_pass</a> counts it down on odd passes, so it lasts 510 passes. While it runs no damage is taken, an attacker that touches the ship dies instead, and <a href="asm/61885.html">colour_ship</a> paints the ship cyan, flashing in its last 32 counts.</p>
+<h3>Fuel</h3>
+<p><a href="asm/52299.html">fuel</a> is a word whose high byte is the gauge's level as a screen line: $42 full, $BE empty, 124 steps. Only <a href="asm/52301.html">add_fuel</a> changes it. <a href="asm/45333.html">read_controls</a> burns it while steering or thrusting -- coasting and falling are free -- halved with add-on 6 and halved again while <a href="asm/23616.html">fuel_saver</a> is set. The refuel pick-up gives 28 steps back (<a href="asm/36804.html">contact_refuel</a>), the fuel thief takes 16 (<a href="asm/36885.html">contact_drain_fuel</a>), a refuel pad fills the tank, and a new life starts full.</p>
+<p>Worked example: from the start of a game, 32 passes with each of these held, the fuel word read before and after (the gauge has 31,744 256ths of a step to burn):</p>
+<table class="kl-table"><tr><th>Held</th><th>Fuel word a pass</th><th>Passes from full to empty</th></tr><tr><td>nothing</td><td>0</td><td>never</td></tr><tr><td>thrust (A)</td><td>8</td><td>3,968</td></tr><tr><td>steering (Z)</td><td>8</td><td>3,968</td></tr><tr><td>both</td><td>16</td><td>1,984</td></tr><tr><td>both, with add-on 6</td><td>8</td><td>3,968</td></tr></table>
+<p><b>The gauge</b> (<a href="asm/52343.html">update_fuel_gauge</a>) moves <a href="asm/52322.html">fuel_shown</a> one row a pass towards the level, and <a href="asm/51879.html">flash_fuel_gauge</a> turns it red on two passes in four once it is low. <b>Running out</b> (<a href="asm/52323.html">check_fuel_empty</a>): once the gauge shows empty, the death byte is set the next time the low seven bits of <a href="asm/39524.html">pass_counter</a> are 0 -- up to 128 passes of grace. With the tank emptied in the terrace scene, the gauge took 123 passes to run down to empty and the ship died 74 passes after that.</p>
+<h3>The death byte and the death sequence</h3>
+<table class="kl-table"><tr><th>Death byte</th><th>What happens</th></tr><tr><td>1-3</td><td>every object starts exploding</td></tr><tr><td>not 0</td><td>nothing touches the ship, nothing new spawns, no damage, no fuel death</td></tr><tr><td>10</td><td><a href="asm/36018.html">wreck_ship</a>: the ship breaks into four pieces of debris and five falling pieces</td></tr><tr><td>10-$2C</td><td><a href="asm/29355.html">sound_death</a> each pass</td></tr><tr><td>$0B on</td><td><a href="asm/50036.html">ship_pass</a> no longer moves the ship</td></tr><tr><td>12</td><td>the play loop goes to the death sequence (<a href="asm/62528.html">$F48B</a>)</td></tr><tr><td>$50</td><td>the sequence ends</td></tr></table>
+<p>The death sequence stops the landscape, sets the fuel empty, and loops on <a href="asm/50036.html">ship_pass</a>, the pause test, the gauge, <a href="asm/36162.html">update_objects</a> and <a href="asm/49614.html">carried_part</a> until the byte reaches $50. Then <a href="asm/62685.html">death_tune</a>, the play area dissolved (<a href="asm/40702.html">dissolve_play_area</a>: every byte ANDed sixteen times with masks that each clear one bit, running on from byte to byte so the picture crumbles) and cleared, <a href="asm/62662.html">lose_life</a> takes a life, and <a href="asm/62528.html">play</a> starts the next at the restart point.</p>
+<p>Worked example, the same death. The empty gauge set the death byte to 1 in <a href="asm/52343.html">update_fuel_gauge</a> and <a href="asm/36162.html">update_objects</a> counted it to 2 later in the same pass; 10 more passes took it to 12, then 68 passes of the death sequence to $50. The play area at death byte $02, $03, $0A, $0B, $0C, $20, $40, then part way through the dissolve, then the first pass of the next life:</p>
+<div class="kl-item"><img class="kl-piece" src="images/howitworks/damage_death.png" alt="A death from an empty tank" width="776" height="536"><p>A death from an empty tank, stage by stage.</p></div>
+<h3>Lives</h3>
+<p><a href="asm/62957.html">lives</a>: 5 at a new game (read from the game), one taken by <a href="asm/62662.html">lose_life</a> after each death, at most 9. The panel shows lives less one: the ship in play is not counted. At none, <a href="asm/62716.html">game_over</a>. <b>Extra lives</b> (<a href="asm/36896.html">contact_extra_life</a>) come from the ship-icon pick-up, thrown by the same mounds every (lives x 4)th throw (<a href="asm/35182.html">extra_life_countdown</a>): one throw in twenty with five lives, one in four with one -- the game helps a player who is losing. The ore aboard survives a death (<a href="asm/62976.html">ore_kept</a>).</p>
+<h3>Confirmed and inferred</h3><ul><li>Run in the simulator when this page was built: three hits and a repair through damage_ship, with the icon read from the screen; the fuel burn over 32 passes for each way of flying; a death from an empty tank, from the gauge to the next life.</li><li>Read from the code: the shield, the refuel and the fuel thief, the extra-life rule, the death byte's other steps. The shield's 25 seconds or so assume about 20 passes a second.</li></ul>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

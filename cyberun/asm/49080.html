@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BFB8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49029.html">BF85</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49080">Map</a></td>
+<td class="next">
+Next: <a href="49123.html">BFE3</a>
+</td>
+</tr>
+</table>
+<div class="description">BFB8: Choose the mirrored drawer for a sprite when the ship faces left</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49791.html">draw_carried_piece</a> and <a href="50209.html">draw_ship_image</a>.
+</div>
+<div class="paragraph">
+The drawing half of <a href="49029.html">mirror_ship_sprite</a>: when the ship faces left (bit 7 of its facing byte, <a href="51453.html">ship_facing</a>) the image is drawn mirrored. The mirrored drawers (<a href="42966.html">direct_draw_row_mirrored</a> on, beside the plain ones that <a href="42399.html">draw_direct_pair</a> jumps into) work from right to left and look each byte up in the bit-reversal table that <a href="63574.html">build_bit_reverse</a> builds at the start (page $F9), through BC with B the table's page. So this moves L to the last byte of the row and picks the mirrored drawer for the width. Facing right, it returns with IX as the caller left it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">The low byte of the screen address of the image's first row (its left end)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The plain drawer the caller chose</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The drawer to use: the mirrored one for a width of 6, 5, 4, or anything less</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">$F9 when mirrored: the bit-reversal table's page</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">set_mirrored_drawer</td>
+<td class="address-2"><span id="49080"></span>BFB8</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+<td class="comment-1" rowspan="3">Facing right: keep the plain drawer.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49083"></span>BFBB</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49085"></span>BFBD</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49086"></span>BFBE</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="1">B is the page of the bit-reversal table (<a href="63574.html">build_bit_reverse</a>), for the mirrored drawer's LD A,(BC).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49088"></span>BFC0</td>
+<td class="instruction">LD A,(<a href="23593.html">sprite_width_drawn</a>)</td>
+<td class="comment-1" rowspan="4">Start at the right-hand byte of the row: L plus the new width (<a href="23593.html">sprite_width_drawn</a>) less one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49091"></span>BFC3</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49092"></span>BFC4</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49093"></span>BFC5</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49094"></span>BFC6</td>
+<td class="instruction">LD A,(<a href="23593.html">sprite_width_drawn</a>)</td>
+<td class="comment-1" rowspan="12">The mirrored drawer for the width: each is entered further in for a narrower image, as the plain ones are.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49097"></span>BFC9</td>
+<td class="instruction">LD IX,<a href="42966.html">direct_draw_row_mirrored</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49101"></span>BFCD</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49103"></span>BFCF</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49104"></span>BFD0</td>
+<td class="instruction">LD IX,<a href="42973.html">mirrored_draw_five</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49108"></span>BFD4</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49110"></span>BFD6</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49111"></span>BFD7</td>
+<td class="instruction">LD IX,<a href="42980.html">mirrored_draw_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49115"></span>BFDB</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49117"></span>BFDD</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49118"></span>BFDE</td>
+<td class="instruction">LD IX,<a href="42987.html">mirrored_draw_three</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49122"></span>BFE2</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49029.html">BF85</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49080">Map</a></td>
+<td class="next">
+Next: <a href="49123.html">BFE3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

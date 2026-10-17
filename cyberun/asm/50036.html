@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C374</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49980.html">C33C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50036">Map</a></td>
+<td class="next">
+Next: <a href="50147.html">C3E3</a>
+</td>
+</tr>
+</table>
+<div class="description">C374: Move the ship and the world for one pass of the game</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+The first call of each pass of the play loop (<a href="62528.html">play</a>), and of the death sequence. It counts the pass (<a href="39524.html">pass_counter</a>), counts the shield pick-up's timer <a href="35183.html">shield_timer</a> down on odd passes, and every fourth pass offers the place as a restart point (<a href="49980.html">save_restart_point</a>). Then, unless the ship is dying or the finished rocket is lifting off (<a href="38571.html">launch_state</a>), the controls are read and the ship's speeds worked out (<a href="45620.html">move_ship</a>, which leaves this pass's scroll steps in <a href="52410.html">scroll_down</a> and <a href="52411.html">scroll_across</a>), the ship record is given the opposite step (<a href="47596.html">ship_speed_from_scroll</a>) and tested against the landscape (<a href="47649.html">collide_with_landscape</a>) and the other objects (<a href="43252.html">ship_hits_ground_objects</a>), and the record is moved (<a href="48998.html">move_object</a>).
+</div>
+<div class="paragraph">
+It ends by jumping to <a href="56824.html">scroll_landscape</a>, which scrolls the view, redraws the landscape and the stars, and jumps on to <a href="50147.html">draw_ship</a> to draw the ship: IY, pushed here, is popped there.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ship_pass</td>
+<td class="address-2"><span id="50036"></span>C374</td>
+<td class="instruction">LD HL,(<a href="39524.html">pass_counter</a>)</td>
+<td class="comment-1" rowspan="3">Count the pass.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50039"></span>C377</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50040"></span>C378</td>
+<td class="instruction">LD (<a href="39524.html">pass_counter</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50043"></span>C37B</td>
+<td class="instruction">BIT 0,L</td>
+<td class="comment-1" rowspan="7">On odd passes, run the shield timer down.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50045"></span>C37D</td>
+<td class="instruction">JR Z,<a href="50036.html#50057">ship_pass_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50047"></span>C37F</td>
+<td class="instruction">LD A,(<a href="35183.html">shield_timer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50050"></span>C382</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50051"></span>C383</td>
+<td class="instruction">JR Z,<a href="50036.html#50057">ship_pass_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50053"></span>C385</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50054"></span>C386</td>
+<td class="instruction">LD (<a href="35183.html">shield_timer</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">ship_pass_0</td>
+<td class="address-2"><span id="50057"></span>C389</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="3">Every fourth pass, perhaps a restart point.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50058"></span>C38A</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50060"></span>C38C</td>
+<td class="instruction">CALL Z,<a href="49980.html">save_restart_point</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50063"></span>C38F</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="1">Kept for <a href="50147.html">draw_ship</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50065"></span>C391</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">No scroll unless the ship moves.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50066"></span>C392</td>
+<td class="instruction">LD (<a href="52411.html">scroll_across</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50069"></span>C395</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50072"></span>C398</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Dying (death byte $0B or more): no movement.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50075"></span>C39B</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50077"></span>C39D</td>
+<td class="instruction">JR NC,<a href="50036.html#50141">ship_pass_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50079"></span>C39F</td>
+<td class="instruction">LD IX,<a href="51429.html">ship_record</a></td>
+<td class="comment-1" rowspan="2">Read the controls and work out the ship's speeds and this pass's scroll.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50083"></span>C3A3</td>
+<td class="instruction">CALL <a href="45620.html">move_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50086"></span>C3A6</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="2"><a href="23589.html">piece_step_x</a> = $FF: a marker for the landscape test (<a href="47649.html">collide_with_landscape</a> clears <a href="48146.html">ship_on_slope</a> if it is still $FF afterwards).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50088"></span>C3A8</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50091"></span>C3AB</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="3">The finished rocket is lifting off (<a href="38571.html">launch_state</a>): no tests.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50094"></span>C3AE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50095"></span>C3AF</td>
+<td class="instruction">JR NZ,<a href="50036.html#50141">ship_pass_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50097"></span>C3B1</td>
+<td class="instruction">CALL <a href="47596.html">ship_speed_from_scroll</a></td>
+<td class="comment-1" rowspan="1">The ship record's step is minus the scroll.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50100"></span>C3B4</td>
+<td class="instruction">LD C,$30</td>
+<td class="comment-1" rowspan="10">Test it against the landscape: B the ship's height plus 4 (plus nothing with the add-on at +$0F of the player's record).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50102"></span>C3B6</td>
+<td class="instruction">LD A,(<a href="62966.html">addon_nine</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50105"></span>C3B9</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50106"></span>C3BA</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50108"></span>C3BC</td>
+<td class="instruction">JR Z,<a href="50036.html#50112">ship_pass_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50110"></span>C3BE</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label">ship_pass_1</td>
+<td class="address-2"><span id="50112"></span>C3C0</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50115"></span>C3C3</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50116"></span>C3C4</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50117"></span>C3C5</td>
+<td class="instruction">CALL <a href="47649.html">collide_with_landscape</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50120"></span>C3C8</td>
+<td class="instruction">CALL <a href="43252.html">ship_hits_ground_objects</a></td>
+<td class="comment-1" rowspan="1">Test it against the other objects (this is what calls the damage routine).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50123"></span>C3CB</td>
+<td class="instruction">LD HL,(<a href="51436.html">ship_dx</a>)</td>
+<td class="comment-1" rowspan="4">Keep a copy of the ship record's two step words (at <a href="51454.html">ship_across_speed</a> and <a href="51456.html">ship_down_speed</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50126"></span>C3CE</td>
+<td class="instruction">LD (<a href="51454.html">ship_across_speed</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50129"></span>C3D1</td>
+<td class="instruction">LD HL,(<a href="51438.html">ship_dy</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50132"></span>C3D4</td>
+<td class="instruction">LD (<a href="51456.html">ship_down_speed</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50135"></span>C3D7</td>
+<td class="instruction">CALL <a href="47596.html">ship_speed_from_scroll</a></td>
+<td class="comment-1" rowspan="2">Set the step again and move the record by it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50138"></span>C3DA</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_pass_2</td>
+<td class="address-2"><span id="50141"></span>C3DD</td>
+<td class="instruction">CALL <a href="46854.html">update_shots</a></td>
+<td class="comment-1" rowspan="2">Then the landscape, and the ship.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50144"></span>C3E0</td>
+<td class="instruction">JP <a href="56824.html">scroll_landscape</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49980.html">C33C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50036">Map</a></td>
+<td class="next">
+Next: <a href="50147.html">C3E3</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

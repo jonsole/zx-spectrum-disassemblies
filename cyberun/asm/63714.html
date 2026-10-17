@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F8E2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63696.html">F8D0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63714">Map</a></td>
+<td class="next">
+Next: <a href="63744.html">F900</a>
+</td>
+</tr>
+</table>
+<div class="description">F8E2: Make a flat piece's shifted copies</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="63467.html">build_shifted_pieces</a>.
+</div>
+<div class="paragraph">
+For <a href="63467.html">build_shifted_pieces</a>, the two flat pieces (directions 0 and 7). A flat piece is three bytes wide and tiles: the ground under it repeats every 24 pixels. So its rows are rotated rather than shifted: the bits that would fall off the right-hand end come back in at the left (the byte that would hold them is cleared and its bits ORed into the row's first byte), and nothing is added to the width. The row pairs alternate as in the blitter <a href="57933.html">blit_flat_step</a>: left to right, then right to left. After each copy, HL' skips 48 bytes: only the first 12 rows of each 28-row copy are made here, the other 16 rows of each having come on the tape already shifted (read from the simulator). The 12 made are the three 4-row variants of the step, the ground that repeats and so can be rotated; the 16 on the tape are the four end caps, already shifted (checked in the simulator for the Graphics page) -- presumably because a cap does not tile, so rotating it would wrap its edge round to the wrong side (assumed).
+</div>
+<div class="paragraph">
+At the end it patches a byte in the last row of each flat piece's copy shifted by 6 (<a href="60008.html">flat_piece_shifted</a> and <a href="60260.html">flat_piece_two_shifted</a>; to $5C and $40), perhaps to mend a pixel the rotation got wrong (not checked).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the piece's header (two bytes: pairs of rows, width)</td>
+</tr>
+<tr>
+<td class="register">HL'</td>
+<td class="register-desc">where the copy shifted by 2 goes; the copies shifted by 4 and 6 follow, 84 bytes apart</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">shift_flat_piece</td>
+<td class="address-2"><span id="63714"></span>F8E2</td>
+<td class="instruction">CALL <a href="63637.html#63645">read_piece_header_0</a></td>
+<td class="comment-1" rowspan="1">Read the header</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63717"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="63744.html">bit_reverse_table</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">shift_flat_piece_0</td>
+<td class="address-2"><span id="63717"></span>F8E5</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">Back here for each shift</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63718"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="63744.html">bit_reverse_table</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">shift_flat_piece_1</td>
+<td class="address-2"><span id="63718"></span>F8E6</td>
+<td class="instruction">LD B,C</td>
+<td class="comment-1" rowspan="5">A row left to right: width + 1 bytes shifted in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63719"></span>F8E7</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label">shift_flat_piece_2</td>
+<td class="address-2"><span id="63720"></span>F8E8</td>
+<td class="instruction">CALL <a href="63658.html">shift_byte_forward</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63723"></span>F8EB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63724"></span>F8EC</td>
+<td class="instruction">DJNZ <a href="63714.html#63720">shift_flat_piece_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63726"></span>F8EE</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="11">Rotate: the spill clears and ORs into the row's first byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63727"></span>F8EF</td>
+<td class="instruction">LD (HL),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63729"></span>F8F1</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63730"></span>F8F2</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63731"></span>F8F3</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63732"></span>F8F4</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63733"></span>F8F5</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63734"></span>F8F6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63735"></span>F8F7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63736"></span>F8F8</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63737"></span>F8F9</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63738"></span>F8FA</td>
+<td class="instruction">CALL <a href="63683.html">shift_byte_low</a></td>
+<td class="comment-1" rowspan="2">A row right to left: keep the first byte's low part</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63741"></span>F8FD</td>
+<td class="instruction">LD (<a href="23584.html">pieces_left</a>),A</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63696.html">F8D0</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63714">Map</a></td>
+<td class="next">
+Next: <a href="63744.html">F900</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C152</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49422.html">C10E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49490">Map</a></td>
+<td class="next">
+Next: <a href="49540.html">C184</a>
+</td>
+</tr>
+</table>
+<div class="description">C152: Scale a scroll step for a parallax layer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49123.html">draw_stars</a>.
+</div>
+<div class="paragraph">
+Divides the step in H by 1, 2 or 4 for the layer in B. A plain arithmetic shift would turn a step of -2 into -1 but +2 into 0 for the far layer, so it would only ever drift one way; instead the far layer takes 0 and -1, or 1 and 0, on alternate passes (bit 0 of the pass counter <a href="39524.html">pass_counter</a>), and moves at a quarter of the speed either way.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The layer: 1 near, 2 middle, 3 far</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The scroll step (signed pixels)</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The layer's step</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">parallax_step</td>
+<td class="address-2"><span id="49490"></span>C152</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="3">Near layer: the whole step.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49491"></span>C153</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49493"></span>C155</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49494"></span>C156</td>
+<td class="instruction">CP $02</td>
+<td class="comment-1" rowspan="2">Middle layer: just halve it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49496"></span>C158</td>
+<td class="instruction">JR Z,<a href="49490.html#49513">parallax_step_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49498"></span>C15A</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="8">Far layer, step -2: no movement on odd passes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49499"></span>C15B</td>
+<td class="instruction">CP $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49501"></span>C15D</td>
+<td class="instruction">JR NZ,<a href="49490.html#49513">parallax_step_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49503"></span>C15F</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49506"></span>C162</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49508"></span>C164</td>
+<td class="instruction">JR Z,<a href="49490.html#49513">parallax_step_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49510"></span>C166</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49512"></span>C168</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">parallax_step_0</td>
+<td class="address-2"><span id="49513"></span>C169</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="10">Far layer, step +2: on odd passes make it 4, so that the quarter is 1.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49514"></span>C16A</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49516"></span>C16C</td>
+<td class="instruction">JR NZ,<a href="49490.html#49532">parallax_step_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49518"></span>C16E</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49519"></span>C16F</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49521"></span>C171</td>
+<td class="instruction">JR NZ,<a href="49490.html#49532">parallax_step_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49523"></span>C173</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49526"></span>C176</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49528"></span>C178</td>
+<td class="instruction">JR Z,<a href="49490.html#49532">parallax_step_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49530"></span>C17A</td>
+<td class="instruction">LD H,$04</td>
+</tr>
+<tr>
+<td class="asm-label">parallax_step_1</td>
+<td class="address-2"><span id="49532"></span>C17C</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="6">Shift right, keeping the sign, B-1 times.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49533"></span>C17D</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label">parallax_step_2</td>
+<td class="address-2"><span id="49534"></span>C17E</td>
+<td class="instruction">SRA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49536"></span>C180</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49537"></span>C181</td>
+<td class="instruction">JR NZ,<a href="49490.html#49534">parallax_step_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49539"></span>C183</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49422.html">C10E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49490">Map</a></td>
+<td class="next">
+Next: <a href="49540.html">C184</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F591</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62848.html">F580</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62865">Map</a></td>
+<td class="next">
+Next: <a href="62916.html">F5C4</a>
+</td>
+</tr>
+</table>
+<div class="description">F591: Hand over to the other player</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="62397.html">new_game</a>, <a href="62662.html">lose_life</a> and <a href="62716.html">game_over</a>.
+</div>
+<div class="paragraph">
+Does nothing if the other player has no lives (+6 of the second record). Otherwise swaps the two player records, all 105 bytes, so that the current player is always the one at <a href="62926.html">messages_and_players</a> + 25 and the rest of the game never needs to know which; swaps the two score lines of the panel (<a href="51692.html">p1_score_text</a> and <a href="51708.html">p2_score_text</a>, 16 bytes each); and unless <a href="51740.html">player_in_play</a> is $99 (as <a href="62397.html">new_game</a> sets it while it puts the score lines in order) changes <a href="51740.html">player_in_play</a> to the other player, says PLAYER n (<a href="62702.html">show_player</a>), pauses eight delays and clears the play area.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">swap_players</td>
+<td class="address-2"><span id="62865"></span>F591</td>
+<td class="instruction">LD A,($F656)</td>
+<td class="comment-1" rowspan="3">The other player has no lives: carry on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62868"></span>F594</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62869"></span>F595</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62870"></span>F596</td>
+<td class="instruction">LD DE,<a href="62951.html">score</a></td>
+<td class="comment-1" rowspan="4">Swap the records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62873"></span>F599</td>
+<td class="instruction">LD HL,<a href="63056.html">other_player_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62876"></span>F59C</td>
+<td class="instruction">LD B,$69</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62878"></span>F59E</td>
+<td class="instruction">CALL <a href="62916.html">swap_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62881"></span>F5A1</td>
+<td class="instruction">LD DE,<a href="51692.html">p1_score_text</a></td>
+<td class="comment-1" rowspan="4">Swap the score lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62884"></span>F5A4</td>
+<td class="instruction">LD HL,<a href="51708.html">p2_score_text</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62887"></span>F5A7</td>
+<td class="instruction">LD B,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62889"></span>F5A9</td>
+<td class="instruction">CALL <a href="62916.html">swap_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62892"></span>F5AC</td>
+<td class="instruction">LD A,(<a href="51740.html">player_in_play</a>)</td>
+<td class="comment-1" rowspan="3">Setting up: leave the current player alone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62895"></span>F5AF</td>
+<td class="instruction">CP $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62897"></span>F5B1</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62898"></span>F5B2</td>
+<td class="instruction">XOR $01</td>
+<td class="comment-1" rowspan="3">The other player, and say so</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62900"></span>F5B4</td>
+<td class="instruction">LD (<a href="51740.html">player_in_play</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62903"></span>F5B7</td>
+<td class="instruction">CALL <a href="62702.html">show_player</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62906"></span>F5BA</td>
+<td class="instruction">LD B,$08</td>
+<td class="comment-1" rowspan="4">A pause, and clear the play area</td>
+</tr>
+<tr>
+<td class="asm-label">swap_players_0</td>
+<td class="address-2"><span id="62908"></span>F5BC</td>
+<td class="instruction">CALL <a href="43010.html">delay</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62911"></span>F5BF</td>
+<td class="instruction">DJNZ <a href="62865.html#62908">swap_players_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62913"></span>F5C1</td>
+<td class="instruction">JP <a href="40748.html">clear_play_area</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62848.html">F580</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62865">Map</a></td>
+<td class="next">
+Next: <a href="62916.html">F5C4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

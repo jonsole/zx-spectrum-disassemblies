@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 93F2</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37773.html">938D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37874">Map</a></td>
+<td class="next">
+Next: <a href="37964.html">944C</a>
+</td>
+</tr>
+</table>
+<div class="description">93F2: Update routine for type $13, the clouds</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+A cloud slows the ship (contact effect $80, <a href="36638.html">contact_slow_ship</a>), cannot be shot (its +$10 has bit 5 set from the start, <a href="34735.html">spawn_tick</a>), and explodes when it drifts below the bottom of page row 10 or into row 3. Clouds made high up (top speed 4) do not drift in Y. White clouds (+$D = $77) drop things on the ship (<a href="34835.html">attacker_fires</a>, kind 3). The big one (frame 1, one in eight) counts twice in the load. It moves bouncing off the landscape in a 48 by 32 box. Identified as clouds by their place in the sky, their colours and their harmlessness, not by name.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The cloud's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_cloud</td>
+<td class="address-2"><span id="37874"></span>93F2</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="2">Its contact effect</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37876"></span>93F4</td>
+<td class="instruction">LD (<a href="36396.html">contact_effect</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37879"></span>93F7</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="8">Below row 10's line $A0: it explodes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37882"></span>93FA</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37884"></span>93FC</td>
+<td class="instruction">JR NZ,<a href="37874.html#37899">update_cloud_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37886"></span>93FE</td>
+<td class="instruction">LD A,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37889"></span>9401</td>
+<td class="instruction">CP $A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37891"></span>9403</td>
+<td class="instruction">JR C,<a href="37874.html#37907">update_cloud_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37893"></span>9405</td>
+<td class="instruction">SET 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37897"></span>9409</td>
+<td class="instruction">JR <a href="37874.html#37907">update_cloud_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_cloud_0</td>
+<td class="address-2"><span id="37899"></span>940B</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="3">In row 3: it explodes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37901"></span>940D</td>
+<td class="instruction">JR NZ,<a href="37874.html#37907">update_cloud_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37903"></span>940F</td>
+<td class="instruction">SET 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label">update_cloud_1</td>
+<td class="address-2"><span id="37907"></span>9413</td>
+<td class="instruction">LD A,$03</td>
+<td class="comment-1" rowspan="7">White ones drop things</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37909"></span>9415</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37912"></span>9418</td>
+<td class="instruction">LD A,(IX+$0D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37915"></span>941B</td>
+<td class="instruction">CP $77</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37917"></span>941D</td>
+<td class="instruction">PUSH IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37919"></span>941F</td>
+<td class="instruction">CALL Z,<a href="34835.html">attacker_fires</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37922"></span>9422</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37924"></span>9424</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="6">The high ones keep their height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37927"></span>9427</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37929"></span>9429</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37931"></span>942B</td>
+<td class="instruction">JR NZ,<a href="37874.html#37941">update_cloud_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37933"></span>942D</td>
+<td class="instruction">LD (IX+$0E),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37937"></span>9431</td>
+<td class="instruction">LD (IX+$0F),$00</td>
+</tr>
+<tr>
+<td class="asm-label">update_cloud_2</td>
+<td class="address-2"><span id="37941"></span>9435</td>
+<td class="instruction">CALL <a href="35845.html">accelerate</a></td>
+<td class="comment-1" rowspan="1">Accelerate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37944"></span>9438</td>
+<td class="instruction">LD BC,$2030</td>
+<td class="comment-1" rowspan="8">48 by 32; the big one counts twice; move and draw (<a href="38151.html">update_attacker</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37947"></span>943B</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37950"></span>943E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37951"></span>943F</td>
+<td class="instruction">JP Z,<a href="38151.html#38168">move_draw</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37954"></span>9442</td>
+<td class="instruction">LD A,(<a href="36395.html">object_load</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37957"></span>9445</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37958"></span>9446</td>
+<td class="instruction">LD (<a href="36395.html">object_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="37961"></span>9449</td>
+<td class="instruction">JP <a href="38151.html#38168">move_draw</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="37773.html">938D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#37874">Map</a></td>
+<td class="next">
+Next: <a href="37964.html">944C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A59F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42366.html">A57E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42399">Map</a></td>
+<td class="next">
+Next: <a href="42513.html">A611</a>
+</td>
+</tr>
+</table>
+<div class="description">A59F: Rub out the old image and draw the new one, straight on the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="49791.html">draw_carried_piece</a>, <a href="50209.html">draw_ship_image</a>, <a href="50413.html">draw_trail</a>, <a href="50687.html">side_jet</a> and <a href="50898.html">lift_jet</a>.
+</div>
+<div class="paragraph">
+The other sprite drawer, for the player's ship (<a href="50147.html">draw_ship</a>), the carried rocket part (<a href="49791.html">draw_carried_piece</a>) and the lift jet (<a href="50898.html">lift_jet</a>): no buffer, but the rows of the old image's erase and the new image's draw interleaved -- one row rubbed out, one drawn, both moving up the screen -- so no part of the ship is missing for long. The images are byte-aligned (no shift tables); a ship facing left is drawn right to left through the bit-reversing table on page $F9 (<a href="42916.html">direct_erase_row_mirrored</a>, <a href="42966.html">direct_draw_row_mirrored</a>). Erase is AND NOT the graphic, draw is OR, as in <a href="41731.html">draw_sprite_pair</a>.
+</div>
+<div class="paragraph">
+The old image is in the alternate register set (HL' its screen address, DE' its graphic, IY its row routine, its rows in <a href="23580.html">scratch_count</a>), the new in the main set (HL, DE, IX, its rows in <a href="23581.html">ground_cell</a>). When their bottom lines (<a href="41609.html">direct_old_line</a>, <a href="41610.html">direct_new_line</a>) differ, the rows below the higher one's bottom are done first on their own, so that the two then move up in step.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The new image's screen address</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The new image's graphic</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The new image's draw-row routine</td>
+</tr>
+<tr>
+<td class="register">HL'</td>
+<td class="register-desc">The old image's screen address</td>
+</tr>
+<tr>
+<td class="register">DE'</td>
+<td class="register-desc">The old image's graphic</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The old image's erase-row routine</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_direct_pair</td>
+<td class="address-2"><span id="42399"></span>A59F</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">Keep each image's column, to come back to at every row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42400"></span>A5A0</td>
+<td class="instruction">LD (<a href="23593.html">sprite_width_drawn</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42403"></span>A5A3</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42404"></span>A5A4</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42405"></span>A5A5</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42408"></span>A5A8</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42409"></span>A5A9</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+<td class="comment-1" rowspan="2">A' counts the new image's rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42412"></span>A5AC</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42413"></span>A5AD</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="11">Either image absent, or both on the same bottom line: interleave all the rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42416"></span>A5B0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42417"></span>A5B1</td>
+<td class="instruction">JP Z,<a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42420"></span>A5B4</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42423"></span>A5B7</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42424"></span>A5B8</td>
+<td class="instruction">JP Z,<a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42427"></span>A5BB</td>
+<td class="instruction">LD A,(<a href="41609.html">direct_old_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42430"></span>A5BE</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42431"></span>A5BF</td>
+<td class="instruction">LD A,(<a href="41610.html">direct_new_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42434"></span>A5C2</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42435"></span>A5C3</td>
+<td class="instruction">JP Z,<a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42438"></span>A5C6</td>
+<td class="instruction">JR NC,<a href="42399.html#42475">draw_direct_pair_1</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42440"></span>A5C8</td>
+<td class="instruction">NEG</td>
+<td class="comment-1" rowspan="8">The old image is lower: its rows below the new one's bottom are rubbed out alone first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42442"></span>A5CA</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42443"></span>A5CB</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42446"></span>A5CE</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42447"></span>A5CF</td>
+<td class="instruction">LD (<a href="41609.html">direct_old_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42450"></span>A5D2</td>
+<td class="instruction">JR C,<a href="42399.html#42456">draw_direct_pair_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42452"></span>A5D4</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42453"></span>A5D5</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_direct_pair_0</td>
+<td class="address-2"><span id="42456"></span>A5D8</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">No new rows meanwhile</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42457"></span>A5D9</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42458"></span>A5DA</td>
+<td class="instruction">CALL <a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42461"></span>A5DD</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="6">Then the rest of both, interleaved</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42462"></span>A5DE</td>
+<td class="instruction">LD A,(<a href="41609.html">direct_old_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42465"></span>A5E1</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42468"></span>A5E4</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42471"></span>A5E7</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42472"></span>A5E8</td>
+<td class="instruction">JP <a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_direct_pair_1</td>
+<td class="address-2"><span id="42475"></span>A5EB</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="7">The new image is lower: its rows below the old one's bottom are drawn alone first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42476"></span>A5EC</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42479"></span>A5EF</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42480"></span>A5F0</td>
+<td class="instruction">LD (<a href="41610.html">direct_new_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42483"></span>A5F3</td>
+<td class="instruction">JR C,<a href="42399.html#42487">draw_direct_pair_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42485"></span>A5F5</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42486"></span>A5F6</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label">draw_direct_pair_2</td>
+<td class="address-2"><span id="42487"></span>A5F7</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="5">No old rows meanwhile</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42490"></span>A5FA</td>
+<td class="instruction">LD (<a href="41609.html">direct_old_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42493"></span>A5FD</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42494"></span>A5FE</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42497"></span>A601</td>
+<td class="instruction">CALL <a href="42524.html">direct_next_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42500"></span>A604</td>
+<td class="instruction">LD A,(<a href="41609.html">direct_old_line</a>)</td>
+<td class="comment-1" rowspan="5">Then the rest of both</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42503"></span>A607</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42506"></span>A60A</td>
+<td class="instruction">LD A,(<a href="41610.html">direct_new_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42509"></span>A60D</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42510"></span>A60E</td>
+<td class="instruction">JP <a href="42524.html">direct_next_pair</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42366.html">A57E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42399">Map</a></td>
+<td class="next">
+Next: <a href="42513.html">A611</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

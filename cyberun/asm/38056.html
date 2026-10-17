@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 94A8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38036.html">9494</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38056">Map</a></td>
+<td class="next">
+Next: <a href="38151.html">9507</a>
+</td>
+</tr>
+</table>
+<div class="description">94A8: Update routine for type $19, the tough attacker</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Takes many hits: a shot (bit 5 of +$10) counts as one only on every eighth pass, in +$16, and a missile counts one directly (<a href="37244.html">test_player_shots</a>); each scores 75. From ten hits it flashes white (+$D = $FF instead of $55), and at fourteen it explodes, scored. It has an engine sound (<a href="29301.html">sound_hum</a>), drops things on the ship (<a href="34835.html">attacker_fires</a>, kind 7 or 8 by its facing), changes course now and then (<a href="38879.html">change_course</a>, <a href="39259.html">steer_tough_attacker</a>), faces the way it moves, and moves bouncing in a 48 by 24 box.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_tough_attacker</td>
+<td class="address-2"><span id="38056"></span>94A8</td>
+<td class="instruction">CALL <a href="29301.html">sound_hum</a></td>
+<td class="comment-1" rowspan="2">Engine sound; its colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38059"></span>94AB</td>
+<td class="instruction">LD (IX+$0D),$55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38063"></span>94AF</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+<td class="comment-1" rowspan="8">Shot, on every eighth pass: one more hit, a sound, 75 points</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38067"></span>94B3</td>
+<td class="instruction">JR Z,<a href="38056.html#38085">update_tough_attacker_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38069"></span>94B5</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38072"></span>94B8</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38074"></span>94BA</td>
+<td class="instruction">JR NZ,<a href="38056.html#38085">update_tough_attacker_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38076"></span>94BC</td>
+<td class="instruction">INC (IX+$16)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38079"></span>94BF</td>
+<td class="instruction">CALL <a href="37244.html#37428">score_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38082"></span>94C2</td>
+<td class="instruction">CALL <a href="29260.html">sound_zap</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_tough_attacker_0</td>
+<td class="address-2"><span id="38085"></span>94C5</td>
+<td class="instruction">RES 5,(IX+$10)</td>
+<td class="comment-1" rowspan="1">The shot is used up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38089"></span>94C9</td>
+<td class="instruction">LD A,(IX+$16)</td>
+<td class="comment-1" rowspan="5">Ten hits: flashing white</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38092"></span>94CC</td>
+<td class="instruction">AND $3F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38094"></span>94CE</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38096"></span>94D0</td>
+<td class="instruction">JR C,<a href="38056.html#38102">update_tough_attacker_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38098"></span>94D2</td>
+<td class="instruction">LD (IX+$0D),$FF</td>
+</tr>
+<tr>
+<td class="asm-label">update_tough_attacker_1</td>
+<td class="address-2"><span id="38102"></span>94D6</td>
+<td class="instruction">CP $0E</td>
+<td class="comment-1" rowspan="4">Fourteen: it explodes, scored</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38104"></span>94D8</td>
+<td class="instruction">JR C,<a href="38056.html#38113">update_tough_attacker_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38106"></span>94DA</td>
+<td class="instruction">SET 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38110"></span>94DE</td>
+<td class="instruction">CALL <a href="37244.html#37428">score_object</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_tough_attacker_2</td>
+<td class="address-2"><span id="38113"></span>94E1</td>
+<td class="instruction">PUSH IY</td>
+<td class="comment-1" rowspan="7">Drop something on the ship</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38115"></span>94E3</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38118"></span>94E6</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38120"></span>94E8</td>
+<td class="instruction">ADD A,$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38122"></span>94EA</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38125"></span>94ED</td>
+<td class="instruction">CALL <a href="34835.html">attacker_fires</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38128"></span>94F0</td>
+<td class="instruction">POP IY</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38130"></span>94F2</td>
+<td class="instruction">CALL <a href="38879.html">change_course</a></td>
+<td class="comment-1" rowspan="2">Change course now and then; accelerate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38133"></span>94F5</td>
+<td class="instruction">CALL <a href="35845.html">accelerate</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38136"></span>94F8</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="3">Face the way it moves</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38139"></span>94FB</td>
+<td class="instruction">OR (IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38142"></span>94FE</td>
+<td class="instruction">CALL NZ,<a href="37626.html">set_facing</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38145"></span>9501</td>
+<td class="instruction">LD BC,$1830</td>
+<td class="comment-1" rowspan="2">48 by 24; move and draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38148"></span>9504</td>
+<td class="instruction">JP <a href="38151.html#38168">move_draw</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38036.html">9494</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38056">Map</a></td>
+<td class="next">
+Next: <a href="38151.html">9507</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

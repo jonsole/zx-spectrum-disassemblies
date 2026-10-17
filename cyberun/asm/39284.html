@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Data at 9974</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39259.html">995B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39284">Map</a></td>
+<td class="next">
+Next: <a href="39500.html">9A4C</a>
+</td>
+</tr>
+</table>
+<div class="description">9974: The object records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Nine records of 24 bytes, updated by <a href="36162.html">update_objects</a>; $FF in the first byte marks a free one. They are shared out: attackers from the wave table go in any (<a href="34735.html">spawn_tick</a>), what the attackers drop in records 4-6 (<a href="34848.html">ground_object_fires</a>), clouds in records 7 and 8 (<a href="34706.html">spawn_cloud</a>); the homing missiles look for targets in records 0-6 (<a href="37556.html">find_missile_target</a>); the ship's wreck fills all nine (<a href="36018.html">wreck_ship</a>), and a falling rocket part takes any (<a href="38845.html">find_record_for_part</a>).
+</div>
+<div class="paragraph">
+The record: +0 the type ($FF free; $13-$1E, which picks the update routine in <a href="44837.html">object_handlers</a> and the frame list). +1 +2 +3 X: the page column (0-$5F, wrapping), the pixel in it ($08-$E7, a page being 224 wide) and a fraction. +4 +5 +6 Y: the page row, the pixel in it ($18-$B7, 160 lines) and a fraction; Y grows downwards. +7 +8 the X velocity and +9 +A the Y velocity, signed 8.8 pixels a pass, high byte first (<a href="48998.html">move_object</a> adds them). +B +C the X acceleration and +E +F the Y acceleration, the same form (<a href="35845.html">accelerate</a>). +D two colours: the low nibble on odd passes and the high nibble on even ones (bits 0-2 or 4-6 the ink, bit 3 or 7 BRIGHT), so a sprite can flash (<a href="44360.html">prepare_draw</a>).
+</div>
+<div class="paragraph">
++10 flags: bits 0-2 the top speed less one (<a href="35845.html">accelerate</a>), bit 3 skip one placing (<a href="37100.html">place_object</a>), bit 4 to be freed, bit 5 shot, bit 6 straddles the left edge of the view, bit 7 drawn. +11 +12 where it was drawn: screen x and bottom line. +13 the frame: the low nibble the frame in the type's list, bits 4-5 a count down to the next frame and bits 6-7 what it is reloaded with (<a href="37130.html">animate_object</a>). +14 the frame range: the first frame in the high nibble, the last in the low. +15 +16 the type's own: a timer, a path step, a hit count. +17 the high nibble a count down after touching the ship (<a href="36692.html">contact_damage</a>), or on a homing missile the target's record number ($F none, <a href="37639.html">update_missile</a>); bit 3 exploding and bits 0-2 the explosion's frame (<a href="44360.html">prepare_draw</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">object_records</td>
+<td class="address-1"><span id="39284"></span>9974</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39292"></span>997C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39300"></span>9984</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39308"></span>998C</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39316"></span>9994</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39324"></span>999C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39332"></span>99A4</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39340"></span>99AC</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39348"></span>99B4</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39356"></span>99BC</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39364"></span>99C4</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39372"></span>99CC</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">drop_records</td>
+<td class="address-1"><span id="39380"></span>99D4</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 4: from here, three for what the attackers drop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39388"></span>99DC</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39396"></span>99E4</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39404"></span>99EC</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39412"></span>99F4</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39420"></span>99FC</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39428"></span>9A04</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39436"></span>9A0C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39444"></span>9A14</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label">cloud_records</td>
+<td class="address-1"><span id="39452"></span>9A1C</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 7: from here, two for clouds</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39460"></span>9A24</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39468"></span>9A2C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39476"></span>9A34</td>
+<td class="instruction">DEFB $FF,$00,$00,$00,$00,$00,$00,$00</td>
+<td class="comment-1" rowspan="3">Record 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39484"></span>9A3C</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="39492"></span>9A44</td>
+<td class="instruction">DEFB $00,$00,$00,$00,$00,$00,$00,$00</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="39259.html">995B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#39284">Map</a></td>
+<td class="next">
+Next: <a href="39500.html">9A4C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

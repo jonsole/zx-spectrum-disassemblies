@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A223</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41500.html">A21C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41507">Map</a></td>
+<td class="next">
+Next: <a href="41524.html">A234</a>
+</td>
+</tr>
+</table>
+<div class="description">A223: Read a graphic's header for the compositor</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="41433.html">new_sprite_header</a> and <a href="41450.html">old_sprite_header</a>.
+</div>
+<div class="paragraph">
+A graphic is a width in bytes and a height in rows, then the rows, bottom row first, each the width in bytes, left to right; there is no mask. This also returns in C the index into the row-routine tables <a href="41620.html">erase_row_routines</a> and <a href="41642.html">draw_row_routines</a>: the width less one when the sprite is drawn shifted (x AND 6 not zero), the width plus four when it is byte-aligned -- so 0-4 are the shifted routines for widths 1-5 and 5-10 the aligned ones for widths 1-6.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The graphic</td>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">The x it is to be drawn at</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">Width in bytes</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">Height in rows</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The row routine's index</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The first row</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">read_graphic_header</td>
+<td class="address-2"><span id="41507"></span>A223</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41508"></span>A224</td>
+<td class="instruction">LD H,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41509"></span>A225</td>
+<td class="instruction">LD C,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41510"></span>A226</td>
+<td class="instruction">DEC C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41511"></span>A227</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41512"></span>A228</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41513"></span>A229</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41514"></span>A22A</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41515"></span>A22B</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="3">Shifted: index width-1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41516"></span>A22C</td>
+<td class="instruction">AND $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41518"></span>A22E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41519"></span>A22F</td>
+<td class="instruction">LD A,$05</td>
+<td class="comment-1" rowspan="3">Byte-aligned: index width+4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41521"></span>A231</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41522"></span>A232</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41523"></span>A233</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41500.html">A21C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41507">Map</a></td>
+<td class="next">
+Next: <a href="41524.html">A234</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

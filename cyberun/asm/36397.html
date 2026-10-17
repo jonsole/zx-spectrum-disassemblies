@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8E2D</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36396.html">8E2C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36397">Map</a></td>
+<td class="next">
+Next: <a href="36638.html">8F1E</a>
+</td>
+</tr>
+</table>
+<div class="description">8E2D: Test the current object against the ship and apply its contact effect</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="36162.html">update_objects</a>.
+</div>
+<div class="paragraph">
+Called by <a href="36162.html">update_objects</a> after each object's update. Nothing happens while the rocket is launching (<a href="38571.html">launch_state</a>), while the ship is dying (<a href="36691.html">death_count</a>), when the object is harmless (contact effect 0, <a href="36395.html">object_load</a>), when it was not drawn this pass, or when it is exploding. Its box -- the screen x and bottom line it was drawn at (+$11, +$12), the width (<a href="23593.html">sprite_width_drawn</a>) and height (in <a href="41427.html">old_sprite_x</a>) it was drawn with -- goes to <a href="43940.html">collision_box</a>, and an object whose x is outside $28-$8D is too far from the ship to touch it. The ship's box is fixed in x: 40 pixels wide from x=100, 16 lines high, its bottom 8 lines below the ship's line (<a href="23608.html">ship_line</a>). <a href="40369.html">boxes_overlap</a> tests the two.
+</div>
+<div class="paragraph">
+On a touch the effect bits are acted on from bit 7 down (see <a href="36395.html">object_load</a>), IX the object and IY the ship's record (in <a href="51345.html">bare_ship</a>). $FF is different: it starts the shield (<a href="35183.html">shield_timer</a> = $FF, counted down every other pass by <a href="50036.html">ship_pass</a>, so about 25 seconds), and frees the object with a sound.
+</div>
+<div class="paragraph">
+Without a touch, a cloud may still touch what the ship is carrying (<a href="49614.html">carried_part</a> keeps a flag in the player record, <a href="62951.html">score</a>, while it carries something): the carried thing's box (from <a href="49785.html">carried_part_facing</a>) is tested, and on a touch the ship's X velocity becomes minus half the cloud's, and <a href="23616.html">fuel_saver</a> is set. That branch never ran in the build's sessions; it rests on reading alone.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ship_contact</td>
+<td class="address-2"><span id="36397"></span>8E2D</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="12">Nothing during the launch or while dying, for a harmless object, or for one not drawn this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36400"></span>8E30</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36401"></span>8E31</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36402"></span>8E32</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36405"></span>8E35</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36406"></span>8E36</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36407"></span>8E37</td>
+<td class="instruction">LD A,(<a href="36396.html">contact_effect</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36410"></span>8E3A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36411"></span>8E3B</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36412"></span>8E3C</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36415"></span>8E3F</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36416"></span>8E40</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36417"></span>8E41</td>
+<td class="instruction">LD IX,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="3">Nor while it explodes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36421"></span>8E45</td>
+<td class="instruction">BIT 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36425"></span>8E49</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36426"></span>8E4A</td>
+<td class="instruction">LD L,(IX+$11)</td>
+<td class="comment-1" rowspan="9">Its box at <a href="43940.html">collision_box</a>: x and bottom line; too far left or right of the ship to touch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36429"></span>8E4D</td>
+<td class="instruction">LD H,(IX+$12)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36432"></span>8E50</td>
+<td class="instruction">LD IX,<a href="43940.html">collision_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36436"></span>8E54</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36439"></span>8E57</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36440"></span>8E58</td>
+<td class="instruction">CP $8E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36442"></span>8E5A</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36443"></span>8E5B</td>
+<td class="instruction">CP $28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36445"></span>8E5D</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36446"></span>8E5E</td>
+<td class="instruction">LD (IX+$00),L</td>
+<td class="comment-1" rowspan="4">Width (the height went in above)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36449"></span>8E61</td>
+<td class="instruction">LD (IX+$01),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36452"></span>8E64</td>
+<td class="instruction">LD A,(<a href="23593.html">sprite_width_drawn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36455"></span>8E67</td>
+<td class="instruction">LD (IX+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36458"></span>8E6A</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="7">The ship's box: x=100, 40 wide, 16 high, bottom at the ship's line + 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36461"></span>8E6D</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36463"></span>8E6F</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36464"></span>8E70</td>
+<td class="instruction">LD L,$64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36466"></span>8E72</td>
+<td class="instruction">LD D,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36468"></span>8E74</td>
+<td class="instruction">LD E,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36470"></span>8E76</td>
+<td class="instruction">CALL <a href="40369.html">boxes_overlap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36473"></span>8E79</td>
+<td class="instruction">LD IX,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="5">IY the ship's record; no touch: the cloud test below</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36477"></span>8E7D</td>
+<td class="instruction">LD IY,<a href="51429.html">ship_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36481"></span>8E81</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36484"></span>8E84</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36485"></span>8E85</td>
+<td class="instruction">JP Z,<a href="36397.html#36554">ship_contact_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36488"></span>8E88</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="2">Touched: the ship is to be redrawn (a flag, <a href="53436.html">trail_collision</a>, read by <a href="50147.html">draw_ship</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36490"></span>8E8A</td>
+<td class="instruction">LD (<a href="53436.html">trail_collision</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36493"></span>8E8D</td>
+<td class="instruction">LD A,(<a href="36396.html">contact_effect</a>)</td>
+<td class="comment-1" rowspan="4">The effect, $FF the shield</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36496"></span>8E90</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36497"></span>8E91</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36498"></span>8E92</td>
+<td class="instruction">JR NZ,<a href="36397.html#36511">ship_contact_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36500"></span>8E94</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="4">The shield (<a href="35183.html">shield_timer</a>) counts down from $FF; the object is freed, with a sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36501"></span>8E95</td>
+<td class="instruction">LD (<a href="35183.html">shield_timer</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36504"></span>8E98</td>
+<td class="instruction">SET 4,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36508"></span>8E9C</td>
+<td class="instruction">JP <a href="29260.html">sound_zap</a></td>
+</tr>
+<tr>
+<td class="asm-label">ship_contact_0</td>
+<td class="address-2"><span id="36511"></span>8E9F</td>
+<td class="instruction">BIT 7,C</td>
+<td class="comment-1" rowspan="10">Slow, damage, refuel, push, collect</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36513"></span>8EA1</td>
+<td class="instruction">CALL NZ,<a href="36638.html">contact_slow_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36516"></span>8EA4</td>
+<td class="instruction">BIT 6,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36518"></span>8EA6</td>
+<td class="instruction">CALL NZ,<a href="36692.html">contact_damage</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36521"></span>8EA9</td>
+<td class="instruction">BIT 5,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36523"></span>8EAB</td>
+<td class="instruction">CALL NZ,<a href="36804.html">contact_refuel</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36526"></span>8EAE</td>
+<td class="instruction">BIT 4,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36528"></span>8EB0</td>
+<td class="instruction">CALL NZ,<a href="36810.html">contact_push</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36531"></span>8EB3</td>
+<td class="instruction">BIT 3,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36533"></span>8EB5</td>
+<td class="instruction">CALL NZ,<a href="36875.html">contact_collect</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36536"></span>8EB8</td>
+<td class="instruction">BIT 2,C</td>
+<td class="comment-1" rowspan="6">Drain fuel; an extra life</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36538"></span>8EBA</td>
+<td class="instruction">CALL NZ,<a href="36885.html">contact_drain_fuel</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36541"></span>8EBD</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36542"></span>8EBE</td>
+<td class="instruction">BIT 1,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36544"></span>8EC0</td>
+<td class="instruction">CALL NZ,<a href="36896.html">contact_extra_life</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36547"></span>8EC3</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36548"></span>8EC4</td>
+<td class="instruction">BIT 0,C</td>
+<td class="comment-1" rowspan="3">And destroy the object</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36550"></span>8EC6</td>
+<td class="instruction">JP NZ,<a href="36912.html">contact_destroy</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36553"></span>8EC9</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">ship_contact_1</td>
+<td class="address-2"><span id="36554"></span>8ECA</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="6">No touch: only a cloud, and only while the ship carries something</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36557"></span>8ECD</td>
+<td class="instruction">CP $13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36559"></span>8ECF</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36560"></span>8ED0</td>
+<td class="instruction">LD A,(<a href="62967.html">player_count_nine</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36563"></span>8ED3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36564"></span>8ED4</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36565"></span>8ED5</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+<td class="comment-1" rowspan="4">Only when the ship faces the way the cloud moves (<a href="51453.html">ship_facing</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36568"></span>8ED8</td>
+<td class="instruction">XOR (IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36571"></span>8EDB</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36573"></span>8EDD</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36574"></span>8EDE</td>
+<td class="instruction">LD A,(<a href="49788.html">carried_big_y</a>)</td>
+<td class="comment-1" rowspan="11">Test the carried thing's box against the cloud</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36577"></span>8EE1</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36578"></span>8EE2</td>
+<td class="instruction">LD A,(<a href="49789.html">carried_small_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36581"></span>8EE5</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36583"></span>8EE7</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36584"></span>8EE8</td>
+<td class="instruction">LD A,$50</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36586"></span>8EEA</td>
+<td class="instruction">CALL <a href="49969.html">clip_height_to_top</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36589"></span>8EED</td>
+<td class="instruction">LD E,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36590"></span>8EEE</td>
+<td class="instruction">LD D,$0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36592"></span>8EF0</td>
+<td class="instruction">LD IX,<a href="43940.html">collision_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36596"></span>8EF4</td>
+<td class="instruction">CALL <a href="40369.html">boxes_overlap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36599"></span>8EF7</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="5">Touched</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36602"></span>8EFA</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36603"></span>8EFB</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36604"></span>8EFC</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36606"></span>8EFE</td>
+<td class="instruction">LD (<a href="53436.html">trail_collision</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36609"></span>8F01</td>
+<td class="instruction">LD IX,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="8">The ship's X velocity becomes minus half the cloud's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36613"></span>8F05</td>
+<td class="instruction">LD H,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36616"></span>8F08</td>
+<td class="instruction">LD L,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36619"></span>8F0B</td>
+<td class="instruction">CALL <a href="48648.html">negate_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36622"></span>8F0E</td>
+<td class="instruction">SRA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36624"></span>8F10</td>
+<td class="instruction">RR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36626"></span>8F12</td>
+<td class="instruction">LD (IY+$19),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36629"></span>8F15</td>
+<td class="instruction">LD (IY+$1A),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36632"></span>8F18</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="3">Note it for the fuel burn (<a href="45333.html">read_controls</a>) and for the slowing (<a href="36638.html">contact_slow_ship</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36634"></span>8F1A</td>
+<td class="instruction">LD (<a href="23616.html">fuel_saver</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36637"></span>8F1D</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36396.html">8E2C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36397">Map</a></td>
+<td class="next">
+Next: <a href="36638.html">8F1E</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

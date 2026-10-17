@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at DF08</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57057.html">DEE1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57096">Map</a></td>
+<td class="next">
+Next: <a href="57405.html">E03D</a>
+</td>
+</tr>
+</table>
+<div class="description">DF08: Build the 2x2 window of map cells, and bring in the objects they hold</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="56481.html">start_landscape</a>, <a href="56697.html">fly_in_step</a> and <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+HL is the map column (0-95, wrapping at both ends) and row. The four tile bytes -- (column, row), (column, row+1), (column+1, row), (column+1, row+1) -- are read from the map <a href="25020.html">landscape_map</a> (96 bytes a row, <a href="57909.html">read_map_cell</a>) into <a href="56465.html">map_window_tile_bytes</a>, and their tile records' addresses from <a href="27708.html">tile_table</a> into <a href="56457.html">map_window_tiles</a>. At row 28 the lower two are tile $20, at row 29 all four. In the fly-in, tile $3E is drawn as $AA.
+</div>
+<div class="paragraph">
+In play (<a href="23612.html">map_rebuild</a> zero) it then refreshes the objects: the last two slots of <a href="43019.html">ground_objects</a>, kept for the player's items, are freed if their objects have left the window (<a href="57442.html">drop_far_objects</a>); each of the current player's 19 item records (from +$1D of <a href="62951.html">score</a>; four bytes: map column, map row, x, y; bit 7 of the first set when gone) that lies in the window is put into a free special slot as kind $0C or $1E, unless it is in one already (<a href="57405.html">same_item_in_slot</a>); the four ground-object slots at <a href="43019.html">ground_objects</a> are freed likewise; and <a href="57487.html">spawn_column_objects</a> brings in the map's objects for the window's two columns.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">Map column (L) and row (H)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window</td>
+<td class="address-2"><span id="57096"></span>DF08</td>
+<td class="instruction">LD DE,$0060</td>
+<td class="comment-1" rowspan="11">Wrap the column; reset the window's pointer.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57099"></span>DF0B</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57100"></span>DF0C</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57102"></span>DF0E</td>
+<td class="instruction">JR NZ,<a href="57096.html#57106">load_map_window_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57104"></span>DF10</td>
+<td class="instruction">LD L,$5F</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_0</td>
+<td class="address-2"><span id="57106"></span>DF12</td>
+<td class="instruction">CP $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57108"></span>DF14</td>
+<td class="instruction">JR NZ,<a href="57096.html#57112">load_map_window_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57110"></span>DF16</td>
+<td class="instruction">LD L,$00</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_1</td>
+<td class="address-2"><span id="57112"></span>DF18</td>
+<td class="instruction">LD (<a href="52823.html">view_column</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57115"></span>DF1B</td>
+<td class="instruction">LD BC,<a href="56457.html">map_window_tiles</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57118"></span>DF1E</td>
+<td class="instruction">LD (<a href="56455.html">map_window_pointer</a>),BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57122"></span>DF22</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="13">The four tile bytes.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57123"></span>DF23</td>
+<td class="instruction">CALL <a href="57909.html">read_map_cell</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57126"></span>DF26</td>
+<td class="instruction">LD (<a href="56465.html">map_window_tile_bytes</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57129"></span>DF29</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57130"></span>DF2A</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57131"></span>DF2B</td>
+<td class="instruction">LD (<a href="56466.html">map_window_tile_below</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57134"></span>DF2E</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57135"></span>DF2F</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57136"></span>DF30</td>
+<td class="instruction">CALL <a href="57909.html">read_map_cell</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57139"></span>DF33</td>
+<td class="instruction">LD (<a href="56467.html">map_window_tile_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57142"></span>DF36</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57143"></span>DF37</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57144"></span>DF38</td>
+<td class="instruction">LD (<a href="56468.html">map_window_tile_below_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57147"></span>DF3B</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+<td class="comment-1" rowspan="11">Below the map (rows $1C and $1D): never reached in the build's sessions.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57150"></span>DF3E</td>
+<td class="instruction">CP $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57152"></span>DF40</td>
+<td class="instruction">JR NZ,<a href="57096.html#57162">load_map_window_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57154"></span>DF42</td>
+<td class="instruction">LD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57156"></span>DF44</td>
+<td class="instruction">LD (<a href="56466.html">map_window_tile_below</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57159"></span>DF47</td>
+<td class="instruction">LD (<a href="56468.html">map_window_tile_below_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_2</td>
+<td class="address-2"><span id="57162"></span>DF4A</td>
+<td class="instruction">CP $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57164"></span>DF4C</td>
+<td class="instruction">JR NZ,<a href="57096.html#57177">load_map_window_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57166"></span>DF4E</td>
+<td class="instruction">LD BC,$2020</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57169"></span>DF51</td>
+<td class="instruction">LD (<a href="56465.html">map_window_tile_bytes</a>),BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57173"></span>DF55</td>
+<td class="instruction">LD (<a href="56467.html">map_window_tile_right</a>),BC</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_3</td>
+<td class="address-2"><span id="57177"></span>DF59</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="11">Fly-in: tile $3E becomes $AA. (No tile $3E came into a fly-in in the build's sessions.)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57180"></span>DF5C</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57182"></span>DF5E</td>
+<td class="instruction">JR Z,<a href="57096.html#57199">load_map_window_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57184"></span>DF60</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57186"></span>DF62</td>
+<td class="instruction">LD HL,<a href="56465.html">map_window_tile_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_4</td>
+<td class="address-2"><span id="57189"></span>DF65</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57190"></span>DF66</td>
+<td class="instruction">CP $3E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57192"></span>DF68</td>
+<td class="instruction">JR NZ,<a href="57096.html#57196">load_map_window_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57194"></span>DF6A</td>
+<td class="instruction">LD (HL),$AA</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_5</td>
+<td class="address-2"><span id="57196"></span>DF6C</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57197"></span>DF6D</td>
+<td class="instruction">DJNZ <a href="57096.html#57189">load_map_window_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_6</td>
+<td class="address-2"><span id="57199"></span>DF6F</td>
+<td class="instruction">LD BC,<a href="56465.html">map_window_tile_bytes</a></td>
+<td class="comment-1" rowspan="22">The four tile-record addresses.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57202"></span>DF72</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_7</td>
+<td class="address-2"><span id="57204"></span>DF74</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57205"></span>DF75</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57206"></span>DF76</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57207"></span>DF77</td>
+<td class="instruction">LD H,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57209"></span>DF79</td>
+<td class="instruction">LD DE,<a href="27708.html">tile_table</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57212"></span>DF7C</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57213"></span>DF7D</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57214"></span>DF7E</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57215"></span>DF7F</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57216"></span>DF80</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57217"></span>DF81</td>
+<td class="instruction">LD HL,(<a href="56455.html">map_window_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57220"></span>DF84</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57221"></span>DF85</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57222"></span>DF86</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57223"></span>DF87</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57224"></span>DF88</td>
+<td class="instruction">LD (<a href="56455.html">map_window_pointer</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57227"></span>DF8B</td>
+<td class="instruction">INC BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57228"></span>DF8C</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57229"></span>DF8D</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57230"></span>DF8E</td>
+<td class="instruction">JR NZ,<a href="57096.html#57204">load_map_window_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57232"></span>DF90</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="3">Fly-in: no objects.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57235"></span>DF93</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57236"></span>DF94</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57237"></span>DF95</td>
+<td class="instruction">LD A,$0C</td>
+<td class="comment-1" rowspan="5">Free the special slots whose objects have left.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57239"></span>DF97</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57242"></span>DF9A</td>
+<td class="instruction">LD IX,<a href="43123.html">pickup_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57246"></span>DF9E</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57248"></span>DFA0</td>
+<td class="instruction">CALL <a href="57442.html">drop_far_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57251"></span>DFA3</td>
+<td class="instruction">LD IX,<a href="62980.html">player_places</a></td>
+<td class="comment-1" rowspan="11">The player's item records: the first 11 are numbered 0-10 with kind $0C, the last 8 numbered 0-7 with kind $1E.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57255"></span>DFA7</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57258"></span>DFAA</td>
+<td class="instruction">LD A,(<a href="56823.html">right_map_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57261"></span>DFAD</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57262"></span>DFAE</td>
+<td class="instruction">LD BC,$1300</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_8</td>
+<td class="address-2"><span id="57265"></span>DFB1</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57266"></span>DFB2</td>
+<td class="instruction">SUB $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57268"></span>DFB4</td>
+<td class="instruction">JR NZ,<a href="57096.html#57276">load_map_window_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57270"></span>DFB6</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57271"></span>DFB7</td>
+<td class="instruction">LD A,$1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57273"></span>DFB9</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_9</td>
+<td class="address-2"><span id="57276"></span>DFBC</td>
+<td class="instruction">BIT 7,(IX+$00)</td>
+<td class="comment-1" rowspan="14">Skip items gone or outside the window.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57280"></span>DFC0</td>
+<td class="instruction">JR NZ,<a href="57096.html#57373">load_map_window_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57282"></span>DFC2</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57285"></span>DFC5</td>
+<td class="instruction">CP L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57286"></span>DFC6</td>
+<td class="instruction">JR Z,<a href="57096.html#57291">load_map_window_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57288"></span>DFC8</td>
+<td class="instruction">CP D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57289"></span>DFC9</td>
+<td class="instruction">JR NZ,<a href="57096.html#57373">load_map_window_13</a></td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_10</td>
+<td class="address-2"><span id="57291"></span>DFCB</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57292"></span>DFCC</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57293"></span>DFCD</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57296"></span>DFD0</td>
+<td class="instruction">JR Z,<a href="57096.html#57304">load_map_window_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57298"></span>DFD2</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57299"></span>DFD3</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57302"></span>DFD6</td>
+<td class="instruction">JR NZ,<a href="57096.html#57373">load_map_window_13</a></td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_11</td>
+<td class="address-2"><span id="57304"></span>DFD8</td>
+<td class="instruction">LD IY,<a href="43123.html">pickup_record</a></td>
+<td class="comment-1" rowspan="6">Skip items already in a special slot.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57308"></span>DFDC</td>
+<td class="instruction">CALL <a href="57405.html">same_item_in_slot</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57311"></span>DFDF</td>
+<td class="instruction">JR Z,<a href="57096.html#57373">load_map_window_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57313"></span>DFE1</td>
+<td class="instruction">LD IY,<a href="43149.html">second_pickup_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57317"></span>DFE5</td>
+<td class="instruction">CALL <a href="57405.html">same_item_in_slot</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57320"></span>DFE8</td>
+<td class="instruction">JR Z,<a href="57096.html#57373">load_map_window_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57322"></span>DFEA</td>
+<td class="instruction">LD IY,<a href="43123.html">pickup_record</a></td>
+<td class="comment-1" rowspan="17">Into the first free special slot: map column, row, x, y, item number, kind.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57326"></span>DFEE</td>
+<td class="instruction">LD A,(IY+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57329"></span>DFF1</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57330"></span>DFF2</td>
+<td class="instruction">JR Z,<a href="57096.html#57336">load_map_window_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57332"></span>DFF4</td>
+<td class="instruction">LD IY,<a href="43149.html">second_pickup_record</a></td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_12</td>
+<td class="address-2"><span id="57336"></span>DFF8</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57339"></span>DFFB</td>
+<td class="instruction">LD (IY+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57342"></span>DFFE</td>
+<td class="instruction">LD A,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57345"></span>E001</td>
+<td class="instruction">LD (IY+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57348"></span>E004</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57351"></span>E007</td>
+<td class="instruction">LD (IY+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57354"></span>E00A</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57357"></span>E00D</td>
+<td class="instruction">LD (IY+$05),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57360"></span>E010</td>
+<td class="instruction">LD (IY+$13),C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57363"></span>E013</td>
+<td class="instruction">LD (IY+$0D),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57367"></span>E017</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57370"></span>E01A</td>
+<td class="instruction">LD (IY+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label">load_map_window_13</td>
+<td class="address-2"><span id="57373"></span>E01D</td>
+<td class="instruction">INC IX</td>
+<td class="comment-1" rowspan="6">Next item.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57375"></span>E01F</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57377"></span>E021</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57379"></span>E023</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57381"></span>E025</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57382"></span>E026</td>
+<td class="instruction">DJNZ <a href="57096.html#57265">load_map_window_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57384"></span>E028</td>
+<td class="instruction">LD IX,<a href="43123.html">pickup_record</a></td>
+<td class="comment-1" rowspan="7">Tidy the special slots; free the ground-object slots that have left; bring in the map's.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57388"></span>E02C</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57390"></span>E02E</td>
+<td class="instruction">CALL <a href="57487.html#57578">spawn_column_objects_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57393"></span>E031</td>
+<td class="instruction">LD IX,<a href="43019.html">ground_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57397"></span>E035</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57399"></span>E037</td>
+<td class="instruction">CALL <a href="57442.html">drop_far_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57402"></span>E03A</td>
+<td class="instruction">JP <a href="57487.html">spawn_column_objects</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57057.html">DEE1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57096">Map</a></td>
+<td class="next">
+Next: <a href="57405.html">E03D</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F440</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62498.html">F422</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62528">Map</a></td>
+<td class="next">
+Next: <a href="62662.html">F4C6</a>
+</td>
+</tr>
+</table>
+<div class="description">F440: The play: a life, from its start to its end</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62762.html">level_done</a>.
+</div>
+<div class="paragraph">
+Entered at the start of every life after the first: from its own death sequence once <a href="62662.html">lose_life</a> has taken a life, and from <a href="62762.html">level_done</a> at the end of a level. A new game enters further on, past the reset and the panel, from <a href="62498.html">game</a>. Resets the play (<a href="62225.html">reset_for_life</a>), goes back to the menu if the current player has no lives, redraws the panel, and then: puts back the ore (<a href="51461.html">ore</a>) the player had aboard, patches the BIT in <a href="57620.html">spawn_objects_from_list</a> and the SETs in <a href="43252.html">ship_hits_ground_objects</a> and <a href="43944.html">beam_hits_ground_object</a> that test and mark an object gone in <a href="23700.html">map_object_kinds</a> (one byte per object lying in the world) so that they use bit 7 for player 1 and bit 6 for player 2, and starts the level (<a href="56481.html">start_landscape</a>).
+</div>
+<div class="paragraph">
+The play loop, once a pass (about 20 a second): <a href="50036.html">ship_pass</a>, the fuel gauge (<a href="52343.html">update_fuel_gauge</a>), <a href="34735.html">spawn_tick</a>, <a href="36162.html">update_objects</a> (counts the death byte up, and much else), the random numbers (<a href="62011.html">random</a>). It ends when the death byte <a href="36691.html">death_count</a> reaches 12, or when <a href="38571.html">launch_state</a> is $FF: the rocket, all eight parts built and the ship docked, has risen (<a href="62762.html">level_done</a>).
+</div>
+<div class="paragraph">
+The death sequence: the landscape is stopped (<a href="52410.html">scroll_down</a>), the fuel is set to empty (<a href="52299.html">fuel</a>), part of <a href="50147.html">draw_ship</a> runs once and <a href="50898.html">lift_jet</a> erases the lift jet; then a shorter loop -- <a href="50036.html">ship_pass</a>, the pause key (<a href="40782.html">check_pause</a>), the fuel gauge, <a href="36162.html">update_objects</a>, <a href="49614.html">carried_part</a>, the gauge again -- runs until <a href="36162.html">update_objects</a> has counted the death byte up to $50. Then the death tune (<a href="62685.html">death_tune</a>), the play area dissolved (<a href="40693.html">dissolve_and_clear</a>), and a life is taken (<a href="62662.html">lose_life</a>) before going round again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">play</td>
+<td class="address-2"><span id="62528"></span>F440</td>
+<td class="instruction">CALL <a href="62225.html">reset_for_life</a></td>
+<td class="comment-1" rowspan="1">Reset the play</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62531"></span>F443</td>
+<td class="instruction">LD A,(<a href="62957.html">lives</a>)</td>
+<td class="comment-1" rowspan="3">No lives left: back to the menu</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62534"></span>F446</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62535"></span>F447</td>
+<td class="instruction">JR Z,<a href="62498.html">game</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62537"></span>F449</td>
+<td class="instruction">CALL <a href="51775.html">draw_panel</a></td>
+<td class="comment-1" rowspan="1">Redraw the panel</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="62540"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="62498.html">game</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">play_0</td>
+<td class="address-2"><span id="62540"></span>F44C</td>
+<td class="instruction">LD A,(<a href="62976.html">ore_kept</a>)</td>
+<td class="comment-1" rowspan="2">Put back the player's ore</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62543"></span>F44F</td>
+<td class="instruction">LD (<a href="51461.html">ore</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62546"></span>F452</td>
+<td class="instruction">LD A,(<a href="51740.html">player_in_play</a>)</td>
+<td class="comment-1" rowspan="6">Player 1 tests bit 7 of an object's state (BIT 7,(HL)), player 2 bit 6 (BIT 6,(HL))</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62549"></span>F455</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62550"></span>F456</td>
+<td class="instruction">LD A,$7E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62552"></span>F458</td>
+<td class="instruction">BIT 0,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62554"></span>F45A</td>
+<td class="instruction">JR Z,<a href="62528.html#62558">play_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62556"></span>F45C</td>
+<td class="instruction">LD A,$76</td>
+</tr>
+<tr>
+<td class="asm-label">play_1</td>
+<td class="address-2"><span id="62558"></span>F45E</td>
+<td class="instruction">LD ($E118),A</td>
+<td class="comment-1" rowspan="4">Patch the test, and (with the bits for SET) the two instructions that set it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62561"></span>F461</td>
+<td class="instruction">OR $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62563"></span>F463</td>
+<td class="instruction">LD ($A9B8),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62566"></span>F466</td>
+<td class="instruction">LD ($ABDE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62569"></span>F469</td>
+<td class="instruction">CALL <a href="56481.html">start_landscape</a></td>
+<td class="comment-1" rowspan="1">Start the level</td>
+</tr>
+<tr>
+<td class="asm-label">play_2</td>
+<td class="address-2"><span id="62572"></span>F46C</td>
+<td class="instruction">CALL <a href="50036.html">ship_pass</a></td>
+<td class="comment-1" rowspan="5">A pass of the play loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62575"></span>F46F</td>
+<td class="instruction">CALL <a href="52343.html">update_fuel_gauge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62578"></span>F472</td>
+<td class="instruction">CALL <a href="34735.html">spawn_tick</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62581"></span>F475</td>
+<td class="instruction">CALL <a href="36162.html">update_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62584"></span>F478</td>
+<td class="instruction">CALL <a href="62011.html">random</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62587"></span>F47B</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Has the death byte reached 12?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62590"></span>F47E</td>
+<td class="instruction">CP $0C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62592"></span>F480</td>
+<td class="instruction">JR NC,<a href="62528.html#62603">play_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62594"></span>F482</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="3">Go round again unless <a href="38571.html">launch_state</a> is $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62597"></span>F485</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62598"></span>F486</td>
+<td class="instruction">JR NZ,<a href="62528.html#62572">play_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62600"></span>F488</td>
+<td class="instruction">JP <a href="62762.html">level_done</a></td>
+<td class="comment-1" rowspan="1">The level is done</td>
+</tr>
+<tr>
+<td class="asm-label">play_3</td>
+<td class="address-2"><span id="62603"></span>F48B</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="5">Death: stop the landscape, the fuel gauge to empty</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62604"></span>F48C</td>
+<td class="instruction">LD (<a href="52411.html">scroll_across</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62607"></span>F48F</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62610"></span>F492</td>
+<td class="instruction">LD HL,<a href="48638.html#48640">$BE00</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62613"></span>F495</td>
+<td class="instruction">LD (<a href="52299.html">fuel</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62616"></span>F498</td>
+<td class="instruction">CALL <a href="50413.html">draw_trail</a></td>
+<td class="comment-1" rowspan="2">Once at the start of the death sequence</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62619"></span>F49B</td>
+<td class="instruction">CALL <a href="50898.html">lift_jet</a></td>
+</tr>
+<tr>
+<td class="asm-label">play_4</td>
+<td class="address-2"><span id="62622"></span>F49E</td>
+<td class="instruction">CALL <a href="50036.html">ship_pass</a></td>
+<td class="comment-1" rowspan="6">A pass of the death sequence</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62625"></span>F4A1</td>
+<td class="instruction">CALL <a href="40782.html">check_pause</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62628"></span>F4A4</td>
+<td class="instruction">CALL <a href="52343.html">update_fuel_gauge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62631"></span>F4A7</td>
+<td class="instruction">CALL <a href="36162.html">update_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62634"></span>F4AA</td>
+<td class="instruction">CALL <a href="49614.html">carried_part</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62637"></span>F4AD</td>
+<td class="instruction">CALL <a href="52343.html">update_fuel_gauge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62640"></span>F4B0</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Until the death byte is $50</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62643"></span>F4B3</td>
+<td class="instruction">CP $50</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62645"></span>F4B5</td>
+<td class="instruction">JR NZ,<a href="62528.html#62622">play_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62647"></span>F4B7</td>
+<td class="instruction">LD DE,<a href="62685.html">death_tune</a></td>
+<td class="comment-1" rowspan="2">The death tune</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62650"></span>F4BA</td>
+<td class="instruction">CALL <a href="39593.html">play_tune</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62653"></span>F4BD</td>
+<td class="instruction">CALL <a href="40693.html">dissolve_and_clear</a></td>
+<td class="comment-1" rowspan="1">Dissolve the play area</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62656"></span>F4C0</td>
+<td class="instruction">CALL <a href="62662.html">lose_life</a></td>
+<td class="comment-1" rowspan="2">Take a life, and start the next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62659"></span>F4C3</td>
+<td class="instruction">JP <a href="62528.html#62528">play</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62498.html">F422</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62528">Map</a></td>
+<td class="next">
+Next: <a href="62662.html">F4C6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

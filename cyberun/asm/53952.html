@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at D2C0</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53906.html">D292</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53952">Map</a></td>
+<td class="next">
+Next: <a href="53978.html">D2DA</a>
+</td>
+</tr>
+</table>
+<div class="description">D2C0: Test whether a piece in a right-hand map cell starts beyond the play area's right edge</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="53437.html">draw_landscape</a>.
+</div>
+<div class="paragraph">
+The counterpart of <a href="53906.html">piece_off_left_edge</a> for the two right-hand map cells of the window. In the right-hand cell the play area's right edge falls at the same in-cell x as the left edge does in the left-hand one (<a href="52805.html">view_x</a>), so a piece whose leftmost x is beyond it is out of sight.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">Piece's collision box</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">In-cell x of the play area's right edge (<a href="52805.html">view_x</a>)</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">Z clear (NZ) if the piece is wholly right of the edge</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_right_edge</td>
+<td class="address-2"><span id="53952"></span>D2C0</td>
+<td class="instruction">LD A,(<a href="52825.html">piece_dx_copy</a>)</td>
+<td class="comment-1" rowspan="9">A sloped piece running left: its leftmost x is its far end, +2, less one.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53955"></span>D2C3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53956"></span>D2C4</td>
+<td class="instruction">JR Z,<a href="53952.html#53971">piece_off_right_edge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53958"></span>D2C6</td>
+<td class="instruction">LD A,(<a href="58395.html">direction_flag</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53961"></span>D2C9</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53963"></span>D2CB</td>
+<td class="instruction">JR Z,<a href="53952.html#53971">piece_off_right_edge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53965"></span>D2CD</td>
+<td class="instruction">LD A,(IX+$02)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53968"></span>D2D0</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53969"></span>D2D1</td>
+<td class="instruction">JR <a href="53952.html#53974">piece_off_right_edge_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_right_edge_0</td>
+<td class="address-2"><span id="53971"></span>D2D3</td>
+<td class="instruction">LD A,(<a href="52803.html">piece_page_x</a>)</td>
+<td class="comment-1" rowspan="1">Otherwise the piece's start x.</td>
+</tr>
+<tr>
+<td class="asm-label">piece_off_right_edge_1</td>
+<td class="address-2"><span id="53974"></span>D2D6</td>
+<td class="instruction">CP B</td>
+<td class="comment-1" rowspan="4">NZ if beyond the edge. (A piece starting exactly on the edge gives Z and is walked anyway.)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53975"></span>D2D7</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53976"></span>D2D8</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53977"></span>D2D9</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53906.html">D292</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53952">Map</a></td>
+<td class="next">
+Next: <a href="53978.html">D2DA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Where the pick-ups are dealt</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="cyberun.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="PickupPlaces">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Cyberun" src="images/logo.png" /></a></td>
+<td class="page-header">Where the pick-ups are dealt</td>
+</tr>
+</table>
+<style>
+div.cyw-map { overflow-x: auto; max-width: 100%; margin: 0.5em 0; }
+div.cyw-stack { position: relative; display: inline-block; }
+div.cyw-stack img { display: block; max-width: none; }
+div.cyw-stack img.cyw-layer { position: absolute; left: 0; top: 0; pointer-events: none; display: none; }
+#cyw-layer-start:checked ~ div.cyw-map img.cyw-layer-start,
+#cyw-layer-rocket:checked ~ div.cyw-map img.cyw-layer-rocket,
+#cyw-layer-group1:checked ~ div.cyw-map img.cyw-layer-group1,
+#cyw-layer-group2:checked ~ div.cyw-map img.cyw-layer-group2,
+#cyw-layer-group3:checked ~ div.cyw-map img.cyw-layer-group3,
+#cyw-layer-group4:checked ~ div.cyw-map img.cyw-layer-group4,
+#cyw-layer-group5:checked ~ div.cyw-map img.cyw-layer-group5,
+#cyw-layer-refuel:checked ~ div.cyw-map img.cyw-layer-refuel,
+#cyw-layer-ore:checked ~ div.cyw-map img.cyw-layer-ore,
+#cyw-layer-generators:checked ~ div.cyw-map img.cyw-layer-generators,
+#cyw-layer-beams:checked ~ div.cyw-map img.cyw-layer-beams,
+#cyw-layer-hurt:checked ~ div.cyw-map img.cyw-layer-hurt,
+#cyw-layer-thief:checked ~ div.cyw-map img.cyw-layer-thief,
+#cyw-layer-fuel:checked ~ div.cyw-map img.cyw-layer-fuel,
+#cyw-layer-other:checked ~ div.cyw-map img.cyw-layer-other { display: block; }
+input.cyw-toggle { margin-left: 1em; }
+span.cyw-key { display: inline-block; width: 0.8em; height: 0.8em; border-radius: 50%; border: 1px solid black; margin: 0 0.35em 0 0.2em; vertical-align: -0.05em; }
+span.cyw-key-start { background-color: rgb(60, 230, 60); }
+span.cyw-key-rocket { background-color: rgb(255, 255, 255); }
+span.cyw-key-group1 { background-color: rgb(255, 220, 40); }
+span.cyw-key-group2 { background-color: rgb(255, 140, 0); }
+span.cyw-key-group3 { background-color: rgb(70, 160, 255); }
+span.cyw-key-group4 { background-color: rgb(255, 90, 200); }
+span.cyw-key-group5 { background-color: rgb(170, 120, 255); }
+span.cyw-key-refuel { background-color: rgb(0, 255, 255); }
+span.cyw-key-ore { background-color: rgb(200, 160, 90); }
+span.cyw-key-generators { background-color: rgb(255, 255, 120); }
+span.cyw-key-beams { background-color: rgb(255, 40, 40); }
+span.cyw-key-hurt { background-color: rgb(255, 70, 70); }
+span.cyw-key-thief { background-color: rgb(190, 90, 255); }
+span.cyw-key-fuel { background-color: rgb(120, 255, 160); }
+span.cyw-key-other { background-color: rgb(170, 170, 170); }
+span.cyw-key-beams, span.cyw-key-rocket { border-radius: 0; }
+div.cyw-pair { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; }
+div.cyw-pair figure { margin: 0; }
+img.cyw-cell { image-rendering: pixelated; width: 448px; max-width: 100%; height: auto; }
+div.cyw-tile { display: flex; flex-wrap: wrap; gap: 1em; align-items: flex-start; margin: 1em 0 1.5em 0; }
+div.cyw-tile > div { flex: 1 1 22em; }
+img.cyw-thing { background-color: rgb(90, 90, 140); padding: 4px; image-rendering: pixelated; vertical-align: middle; margin: 2px 0.5em 2px 0; }
+</style>
+<p>The add-ons and the rocket's parts are not in the tables of things lying on the planet. At a new game <a href="asm/62397.html">new_game</a> has <a href="asm/24851.html">deal_places</a> deal each player 19 places from a pool of 46, following the dealing list <a href="asm/25001.html">dealing_list</a>, into the player's record (<a href="asm/62980.html">player_places</a> for the player in play). Each place is four bytes: map column, map row, x and y in the page. As the view moves, <a href="asm/57096.html">load_map_window</a> puts any of the current player's places in the window that are not yet taken (bit 7 of the first byte) into the two pick-up slots: places 0-10 as graphic $0C, an add-on lying on the planet, with the place's number as its frame (<a href="asm/44949.html">addon_graphics</a>), and places 11-18 as graphic $1E, rocket parts 0-7 (<a href="asm/44923.html">rocket_part_frames</a>). The pictures are drawn by the game that way: one place given to the player, in an emptied scratch copy of the map, brought in by load_map_window and drawn by <a href="asm/44128.html">update_ground_objects</a>.</p>
+<h3>The dealing list</h3>
+<p>An entry of 1 to 5 deals a random place not yet dealt from that group of the pool: a random byte (<a href="asm/39883.html">random_a</a>) ANDed with the group's size less one, tried again while the place is taken, so the groups' sizes are powers of two. An entry of 0 deals nothing and leaves the place $FF, no place -- unless the next entry is 3, when the place before it is copied 16 to the right and 35 up. The pool is all free again at each call, so the two players' places are dealt independently and may coincide. At the end of a planet the last entry alone ($61BB) is dealt again by <a href="asm/33750.html">planet_secured</a>: the nose cone moves.</p>
+<table class="kl-table"><tr><th>Place</th><th>Entry</th><th>What lies there</th><th>Picture</th><th>Dealt in the simulator's game</th></tr>
+<tr><td>0</td><td><a href="#group1">group 1</a></td><td>add-on 1, the hook</td><td><img class="cyw-thing" src="images/world/place00.png" alt=""></td><td><a href="Planet.html#row8">$46, row 8</a> (x $A8, y $78)</td></tr>
+<tr><td>1</td><td>0: none</td><td>add-on 2, the second hook</td><td><img class="cyw-thing" src="images/world/place01.png" alt=""></td><td>none</td></tr>
+<tr><td>2</td><td>0: none</td><td>add-on 3, the ore tank</td><td><img class="cyw-thing" src="images/world/place02.png" alt=""></td><td>none</td></tr>
+<tr><td>3</td><td><a href="#group5">group 5</a></td><td>add-on 4, the side jet (a block)</td><td><img class="cyw-thing" src="images/world/place03.png" alt=""></td><td><a href="Planet.html#row7">$0D, row 7</a> (x $B8, y $78)</td></tr>
+<tr><td>4</td><td><a href="#group5">group 5</a></td><td>add-on 5, the lift jet (arches)</td><td><img class="cyw-thing" src="images/world/place04.png" alt=""></td><td><a href="Planet.html#row7">$10, row 7</a> (x $50, y $78)</td></tr>
+<tr><td>5</td><td><a href="#group2">group 2</a></td><td>add-on 6, the fuel saver (a mound)</td><td><img class="cyw-thing" src="images/world/place05.png" alt=""></td><td><a href="Planet.html#row9">$1A, row 9</a> (x $38, y $58)</td></tr>
+<tr><td>6</td><td><a href="#group1">group 1</a></td><td>add-on 7, the special beam (a post)</td><td><img class="cyw-thing" src="images/world/place06.png" alt=""></td><td><a href="Planet.html#row9">$58, row 9</a> (x $68, y $97)</td></tr>
+<tr><td>7</td><td><a href="#group2">group 2</a></td><td>add-on 8, the missiles (a bar)</td><td><img class="cyw-thing" src="images/world/place07.png" alt=""></td><td><a href="Planet.html#row9">$18, row 9</a> (x $68, y $97)</td></tr>
+<tr><td>8</td><td><a href="#group1">group 1</a></td><td>add-on 9, the figure</td><td><img class="cyw-thing" src="images/world/place08.png" alt=""></td><td><a href="Planet.html#row6">$27, row 6</a> (x $68, y $97)</td></tr>
+<tr><td>9</td><td><a href="#group1">group 1</a></td><td>add-on 10, the slab</td><td><img class="cyw-thing" src="images/world/place09.png" alt=""></td><td><a href="Planet.html#row9">$4A, row 9</a> (x $68, y $97)</td></tr>
+<tr><td>10</td><td>0: the place before, 16 right and 35 up</td><td>add-on 11, the spire</td><td><img class="cyw-thing" src="images/world/place10.png" alt=""></td><td><a href="Planet.html#row9">$4A, row 9</a> (x $78, y $74)</td></tr>
+<tr><td>11</td><td><a href="#group3">group 3</a></td><td>rocket part 0, a section of bars</td><td><img class="cyw-thing" src="images/world/place11.png" alt=""></td><td><a href="Planet.html#row16">$3E, row 16</a> (x $68, y $9B)</td></tr>
+<tr><td>12</td><td><a href="#group3">group 3</a></td><td>rocket part 1, a checked section</td><td><img class="cyw-thing" src="images/world/place12.png" alt=""></td><td><a href="Planet.html#row21">$0A, row 21</a> (x $68, y $9B)</td></tr>
+<tr><td>13</td><td><a href="#group3">group 3</a></td><td>rocket part 2, a crate-like section</td><td><img class="cyw-thing" src="images/world/place13.png" alt=""></td><td><a href="Planet.html#row23">$2D, row 23</a> (x $68, y $9B)</td></tr>
+<tr><td>14</td><td><a href="#group3">group 3</a></td><td>rocket part 3, a crate-like section</td><td><img class="cyw-thing" src="images/world/place14.png" alt=""></td><td><a href="Planet.html#row8">$04, row 8</a> (x $38, y $58)</td></tr>
+<tr><td>15</td><td><a href="#group3">group 3</a></td><td>rocket part 4, a fin</td><td><img class="cyw-thing" src="images/world/place15.png" alt=""></td><td><a href="Planet.html#row3">$24, row 3</a> (x $68, y $9B)</td></tr>
+<tr><td>16</td><td><a href="#group3">group 3</a></td><td>rocket part 5, a fin</td><td><img class="cyw-thing" src="images/world/place16.png" alt=""></td><td><a href="Planet.html#row9">$17, row 9</a> (x $68, y $47)</td></tr>
+<tr><td>17</td><td><a href="#group3">group 3</a></td><td>rocket part 6, the ore tank</td><td><img class="cyw-thing" src="images/world/place17.png" alt=""></td><td><a href="Planet.html#row19">$1B, row 19</a> (x $18, y $9B)</td></tr>
+<tr><td>18</td><td><a href="#group4">group 4</a></td><td>rocket part 7, the nose cone</td><td><img class="cyw-thing" src="images/world/place18.png" alt=""></td><td><a href="Planet.html#row26">$18, row 26</a> (x $68, y $9B)</td></tr>
+</table>
+<p>Places 1 and 2, add-ons 2 and 3, are never dealt: add-on 2 comes with add-on 1, and the ore tank comes as rocket part 6. Places 9 and 10 are the two-piece load (<a href="asm/49614.html">carried_part</a>), the spire dealt beside the slab at exactly the offset at which the ship carries them. The last column is the simulator's own new game, one deal among many.</p>
+<h3>The pool</h3>
+<p>Five groups, one for each entry value, each in map-column order. On the <a href="Planet.html">planet</a> each group is a layer.</p>
+<h4 id="group3">Group 3: 16 places at $605B</h4>
+<p>Feeds place 11, rocket part 0, a section of bars; place 12, rocket part 1, a checked section; place 13, rocket part 2, a crate-like section; place 14, rocket part 3, a crate-like section; place 15, rocket part 4, a fin; place 16, rocket part 5, a fin; place 17, rocket part 6, the ore tank -- 7 places from 16 that can be dealt, so no two of them coincide.</p>
+<table class="kl-table"><tr><th>#</th><th>Address</th><th>Column</th><th>Row</th><th>x</th><th>y</th><th></th></tr><tr><td>0</td><td>$605B</td><td><a href="Planet.html#row8">$04</a></td><td>8</td><td>$38</td><td>$58</td><td></td></tr><tr><td>1</td><td>$605F</td><td><a href="Planet.html#row3">$09</a></td><td>3</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>2</td><td>$6063</td><td><a href="Planet.html#row21">$0A</a></td><td>21</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>3</td><td>$6067</td><td><a href="Planet.html#row5">$11</a></td><td>5</td><td>$68</td><td>$97</td><td></td></tr><tr><td>4</td><td>$606B</td><td><a href="Planet.html#row9">$17</a></td><td>9</td><td>$68</td><td>$47</td><td></td></tr><tr><td>5</td><td>$606F</td><td><a href="Planet.html#row19">$1B</a></td><td>19</td><td>$18</td><td>$9B</td><td></td></tr><tr><td>6</td><td>$6073</td><td><a href="Planet.html#row23">$1F</a></td><td>23</td><td>$70</td><td>$4B</td><td></td></tr><tr><td>7</td><td>$6077</td><td><a href="Planet.html#row3">$24</a></td><td>3</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>8</td><td>$607B</td><td><a href="Planet.html#row6">$25</a></td><td>6</td><td>$80</td><td>$78</td><td></td></tr><tr><td>9</td><td>$607F</td><td><a href="Planet.html#row23">$2D</a></td><td>23</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>10</td><td>$6083</td><td><a href="Planet.html#row4">$39</a></td><td>4</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>11</td><td>$6087</td><td><a href="Planet.html#row16">$3E</a></td><td>16</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>12</td><td>$608B</td><td><a href="Planet.html#row8">$40</a></td><td>8</td><td>$68</td><td>$97</td><td></td></tr><tr><td>13</td><td>$608F</td><td><a href="Planet.html#row17">$47</a></td><td>17</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>14</td><td>$6093</td><td><a href="Planet.html#row23">$57</a></td><td>23</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>15</td><td>$6097</td><td><a href="Planet.html#row23">$58</a></td><td>23</td><td>$68</td><td>$9B</td><td></td></tr></table>
+<h4 id="group1">Group 1: 16 places at $609B</h4>
+<p>Feeds place 0, add-on 1, the hook; place 6, add-on 7, the special beam (a post); place 8, add-on 9, the figure; place 9, add-on 10, the slab -- 4 places from 16 that can be dealt, so no two of them coincide.</p>
+<table class="kl-table"><tr><th>#</th><th>Address</th><th>Column</th><th>Row</th><th>x</th><th>y</th><th></th></tr><tr><td>0</td><td>$609B</td><td><a href="Planet.html#row9">$01</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr><tr><td>1</td><td>$609F</td><td><a href="Planet.html#row6">$03</a></td><td>6</td><td>$68</td><td>$97</td><td></td></tr><tr><td>2</td><td>$60A3</td><td><a href="Planet.html#row5">$06</a></td><td>5</td><td>$68</td><td>$97</td><td></td></tr><tr><td>3</td><td>$60A7</td><td><a href="Planet.html#row9">$13</a></td><td>9</td><td>$88</td><td>$78</td><td></td></tr><tr><td>4</td><td>$60AB</td><td><a href="Planet.html#row6">$27</a></td><td>6</td><td>$68</td><td>$97</td><td></td></tr><tr><td>5</td><td>$60AF</td><td><a href="Planet.html#row9">$28</a></td><td>9</td><td>$48</td><td>$78</td><td></td></tr><tr><td>6</td><td>$60B3</td><td><a href="Planet.html#row7">$2A</a></td><td>7</td><td>$68</td><td>$97</td><td></td></tr><tr><td>7</td><td>$60B7</td><td><a href="Planet.html#row7">$35</a></td><td>7</td><td>$50</td><td>$78</td><td></td></tr><tr><td>8</td><td>$60BB</td><td><a href="Planet.html#row7">$3E</a></td><td>7</td><td>$68</td><td>$97</td><td></td></tr><tr><td>9</td><td>$60BF</td><td><a href="Planet.html#row6">$46</a></td><td>6</td><td>$68</td><td>$97</td><td></td></tr><tr><td>10</td><td>$60C3</td><td><a href="Planet.html#row8">$46</a></td><td>8</td><td>$A8</td><td>$78</td><td></td></tr><tr><td>11</td><td>$60C7</td><td><a href="Planet.html#row9">$4A</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr><tr><td>12</td><td>$60CB</td><td><a href="Planet.html#row9">$4C</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr><tr><td>13</td><td>$60CF</td><td><a href="Planet.html#row9">$58</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr><tr><td>14</td><td>$60D3</td><td><a href="Planet.html#row9">$5C</a></td><td>9</td><td>$58</td><td>$7B</td><td></td></tr><tr><td>15</td><td>$60D7</td><td><a href="Planet.html#row9">$5F</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr></table>
+<h4 id="group5">Group 5: 2 places at $60DB</h4>
+<p>Feeds place 3, add-on 4, the side jet (a block); place 4, add-on 5, the lift jet (arches) -- 2 places from 2 that can be dealt, so no two of them coincide.</p>
+<table class="kl-table"><tr><th>#</th><th>Address</th><th>Column</th><th>Row</th><th>x</th><th>y</th><th></th></tr><tr><td>0</td><td>$60DB</td><td><a href="Planet.html#row7">$0D</a></td><td>7</td><td>$B8</td><td>$78</td><td></td></tr><tr><td>1</td><td>$60DF</td><td><a href="Planet.html#row7">$10</a></td><td>7</td><td>$50</td><td>$78</td><td></td></tr></table>
+<h4 id="group2">Group 2: 8 places at $60E3</h4>
+<p>Feeds place 5, add-on 6, the fuel saver (a mound); place 7, add-on 8, the missiles (a bar) -- 2 places from 6 that can be dealt, so no two of them coincide.</p>
+<table class="kl-table"><tr><th>#</th><th>Address</th><th>Column</th><th>Row</th><th>x</th><th>y</th><th></th></tr><tr><td>0</td><td>$60E3</td><td><a href="Planet.html#row7">$7F</a></td><td>7</td><td>$C0</td><td>$78</td><td>never dealt</td></tr><tr><td>1</td><td>$60E7</td><td><a href="Planet.html#row6">$0E</a></td><td>6</td><td>$68</td><td>$97</td><td></td></tr><tr><td>2</td><td>$60EB</td><td><a href="Planet.html#row7">$7F</a></td><td>7</td><td>$58</td><td>$78</td><td>never dealt</td></tr><tr><td>3</td><td>$60EF</td><td><a href="Planet.html#row8">$16</a></td><td>8</td><td>$68</td><td>$97</td><td></td></tr><tr><td>4</td><td>$60F3</td><td><a href="Planet.html#row9">$18</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr><tr><td>5</td><td>$60F7</td><td><a href="Planet.html#row9">$1A</a></td><td>9</td><td>$38</td><td>$58</td><td></td></tr><tr><td>6</td><td>$60FB</td><td><a href="Planet.html#row7">$1E</a></td><td>7</td><td>$68</td><td>$97</td><td></td></tr><tr><td>7</td><td>$60FF</td><td><a href="Planet.html#row9">$56</a></td><td>9</td><td>$68</td><td>$97</td><td></td></tr></table>
+<h4 id="group4">Group 4: 4 places at $6103</h4>
+<p>Feeds place 18, rocket part 7, the nose cone.</p>
+<table class="kl-table"><tr><th>#</th><th>Address</th><th>Column</th><th>Row</th><th>x</th><th>y</th><th></th></tr><tr><td>0</td><td>$6103</td><td><a href="Planet.html#row22">$01</a></td><td>22</td><td>$B0</td><td>$6B</td><td></td></tr><tr><td>1</td><td>$6107</td><td><a href="Planet.html#row26">$18</a></td><td>26</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>2</td><td>$610B</td><td><a href="Planet.html#row24">$43</a></td><td>24</td><td>$68</td><td>$9B</td><td></td></tr><tr><td>3</td><td>$610F</td><td><a href="Planet.html#row24">$51</a></td><td>24</td><td>$58</td><td>$9B</td><td></td></tr></table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A3F6</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41935.html">A3CF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41974">Map</a></td>
+<td class="next">
+Next: <a href="42009.html">A419</a>
+</td>
+</tr>
+</table>
+<div class="description">A3F6: Copy the box from the screen into the buffer</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="41731.html">draw_sprite_pair</a>.
+</div>
+<div class="paragraph">
+The rows are copied bottom-up into the buffer at page $F8. The loop is three pieces: PUSH HL keeps the row's screen address; a DJNZ whose displacement is patched to land in the LDI chain of <a href="42009.html">copy_in_row</a> as many LDIs from its end as the box is bytes wide (7 less the width, times two, plus three to clear the JP); and the chain's end, which pops the address, moves it up a line and jumps back to the PUSH. When B runs out the DJNZ falls through to the JP instead, with one address left on the stack for <a href="42046.html">erase_old_draw_new</a> to drop. C is $FF so that the LDIs' count of BC never reaches B.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The box's bottom line</td>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">The box's left edge</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">copy_box_in</td>
+<td class="address-2"><span id="41974"></span>A3F6</td>
+<td class="instruction">LD DE,$F800</td>
+<td class="comment-1" rowspan="7">Point DE at the buffer; patch this copy's DJNZ and the copy out's (<a href="42315.html">copy_box_out</a>) for the box's width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41977"></span>A3F9</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41980"></span>A3FC</td>
+<td class="instruction">XOR $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41982"></span>A3FE</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41983"></span>A3FF</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41985"></span>A401</td>
+<td class="instruction">LD ($A553),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41988"></span>A404</td>
+<td class="instruction">LD ($A415),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41991"></span>A407</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+<td class="comment-1" rowspan="2">The screen address of the box's bottom-left byte, kept for the copy back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41994"></span>A40A</td>
+<td class="instruction">LD (<a href="52803.html">piece_page_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41997"></span>A40D</td>
+<td class="instruction">LD C,$FF</td>
+<td class="comment-1" rowspan="3">C $FF; B the rows plus one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41999"></span>A40F</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42002"></span>A412</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42003"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="42009.html">copy_in_row</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">copy_box_in_0</td>
+<td class="address-2"><span id="42003"></span>A413</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="3">Keep the address; copy a row (or, when the rows are done, go on to <a href="42046.html">erase_old_draw_new</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42004"></span>A414</td>
+<td class="instruction">DJNZ <a href="41974.html#42003">copy_box_in_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42006"></span>A416</td>
+<td class="instruction">JP <a href="42046.html">erase_old_draw_new</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41935.html">A3CF</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41974">Map</a></td>
+<td class="next">
+Next: <a href="42009.html">A419</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

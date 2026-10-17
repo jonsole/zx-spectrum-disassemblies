@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C4ED</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50209.html">C421</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50413">Map</a></td>
+<td class="next">
+Next: <a href="50687.html">C5FF</a>
+</td>
+</tr>
+</table>
+<div class="description">C4ED: Erase and redraw the ship's trail</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="38258.html">draw_rocket</a> and <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+The trail is a one-byte-wide line behind the ship whose bend follows the speed across (<a href="51454.html">ship_across_speed</a>): the frame is 1 + twice the whole pixels + the half, no more than one past the top speed, mirrored with the direction (record <a href="51132.html">trail_frame</a>-<a href="51137.html">trail_hold</a>, images <a href="51144.html">trail_images</a>). It is erased only when the frame changes, the ship turns (<a href="51136.html">ship_turned</a>) or the collision code asks (<a href="53436.html">trail_collision</a>). Also called at the start of each life and of the death sequence (<a href="62528.html">play</a>; dying, it is only erased) and by <a href="38258.html">draw_rocket</a>. Then on to the pause key, the fire button and the jets.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail</td>
+<td class="address-2"><span id="50413"></span>C4ED</td>
+<td class="instruction">LD HL,$0000</td>
+<td class="comment-1" rowspan="8">The trail: its old frame and place (<a href="51132.html">trail_frame</a>) for the erase.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50416"></span>C4F0</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50419"></span>C4F3</td>
+<td class="instruction">LD IX,<a href="51132.html">trail_frame</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50423"></span>C4F7</td>
+<td class="instruction">CALL <a href="41375.html">graphic_frame_list</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50426"></span>C4FA</td>
+<td class="instruction">LD HL,(<a href="51133.html">trail_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50429"></span>C4FD</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50432"></span>C500</td>
+<td class="instruction">CALL <a href="41500.html">read_graphic_size</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50435"></span>C503</td>
+<td class="instruction">CALL <a href="41594.html">set_direct_old</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50438"></span>C506</td>
+<td class="instruction">LD HL,(<a href="49027.html">sprite_screen_pos</a>)</td>
+<td class="comment-1" rowspan="6">The 1-byte eraser, or the mirrored one (<a href="51121.html">trail_mirror</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50441"></span>C509</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50444"></span>C50C</td>
+<td class="instruction">LD IY,<a href="42567.html">direct_erase_one</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50448"></span>C510</td>
+<td class="instruction">CALL <a href="51121.html">trail_mirror</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50451"></span>C513</td>
+<td class="instruction">JR NZ,<a href="50413.html#50457">draw_trail_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50453"></span>C515</td>
+<td class="instruction">LD IY,<a href="42956.html">mirrored_erase_one</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_0</td>
+<td class="address-2"><span id="50457"></span>C519</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">Keep the old frame in E.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50458"></span>C51A</td>
+<td class="instruction">LD E,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50461"></span>C51D</td>
+<td class="instruction">LD A,(<a href="51460.html">part_being_fitted</a>)</td>
+<td class="comment-1" rowspan="10">A part being fitted: the trail hangs lower (<a href="23608.html">ship_line</a> less 9) and is redrawn.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50464"></span>C520</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50465"></span>C521</td>
+<td class="instruction">JR Z,<a href="50413.html#50484">draw_trail_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50467"></span>C523</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50470"></span>C526</td>
+<td class="instruction">SUB $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50472"></span>C528</td>
+<td class="instruction">LD (<a href="51134.html">trail_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50475"></span>C52B</td>
+<td class="instruction">LD ($BF84),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50478"></span>C52E</td>
+<td class="instruction">LD E,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50480"></span>C530</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50481"></span>C531</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_1</td>
+<td class="address-2"><span id="50484"></span>C534</td>
+<td class="instruction">LD HL,(<a href="51454.html">ship_across_speed</a>)</td>
+<td class="comment-1" rowspan="14">The ship's speed across (the step word kept at <a href="51454.html">ship_across_speed</a>, the whole pixels in the high byte): under half a pixel, flagged as moving right (<a href="51135.html">trail_direction</a> bit 7).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50487"></span>C537</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50488"></span>C538</td>
+<td class="instruction">LD H,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50489"></span>C539</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50490"></span>C53A</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50491"></span>C53B</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50492"></span>C53C</td>
+<td class="instruction">JR NZ,<a href="50413.html#50507">draw_trail_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50494"></span>C53E</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50495"></span>C53F</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50497"></span>C541</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50498"></span>C542</td>
+<td class="instruction">JR NC,<a href="50413.html#50507">draw_trail_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50500"></span>C544</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50502"></span>C546</td>
+<td class="instruction">LD (<a href="51135.html">trail_direction</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50505"></span>C549</td>
+<td class="instruction">JR <a href="50413.html#50515">draw_trail_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_2</td>
+<td class="address-2"><span id="50507"></span>C54B</td>
+<td class="instruction">AND $80</td>
+<td class="comment-1" rowspan="3">Otherwise its sign; moving the other way, take its size.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50509"></span>C54D</td>
+<td class="instruction">LD (<a href="51135.html">trail_direction</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50512"></span>C550</td>
+<td class="instruction">CALL NZ,<a href="48648.html">negate_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_3</td>
+<td class="address-2"><span id="50515"></span>C553</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="14">Frame = 1 + twice the whole pixels + the half: the faster, the further bent; no more than one past the top speed (<a href="23614.html">top_speed</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50516"></span>C554</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50518"></span>C556</td>
+<td class="instruction">RLCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50519"></span>C557</td>
+<td class="instruction">SLA H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50521"></span>C559</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50522"></span>C55A</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50523"></span>C55B</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50526"></span>C55E</td>
+<td class="instruction">LD A,(<a href="23614.html">top_speed</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50529"></span>C561</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50530"></span>C562</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50531"></span>C563</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50532"></span>C564</td>
+<td class="instruction">JR C,<a href="50413.html#50538">draw_trail_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50534"></span>C566</td>
+<td class="instruction">INC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50535"></span>C567</td>
+<td class="instruction">LD (IX+$00),B</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_4</td>
+<td class="address-2"><span id="50538"></span>C56A</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="10">A countdown at <a href="51137.html">trail_hold</a> (alive only) holds the frame at 6.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50541"></span>C56D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50542"></span>C56E</td>
+<td class="instruction">JR NZ,<a href="50413.html#50560">draw_trail_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50544"></span>C570</td>
+<td class="instruction">LD A,(<a href="51137.html">trail_hold</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50547"></span>C573</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50548"></span>C574</td>
+<td class="instruction">JR Z,<a href="50413.html#50560">draw_trail_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50550"></span>C576</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50551"></span>C577</td>
+<td class="instruction">LD (<a href="51137.html">trail_hold</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50554"></span>C57A</td>
+<td class="instruction">LD (IX+$00),$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50558"></span>C57E</td>
+<td class="instruction">JR <a href="50413.html#50588">draw_trail_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_5</td>
+<td class="address-2"><span id="50560"></span>C580</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="13">Same frame, no turn and no collision (<a href="53436.html">trail_collision</a>): no erase needed.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50563"></span>C583</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50565"></span>C585</td>
+<td class="instruction">JR NC,<a href="50413.html#50639">draw_trail_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50567"></span>C587</td>
+<td class="instruction">LD A,(<a href="53436.html">trail_collision</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50570"></span>C58A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50571"></span>C58B</td>
+<td class="instruction">JR NZ,<a href="50413.html#50588">draw_trail_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50573"></span>C58D</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50576"></span>C590</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50577"></span>C591</td>
+<td class="instruction">JR NZ,<a href="50413.html#50588">draw_trail_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50579"></span>C593</td>
+<td class="instruction">LD A,(<a href="51136.html">ship_turned</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50582"></span>C596</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50583"></span>C597</td>
+<td class="instruction">JR NZ,<a href="50413.html#50588">draw_trail_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50585"></span>C599</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_6</td>
+<td class="address-2"><span id="50588"></span>C59C</td>
+<td class="instruction">CALL <a href="41375.html">graphic_frame_list</a></td>
+<td class="comment-1" rowspan="12">The new image: x $68, or $78 facing left, at the trail's y.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50591"></span>C59F</td>
+<td class="instruction">LD B,$68</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50593"></span>C5A1</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50596"></span>C5A4</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50598"></span>C5A6</td>
+<td class="instruction">JR Z,<a href="50413.html#50602">draw_trail_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50600"></span>C5A8</td>
+<td class="instruction">LD B,$78</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_7</td>
+<td class="address-2"><span id="50602"></span>C5AA</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50603"></span>C5AB</td>
+<td class="instruction">LD (<a href="51133.html">trail_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50606"></span>C5AE</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50609"></span>C5B1</td>
+<td class="instruction">CALL <a href="41375.html">graphic_frame_list</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50612"></span>C5B4</td>
+<td class="instruction">CALL <a href="41500.html">read_graphic_size</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50615"></span>C5B7</td>
+<td class="instruction">CALL <a href="41574.html">set_direct_new</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50618"></span>C5BA</td>
+<td class="instruction">LD IX,<a href="42641.html">direct_draw_one</a></td>
+<td class="comment-1" rowspan="7">The 1-byte drawer, or the mirrored one 8 pixels further right.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50622"></span>C5BE</td>
+<td class="instruction">CALL <a href="51121.html">trail_mirror</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50625"></span>C5C1</td>
+<td class="instruction">JR NZ,<a href="50413.html#50639">draw_trail_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50627"></span>C5C3</td>
+<td class="instruction">LD IX,<a href="43001.html">mirrored_draw_one</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50631"></span>C5C7</td>
+<td class="instruction">LD A,(<a href="49027.html">sprite_screen_pos</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50634"></span>C5CA</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50636"></span>C5CC</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_8</td>
+<td class="address-2"><span id="50639"></span>C5CF</td>
+<td class="instruction">CALL <a href="42399.html">draw_direct_pair</a></td>
+<td class="comment-1" rowspan="1">Erase and draw.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50642"></span>C5D2</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">The collision flag is dealt with.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50643"></span>C5D3</td>
+<td class="instruction">LD (<a href="53436.html">trail_collision</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50646"></span>C5D6</td>
+<td class="instruction">LD A,(<a href="51132.html">trail_frame</a>)</td>
+<td class="comment-1" rowspan="9">Unless it is frame 6, the attribute cell 7 rows above its bottom made white.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50649"></span>C5D9</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50651"></span>C5DB</td>
+<td class="instruction">JP Z,<a href="50413.html#50666">draw_trail_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50654"></span>C5DE</td>
+<td class="instruction">LD HL,(<a href="49027.html">sprite_screen_pos</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50657"></span>C5E1</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50658"></span>C5E2</td>
+<td class="instruction">SUB $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50660"></span>C5E4</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50661"></span>C5E5</td>
+<td class="instruction">CALL <a href="41328.html">pixel_to_attribute</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50664"></span>C5E8</td>
+<td class="instruction">LD (HL),$47</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="50666"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="50147.html">draw_ship</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_trail_9</td>
+<td class="address-2"><span id="50666"></span>C5EA</td>
+<td class="instruction">CALL <a href="40788.html">check_pause_in_play</a></td>
+<td class="comment-1" rowspan="2">The pause key and the fire button.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50669"></span>C5ED</td>
+<td class="instruction">CALL <a href="46897.html">fire</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50672"></span>C5F0</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="6">Alive, on even passes: the lift jet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50675"></span>C5F3</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50677"></span>C5F5</td>
+<td class="instruction">JR NC,<a href="50687.html">side_jet</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50679"></span>C5F7</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50682"></span>C5FA</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50684"></span>C5FC</td>
+<td class="instruction">JP Z,<a href="50898.html">lift_jet</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50209.html">C421</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50413">Map</a></td>
+<td class="next">
+Next: <a href="50687.html">C5FF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

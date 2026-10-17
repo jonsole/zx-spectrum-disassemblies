@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 83D6</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33742.html">83CE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33750">Map</a></td>
+<td class="next">
+Next: <a href="33881.html">8459</a>
+</td>
+</tr>
+</table>
+<div class="description">83D6: Show the planet-secured screen, award the bonus, and move on to the next planet</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62762.html">level_done</a>.
+</div>
+<div class="paragraph">
+Called by <a href="62762.html">level_done</a> once the rocket has launched. Prints the four lines at <a href="33961.html">planet_secured_lines</a> and the name of the planet just finished (one of five, <a href="33881.html">planet_names</a>; +$12 of the current player's record, <a href="62951.html">score</a>, is its number) into <a href="34053.html">planet_secured_name_text</a>, then the four lines from <a href="34069.html">next_planet_lines</a> with the next planet's name copied into <a href="34087.html">next_planet_name_text</a> -- after the fifth planet the first comes round again.
+</div>
+<div class="paragraph">
+It then resets the rocket's base position (<a href="38572.html">rocket_x</a>), sets the player's +$1A and +$1B to 6, and counts a bonus of ten times 5000 (BCD, the score adder in <a href="37244.html">test_player_shots</a>) onto the score with a zap (<a href="29260.html">sound_zap</a>) and a pause after each. Last it deals the player's last pick-up place again (the second entry point of <a href="24851.html">deal_places</a>, with IY at the dealing list's last entry and DE at the current player's last place, +$65 of <a href="62951.html">score</a>) and clears the player's own gone bits in the 290 world objects' kinds (<a href="39562.html">mask_world_objects</a>) with a mask worked out from the player in play (<a href="51740.html">player_in_play</a>): $7F for player 1 (bit 7), $BF for player 2 (bit 6).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">planet_secured</td>
+<td class="address-2"><span id="33750"></span>83D6</td>
+<td class="instruction">LD DE,<a href="33961.html">planet_secured_lines</a></td>
+<td class="comment-1" rowspan="3">The first four lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33753"></span>83D9</td>
+<td class="instruction">LD B,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33755"></span>83DB</td>
+<td class="instruction">CALL <a href="33742.html">print_strings</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33758"></span>83DE</td>
+<td class="instruction">LD A,(<a href="62969.html">level</a>)</td>
+<td class="comment-1" rowspan="10">Copy this planet's name (16 bytes) into <a href="34053.html">planet_secured_name_text</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33761"></span>83E1</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33762"></span>83E2</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33763"></span>83E3</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33764"></span>83E4</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33765"></span>83E5</td>
+<td class="instruction">LD HL,<a href="33881.html">planet_names</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33768"></span>83E8</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33771"></span>83EB</td>
+<td class="instruction">LD DE,<a href="34053.html">planet_secured_name_text</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33774"></span>83EE</td>
+<td class="instruction">LD C,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33776"></span>83F0</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33778"></span>83F2</td>
+<td class="instruction">LD A,(<a href="62969.html">level</a>)</td>
+<td class="comment-1" rowspan="6">After the last planet the next is the first (number $FF, made 0 below)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33781"></span>83F5</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33783"></span>83F7</td>
+<td class="instruction">JR NZ,<a href="33750.html#33793">planet_secured_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33785"></span>83F9</td>
+<td class="instruction">LD A,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33787"></span>83FB</td>
+<td class="instruction">LD (<a href="62969.html">level</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33790"></span>83FE</td>
+<td class="instruction">LD HL,<a href="33881.html">planet_names</a></td>
+</tr>
+<tr>
+<td class="asm-label">planet_secured_0</td>
+<td class="address-2"><span id="33793"></span>8401</td>
+<td class="instruction">LD DE,<a href="34087.html">next_planet_name_text</a></td>
+<td class="comment-1" rowspan="3">Copy the next planet's name (15 bytes) into <a href="34087.html">next_planet_name_text</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33796"></span>8404</td>
+<td class="instruction">LD C,$0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33798"></span>8406</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33800"></span>8408</td>
+<td class="instruction">LD DE,<a href="34049.html">planet_secured_name</a></td>
+<td class="comment-1" rowspan="2">Print this planet's name</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33803"></span>840B</td>
+<td class="instruction">CALL <a href="41237.html">print_string</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33806"></span>840E</td>
+<td class="instruction">LD HL,$5268</td>
+<td class="comment-1" rowspan="4">The rocket's base position</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33809"></span>8411</td>
+<td class="instruction">LD (<a href="38572.html">rocket_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33812"></span>8414</td>
+<td class="instruction">LD HL,$0A73</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33815"></span>8417</td>
+<td class="instruction">LD (<a href="38574.html">rocket_y</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33818"></span>841A</td>
+<td class="instruction">LD A,(<a href="62969.html">level</a>)</td>
+<td class="comment-1" rowspan="3">Next planet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33821"></span>841D</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33822"></span>841E</td>
+<td class="instruction">LD (<a href="62969.html">level</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33825"></span>8421</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="2">The four lines from <a href="34069.html">next_planet_lines</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33827"></span>8423</td>
+<td class="instruction">CALL <a href="33742.html">print_strings</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33830"></span>8426</td>
+<td class="instruction">LD A,$06</td>
+<td class="comment-1" rowspan="3">The player's +$1A and +$1B to 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33832"></span>8428</td>
+<td class="instruction">LD (<a href="62977.html">rocket_part_carried</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33835"></span>842B</td>
+<td class="instruction">LD (<a href="62978.html">parts_built</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33838"></span>842E</td>
+<td class="instruction">LD B,$0A</td>
+<td class="comment-1" rowspan="9">Ten times: 5000 points, a zap and a pause</td>
+</tr>
+<tr>
+<td class="asm-label">planet_secured_1</td>
+<td class="address-2"><span id="33840"></span>8430</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33841"></span>8431</td>
+<td class="instruction">LD BC,$5000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33844"></span>8434</td>
+<td class="instruction">CALL <a href="37244.html#37470">add_score</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33847"></span>8437</td>
+<td class="instruction">CALL <a href="29260.html">sound_zap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33850"></span>843A</td>
+<td class="instruction">LD D,$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33852"></span>843C</td>
+<td class="instruction">CALL <a href="43010.html">delay</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33855"></span>843F</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33856"></span>8440</td>
+<td class="instruction">DJNZ <a href="33750.html#33840">planet_secured_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33858"></span>8442</td>
+<td class="instruction">LD DE,<a href="63052.html">place_last</a></td>
+<td class="comment-1" rowspan="3">Deal one pick-up place again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33861"></span>8445</td>
+<td class="instruction">LD IY,<a href="25001.html#25019">dealing_list_last</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33865"></span>8449</td>
+<td class="instruction">CALL <a href="24851.html#24855">deal_places_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33868"></span>844C</td>
+<td class="instruction">LD A,(<a href="51740.html">player_in_play</a>)</td>
+<td class="comment-1" rowspan="8">A mask from the player in play (<a href="51740.html">player_in_play</a>) for the world objects' kinds (<a href="39562.html">mask_world_objects</a>): $7F for player 1, $BF for player 2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33871"></span>844F</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33872"></span>8450</td>
+<td class="instruction">XOR $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33874"></span>8452</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33875"></span>8453</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33876"></span>8454</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33877"></span>8455</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33878"></span>8456</td>
+<td class="instruction">JP <a href="39562.html">mask_world_objects</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33742.html">83CE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33750">Map</a></td>
+<td class="next">
+Next: <a href="33881.html">8459</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

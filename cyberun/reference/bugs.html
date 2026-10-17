@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Bugs</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Bugs">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Bugs</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#128k">A stray OUT pages a 128K's memory</a></li>
+<li><a href="#ore">Two units of ore leave stray pixels on the tank</a></li>
+<li><a href="#tank">A pixel stays behind when the tank is delivered</a></li>
+<li><a href="#padshield">A refuel pad under the shield saves the next hit</a></li>
+<li><a href="#addon9">Add-on 9 runs one row past the ship's picture</a></li>
+<li><a href="#spawn">The spawn table stops one tile short</a></li>
+<li><a href="#type1b">Type $1B's update routine is a list of graphics</a></li>
+<li><a href="#records">The second pick-up record overlaps load_ore</a></li>
+</ul>
+<div><span id="128k"></span></div>
+<div class="box box-1">
+<div class="box-title">A stray OUT pages a 128K's memory</div>
+<div class="paragraph">
+Every keyboard read in the game is OUT ($FD),A and then IN A,($FE) with the
+same A, the half-rows to read. OUT (n),A puts A on the top half of the address
+bus, so the port is A * 256 + $FD. A 48K ignores it. A 128K takes any port
+with bits 15 and 1 clear as its paging port $7FFD, so every A with bit 7 clear
+is a paging write. The title tune's key test (<a href="../asm/39578.html">play_tune_until_key</a>) reads with A nought,
+which pages the 128's editor ROM in -- harmless, since the game never calls the
+ROM. But the menu's test for B (<a href="../asm/34489.html">menu_keys</a>) reads $7F on every pass of the menu,
+and so do the pause test (<a href="../asm/40675.html">test_pause_keys</a>) on every pass of play and the keyboard
+method's reads of the bottom right half-row; and a joystick's special key
+reads $7E. $7F puts RAM bank 7 at $C000, where everything from $C000 up is,
+shows the second screen, and locks the paging.
+Watched in SkoolKit's 128K machine, the game put in RAM paged as a 128 in 128
+mode leaves a machine-code program: the writes to the paging port were
+$00 to port $00FD and then $7F to port $7FFD. The menu came up after the first; at the second, on the menu's
+first pass, the call <a href="../asm/34325.html">menu_loop</a> makes next, to <a href="../asm/62011.html">random</a>, ran
+into bank 7, and the machine ran off into the ROM; no game started. On a 128
+the game must be run in 48 mode. <a href="pokes.html#128k">The pokes</a> have
+the five OUTs to remove.
+</div>
+</div>
+<div><span id="ore"></span></div>
+<div class="box box-2">
+<div class="box-title">Two units of ore leave stray pixels on the tank</div>
+<div class="paragraph">
+When the special beam mines a deposit, <a href="../asm/43173.html">load_ore</a> adds its ore to the
+tank, and clears the tank's rows on the screen that are to show it before the
+ship's picture is redrawn: two bytes a row at x $70, from the old level up.
+But the loop moves DE up a line (<a href="../asm/41395.html">line_up_de</a>) while it writes through
+HL, so it clears the same two bytes every time. With one unit that is right.
+With two -- the 10 deposits of kind $0A, and the tough attacker
+worn down by the beam -- the second new row is never cleared, and since the
+ship is drawn over itself with OR and rubbed out only when its picture changes
+(a turn), that row shows the empty tank's pixels and the ore's together.
+Watched in SkoolKit's simulator: the tank staged with four units and
+<a href="../asm/43173.html">load_ore</a> called as the beam's end calls it, with two. The screen held more than
+the ship's picture in the tank's ore columns in picture row 5 -- the
+second new row -- until the ship turned and turned back, after which
+it matched.
+</div>
+<div class="paragraph">
+<div><img src="../images/reference/ore_loaded.png" alt="The tank after a two-unit load"/> <img src="../images/reference/ore_redrawn.png" alt="The same after the ship has turned and turned back"/></div>
+Drawn by the game's own code in SkoolKit's simulator, from the screen, four
+columns of the tank from its bottom line up: just after the load, with three
+pixels too many on the sixth line up, in the left half of the ore; and after
+the ship has turned and turned back.
+</div>
+</div>
+<div><span id="tank"></span></div>
+<div class="box box-1">
+<div class="box-title">A pixel stays behind when the tank is delivered</div>
+<div class="paragraph">
+A rocket part hangs under the hook by being XORed into the ship's picture
+(<a href="../asm/43575.html">toggle_carried_part</a>), so that the same call takes it out again. The
+ore tank is hung empty, frame 6; <a href="../asm/43173.html">load_ore</a> writes the ore into it a row at a
+time, over the tank's middle two bytes; and when the full tank is let go,
+<a href="../asm/38692.html">drop_part</a> has frame 8, the full tank, XORed out. Frame 8 is not quite
+the empty tank with the ore written in: in the tank's top row it lacks one
+pixel that the top row of ore has, and that pixel is left in the picture, where
+the top of the tank was. It stays until the picture is next built
+(<a href="../asm/45033.html">build_ship_sprite</a>, at a new life or an add-on fitted).
+Watched in SkoolKit's simulator: the empty tank hung in the sky over the
+rocket's place, filled there by nine calls of <a href="../asm/43173.html">load_ore</a> with two units each,
+which let <a href="../asm/38692.html">drop_part</a> deliver it; the ship's picture then differed from the hooked
+ship's in one byte, picture row 12, byte 3, by one pixel.
+</div>
+</div>
+<div><span id="padshield"></span></div>
+<div class="box box-2">
+<div class="box-title">A refuel pad under the shield saves the next hit</div>
+<div class="paragraph">
+A refuel pad repairs the ship by setting <a href="../asm/36803.html">hit_count</a> to $FF and calling
+damage_ship (in <a href="../asm/36692.html">contact_damage</a>), which counts it on to nought and colours the panel's
+ship icon white again. But damage_ship does nothing at all while the shield
+is up, so a pad touched under the shield leaves the count at $FF: the hits
+already taken are not repaired, the icon keeps its colour, and the next hit
+after the shield has gone counts the $FF on to nought -- a repair instead of a
+hit.
+Watched in SkoolKit's simulator, running the pad's code and damage_ship
+themselves from a pass of play with two hits taken: without the shield the
+pad left the count at 0 and the next hit made it 1, the icon yellow; with the
+shield up the pad left it at $FF and the icon as it was, and the next hit, the
+shield gone, made the count 0 and the icon white.
+</div>
+</div>
+<div><span id="addon9"></span></div>
+<div class="box box-1">
+<div class="box-title">Add-on 9 runs one row past the ship's picture</div>
+<div class="paragraph">
+The ship's picture is put together in a buffer of 300 bytes, 50 rows of six,
+at <a href="../asm/63161.html">ship_picture</a>, cleared at each life. <a href="../asm/45033.html">build_ship_sprite</a>
+works out where drawing starts from the tallest add-on and then, for add-on 9,
+the figure that stands on top, adds 11 rows to the height without moving the
+start, so the picture's top row is row 50: the six bytes after the buffer,
+<a href="../asm/63461.html">spare_after_ship</a>, into which add-on 9's top row is drawn and which
+nothing clears. Harmless: nothing else uses them, they are nought on the tape,
+and the same row is drawn into them every time.
+Watched in SkoolKit's simulator: with add-on 9 fitted the picture was 25 rows
+from the bare ship's bottom row, and the spare bytes held the figure's top row
+and nothing else.
+</div>
+<div class="paragraph">
+A near miss beside it: an add-on's graphic is followed by $FF or by a mask the
+size of its picture (<a href="../asm/45212.html">fit_addon</a>), and add-on 9's (<a href="../asm/30129.html">addon_figure_graphic</a>) has neither -- six
+bytes of mask, three rows' worth, and then the next graphic. <a href="../asm/45284.html">addon_mask_and_draw</a> takes 30
+bytes, so the figure's mask runs on through the post (<a href="../asm/30168.html">addon_post_graphic</a>) and the next
+height byte. Those 24 bytes fall on rows of the buffer above the bare ship,
+which are empty, and on one row where they take away nothing the figure does
+not put back: built with them set to $FF, the picture was the same (watched
+in the simulator), and built with no mask at all it was not.
+</div>
+</div>
+<div><span id="spawn"></span></div>
+<div class="box box-2">
+<div class="box-title">The spawn table stops one tile short</div>
+<div class="paragraph">
+An attacker starts at one of eight spawn points of a map cell near the view,
+those that the cell's tile allows in <a href="../asm/34140.html">spawn_point_masks</a>, a byte a tile
+(<a href="../asm/35368.html">start_at_edge</a>). The table has 169 bytes, tiles $00 to $A8; the map uses
+tile $A9 once, at map column 63, row 11, and that cell reads its mask from the first byte of the
+next table, <a href="../asm/34309.html">spawn_points</a>: $10, which allows point 4 (x $70, line $37). Tile
+$AA, which the fly-in draws in place of tile $3E, would read the second, but
+nothing spawns during the fly-in. Worked out from the snapshot at build time;
+whether that point suits that cell was not checked.
+</div>
+</div>
+<div><span id="type1b"></span></div>
+<div class="box box-1">
+<div class="box-title">Type $1B's update routine is a list of graphics</div>
+<div class="paragraph">
+<a href="../asm/41357.html">run_sky_object_handler</a> runs a sky object's update by its type, from
+the twelve words of <a href="../asm/44837.html">object_handlers</a> for types $13 to $1E. Type $1B's
+word is <a href="../asm/45003.html">type1b_graphics</a>, the frame list of the animated ground
+objects, not code: a sky record of type $1B would jump into it. None ever is:
+the sky records are given types from the wave table, the shots' and the
+wreck's own, and $1E for a falling rocket part, while graphic $1B is given only
+to ground objects, which are updated by <a href="../asm/44128.html">update_ground_objects</a> and never through the table.
+Read; latent.
+</div>
+</div>
+<div><span id="records"></span></div>
+<div class="box box-2">
+<div class="box-title">The second pick-up record overlaps load_ore</div>
+<div class="paragraph">
+The six ground-object records at <a href="../asm/43019.html">ground_objects</a> are 26 bytes each, 156 bytes, but
+<a href="../asm/43173.html">load_ore</a> starts 154 bytes on: the second pick-up record's +$18
+and +$19 are load_ore's first instruction. Those two bytes are a ground
+object's number in the world's table (<a href="../asm/23700.html">map_object_kinds</a>), which only the first four
+records are given (<a href="../asm/57620.html">spawn_objects_from_list</a>), which are read only for
+objects that are not pick-ups, and which <a href="../asm/44084.html">free_object</a> leaves alone.
+Read; latent.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

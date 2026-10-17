@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B09C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45033.html">AFE9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45212">Map</a></td>
+<td class="next">
+Next: <a href="45284.html">B0E4</a>
+</td>
+</tr>
+</table>
+<div class="description">B09C: Draw an add-on into the ship's sprite</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="45033.html">build_ship_sprite</a>.
+</div>
+<div class="paragraph">
+Draws add-on n, from its graphic in <a href="44949.html">addon_graphics</a> at its place in the buffer from <a href="45015.html">addon_places</a>, and raises the sprite's height (<a href="49577.html">ship_height</a>) to the byte before the graphic if that is more. If the graphic has a mask -- anything but $FF after the picture -- it is ANDed onto the buffer first (<a href="45284.html">addon_mask_and_draw</a>); then the picture is ORed on. Rows in the buffer are 6 bytes apart.
+</div>
+<div class="paragraph">
+The mask test has a catch: a mask whose first byte is $FF is taken as no mask at all.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the add-on's slot in the player record, holding its number</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fit_addon</td>
+<td class="address-2"><span id="45212"></span>B09C</td>
+<td class="instruction">LD HL,<a href="44949.html">addon_graphics</a></td>
+<td class="comment-1" rowspan="5">DE = its graphic (<a href="44949.html">addon_graphics</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45215"></span>B09F</td>
+<td class="instruction">LD C,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45218"></span>B0A2</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45219"></span>B0A3</td>
+<td class="instruction">CALL <a href="41386.html">table_word</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45222"></span>B0A6</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45223"></span>B0A7</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="9">HL = its place in the buffer (<a href="45015.html">addon_places</a>); keep both</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45224"></span>B0A8</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45227"></span>B0AB</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45228"></span>B0AC</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45229"></span>B0AD</td>
+<td class="instruction">LD HL,<a href="45015.html">addon_places</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45232"></span>B0B0</td>
+<td class="instruction">CALL <a href="41386.html">table_word</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45235"></span>B0B3</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45236"></span>B0B4</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45237"></span>B0B5</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45238"></span>B0B6</td>
+<td class="instruction">DEC DE</td>
+<td class="comment-1" rowspan="9">the sprite has to be at least as tall as the byte before the graphic says</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45239"></span>B0B7</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45240"></span>B0B8</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45241"></span>B0B9</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45242"></span>B0BA</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45245"></span>B0BD</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45246"></span>B0BE</td>
+<td class="instruction">JR NC,<a href="45212.html#45252">fit_addon_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45248"></span>B0C0</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45249"></span>B0C1</td>
+<td class="instruction">LD (<a href="49577.html">ship_height</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">fit_addon_0</td>
+<td class="address-2"><span id="45252"></span>B0C4</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="15">the width (in A') and height (<a href="23581.html">ground_cell</a>); step over the picture, width times height bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45253"></span>B0C5</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45254"></span>B0C6</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45255"></span>B0C7</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45256"></span>B0C8</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45257"></span>B0C9</td>
+<td class="instruction">LD (<a href="23581.html">ground_cell</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45260"></span>B0CC</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45261"></span>B0CD</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45262"></span>B0CE</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">fit_addon_1</td>
+<td class="address-2"><span id="45263"></span>B0CF</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45264"></span>B0D0</td>
+<td class="instruction">DJNZ <a href="45212.html#45263">fit_addon_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45266"></span>B0D2</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45267"></span>B0D3</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45268"></span>B0D4</td>
+<td class="instruction">ADD HL,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45269"></span>B0D5</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45270"></span>B0D6</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">$FF after it: no mask</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45271"></span>B0D7</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45273"></span>B0D9</td>
+<td class="instruction">JR Z,<a href="45284.html#45304">addon_mask_and_draw_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45275"></span>B0DB</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="6">A' = the height, C = the width; into the mask loop (<a href="45284.html">addon_mask_and_draw</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45276"></span>B0DC</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45277"></span>B0DD</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45280"></span>B0E0</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45281"></span>B0E1</td>
+<td class="instruction">LD C,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45282"></span>B0E2</td>
+<td class="instruction">JR <a href="45284.html#45285">addon_mask_and_draw_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45033.html">AFE9</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45212">Map</a></td>
+<td class="next">
+Next: <a href="45284.html">B0E4</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AD48</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44358.html">AD46</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44360">Map</a></td>
+<td class="next">
+Next: <a href="44478.html">ADBE</a>
+</td>
+</tr>
+</table>
+<div class="description">AD48: Place an object for this pass and set up its new image</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="37100.html">place_object</a>, <a href="37773.html">move_missile</a> and <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+Works out where the object is on the screen (<a href="44504.html">place_on_screen</a>); if it is visible, sets up its new image for the compositor: its graphic clipped (<a href="41433.html">new_sprite_header</a>), its row routine (<a href="41543.html">set_new_sprite</a>), and its colour for <a href="44696.html">colour_sprite</a> (the third byte of <a href="44801.html">colour_patch</a>), one of the two in +$0D on alternate passes (bit 0 of the pass counter in <a href="39524.html">pass_counter</a>): on odd passes ink bits 0-2 with BRIGHT from bit 3, on even passes ink bits 4-6 with BRIGHT from bit 7, always on black paper, so an object can flicker between two colours.
+</div>
+<div class="paragraph">
+A dissolving object (bit 3 of +$17) counts its step in bits 0-2 of +$17 and passes it to <a href="42136.html">dissolve_sprite</a> in <a href="41730.html">dissolve_step</a>; at the eighth step it is freed instead.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">prepare_draw</td>
+<td class="address-2"><span id="44360"></span>AD48</td>
+<td class="instruction">LD (<a href="44358.html">current_object</a>),IX</td>
+<td class="comment-1" rowspan="3">Keep the record; not dissolving yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44364"></span>AD4C</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44365"></span>AD4D</td>
+<td class="instruction">LD (<a href="41730.html">dissolve_step</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44368"></span>AD50</td>
+<td class="instruction">CALL <a href="44478.html">object_graphic</a></td>
+<td class="comment-1" rowspan="4">Its graphic; place it on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44371"></span>AD53</td>
+<td class="instruction">PUSH DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44372"></span>AD54</td>
+<td class="instruction">CALL <a href="44504.html">place_on_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44375"></span>AD57</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44376"></span>AD58</td>
+<td class="instruction">BIT 3,(IX+$17)</td>
+<td class="comment-1" rowspan="2">Dissolving?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44380"></span>AD5C</td>
+<td class="instruction">JR Z,<a href="44360.html#44420">prepare_draw_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44382"></span>AD5E</td>
+<td class="instruction">LD A,(IX+$17)</td>
+<td class="comment-1" rowspan="6">Count the step</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44385"></span>AD61</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44387"></span>AD63</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44388"></span>AD64</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44389"></span>AD65</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44391"></span>AD67</td>
+<td class="instruction">JR NZ,<a href="44360.html#44403">prepare_draw_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44393"></span>AD69</td>
+<td class="instruction">LD (IX+$00),$FF</td>
+<td class="comment-1" rowspan="3">The eighth: free the record, and draw nothing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44397"></span>AD6D</td>
+<td class="instruction">RES 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44401"></span>AD71</td>
+<td class="instruction">JR <a href="44360.html#44420">prepare_draw_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">prepare_draw_0</td>
+<td class="address-2"><span id="44403"></span>AD73</td>
+<td class="instruction">LD A,(IX+$17)</td>
+<td class="comment-1" rowspan="8">Keep the step, and pass it to the dissolve</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44406"></span>AD76</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44408"></span>AD78</td>
+<td class="instruction">OR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44409"></span>AD79</td>
+<td class="instruction">OR $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44411"></span>AD7B</td>
+<td class="instruction">LD (IX+$17),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44414"></span>AD7E</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44415"></span>AD7F</td>
+<td class="instruction">OR $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44417"></span>AD81</td>
+<td class="instruction">LD (<a href="41730.html">dissolve_step</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">prepare_draw_1</td>
+<td class="address-2"><span id="44420"></span>AD84</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="4">Not visible: nothing to draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44423"></span>AD87</td>
+<td class="instruction">LD (<a href="23601.html">edge_flags</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44426"></span>AD8A</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44428"></span>AD8C</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44429"></span>AD8D</td>
+<td class="instruction">LD C,(IX+$0D)</td>
+<td class="comment-1" rowspan="4">Its colours: which one this pass?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44432"></span>AD90</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44435"></span>AD93</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44437"></span>AD95</td>
+<td class="instruction">JR Z,<a href="44360.html#44451">prepare_draw_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44439"></span>AD97</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="9">Odd passes: BRIGHT from bit 3, ink from bits 0-2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44440"></span>AD98</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44442"></span>AD9A</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44443"></span>AD9B</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44444"></span>AD9C</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44445"></span>AD9D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44446"></span>AD9E</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44447"></span>AD9F</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44449"></span>ADA1</td>
+<td class="instruction">JR <a href="44360.html#44468">prepare_draw_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">prepare_draw_2</td>
+<td class="address-2"><span id="44451"></span>ADA3</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="10">Even passes: BRIGHT from bit 7, ink from bits 4-6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44452"></span>ADA4</td>
+<td class="instruction">AND $70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44454"></span>ADA6</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44456"></span>ADA8</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44458"></span>ADAA</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44460"></span>ADAC</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44462"></span>ADAE</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44463"></span>ADAF</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44464"></span>ADB0</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44466"></span>ADB2</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label">prepare_draw_3</td>
+<td class="address-2"><span id="44468"></span>ADB4</td>
+<td class="instruction">OR B</td>
+<td class="comment-1" rowspan="2">The colour for the patch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44469"></span>ADB5</td>
+<td class="instruction">LD ($AF03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44472"></span>ADB8</td>
+<td class="instruction">CALL <a href="41433.html">new_sprite_header</a></td>
+<td class="comment-1" rowspan="2">Clip the new image and choose its row routine</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44475"></span>ADBB</td>
+<td class="instruction">JP <a href="41543.html">set_new_sprite</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44358.html">AD46</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44360">Map</a></td>
+<td class="next">
+Next: <a href="44478.html">ADBE</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at D0BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53436.html">D0BC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53437">Map</a></td>
+<td class="next">
+Next: <a href="53906.html">D292</a>
+</td>
+</tr>
+</table>
+<div class="description">D0BD: Draw the landscape</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+Called each pass by <a href="56824.html">scroll_landscape</a>, when the view is below the sky (map row 3 or more). The screen shows at most four map tiles, each the size of the play area: the view's page, the one below, the one to the right and the one below that. <a href="57096.html">load_map_window</a> has listed their tile records' addresses after <a href="56455.html">map_window_pointer</a>, which points into the list, and their collision-box lists (37 bytes each) are at <a href="23424.html">loader_entry</a>, <a href="23461.html">ground_cell_bottom_left</a>, <a href="23498.html">ground_cell_top_right</a> and <a href="23535.html">ground_cell_bottom_right</a>; <a href="23581.html">ground_cell</a> says which of the four is being drawn (0 the view's page, 1 below, 2 right, 3 below right). Nothing is scrolled: every piece that can be seen is drawn again, straight onto the screen, from a copy of its graphic pre-shifted for this pass's fine scroll.
+</div>
+<div class="paragraph">
+First the shift table: the fine scroll (<a href="52801.html">origin_x</a> AND 7) picks one of four tables (at 0, 2, 4 or 6 pixels; <a href="52413.html">shift_table</a>), and the graphic-offset table's start (<a href="52415.html">graphic_offsets</a>, or one byte on when shifted). Then, for each tile: the page-to-screen offsets <a href="52801.html">origin_x</a> and <a href="52802.html">origin_y</a> are moved on to that tile ($E0 to the right, $A0 down, as 8-bit sums) and put back at the end (in <a href="55057.html">after_step_drawn</a>).
+</div>
+<div class="paragraph">
+A tile record (the tables from <a href="28050.html">tile_records</a>): first byte 0, an empty tile. Otherwise, optionally $99 (the tile is turned upside down: floors become ceilings), optionally $FF (mirrored left-right), optionally a byte of $95 or more (skipped: padding, so a mirrored or upside-down tile can point a few bytes before a plain record and share it), then the number of pieces. Each piece: x and y in the page (pixels; y counts down from the top of the page, and the piece's line rises from there), then a byte whose high nibble is its direction (<a href="52488.html">load_piece_steps</a>) and whose low nibble its number of steps (0 meaning 16), and, only for a flat direction (0 or 7), the codes of its two end pieces (<a href="52587.html">piece_ends</a>). So a tile's ground is a chain of pieces, each a line of steps of one shape: a flat run of 24-pixel steps, a slope up or down, a wall.
+</div>
+<div class="paragraph">
+Each collision-box list: +0 the number of pieces, then up to seven 5-byte boxes, one per piece: +0 +1 x and y, +2 +3 for a flat piece its width (24 a step) and $14, for a wall $18 and its height (16 a step), for a slope its far end's x and y; +4 its class (<a href="53420.html">piece_classes</a>). These are refilled only while <a href="23613.html">record_ground</a> is set: when the view has moved into a new page this pass (<a href="56824.html">scroll_landscape</a>) or the screen is being built after a restart (<a href="23612.html">map_rebuild</a>); otherwise only the piece count is rewritten.
+</div>
+<div class="paragraph">
+Each piece is then tested against the view: a piece wholly outside it across (<a href="52805.html">view_x</a>, <a href="53906.html">piece_off_left_edge</a> for the left-hand tiles, <a href="53952.html">piece_off_right_edge</a> for the right) or up and down (<a href="52806.html">view_y</a>, <a href="53978.html">piece_off_top_edge</a> for the upper tiles, <a href="53985.html">piece_off_bottom_edge</a> for the lower) is not drawn. One that may be seen is drawn by the column loop at <a href="54041.html">landscape_step_loop</a>, its attributes coloured by <a href="53048.html">colour_piece</a>, and the next piece taken from <a href="52813.html">next_piece</a>. The renderer uses SP for its POP blitter and reloads it from the fixed address <a href="23418.html">stack_top</a> between pieces.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape</td>
+<td class="address-2"><span id="53437"></span>D0BD</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="4">Building after a restart: refill the collision records too.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53440"></span>D0C0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53441"></span>D0C1</td>
+<td class="instruction">JR Z,<a href="53437.html#53446">draw_landscape_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53443"></span>D0C3</td>
+<td class="instruction">LD (<a href="23613.html">record_ground</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_0</td>
+<td class="address-2"><span id="53446"></span>D0C6</td>
+<td class="instruction">LD A,(<a href="52802.html">origin_y</a>)</td>
+<td class="comment-1" rowspan="3">The vertical offset for the first tile.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53449"></span>D0C9</td>
+<td class="instruction">ADD A,$60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53451"></span>D0CB</td>
+<td class="instruction">LD (<a href="52802.html">origin_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53454"></span>D0CE</td>
+<td class="instruction">LD DE,<a href="52415.html">graphic_offsets</a></td>
+<td class="comment-1" rowspan="2">Start of the graphic-offset table for an unshifted scroll.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53457"></span>D0D1</td>
+<td class="instruction">LD (<a href="52811.html">offsets_start</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53461"></span>D0D5</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="17">The fine scroll picks the shift table (and the shifted half of the offsets) for 0, 2, 4 or 6 pixels.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53462"></span>D0D6</td>
+<td class="instruction">LD HL,<a href="58237.html">piece_blitters_shift0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53465"></span>D0D9</td>
+<td class="instruction">LD A,(<a href="52801.html">origin_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53468"></span>D0DC</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53470"></span>D0DE</td>
+<td class="instruction">JR Z,<a href="53437.html#53496">draw_landscape_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53472"></span>D0E0</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53473"></span>D0E1</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53474"></span>D0E2</td>
+<td class="instruction">LD (<a href="52811.html">offsets_start</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53478"></span>D0E6</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53479"></span>D0E7</td>
+<td class="instruction">LD HL,<a href="58045.html">piece_blitters_shift2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53482"></span>D0EA</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53484"></span>D0EC</td>
+<td class="instruction">JR Z,<a href="53437.html#53496">draw_landscape_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53486"></span>D0EE</td>
+<td class="instruction">LD HL,<a href="58109.html">piece_blitters_shift4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53489"></span>D0F1</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53491"></span>D0F3</td>
+<td class="instruction">JR Z,<a href="53437.html#53496">draw_landscape_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53493"></span>D0F5</td>
+<td class="instruction">LD HL,<a href="58173.html">piece_blitters_shift6</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_1</td>
+<td class="address-2"><span id="53496"></span>D0F8</td>
+<td class="instruction">LD (<a href="52413.html">shift_table</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53499"></span>D0FB</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">The first tile.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53500"></span>D0FC</td>
+<td class="instruction">LD (<a href="23581.html">ground_cell</a>),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="53503"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="55057.html">after_step_drawn</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_2</td>
+<td class="address-2"><span id="53503"></span>D0FF</td>
+<td class="instruction">LD IX,<a href="23424.html">loader_entry</a></td>
+<td class="comment-1" rowspan="11">Each tile: its box list.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53507"></span>D103</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53510"></span>D106</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53511"></span>D107</td>
+<td class="instruction">JR Z,<a href="53437.html#53533">draw_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53513"></span>D109</td>
+<td class="instruction">LD IX,<a href="23461.html">ground_cell_bottom_left</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53517"></span>D10D</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53519"></span>D10F</td>
+<td class="instruction">JR Z,<a href="53437.html#53533">draw_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53521"></span>D111</td>
+<td class="instruction">LD IX,<a href="23498.html">ground_cell_top_right</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53525"></span>D115</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53527"></span>D117</td>
+<td class="instruction">JR Z,<a href="53437.html#53533">draw_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53529"></span>D119</td>
+<td class="instruction">LD IX,<a href="23535.html">ground_cell_bottom_right</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_3</td>
+<td class="address-2"><span id="53533"></span>D11D</td>
+<td class="instruction">LD HL,(<a href="56455.html">map_window_pointer</a>)</td>
+<td class="comment-1" rowspan="7">The next tile record's address from the list.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53536"></span>D120</td>
+<td class="instruction">LD E,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53537"></span>D121</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53538"></span>D122</td>
+<td class="instruction">LD D,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53539"></span>D123</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53540"></span>D124</td>
+<td class="instruction">LD (<a href="56455.html">map_window_pointer</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53543"></span>D127</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53544"></span>D128</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="4">Not mirrored, not upside down, no pieces yet.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53545"></span>D129</td>
+<td class="instruction">LD (<a href="23600.html">tile_mirrored_left_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53548"></span>D12C</td>
+<td class="instruction">LD (<a href="23590.html">tile_upside_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53551"></span>D12F</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53554"></span>D132</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="3">An empty tile: on to the next.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53555"></span>D133</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53556"></span>D134</td>
+<td class="instruction">JP Z,<a href="55057.html#55322">after_step_drawn_17</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53559"></span>D137</td>
+<td class="instruction">CP $99</td>
+<td class="comment-1" rowspan="4">$99: upside down.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53561"></span>D139</td>
+<td class="instruction">JR NZ,<a href="53437.html#53567">draw_landscape_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53563"></span>D13B</td>
+<td class="instruction">LD (<a href="23590.html">tile_upside_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53566"></span>D13E</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_4</td>
+<td class="address-2"><span id="53567"></span>D13F</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="5">$FF: mirrored left-right.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53568"></span>D140</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53570"></span>D142</td>
+<td class="instruction">JR NZ,<a href="53437.html#53576">draw_landscape_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53572"></span>D144</td>
+<td class="instruction">LD (<a href="23600.html">tile_mirrored_left_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53575"></span>D147</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_5</td>
+<td class="address-2"><span id="53576"></span>D148</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="5">A byte from $95 up is skipped.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53577"></span>D149</td>
+<td class="instruction">CP $95</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53579"></span>D14B</td>
+<td class="instruction">JR C,<a href="53437.html#53583">draw_landscape_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53581"></span>D14D</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53582"></span>D14E</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_6</td>
+<td class="address-2"><span id="53583"></span>D14F</td>
+<td class="instruction">LD (<a href="23584.html">pieces_left</a>),A</td>
+<td class="comment-1" rowspan="5">The number of pieces, to <a href="23584.html">pieces_left</a> and the box list; its first box kept at <a href="47625.html">collision_object</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53586"></span>D152</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53589"></span>D155</td>
+<td class="instruction">INC IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53591"></span>D157</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53592"></span>D158</td>
+<td class="instruction">LD (<a href="47625.html">collision_object</a>),IX</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="53596"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="55057.html">after_step_drawn</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_7</td>
+<td class="address-2"><span id="53596"></span>D15C</td>
+<td class="instruction">LD IX,<a href="57052.html">current_piece</a></td>
+<td class="comment-1" rowspan="12">Each piece: its state at <a href="57052.html">current_piece</a>, and the per-piece flags cleared.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53600"></span>D160</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53601"></span>D161</td>
+<td class="instruction">LD (<a href="23599.html">piece_steps_done</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53604"></span>D164</td>
+<td class="instruction">LD (<a href="52820.html">clipped_columns</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53607"></span>D167</td>
+<td class="instruction">LD (<a href="23602.html">piece_clip</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53610"></span>D16A</td>
+<td class="instruction">LD (<a href="23591.html">piece_kept</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53613"></span>D16D</td>
+<td class="instruction">LD (<a href="23604.html">piece_extra_b</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53616"></span>D170</td>
+<td class="instruction">LD (<a href="23603.html">piece_extra_a</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53619"></span>D173</td>
+<td class="instruction">LD (<a href="23605.html">piece_ceiling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53622"></span>D176</td>
+<td class="instruction">LD (<a href="52826.html">piece_rows</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53625"></span>D179</td>
+<td class="instruction">LD (<a href="55389.html">last_step_in_border</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53628"></span>D17C</td>
+<td class="instruction">LD (IX+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53631"></span>D17F</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="7">Its x and y in the page (the y kept unchanged in <a href="52796.html">box_height</a> too).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53632"></span>D180</td>
+<td class="instruction">LD (<a href="52803.html">piece_page_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53635"></span>D183</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53636"></span>D184</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53637"></span>D185</td>
+<td class="instruction">LD (<a href="52804.html">piece_page_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53640"></span>D188</td>
+<td class="instruction">LD (<a href="52796.html">box_height</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53643"></span>D18B</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53644"></span>D18C</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="10">Its direction (high nibble) and its steps (<a href="52488.html">load_piece_steps</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53645"></span>D18D</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53646"></span>D18E</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53647"></span>D18F</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53648"></span>D190</td>
+<td class="instruction">RRCA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53649"></span>D191</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53651"></span>D193</td>
+<td class="instruction">LD (IX+$03),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53654"></span>D196</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53655"></span>D197</td>
+<td class="instruction">CALL <a href="52488.html">load_piece_steps</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53658"></span>D19A</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53659"></span>D19B</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="6">The number of steps; 0 means 16.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53660"></span>D19C</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53662"></span>D19E</td>
+<td class="instruction">JR NZ,<a href="53437.html#53666">draw_landscape_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53664"></span>D1A0</td>
+<td class="instruction">LD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_8</td>
+<td class="address-2"><span id="53666"></span>D1A2</td>
+<td class="instruction">LD (<a href="23586.html">piece_steps</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53669"></span>D1A5</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53670"></span>D1A6</td>
+<td class="instruction">INC HL</td>
+<td class="comment-1" rowspan="2">The end pieces, and a mirrored tile's changes (<a href="52587.html">piece_ends</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53671"></span>D1A7</td>
+<td class="instruction">CALL <a href="52587.html">piece_ends</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53674"></span>D1AA</td>
+<td class="instruction">LD HL,<a href="52772.html">column_varieties</a></td>
+<td class="comment-1" rowspan="2">The column-variety sequence in HL; the direction kept in B.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53677"></span>D1AD</td>
+<td class="instruction">LD B,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53680"></span>D1B0</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">The box, filled only while building (<a href="23613.html">record_ground</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53681"></span>D1B1</td>
+<td class="instruction">LD IX,(<a href="47625.html">collision_object</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53685"></span>D1B5</td>
+<td class="instruction">LD A,(<a href="23613.html">record_ground</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53688"></span>D1B8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53689"></span>D1B9</td>
+<td class="instruction">JP Z,<a href="53437.html#53850">draw_landscape_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53692"></span>D1BC</td>
+<td class="instruction">LD A,($DEDF)</td>
+<td class="comment-1" rowspan="13">Its class, steps, x and y.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53695"></span>D1BF</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53696"></span>D1C0</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53698"></span>D1C2</td>
+<td class="instruction">LD HL,<a href="53420.html">piece_classes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53701"></span>D1C5</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53702"></span>D1C6</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53703"></span>D1C7</td>
+<td class="instruction">LD (IX+$04),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53706"></span>D1CA</td>
+<td class="instruction">LD A,(<a href="23586.html">piece_steps</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53709"></span>D1CD</td>
+<td class="instruction">LD (IX+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53712"></span>D1D0</td>
+<td class="instruction">LD A,(<a href="52803.html">piece_page_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53715"></span>D1D3</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53718"></span>D1D6</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53721"></span>D1D9</td>
+<td class="instruction">LD (IX+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53724"></span>D1DC</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+<td class="comment-1" rowspan="3">A flat piece:</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53727"></span>D1DF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53728"></span>D1E0</td>
+<td class="instruction">JR NZ,<a href="53437.html#53764">draw_landscape_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53730"></span>D1E2</td>
+<td class="instruction">LD B,(IX+$02)</td>
+<td class="comment-1" rowspan="9">width 24 pixels a step, height $14,</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53733"></span>D1E5</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_9</td>
+<td class="address-2"><span id="53734"></span>D1E6</td>
+<td class="instruction">ADD A,$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53736"></span>D1E8</td>
+<td class="instruction">DJNZ <a href="53437.html#53734">draw_landscape_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53738"></span>D1EA</td>
+<td class="instruction">LD (IX+$02),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53741"></span>D1ED</td>
+<td class="instruction">LD A,($DEDF)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53744"></span>D1F0</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53746"></span>D1F2</td>
+<td class="instruction">LD (IX+$03),$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53750"></span>D1F6</td>
+<td class="instruction">JP Z,<a href="53437.html#53850">draw_landscape_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53753"></span>D1F9</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="4">and its y $10 lower unless it is upside down.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53756"></span>D1FC</td>
+<td class="instruction">ADD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53758"></span>D1FE</td>
+<td class="instruction">LD (IX+$01),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53761"></span>D201</td>
+<td class="instruction">JP <a href="53437.html#53850">draw_landscape_15</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_10</td>
+<td class="address-2"><span id="53764"></span>D204</td>
+<td class="instruction">LD A,(<a href="52825.html">piece_dx_copy</a>)</td>
+<td class="comment-1" rowspan="3">A wall:</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53767"></span>D207</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53768"></span>D208</td>
+<td class="instruction">JR NZ,<a href="53437.html#53805">draw_landscape_12</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53770"></span>D20A</td>
+<td class="instruction">LD B,(IX+$02)</td>
+<td class="comment-1" rowspan="14">width $18, height 16 a step, and the left-going wall $10 to the left.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53773"></span>D20D</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_11</td>
+<td class="address-2"><span id="53774"></span>D20E</td>
+<td class="instruction">ADD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53776"></span>D210</td>
+<td class="instruction">DJNZ <a href="53437.html#53774">draw_landscape_11</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53778"></span>D212</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53779"></span>D213</td>
+<td class="instruction">LD (IX+$02),$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53783"></span>D217</td>
+<td class="instruction">LD A,($DEDF)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53786"></span>D21A</td>
+<td class="instruction">LD (IX+$03),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53789"></span>D21D</td>
+<td class="instruction">CP $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53791"></span>D21F</td>
+<td class="instruction">JP NZ,<a href="53437.html#53850">draw_landscape_15</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53794"></span>D222</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53797"></span>D225</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53799"></span>D227</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53802"></span>D22A</td>
+<td class="instruction">JP <a href="53437.html#53850">draw_landscape_15</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_12</td>
+<td class="address-2"><span id="53805"></span>D22D</td>
+<td class="instruction">LD A,(<a href="58395.html">direction_flag</a>)</td>
+<td class="comment-1" rowspan="6">A slope going left starts one x step further right.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53808"></span>D230</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53810"></span>D232</td>
+<td class="instruction">JR Z,<a href="53437.html#53821">draw_landscape_13</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53812"></span>D234</td>
+<td class="instruction">LD A,(<a href="23589.html">piece_step_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53815"></span>D237</td>
+<td class="instruction">ADD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53818"></span>D23A</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_13</td>
+<td class="address-2"><span id="53821"></span>D23D</td>
+<td class="instruction">LD B,(IX+$02)</td>
+<td class="comment-1" rowspan="13">Its far end: the x and y after all its steps.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53824"></span>D240</td>
+<td class="instruction">LD D,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53827"></span>D243</td>
+<td class="instruction">LD E,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_14</td>
+<td class="address-2"><span id="53830"></span>D246</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53833"></span>D249</td>
+<td class="instruction">ADD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53834"></span>D24A</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53835"></span>D24B</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53838"></span>D24E</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53840"></span>D250</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53841"></span>D251</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53842"></span>D252</td>
+<td class="instruction">DJNZ <a href="53437.html#53830">draw_landscape_14</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53844"></span>D254</td>
+<td class="instruction">LD (IX+$03),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53847"></span>D257</td>
+<td class="instruction">LD (IX+$02),D</td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_15</td>
+<td class="address-2"><span id="53850"></span>D25A</td>
+<td class="instruction">LD A,(<a href="52805.html">view_x</a>)</td>
+<td class="comment-1" rowspan="9">Wholly to the left or right of the view?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53853"></span>D25D</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53854"></span>D25E</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53857"></span>D261</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53859"></span>D263</td>
+<td class="instruction">JR Z,<a href="53437.html#53866">draw_landscape_16</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53861"></span>D265</td>
+<td class="instruction">CALL <a href="53952.html">piece_off_right_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53864"></span>D268</td>
+<td class="instruction">JR <a href="53437.html#53869">draw_landscape_17</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_16</td>
+<td class="address-2"><span id="53866"></span>D26A</td>
+<td class="instruction">CALL <a href="53906.html">piece_off_left_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_17</td>
+<td class="address-2"><span id="53869"></span>D26D</td>
+<td class="instruction">JP NZ,<a href="53437.html#53900">draw_landscape_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53872"></span>D270</td>
+<td class="instruction">LD A,(<a href="52806.html">view_y</a>)</td>
+<td class="comment-1" rowspan="9">Wholly above or below it?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53875"></span>D273</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53876"></span>D274</td>
+<td class="instruction">LD A,(<a href="23581.html">ground_cell</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53879"></span>D277</td>
+<td class="instruction">BIT 0,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53881"></span>D279</td>
+<td class="instruction">JR Z,<a href="53437.html#53888">draw_landscape_18</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53883"></span>D27B</td>
+<td class="instruction">CALL <a href="53985.html">piece_off_bottom_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53886"></span>D27E</td>
+<td class="instruction">JR <a href="53437.html#53891">draw_landscape_19</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_18</td>
+<td class="address-2"><span id="53888"></span>D280</td>
+<td class="instruction">CALL <a href="53978.html">piece_off_top_edge</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_19</td>
+<td class="address-2"><span id="53891"></span>D283</td>
+<td class="instruction">JP NZ,<a href="53437.html#53900">draw_landscape_20</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53894"></span>D286</td>
+<td class="instruction">CALL <a href="54019.html">next_piece_box</a></td>
+<td class="comment-1" rowspan="2">It can be seen: on to the next collision record, and draw it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53897"></span>D289</td>
+<td class="instruction">JP <a href="54041.html#54077">landscape_step_loop_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_landscape_20</td>
+<td class="address-2"><span id="53900"></span>D28C</td>
+<td class="instruction">CALL <a href="54019.html">next_piece_box</a></td>
+<td class="comment-1" rowspan="2">It cannot: on to the next collision record and the next piece.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="53903"></span>D28F</td>
+<td class="instruction">JP <a href="55057.html#55306">after_step_drawn_16</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="53436.html">D0BC</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#53437">Map</a></td>
+<td class="next">
+Next: <a href="53906.html">D292</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Data at 6D92</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-b">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Data</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="27708.html">6C3C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#28050">Map</a></td>
+<td class="next">
+Next: <a href="28888.html">70D8</a>
+</td>
+</tr>
+</table>
+<div class="description">6D92: The landscape tiles' records</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Each tile is drawn by <a href="53437.html">draw_landscape</a> as a list of pieces of ground, each a line of steps of one piece graphic. A record:
+</div>
+<div class="paragraph">
+Up to three optional markers first. $99: upside down -- floors become ceilings: each piece's direction is swapped through the second half of the table at <a href="52740.html">mirror_table</a> (0 and 7, 1 and 8 ... 6 and 13 swap places, 14 and 15 swap), its y is turned over (XOR $0C) and its extra bytes XOR 1. $FF: mirrored left-right -- each piece's x is reflected, its two extra bytes are swapped (XOR 2) and its direction turned round through the table's first half. Then any byte of $95 or more is padding, skipped. Then the number of pieces; a record that is just 0 has none.
+</div>
+<div class="paragraph">
+Each piece: its x and y in the page; a byte with the direction in bits 4-7 and the number of steps in bits 0-3 (0 means 16); and, only for directions 0 and 7, two extra bytes (<a href="23603.html">piece_extra_a</a>, <a href="23604.html">piece_extra_b</a>). The direction picks three bytes from <a href="58301.html">piece_shapes</a> by <a href="58328.html">set_piece_shape</a>: the step in x, the step in y, and a third that is 0 for directions 0 and 7 (the flat pieces) and 8 or 16 for the others. Directions 7 to 13 are the ceiling shapes of 0 to 6 and use the entry seven less, with <a href="23605.html">piece_ceiling</a> set.
+</div>
+<div class="paragraph">
+The padding rule is what lets four tiles share a record: a plain record of n pieces at A can be preceded by $99 (A-1, upside down), $FF $99 (A-2, mirrored left-right: the $99 is padding) and $99 $FF $99 (A-3, both). So 72 records, one after another with nothing between, serve all 171 tiles: 74 tiles have no marker, 27 are upside down, 51 mirrored left-right and 19 both. Read in Python, every byte from here to the tune is used except one (an unused $99, the third byte of the block).
+</div>
+<div class="paragraph">
+Laid out below a line per record, from the game's bytes when the disassembly is built: each marker a byte of its own, so that every tile's word in <a href="27708.html">tile_table</a> lands on one, then the count and the pieces; the comment names the tiles that read the record, and how, and decodes each piece as its (x,y) in the page, its direction and its steps, and a flat piece's two end codes.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">tile_records</td>
+<td class="address-1"><span id="28050"></span>6D92</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Tiles $00, $20 and $2A. No pieces</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28051"></span>6D93</td>
+<td class="instruction">DEFB $00</td>
+<td class="comment-1" rowspan="1">Tile $A6. No pieces</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28052"></span>6D94</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tile $5A (the marker $99 at its start is read by no tile). 4 pieces: (8,63) direction 9 x 5 steps; (224,63) direction 12 x 5 steps; (40,183) direction 5 x 5 steps; (192,183) direction 2 x 5 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28053"></span>6D95</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28054"></span>6D96</td>
+<td class="instruction">DEFB $08,$3F,$95</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28057"></span>6D99</td>
+<td class="instruction">DEFB $E0,$3F,$C5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28060"></span>6D9C</td>
+<td class="instruction">DEFB $28,$B7,$55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28063"></span>6D9F</td>
+<td class="instruction">DEFB $C0,$B7,$25</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28066"></span>6DA2</td>
+<td class="instruction">DEFB $06</td>
+<td class="comment-1" rowspan="7">Tile $3E. 6 pieces: (24,99) direction 7 x 8 steps, ends $11 $13; (24,111) direction 0 x 8 steps, ends $11 $13; (16,95) direction 13 x 2 steps; (216,95) direction 10 x 2 steps; (8,143) direction 3 x 2 steps; (224,143) direction 6 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28067"></span>6DA3</td>
+<td class="instruction">DEFB $18,$63,$78,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28072"></span>6DA8</td>
+<td class="instruction">DEFB $18,$6F,$08,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28077"></span>6DAD</td>
+<td class="instruction">DEFB $10,$5F,$D2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28080"></span>6DB0</td>
+<td class="instruction">DEFB $D8,$5F,$A2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28083"></span>6DB3</td>
+<td class="instruction">DEFB $08,$8F,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28086"></span>6DB6</td>
+<td class="instruction">DEFB $E0,$8F,$62</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28089"></span>6DB9</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="3">Tile $AA. 2 pieces: (216,95) direction 10 x 2 steps; (16,95) direction 13 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28090"></span>6DBA</td>
+<td class="instruction">DEFB $D8,$5F,$A2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28093"></span>6DBD</td>
+<td class="instruction">DEFB $10,$5F,$D2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28096"></span>6DC0</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $40 and $A5 mirrored left-right. 4 pieces: (8,63) direction 9 x 5 steps; (40,183) direction 5 x 5 steps; (208,151) direction 0 x 1 step, ends $11 $11; (192,183) direction 3 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28097"></span>6DC1</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28098"></span>6DC2</td>
+<td class="instruction">DEFB $08,$3F,$95</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28101"></span>6DC5</td>
+<td class="instruction">DEFB $28,$B7,$55</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28104"></span>6DC8</td>
+<td class="instruction">DEFB $D0,$97,$01,$11,$11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28109"></span>6DCD</td>
+<td class="instruction">DEFB $C0,$B7,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28112"></span>6DD0</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="5">Tile $42. 4 pieces: (40,103) direction 15 x 5 steps; (8,183) direction 10 x 5 steps; (192,135) direction 14 x 7 steps; (168,183) direction 3 x 3 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28113"></span>6DD1</td>
+<td class="instruction">DEFB $28,$67,$F5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28116"></span>6DD4</td>
+<td class="instruction">DEFB $08,$B7,$A5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28119"></span>6DD7</td>
+<td class="instruction">DEFB $C0,$87,$E7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28122"></span>6DDA</td>
+<td class="instruction">DEFB $A8,$B7,$33</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28125"></span>6DDD</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $01 and $21 mirrored left-right. 3 pieces: (8,151) direction 0 x 4 steps, ends $00 $12; (104,151) direction 1 x 4 steps; (168,119) direction 2 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28126"></span>6DDE</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28127"></span>6DDF</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28132"></span>6DE4</td>
+<td class="instruction">DEFB $68,$97,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28135"></span>6DE7</td>
+<td class="instruction">DEFB $A8,$77,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28138"></span>6DEA</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="4">Tiles $02, $22 mirrored left-right and $61 upside down and mirrored left-right. 1 piece: (8,55) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28139"></span>6DEB</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28140"></span>6DEC</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28141"></span>6DED</td>
+<td class="instruction">DEFB $08,$37,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28144"></span>6DF0</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $03 and $23 mirrored left-right. 2 pieces: (72,183) direction 1 x 8 steps; (200,119) direction 2 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28145"></span>6DF1</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28146"></span>6DF2</td>
+<td class="instruction">DEFB $48,$B7,$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28149"></span>6DF5</td>
+<td class="instruction">DEFB $C8,$77,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28152"></span>6DF8</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $04, $66 upside down, $24 mirrored left-right and $68 upside down and mirrored left-right. 3 pieces: (72,55) direction 0 x 4 steps, ends $11 $12; (8,87) direction 1 x 4 steps; (168,55) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28153"></span>6DF9</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28154"></span>6DFA</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28155"></span>6DFB</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28156"></span>6DFC</td>
+<td class="instruction">DEFB $48,$37,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28161"></span>6E01</td>
+<td class="instruction">DEFB $08,$57,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28164"></span>6E04</td>
+<td class="instruction">DEFB $A8,$37,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28167"></span>6E07</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $05, $67 upside down, $25 mirrored left-right and $73 upside down and mirrored left-right. 2 pieces: (8,183) direction 1 x 8 steps; (136,119) direction 2 x 12 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28168"></span>6E08</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28169"></span>6E09</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28170"></span>6E0A</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28171"></span>6E0B</td>
+<td class="instruction">DEFB $08,$B7,$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28174"></span>6E0E</td>
+<td class="instruction">DEFB $88,$77,$2C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28177"></span>6E11</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $06, $7A upside down, $26 mirrored left-right and $6E upside down and mirrored left-right. 3 pieces: (40,119) direction 0 x 4 steps, ends $11 $12; (8,183) direction 3 x 4 steps; (136,119) direction 2 x 12 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28178"></span>6E12</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28179"></span>6E13</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28180"></span>6E14</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28181"></span>6E15</td>
+<td class="instruction">DEFB $28,$77,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28186"></span>6E1A</td>
+<td class="instruction">DEFB $08,$B7,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28189"></span>6E1D</td>
+<td class="instruction">DEFB $88,$77,$2C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28192"></span>6E20</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $07, $65 upside down, $27 mirrored left-right and $72 upside down and mirrored left-right. 3 pieces: (72,151) direction 0 x 4 steps, ends $11 $12; (8,183) direction 1 x 4 steps; (168,151) direction 2 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28193"></span>6E21</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28194"></span>6E22</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28195"></span>6E23</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28196"></span>6E24</td>
+<td class="instruction">DEFB $48,$97,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28201"></span>6E29</td>
+<td class="instruction">DEFB $08,$B7,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28204"></span>6E2C</td>
+<td class="instruction">DEFB $A8,$97,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28207"></span>6E2F</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $08 and $28 mirrored left-right. 2 pieces: (8,183) direction 2 x 12 steps; (104,87) direction 3 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28208"></span>6E30</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28209"></span>6E31</td>
+<td class="instruction">DEFB $08,$B7,$2C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28212"></span>6E34</td>
+<td class="instruction">DEFB $68,$57,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28215"></span>6E37</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="3">Tiles $09 and $29 mirrored left-right. 1 piece: (136,183) direction 2 x 12 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28216"></span>6E38</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28217"></span>6E39</td>
+<td class="instruction">DEFB $88,$B7,$2C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28220"></span>6E3C</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="5">Tiles $0A and $9B upside down. 3 pieces: (40,55) direction 0 x 4 steps, ends $11 $13; (8,87) direction 2 x 4 steps; (192,183) direction 6 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28221"></span>6E3D</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28222"></span>6E3E</td>
+<td class="instruction">DEFB $28,$37,$04,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28227"></span>6E43</td>
+<td class="instruction">DEFB $08,$57,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28230"></span>6E46</td>
+<td class="instruction">DEFB $C0,$B7,$68</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28233"></span>6E49</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="3">Tiles $0B and $2B mirrored left-right. 1 piece: (8,87) direction 3 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28234"></span>6E4A</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28235"></span>6E4B</td>
+<td class="instruction">DEFB $08,$57,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28238"></span>6E4E</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $0C and $2C mirrored left-right. 3 pieces: (40,151) direction 0 x 4 steps, ends $10 $12; (32,151) direction 5 x 4 steps; (136,151) direction 3 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28239"></span>6E4F</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28240"></span>6E50</td>
+<td class="instruction">DEFB $28,$97,$04,$10,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28245"></span>6E55</td>
+<td class="instruction">DEFB $20,$97,$54</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28248"></span>6E58</td>
+<td class="instruction">DEFB $88,$97,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28251"></span>6E5B</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="4">Tiles $0D, $2D mirrored left-right and $9C upside down and mirrored left-right. 1 piece: (200,183) direction 3 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28252"></span>6E5C</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28253"></span>6E5D</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28254"></span>6E5E</td>
+<td class="instruction">DEFB $C8,$B7,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28257"></span>6E61</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="5">Tile $0E. 4 pieces: (40,87) direction 0 x 2 steps, ends $11 $13; (8,119) direction 2 x 4 steps; (112,119) direction 5 x 4 steps; (144,183) direction 6 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28258"></span>6E62</td>
+<td class="instruction">DEFB $28,$57,$02,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28263"></span>6E67</td>
+<td class="instruction">DEFB $08,$77,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28266"></span>6E6A</td>
+<td class="instruction">DEFB $70,$77,$54</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28269"></span>6E6D</td>
+<td class="instruction">DEFB $90,$B7,$64</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28272"></span>6E70</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="5">Tiles $0F, $7C upside down, $2F mirrored left-right and $71 upside down and mirrored left-right. 1 piece: (8,183) direction 3 x 10 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28273"></span>6E71</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28274"></span>6E72</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28275"></span>6E73</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28276"></span>6E74</td>
+<td class="instruction">DEFB $08,$B7,$3A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28279"></span>6E77</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $10, $6A upside down, $30 mirrored left-right and $2E upside down and mirrored left-right. 2 pieces: (8,151) direction 0 x 4 steps, ends $00 $12; (104,151) direction 3 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28280"></span>6E78</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28281"></span>6E79</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28282"></span>6E7A</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28283"></span>6E7B</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28288"></span>6E80</td>
+<td class="instruction">DEFB $68,$97,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28291"></span>6E83</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $11, $82 upside down, $31 mirrored left-right and $76 upside down and mirrored left-right. 2 pieces: (8,151) direction 0 x 4 steps, ends $00 $12; (104,151) direction 2 x 16 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28292"></span>6E84</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28293"></span>6E85</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28294"></span>6E86</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28295"></span>6E87</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28300"></span>6E8C</td>
+<td class="instruction">DEFB $68,$97,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28303"></span>6E8F</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $12, $7E upside down, $32 mirrored left-right and $7F upside down and mirrored left-right. 2 pieces: (40,151) direction 0 x 8 steps, ends $11 $00; (8,183) direction 2 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28304"></span>6E90</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28305"></span>6E91</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28306"></span>6E92</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28307"></span>6E93</td>
+<td class="instruction">DEFB $28,$97,$08,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28312"></span>6E98</td>
+<td class="instruction">DEFB $08,$B7,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28315"></span>6E9B</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $13, $6B upside down and $33 mirrored left-right. 2 pieces: (168,183) direction 3 x 4 steps; (200,119) direction 2 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28316"></span>6E9C</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28317"></span>6E9D</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28318"></span>6E9E</td>
+<td class="instruction">DEFB $A8,$B7,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28321"></span>6EA1</td>
+<td class="instruction">DEFB $C8,$77,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28324"></span>6EA4</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="8">Tiles $14, $99 upside down, $34 mirrored left-right and $6D upside down and mirrored left-right. 4 pieces: (72,87) direction 0 x 4 steps, ends $11 $12; (8,183) direction 2 x 4 steps; (40,151) direction 3 x 4 steps; (168,87) direction 3 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28325"></span>6EA5</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28326"></span>6EA6</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28327"></span>6EA7</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28328"></span>6EA8</td>
+<td class="instruction">DEFB $48,$57,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28333"></span>6EAD</td>
+<td class="instruction">DEFB $08,$B7,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28336"></span>6EB0</td>
+<td class="instruction">DEFB $28,$97,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28339"></span>6EB3</td>
+<td class="instruction">DEFB $A8,$57,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28342"></span>6EB6</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $15, $6C upside down, $35 mirrored left-right and $6F upside down and mirrored left-right. 3 pieces: (72,87) direction 0 x 4 steps, ends $11 $12; (8,119) direction 1 x 4 steps; (168,87) direction 2 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28343"></span>6EB7</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28344"></span>6EB8</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28345"></span>6EB9</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28346"></span>6EBA</td>
+<td class="instruction">DEFB $48,$57,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28351"></span>6EBF</td>
+<td class="instruction">DEFB $08,$77,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28354"></span>6EC2</td>
+<td class="instruction">DEFB $A8,$57,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28357"></span>6EC5</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="3">Tiles $16 and $87 upside down. 1 piece: (8,151) direction 0 x 10 steps, ends $00 $16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28358"></span>6EC6</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28359"></span>6EC7</td>
+<td class="instruction">DEFB $08,$97,$0A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28364"></span>6ECC</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="5">Tiles $17, $86 upside down, $36 mirrored left-right and $8B upside down and mirrored left-right. 1 piece: (8,87) direction 2 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28365"></span>6ECD</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28366"></span>6ECE</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28367"></span>6ECF</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28368"></span>6ED0</td>
+<td class="instruction">DEFB $08,$57,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28371"></span>6ED3</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $18 and $37 mirrored left-right. 2 pieces: (88,151) direction 0 x 6 steps, ends $11 $00; (72,183) direction 3 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28372"></span>6ED4</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28373"></span>6ED5</td>
+<td class="instruction">DEFB $58,$97,$06,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28378"></span>6EDA</td>
+<td class="instruction">DEFB $48,$B7,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28381"></span>6EDD</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $19, $8A upside down, $38 mirrored left-right and $69 upside down and mirrored left-right. 2 pieces: (8,151) direction 0 x 4 steps, ends $00 $12; (104,151) direction 1 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28382"></span>6EDE</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28383"></span>6EDF</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28384"></span>6EE0</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28385"></span>6EE1</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28390"></span>6EE6</td>
+<td class="instruction">DEFB $68,$97,$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28393"></span>6EE9</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $A7 and $A8 mirrored left-right. 2 pieces: (8,151) direction 0 x 1 step, ends $13 $13; (40,183) direction 6 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28394"></span>6EEA</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28395"></span>6EEB</td>
+<td class="instruction">DEFB $08,$97,$01,$13,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28400"></span>6EF0</td>
+<td class="instruction">DEFB $28,$B7,$62</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28403"></span>6EF3</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $1A, $A9 and $39 mirrored left-right. 4 pieces: (8,151) direction 0 x 1 step, ends $13 $13; (208,151) direction 0 x 1 step, ends $11 $11; (40,183) direction 6 x 2 steps; (192,183) direction 3 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28404"></span>6EF4</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28405"></span>6EF5</td>
+<td class="instruction">DEFB $08,$97,$01,$13,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28410"></span>6EFA</td>
+<td class="instruction">DEFB $D0,$97,$01,$11,$11</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28415"></span>6EFF</td>
+<td class="instruction">DEFB $28,$B7,$62</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28418"></span>6F02</td>
+<td class="instruction">DEFB $C0,$B7,$32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28421"></span>6F05</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $1B and $3A mirrored left-right. 3 pieces: (72,151) direction 0 x 4 steps, ends $11 $12; (40,183) direction 2 x 4 steps; (168,151) direction 3 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28422"></span>6F06</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28423"></span>6F07</td>
+<td class="instruction">DEFB $48,$97,$04,$11,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28428"></span>6F0C</td>
+<td class="instruction">DEFB $28,$B7,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28431"></span>6F0F</td>
+<td class="instruction">DEFB $A8,$97,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28434"></span>6F12</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="5">Tiles $1C, $7B upside down, $3B mirrored left-right and $70 upside down and mirrored left-right. 1 piece: (88,183) direction 3 x 10 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28435"></span>6F13</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28436"></span>6F14</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28437"></span>6F15</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28438"></span>6F16</td>
+<td class="instruction">DEFB $58,$B7,$3A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28441"></span>6F19</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $1D and $3C mirrored left-right. 2 pieces: (8,119) direction 3 x 4 steps; (40,55) direction 2 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28442"></span>6F1A</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28443"></span>6F1B</td>
+<td class="instruction">DEFB $08,$77,$34</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28446"></span>6F1E</td>
+<td class="instruction">DEFB $28,$37,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28449"></span>6F21</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $1E, $3D mirrored left-right and $89 upside down and mirrored left-right. 3 pieces: (40,59) direction 7 x 8 steps, ends $11 $00; (8,151) direction 0 x 10 steps, ends $00 $16; (32,55) direction 12 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28450"></span>6F22</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28451"></span>6F23</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28452"></span>6F24</td>
+<td class="instruction">DEFB $28,$3B,$78,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28457"></span>6F29</td>
+<td class="instruction">DEFB $08,$97,$0A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28462"></span>6F2E</td>
+<td class="instruction">DEFB $20,$37,$C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28465"></span>6F31</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $1F and $3F mirrored left-right. 3 pieces: (160,151) direction 0 x 3 steps, ends $11 $00; (136,183) direction 3 x 1 step; (144,167) direction 2 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28466"></span>6F32</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28467"></span>6F33</td>
+<td class="instruction">DEFB $A0,$97,$03,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28472"></span>6F38</td>
+<td class="instruction">DEFB $88,$B7,$31</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28475"></span>6F3B</td>
+<td class="instruction">DEFB $90,$A7,$22</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28478"></span>6F3E</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="5">Tile $41. 4 pieces: (64,71) direction 6 x 3 steps; (168,71) direction 3 x 3 steps; (64,183) direction 15 x 7 steps; (168,183) direction 14 x 7 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28479"></span>6F3F</td>
+<td class="instruction">DEFB $40,$47,$63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28482"></span>6F42</td>
+<td class="instruction">DEFB $A8,$47,$33</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28485"></span>6F45</td>
+<td class="instruction">DEFB $40,$B7,$F7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28488"></span>6F48</td>
+<td class="instruction">DEFB $A8,$B7,$E7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28491"></span>6F4B</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tile $8D mirrored left-right. 4 pieces: (32,55) direction 10 x 2 steps; (128,151) direction 3 x 8 steps; (8,59) direction 7 x 1 step, ends $13 $13; (8,151) direction 0 x 5 steps, ends $00 $12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28492"></span>6F4C</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28493"></span>6F4D</td>
+<td class="instruction">DEFB $20,$37,$A2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28496"></span>6F50</td>
+<td class="instruction">DEFB $80,$97,$38</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28499"></span>6F53</td>
+<td class="instruction">DEFB $08,$3B,$71,$13,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28504"></span>6F58</td>
+<td class="instruction">DEFB $08,$97,$05,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28509"></span>6F5D</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $43 and $8E mirrored left-right. 4 pieces: (8,119) direction 9 x 4 steps; (40,87) direction 8 x 8 steps; (72,183) direction 2 x 4 steps; (104,151) direction 1 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28510"></span>6F5E</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28511"></span>6F5F</td>
+<td class="instruction">DEFB $08,$77,$94</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28514"></span>6F62</td>
+<td class="instruction">DEFB $28,$57,$88</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28517"></span>6F65</td>
+<td class="instruction">DEFB $48,$B7,$24</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28520"></span>6F68</td>
+<td class="instruction">DEFB $68,$97,$18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28523"></span>6F6B</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="3">Tiles $44 and $8F mirrored left-right. 1 piece: (168,183) direction 9 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28524"></span>6F6C</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28525"></span>6F6D</td>
+<td class="instruction">DEFB $A8,$B7,$98</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28528"></span>6F70</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="6">Tiles $45, $79 upside down, $90 mirrored left-right and $59 upside down and mirrored left-right. 2 pieces: (160,87) direction 15 x 4 steps; (72,183) direction 9 x 12 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28529"></span>6F71</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28530"></span>6F72</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28531"></span>6F73</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28532"></span>6F74</td>
+<td class="instruction">DEFB $A0,$57,$F4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28535"></span>6F77</td>
+<td class="instruction">DEFB $48,$B7,$9C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28538"></span>6F7A</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="7">Tiles $46 and $91 mirrored left-right. 5 pieces: (136,59) direction 7 x 4 steps, ends $10 $00; (184,151) direction 0 x 2 steps, ends $11 $00; (8,183) direction 9 x 16 steps; (152,167) direction 1 x 2 steps; (136,183) direction 2 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28539"></span>6F7B</td>
+<td class="instruction">DEFB $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28540"></span>6F7C</td>
+<td class="instruction">DEFB $88,$3B,$74,$10,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28545"></span>6F81</td>
+<td class="instruction">DEFB $B8,$97,$02,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28550"></span>6F86</td>
+<td class="instruction">DEFB $08,$B7,$90</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28553"></span>6F89</td>
+<td class="instruction">DEFB $98,$A7,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28556"></span>6F8C</td>
+<td class="instruction">DEFB $88,$B7,$22</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28559"></span>6F8F</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $47 and $92 mirrored left-right. 2 pieces: (72,87) direction 2 x 8 steps; (8,119) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28560"></span>6F90</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28561"></span>6F91</td>
+<td class="instruction">DEFB $48,$57,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28564"></span>6F94</td>
+<td class="instruction">DEFB $08,$77,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28567"></span>6F97</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="3">Tile $48. 2 pieces: (8,59) direction 7 x 10 steps, ends $00 $16; (8,151) direction 0 x 10 steps, ends $00 $16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28568"></span>6F98</td>
+<td class="instruction">DEFB $08,$3B,$7A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28573"></span>6F9D</td>
+<td class="instruction">DEFB $08,$97,$0A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28578"></span>6FA2</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $49 and $93 mirrored left-right. 3 pieces: (8,59) direction 7 x 10 steps, ends $00 $16; (8,151) direction 0 x 4 steps, ends $00 $13; (152,183) direction 4 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28579"></span>6FA3</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28580"></span>6FA4</td>
+<td class="instruction">DEFB $08,$3B,$7A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28585"></span>6FA9</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28590"></span>6FAE</td>
+<td class="instruction">DEFB $98,$B7,$44</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28593"></span>6FB1</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="8">Tiles $4A, $83 upside down, $94 mirrored left-right and $85 upside down and mirrored left-right. 4 pieces: (8,59) direction 7 x 3 steps, ends $00 $12; (112,79) direction 11 x 3 steps; (160,119) direction 12 x 5 steps; (168,183) direction 14 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28594"></span>6FB2</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28595"></span>6FB3</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28596"></span>6FB4</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28597"></span>6FB5</td>
+<td class="instruction">DEFB $08,$3B,$73,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28602"></span>6FBA</td>
+<td class="instruction">DEFB $70,$4F,$B3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28605"></span>6FBD</td>
+<td class="instruction">DEFB $A0,$77,$C5</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28608"></span>6FC0</td>
+<td class="instruction">DEFB $A8,$B7,$E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28611"></span>6FC3</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $4B, $77 upside down and $95 mirrored left-right. 3 pieces: (8,151) direction 0 x 4 steps, ends $00 $12; (168,119) direction 14 x 6 steps; (104,151) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28612"></span>6FC4</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28613"></span>6FC5</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28614"></span>6FC6</td>
+<td class="instruction">DEFB $08,$97,$04,$00,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28619"></span>6FCB</td>
+<td class="instruction">DEFB $A8,$77,$E6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28622"></span>6FCE</td>
+<td class="instruction">DEFB $68,$97,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28625"></span>6FD1</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="3">Tiles $4C and $84 upside down. 1 piece: (8,59) direction 7 x 10 steps, ends $00 $16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28626"></span>6FD2</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28627"></span>6FD3</td>
+<td class="instruction">DEFB $08,$3B,$7A,$00,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28632"></span>6FD8</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="7">Tiles $4D and $98 mirrored left-right. 5 pieces: (8,59) direction 7 x 6 steps, ends $00 $13; (136,151) direction 0 x 4 steps, ends $11 $00; (160,39) direction 15 x 1 step; (152,55) direction 9 x 2 steps; (72,183) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28633"></span>6FD9</td>
+<td class="instruction">DEFB $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28634"></span>6FDA</td>
+<td class="instruction">DEFB $08,$3B,$76,$00,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28639"></span>6FDF</td>
+<td class="instruction">DEFB $88,$97,$04,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28644"></span>6FE4</td>
+<td class="instruction">DEFB $A0,$27,$F1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28647"></span>6FE7</td>
+<td class="instruction">DEFB $98,$37,$92</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28650"></span>6FEA</td>
+<td class="instruction">DEFB $48,$B7,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28653"></span>6FED</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $4E and $A2 mirrored left-right. 3 pieces: (184,59) direction 7 x 2 steps, ends $10 $00; (8,183) direction 9 x 10 steps; (88,103) direction 8 x 6 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28654"></span>6FEE</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28655"></span>6FEF</td>
+<td class="instruction">DEFB $B8,$3B,$72,$10,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28660"></span>6FF4</td>
+<td class="instruction">DEFB $08,$B7,$9A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28663"></span>6FF7</td>
+<td class="instruction">DEFB $58,$67,$86</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28666"></span>6FFA</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $4F and $A3 mirrored left-right. 2 pieces: (8,59) direction 7 x 8 steps, ends $00 $13; (200,55) direction 9 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28667"></span>6FFB</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28668"></span>6FFC</td>
+<td class="instruction">DEFB $08,$3B,$78,$00,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28673"></span>7001</td>
+<td class="instruction">DEFB $C8,$37,$94</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28676"></span>7004</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $50 and $97 mirrored left-right. 2 pieces: (168,55) direction 14 x 2 steps; (224,183) direction 13 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28677"></span>7005</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28678"></span>7006</td>
+<td class="instruction">DEFB $A8,$37,$E2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28681"></span>7009</td>
+<td class="instruction">DEFB $E0,$B7,$D8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28684"></span>700C</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $51, $78 upside down, $96 mirrored left-right and $75 upside down and mirrored left-right. 3 pieces: (120,87) direction 11 x 8 steps; (160,119) direction 12 x 4 steps; (168,183) direction 14 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28685"></span>700D</td>
+<td class="instruction">DEFB $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28686"></span>700E</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28687"></span>700F</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28688"></span>7010</td>
+<td class="instruction">DEFB $78,$57,$B8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28691"></span>7013</td>
+<td class="instruction">DEFB $A0,$77,$C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28694"></span>7016</td>
+<td class="instruction">DEFB $A8,$B7,$E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28697"></span>7019</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $52, $81 upside down and $A1 mirrored left-right. 2 pieces: (168,119) direction 1 x 4 steps; (168,183) direction 14 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28698"></span>701A</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28699"></span>701B</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28700"></span>701C</td>
+<td class="instruction">DEFB $A8,$77,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28703"></span>701F</td>
+<td class="instruction">DEFB $A8,$B7,$E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28706"></span>7022</td>
+<td class="instruction">DEFB $01</td>
+<td class="comment-1" rowspan="2">Tile $53. 1 piece: (224,55) direction 12 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28707"></span>7023</td>
+<td class="instruction">DEFB $E0,$37,$C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28710"></span>7026</td>
+<td class="instruction">DEFB $01</td>
+<td class="comment-1" rowspan="2">Tile $54. 1 piece: (8,59) direction 7 x 10 steps, ends $11 $16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28711"></span>7027</td>
+<td class="instruction">DEFB $08,$3B,$7A,$11,$16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28716"></span>702C</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="5">Tiles $55 and $8C upside down. 3 pieces: (72,55) direction 0 x 4 steps, ends $10 $12; (56,55) direction 4 x 4 steps; (168,55) direction 1 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28717"></span>702D</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28718"></span>702E</td>
+<td class="instruction">DEFB $48,$37,$04,$10,$12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28723"></span>7033</td>
+<td class="instruction">DEFB $38,$37,$44</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28726"></span>7036</td>
+<td class="instruction">DEFB $A8,$37,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28729"></span>7039</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $56, $7D upside down and $9A mirrored left-right. 3 pieces: (72,151) direction 0 x 4 steps, ends $11 $13; (8,183) direction 1 x 4 steps; (192,183) direction 5 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28730"></span>703A</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28731"></span>703B</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28732"></span>703C</td>
+<td class="instruction">DEFB $48,$97,$04,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28737"></span>7041</td>
+<td class="instruction">DEFB $08,$B7,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28740"></span>7044</td>
+<td class="instruction">DEFB $C0,$B7,$54</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28743"></span>7047</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="4">Tiles $57, $80 upside down and $A0 mirrored left-right. 1 piece: (168,183) direction 14 x 10 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28744"></span>7048</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28745"></span>7049</td>
+<td class="instruction">DEFB $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28746"></span>704A</td>
+<td class="instruction">DEFB $A8,$B7,$EA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28749"></span>704D</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $58, $74 upside down and $9F mirrored left-right. 2 pieces: (168,55) direction 1 x 4 steps; (168,183) direction 14 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28750"></span>704E</td>
+<td class="instruction">DEFB $99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28751"></span>704F</td>
+<td class="instruction">DEFB $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28752"></span>7050</td>
+<td class="instruction">DEFB $A8,$37,$14</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28755"></span>7053</td>
+<td class="instruction">DEFB $A8,$B7,$E8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28758"></span>7056</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="5">Tiles $5B and $9D mirrored left-right. 3 pieces: (136,87) direction 14 x 4 steps; (160,119) direction 12 x 4 steps; (168,183) direction 14 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28759"></span>7057</td>
+<td class="instruction">DEFB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28760"></span>7058</td>
+<td class="instruction">DEFB $88,$57,$E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28763"></span>705B</td>
+<td class="instruction">DEFB $A0,$77,$C4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28766"></span>705E</td>
+<td class="instruction">DEFB $A8,$B7,$E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28769"></span>7061</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="3">Tile $5C. 2 pieces: (64,183) direction 15 x 10 steps; (168,183) direction 14 x 10 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28770"></span>7062</td>
+<td class="instruction">DEFB $40,$B7,$FA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28773"></span>7065</td>
+<td class="instruction">DEFB $A8,$B7,$EA</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28776"></span>7068</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="6">Tiles $5D and $A4 mirrored left-right. 4 pieces: (64,119) direction 15 x 6 steps; (8,183) direction 9 x 8 steps; (168,55) direction 14 x 2 steps; (224,119) direction 12 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28777"></span>7069</td>
+<td class="instruction">DEFB $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28778"></span>706A</td>
+<td class="instruction">DEFB $40,$77,$F6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28781"></span>706D</td>
+<td class="instruction">DEFB $08,$B7,$98</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28784"></span>7070</td>
+<td class="instruction">DEFB $A8,$37,$E2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28787"></span>7073</td>
+<td class="instruction">DEFB $E0,$77,$C8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28790"></span>7076</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="5">Tile $5E. 4 pieces: (72,119) direction 9 x 12 steps; (72,183) direction 15 x 4 steps; (168,151) direction 2 x 8 steps; (168,183) direction 14 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28791"></span>7077</td>
+<td class="instruction">DEFB $48,$77,$9C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28794"></span>707A</td>
+<td class="instruction">DEFB $48,$B7,$F4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28797"></span>707D</td>
+<td class="instruction">DEFB $A8,$97,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28800"></span>7080</td>
+<td class="instruction">DEFB $A8,$B7,$E2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28803"></span>7083</td>
+<td class="instruction">DEFB $99</td>
+<td class="comment-1" rowspan="7">Tiles $5F and $88 upside down. 5 pieces: (64,59) direction 7 x 7 steps, ends $10 $00; (64,151) direction 0 x 7 steps, ends $10 $00; (32,127) direction 15 x 3 steps; (56,151) direction 5 x 3 steps; (40,79) direction 9 x 3 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28804"></span>7084</td>
+<td class="instruction">DEFB $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28805"></span>7085</td>
+<td class="instruction">DEFB $40,$3B,$77,$10,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28810"></span>708A</td>
+<td class="instruction">DEFB $40,$97,$07,$10,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28815"></span>708F</td>
+<td class="instruction">DEFB $20,$7F,$F3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28818"></span>7092</td>
+<td class="instruction">DEFB $38,$97,$53</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28821"></span>7095</td>
+<td class="instruction">DEFB $28,$4F,$93</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28824"></span>7098</td>
+<td class="instruction">DEFB $04</td>
+<td class="comment-1" rowspan="5">Tile $60. 4 pieces: (64,119) direction 5 x 8 steps; (64,183) direction 15 x 4 steps; (168,151) direction 2 x 8 steps; (168,183) direction 14 x 2 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28825"></span>7099</td>
+<td class="instruction">DEFB $40,$77,$58</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28828"></span>709C</td>
+<td class="instruction">DEFB $40,$B7,$F4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28831"></span>709F</td>
+<td class="instruction">DEFB $A8,$97,$28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28834"></span>70A2</td>
+<td class="instruction">DEFB $A8,$B7,$E2</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28837"></span>70A5</td>
+<td class="instruction">DEFB $FF</td>
+<td class="comment-1" rowspan="7">Tiles $62 and $9E mirrored left-right. 5 pieces: (64,59) direction 7 x 7 steps, ends $11 $00; (40,151) direction 0 x 8 steps, ends $10 $00; (40,47) direction 11 x 3 steps; (56,55) direction 12 x 1 step; (32,151) direction 5 x 4 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28838"></span>70A6</td>
+<td class="instruction">DEFB $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28839"></span>70A7</td>
+<td class="instruction">DEFB $40,$3B,$77,$11,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28844"></span>70AC</td>
+<td class="instruction">DEFB $28,$97,$08,$10,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28849"></span>70B1</td>
+<td class="instruction">DEFB $28,$2F,$B3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28852"></span>70B4</td>
+<td class="instruction">DEFB $38,$37,$C1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28855"></span>70B7</td>
+<td class="instruction">DEFB $20,$97,$54</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28858"></span>70BA</td>
+<td class="instruction">DEFB $02</td>
+<td class="comment-1" rowspan="3">Tile $63. 2 pieces: (64,119) direction 15 x 6 steps; (8,183) direction 9 x 8 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28859"></span>70BB</td>
+<td class="instruction">DEFB $40,$77,$F6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28862"></span>70BE</td>
+<td class="instruction">DEFB $08,$B7,$98</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28865"></span>70C1</td>
+<td class="instruction">DEFB $06</td>
+<td class="comment-1" rowspan="7">Tile $64. 6 pieces: (96,55) direction 0 x 2 steps, ends $11 $13; (96,155) direction 7 x 2 steps, ends $11 $13; (72,103) direction 3 x 3 steps; (88,151) direction 13 x 3 steps; (160,103) direction 6 x 3 steps; (144,151) direction 10 x 3 steps</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28866"></span>70C2</td>
+<td class="instruction">DEFB $60,$37,$02,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28871"></span>70C7</td>
+<td class="instruction">DEFB $60,$9B,$72,$11,$13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28876"></span>70CC</td>
+<td class="instruction">DEFB $48,$67,$33</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28879"></span>70CF</td>
+<td class="instruction">DEFB $58,$97,$D3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28882"></span>70D2</td>
+<td class="instruction">DEFB $A0,$67,$63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="28885"></span>70D5</td>
+<td class="instruction">DEFB $90,$97,$A3</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="27708.html">6C3C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#28050">Map</a></td>
+<td class="next">
+Next: <a href="28888.html">70D8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

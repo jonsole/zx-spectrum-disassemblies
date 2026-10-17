@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8F54</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36691.html">8F53</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36692">Map</a></td>
+<td class="next">
+Next: <a href="36795.html">8FBB</a>
+</td>
+</tr>
+</table>
+<div class="description">8F54: Contact effect bit 6: damage the ship</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="36397.html">ship_contact</a>.
+</div>
+<div class="paragraph">
+The attackers' effect. An object damages the ship at most once every 16 passes: it sets the cool-down in the high nibble of its +$17 to 15 (<a href="36162.html">update_objects</a> counts it down) and does nothing while it is not zero. With the shield up (<a href="35183.html">shield_timer</a>) an ordinary attacker (effect $50 or $51) is destroyed instead, with a sound.
+</div>
+<div class="paragraph">
+damage_ship (the entry point at the middle of this routine), reached also from a beam (<a href="40206.html">beam_hits_ship</a>) and from <a href="43252.html">ship_hits_ground_objects</a>, does nothing with the shield up or while the ship is already dying. Otherwise it counts the hit (the last byte of <a href="36795.html">ship_icon_positions</a>) and recolours the ship icon on the panel: yellow ($46) after the first hit, magenta ($43) after the second, and black after the third, which sets the death byte (<a href="36691.html">death_count</a>) to 1. It is also the repair: a refuel pad (<a href="43252.html">ship_hits_ground_objects</a>) sets the count to $FF first, so it wraps to 0 and the icon goes back to white ($47). The icon is a 4 by 2 character patch (<a href="36795.html">ship_icon_positions</a>) at x=$30 for player 1 and x=$B0 for player 2 (the player number is in <a href="51740.html">player_in_play</a>), painted by <a href="51601.html">fill_attributes</a>.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">The contact effect</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">contact_damage</td>
+<td class="address-2"><span id="36692"></span>8F54</td>
+<td class="instruction">LD A,(IX+$17)</td>
+<td class="comment-1" rowspan="3">Still cooling down from the last touch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36695"></span>8F57</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36697"></span>8F59</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36698"></span>8F5A</td>
+<td class="instruction">LD A,(IX+$17)</td>
+<td class="comment-1" rowspan="3">Cool-down 15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36701"></span>8F5D</td>
+<td class="instruction">ADD A,$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36703"></span>8F5F</td>
+<td class="instruction">LD (IX+$17),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36706"></span>8F62</td>
+<td class="instruction">LD A,(<a href="35183.html">shield_timer</a>)</td>
+<td class="comment-1" rowspan="3">No shield: damage</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36709"></span>8F65</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36710"></span>8F66</td>
+<td class="instruction">JR Z,<a href="36692.html#36726">damage_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36712"></span>8F68</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="6">Shielded, and an ordinary attacker: it is shot instead</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36713"></span>8F69</td>
+<td class="instruction">AND $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36715"></span>8F6B</td>
+<td class="instruction">CP $50</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36717"></span>8F6D</td>
+<td class="instruction">JR NZ,<a href="36692.html#36726">damage_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36719"></span>8F6F</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36723"></span>8F73</td>
+<td class="instruction">CALL <a href="29260.html">sound_zap</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="36726"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="40206.html">beam_hits_ship</a> and <a href="43252.html">ship_hits_ground_objects</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">damage_ship</td>
+<td class="address-2"><span id="36726"></span>8F76</td>
+<td class="instruction">LD A,(<a href="35183.html">shield_timer</a>)</td>
+<td class="comment-1" rowspan="6">No damage with the shield up, or while dying</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36729"></span>8F79</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36730"></span>8F7A</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36731"></span>8F7B</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36734"></span>8F7E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36735"></span>8F7F</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36736"></span>8F80</td>
+<td class="instruction">CALL <a href="29260.html">sound_zap</a></td>
+<td class="comment-1" rowspan="4">A sound, and one more hit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36739"></span>8F83</td>
+<td class="instruction">LD A,(<a href="36803.html">hit_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36742"></span>8F86</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36743"></span>8F87</td>
+<td class="instruction">LD (<a href="36803.html">hit_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36746"></span>8F8A</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="8">White after a repair (count 0), yellow after one hit, magenta after two</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36747"></span>8F8B</td>
+<td class="instruction">LD B,$47</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36749"></span>8F8D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36750"></span>8F8E</td>
+<td class="instruction">JR Z,<a href="36692.html#36760">contact_damage_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36752"></span>8F90</td>
+<td class="instruction">LD B,$46</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36754"></span>8F92</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36756"></span>8F94</td>
+<td class="instruction">JR Z,<a href="36692.html#36760">contact_damage_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36758"></span>8F96</td>
+<td class="instruction">LD B,$43</td>
+</tr>
+<tr>
+<td class="asm-label">contact_damage_0</td>
+<td class="address-2"><span id="36760"></span>8F98</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="5">The third: the ship dies, and the icon goes black</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36762"></span>8F9A</td>
+<td class="instruction">JR NZ,<a href="36692.html#36771">contact_damage_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36764"></span>8F9C</td>
+<td class="instruction">LD A,$01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36766"></span>8F9E</td>
+<td class="instruction">LD (<a href="36691.html">death_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36769"></span>8FA1</td>
+<td class="instruction">LD B,$00</td>
+</tr>
+<tr>
+<td class="asm-label">contact_damage_1</td>
+<td class="address-2"><span id="36771"></span>8FA3</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="2">The patch's colour</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36772"></span>8FA4</td>
+<td class="instruction">LD ($8FC1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36775"></span>8FA7</td>
+<td class="instruction">LD HL,$0F30</td>
+<td class="comment-1" rowspan="7">Paint it over this player's ship icon</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36778"></span>8FAA</td>
+<td class="instruction">LD A,(<a href="51740.html">player_in_play</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36781"></span>8FAD</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36782"></span>8FAE</td>
+<td class="instruction">JR Z,<a href="36692.html#36787">contact_damage_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36784"></span>8FB0</td>
+<td class="instruction">LD HL,$0FB0</td>
+</tr>
+<tr>
+<td class="asm-label">contact_damage_2</td>
+<td class="address-2"><span id="36787"></span>8FB3</td>
+<td class="instruction">LD DE,<a href="36799.html">icon_patch_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36790"></span>8FB6</td>
+<td class="instruction">CALL <a href="51601.html">fill_attributes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36793"></span>8FB9</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36794"></span>8FBA</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36691.html">8F53</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36692">Map</a></td>
+<td class="next">
+Next: <a href="36795.html">8FBB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

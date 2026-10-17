@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E41C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58395.html">E41B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58396">Map</a></td>
+<td class="next">
+Next: <a href="58507.html">E48B</a>
+</td>
+</tr>
+</table>
+<div class="description">E41C: Fill the ground under a terrain piece, column by column</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="55057.html">after_step_drawn</a> and <a href="55514.html">fill_flat_end_column</a>.
+</div>
+<div class="paragraph">
+Called by <a href="55057.html">after_step_drawn</a> once a piece is drawn, to fill what lies beneath it with the ground's checkerboard (DE = $55AA) or to clear it (DE = 0), and by <a href="55514.html">fill_flat_end_column</a> to clear a column four rows deep. Each column is one byte wide and climbs from HL for C pairs of rows: D is written on one pixel row and E on the row above. After each column L moves on by the piece's width in bytes (<a href="52790.html">piece_dcolumn</a>), and <a href="52804.html">piece_page_y</a>, the screen row the fill has reached, goes up by the column's height. B, the number of columns, is the number of steps of the piece drawn (<a href="23599.html">piece_steps_done</a>), so this is one column a step, each the step's width in bytes across and as tall as the fill needs, which is how the ground under a slope comes out solid.
+</div>
+<div class="paragraph">
+A column is clipped to the play area: one in screen column 0 or 29 to 31 is not drawn at all (the pointer is only moved on); if the fill starts below row 183 ($B7, the bottom of the play area) the first rows are dropped and it starts at the bottom row of the play area; and near the top it is cut short by what the sum with <a href="52826.html">piece_rows</a> (the piece's height) and 24 says. The arithmetic of the top clip is read but not traced through.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">the number of columns</td>
+</tr>
+<tr>
+<td class="register">C'</td>
+<td class="register-desc">pairs of rows in each column</td>
+</tr>
+<tr>
+<td class="register">DE'</td>
+<td class="register-desc">the two pattern bytes ($55AA for the ground's checkerboard, 0 to clear)</td>
+</tr>
+<tr>
+<td class="register">HL'</td>
+<td class="register-desc">the screen address of the first column's bottom byte</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope</td>
+<td class="address-2"><span id="58396"></span>E41C</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">Into the other set: B counts this column's pairs of rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58397"></span>E41D</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58398"></span>E41E</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="5">Off the play area (column 0, or 29 and up)? Only move on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58399"></span>E41F</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58401"></span>E421</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58402"></span>E422</td>
+<td class="instruction">CP $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58404"></span>E424</td>
+<td class="instruction">JR NC,<a href="58396.html#58481">fill_under_slope_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58406"></span>E426</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+<td class="comment-1" rowspan="4">Does the fill start below the play area (row 184 or more)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58409"></span>E429</td>
+<td class="instruction">CP $B8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58411"></span>E42B</td>
+<td class="instruction">JR C,<a href="58396.html#58434">fill_under_slope_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58413"></span>E42D</td>
+<td class="instruction">JR Z,<a href="58396.html#58434">fill_under_slope_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58415"></span>E42F</td>
+<td class="instruction">SUB $B7</td>
+<td class="comment-1" rowspan="5">Then drop the rows that would lie below it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58417"></span>E431</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58419"></span>E433</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58421"></span>E435</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58422"></span>E436</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58423"></span>E437</td>
+<td class="instruction">LD H,$57</td>
+<td class="comment-1" rowspan="6">And start on the play area's bottom row, $57C0 + the column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58425"></span>E439</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58426"></span>E43A</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58428"></span>E43C</td>
+<td class="instruction">OR $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58430"></span>E43E</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58431"></span>E43F</td>
+<td class="instruction">JP <a href="58396.html#58453">fill_under_slope_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope_0</td>
+<td class="address-2"><span id="58434"></span>E442</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="7">Will the column reach above the top of the play area?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58435"></span>E443</td>
+<td class="instruction">LD A,(<a href="52826.html">piece_rows</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58438"></span>E446</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58440"></span>E448</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58441"></span>E449</td>
+<td class="instruction">SUB $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58443"></span>E44B</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58444"></span>E44C</td>
+<td class="instruction">JR NC,<a href="58396.html#58453">fill_under_slope_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58446"></span>E44E</td>
+<td class="instruction">CPL</td>
+<td class="comment-1" rowspan="5">Then shorten it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58447"></span>E44F</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58449"></span>E451</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58451"></span>E453</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58452"></span>E454</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope_1</td>
+<td class="address-2"><span id="58453"></span>E455</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+<td class="comment-1" rowspan="5"><a href="52804.html">piece_page_y</a> goes up by the column's height (two rows a pair)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58456"></span>E458</td>
+<td class="instruction">SLA C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58458"></span>E45A</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58459"></span>E45B</td>
+<td class="instruction">SRL C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58461"></span>E45D</td>
+<td class="instruction">LD (<a href="52804.html">piece_page_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope_2</td>
+<td class="address-2"><span id="58464"></span>E460</td>
+<td class="instruction">LD (HL),D</td>
+<td class="comment-1" rowspan="5">Fill the column: D, up a row, E, up a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58465"></span>E461</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58466"></span>E462</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58467"></span>E463</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58470"></span>E466</td>
+<td class="instruction">DJNZ <a href="58396.html#58464">fill_under_slope_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58472"></span>E468</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+<td class="comment-1" rowspan="3">On to the next column, by the piece's width in bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58475"></span>E46B</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58476"></span>E46C</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58477"></span>E46D</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">The next column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58478"></span>E46E</td>
+<td class="instruction">DJNZ <a href="58396.html#58396">fill_under_slope</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58480"></span>E470</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope_3</td>
+<td class="address-2"><span id="58481"></span>E471</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+<td class="comment-1" rowspan="8">A column off the play area: account for its height and step across</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58484"></span>E474</td>
+<td class="instruction">SLA B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58486"></span>E476</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58487"></span>E477</td>
+<td class="instruction">SRL B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58489"></span>E479</td>
+<td class="instruction">LD (<a href="52804.html">piece_page_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58492"></span>E47C</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58495"></span>E47F</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58496"></span>E480</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label">fill_under_slope_4</td>
+<td class="address-2"><span id="58497"></span>E481</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="3">Move HL up by its height without drawing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58498"></span>E482</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58501"></span>E485</td>
+<td class="instruction">DJNZ <a href="58396.html#58497">fill_under_slope_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58503"></span>E487</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">The next column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58504"></span>E488</td>
+<td class="instruction">DJNZ <a href="58396.html#58396">fill_under_slope</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58506"></span>E48A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58395.html">E41B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58396">Map</a></td>
+<td class="next">
+Next: <a href="58507.html">E48B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

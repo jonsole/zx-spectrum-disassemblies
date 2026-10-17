@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8347</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33539.html">8303</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33607">Map</a></td>
+<td class="next">
+Next: <a href="33675.html">838B</a>
+</td>
+</tr>
+</table>
+<div class="description">8347: Adjust a landscape run's start and width for its end pieces</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55720.html">fill_behind_moving_piece</a>.
+</div>
+<div class="paragraph">
+Called by <a href="55720.html">fill_behind_moving_piece</a> (when the byte at <a href="52791.html">piece_rise</a> is 0) just before it draws a run of the landscape. <a href="23603.html">piece_extra_a</a> and <a href="23604.html">piece_extra_b</a> hold the codes of the run's first and last pieces (<a href="52587.html">piece_ends</a> sets them from the map); pieces $90-$93 are ends that need the run moved or widened, depending on the scroll step across (the second byte of <a href="52410.html">scroll_down</a>) and on E, which is 0 or $AA (<a href="55720.html">fill_behind_moving_piece</a> sets DE to 0 or $55AA, the dither's phase). B is added to the run's x and C to its width.
+</div>
+<div class="paragraph">
+The width's base is the operand of the LD A,n near the end of this routine, which <a href="55720.html">fill_behind_moving_piece</a> writes as its own width less one. The result goes to <a href="23588.html">piece_step_y</a> and HL is left at the run's screen position from <a href="47757.html">saved_speed</a> with x moved.
+</div>
+<div class="paragraph">
+How the pieces look and why each case needs its adjustment is not yet worked out; a first piece of $93 never came up in the build's sessions.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The landscape strip's record (nothing is done when +1 is 0)</td>
+</tr>
+<tr>
+<td class="register">E</td>
+<td class="register-desc">0 or $AA</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">The run's screen position, x moved by B</td>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">Its width, also in <a href="23588.html">piece_step_y</a></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">landscape_end_pieces</td>
+<td class="address-2"><span id="33607"></span>8347</td>
+<td class="instruction">LD A,(IX+$01)</td>
+<td class="comment-1" rowspan="3">Nothing for a strip whose +1 is 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33610"></span>834A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33611"></span>834B</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33612"></span>834C</td>
+<td class="instruction">LD HL,(<a href="23603.html">piece_extra_a</a>)</td>
+<td class="comment-1" rowspan="4">The first and last pieces' codes; B and C from them (<a href="33697.html">first_piece_shift</a>, <a href="33675.html">last_piece_width</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33615"></span>834F</td>
+<td class="instruction">LD BC,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33618"></span>8352</td>
+<td class="instruction">CALL <a href="33697.html">first_piece_shift</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33621"></span>8355</td>
+<td class="instruction">CALL <a href="33675.html">last_piece_width</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33624"></span>8358</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="9">First piece $91 with the last below $80 and E=0: one wider</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33625"></span>8359</td>
+<td class="instruction">CP $91</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33627"></span>835B</td>
+<td class="instruction">JR NZ,<a href="33607.html#33638">landscape_end_pieces_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33629"></span>835D</td>
+<td class="instruction">BIT 7,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33631"></span>835F</td>
+<td class="instruction">JR NZ,<a href="33607.html#33638">landscape_end_pieces_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33633"></span>8361</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33634"></span>8362</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33635"></span>8363</td>
+<td class="instruction">JR NZ,<a href="33607.html#33638">landscape_end_pieces_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33637"></span>8365</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">landscape_end_pieces_0</td>
+<td class="address-2"><span id="33638"></span>8366</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="13">First piece $93: one wider when E=0, if the landscape scrolls this pass or <a href="47757.html">saved_speed</a> is not on a byte boundary</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33639"></span>8367</td>
+<td class="instruction">CP $93</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33641"></span>8369</td>
+<td class="instruction">JR NZ,<a href="33607.html#33661">landscape_end_pieces_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33643"></span>836B</td>
+<td class="instruction">LD A,(<a href="52411.html">scroll_across</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33646"></span>836E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33647"></span>836F</td>
+<td class="instruction">JR NZ,<a href="33607.html#33656">landscape_end_pieces_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33649"></span>8371</td>
+<td class="instruction">LD A,(<a href="47757.html">saved_speed</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33652"></span>8374</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33654"></span>8376</td>
+<td class="instruction">JR Z,<a href="33607.html#33661">landscape_end_pieces_2</a></td>
+</tr>
+<tr>
+<td class="asm-label">landscape_end_pieces_1</td>
+<td class="address-2"><span id="33656"></span>8378</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33657"></span>8379</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33658"></span>837A</td>
+<td class="instruction">JR NZ,<a href="33607.html#33661">landscape_end_pieces_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33660"></span>837C</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label">landscape_end_pieces_2</td>
+<td class="address-2"><span id="33661"></span>837D</td>
+<td class="instruction">LD HL,(<a href="47757.html">saved_speed</a>)</td>
+<td class="comment-1" rowspan="4">The run's position, x moved by B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33664"></span>8380</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33665"></span>8381</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33666"></span>8382</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33667"></span>8383</td>
+<td class="instruction">LD A,$00</td>
+<td class="comment-1" rowspan="5">Width = the base <a href="55720.html">fill_behind_moving_piece</a> wrote into the operand + C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33669"></span>8385</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33670"></span>8386</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33671"></span>8387</td>
+<td class="instruction">LD (<a href="23588.html">piece_step_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="33674"></span>838A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="33539.html">8303</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#33607">Map</a></td>
+<td class="next">
+Next: <a href="33675.html">838B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

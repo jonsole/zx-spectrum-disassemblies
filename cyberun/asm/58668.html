@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E52C</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58609.html">E4F1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58668">Map</a></td>
+<td class="next">
+Next: <a href="58715.html">E55B</a>
+</td>
+</tr>
+</table>
+<div class="description">E52C: Draw a two-byte-wide terrain piece, mirrored</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The blitter for the pieces that climb to the left and are two bytes wide: directions 4 and 11 at shift 0 (entered one DEC L earlier, at the end of <a href="58609.html">blit_mirror_three</a>), directions 5, 6, 12 and 13 at shifts 2 to 6 (here), and the wall direction 15 at those shifts (at <a href="58668.html">blit_mirror_two</a> + 1, skipping the DEC L). It draws like the two-byte blitter at <a href="58575.html">blit_two</a> -- POP DE, two bytes left to right, up a row, two bytes right to left, up a row -- but each byte goes through the bit-reversed table at <a href="63744.html">bit_reverse_table</a> (built by <a href="63574.html">build_bit_reverse</a>), so the graphic comes out mirrored. With the graphic started one row later than its right-climbing partner's (see <a href="58045.html">piece_blitters_shift2</a>), each row's bytes arrive in the mirrored order too.
+</div>
+<div class="paragraph">
+The table lookups make it about 40 T-states a pair of rows slower than the plain blitter: about 150 T-states for two rows of two bytes, against about 105.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the number of pairs of rows</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the screen address of the bottom row's right-hand byte, plus one</td>
+</tr>
+<tr>
+<td class="register">SP</td>
+<td class="register-desc">the piece's graphic (at the variant to draw)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirror_two</td>
+<td class="address-2"><span id="58668"></span>E52C</td>
+<td class="instruction">DEC L</td>
+<td class="comment-1" rowspan="1">Step left into the piece's column</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58669"></span>E52D</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="3">B' holds the table's page; B the count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58671"></span>E52F</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58672"></span>E530</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirror_two_0</td>
+<td class="address-2"><span id="58673"></span>E531</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">Pop two bytes; the first, mirrored, on the left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58674"></span>E532</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58675"></span>E533</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58676"></span>E534</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58677"></span>E535</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58678"></span>E536</td>
+<td class="instruction">INC L</td>
+<td class="comment-1" rowspan="4">The second, mirrored, on its right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58679"></span>E537</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58680"></span>E538</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58681"></span>E539</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58682"></span>E53A</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="1">Up a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58683"></span>E53B</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="4">Pop two more: the first on the right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58684"></span>E53C</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58685"></span>E53D</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58686"></span>E53E</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58687"></span>E53F</td>
+<td class="instruction">DEC L</td>
+<td class="comment-1" rowspan="4">The second on the left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58688"></span>E540</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58689"></span>E541</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58690"></span>E542</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58691"></span>E543</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="1">Up a row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58692"></span>E544</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="11">Into the next character row up if this one is done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58693"></span>E545</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58694"></span>E546</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58696"></span>E548</td>
+<td class="instruction">JR NZ,<a href="58668.html#58708">blit_mirror_two_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58698"></span>E54A</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58699"></span>E54B</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58701"></span>E54D</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58702"></span>E54E</td>
+<td class="instruction">JR C,<a href="58668.html#58708">blit_mirror_two_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58704"></span>E550</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58705"></span>E551</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58707"></span>E553</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirror_two_1</td>
+<td class="address-2"><span id="58708"></span>E554</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">The next pair of rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58709"></span>E555</td>
+<td class="instruction">DJNZ <a href="58668.html#58673">blit_mirror_two_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58711"></span>E557</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">Leave HL as the column for the next piece (<a href="55057.html">after_step_drawn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58712"></span>E558</td>
+<td class="instruction">JP <a href="55057.html">after_step_drawn</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58609.html">E4F1</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58668">Map</a></td>
+<td class="next">
+Next: <a href="58715.html">E55B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

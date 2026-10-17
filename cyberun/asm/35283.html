@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 89D3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35282.html">89D2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35283">Map</a></td>
+<td class="next">
+Next: <a href="35368.html">8A28</a>
+</td>
+</tr>
+</table>
+<div class="description">89D3: Start an attacker in a free record</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="34791.html">spawn_attacker</a>.
+</div>
+<div class="paragraph">
+Called by <a href="34735.html">spawn_tick</a> with IX a free record among the first four. The kinds of attacker are taken in turn (the wave counter <a href="39218.html">wave_counter</a> counts round 0-5, or 0-7 once +$0A and +$0B of the player's record, <a href="62951.html">score</a>, are both set); kind 4, the tough attacker, is usually turned into kind 3 (unless the refresh register's bits $32 are all 0), and kinds 1 and 5 (clouds) become kind 0 outside screen rows 3-9. While a meteor shower is on (<a href="34805.html">meteor_shower</a>) and the view is above screen row $0B, a rock or comet starts near the ship instead (at the end of <a href="35368.html">start_at_edge</a>).
+</div>
+<div class="paragraph">
+<a href="35368.html">start_at_edge</a> chooses where. The view overlaps four screens: its own (<a href="52823.html">view_column</a>, <a href="52824.html">view_row</a>), the one to its right (<a href="56823.html">right_map_column</a>), the one below and the one right and below; bit 1 of <a href="23580.html">scratch_count</a> picks right, bit 0 below. B says which bits may be chosen at random, C which are forced: when the ship moves fast across (the high byte of its speed across, +$19 of its record in <a href="51345.html">bare_ship</a>, not 0 or $FF), the screen to the right if the scroll step across (the second byte of <a href="52410.html">scroll_down</a>) is negative and the view's own column if not; likewise in Y with its speed down (+$1B) and the first byte of <a href="52410.html">scroll_down</a> (the screen below when that is negative). Up to four screens are tried in turn (<a href="35844.html">speed_limit_down</a>).
+</div>
+<div class="paragraph">
+Then one screen is tried: the screen's tile (its byte in <a href="56465.html">map_window_tile_bytes</a>) gives a mask of allowed spawn points (<a href="34140.html">spawn_point_masks</a>); a random start point (the instruction shown as RLC B in <a href="35368.html">start_at_edge</a> is rewritten to BIT n,A) is followed round the mask to the first allowed one (<a href="34309.html">spawn_points</a>), which sets the record's +2 and +5. The record is cleared (<a href="44084.html">free_object</a>), given the kind's four bytes from the wave table <a href="39178.html">wave_table</a> (type, +$10, +$13, +$14) and a colour ($FF, or $77 now and then; for most types one of the eight colours in <a href="39219.html">attacker_colours</a>, the first four only in screen rows 4-11), and put in the chosen screen's column and row. If it would be in view now (<a href="44504.html">place_on_screen</a> sets +$10 bit 7) it is freed and the next screen tried; otherwise it is turned towards the view (<a href="35943.html">head_for_view</a>).
+</div>
+<div class="paragraph">
+<a href="44504.html">place_on_screen</a> is given DE pointing at the screen's kind's byte in the ROM's first bytes ($0000-$0003, D being 0), not at a graphic, so the size it tests with is not the attacker's: a large one. Whether that is meant is not known; it keeps attackers from starting near the view.
+</div>
+<div class="paragraph">
+A cloud (type $13) takes frame 0 or, one in eight, the big cloud; in screen rows 0-4 it is put at line $1F of row 4 instead, level with the view's x, and not tested. Kinds 8 and 9 (type $1D) move 2 or 4 pixels a pass each way, right in the view's own column and left in the next.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The free record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker</td>
+<td class="address-2"><span id="35283"></span>89D3</td>
+<td class="instruction">LD B,$06</td>
+<td class="comment-1" rowspan="8">Six kinds, or eight</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35285"></span>89D5</td>
+<td class="instruction">LD A,(<a href="62961.html">addon_four</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35288"></span>89D8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35289"></span>89D9</td>
+<td class="instruction">JR Z,<a href="35283.html#35299">start_attacker_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35291"></span>89DB</td>
+<td class="instruction">LD A,(<a href="62962.html">addon_five</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35294"></span>89DE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35295"></span>89DF</td>
+<td class="instruction">JR Z,<a href="35283.html#35299">start_attacker_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35297"></span>89E1</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_0</td>
+<td class="address-2"><span id="35299"></span>89E3</td>
+<td class="instruction">LD A,(<a href="39218.html">wave_counter</a>)</td>
+<td class="comment-1" rowspan="7">The next kind in turn</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35302"></span>89E6</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35303"></span>89E7</td>
+<td class="instruction">LD (<a href="39218.html">wave_counter</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35306"></span>89EA</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35307"></span>89EB</td>
+<td class="instruction">JR C,<a href="35283.html#35313">start_attacker_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35309"></span>89ED</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35310"></span>89EE</td>
+<td class="instruction">LD (<a href="39218.html">wave_counter</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_1</td>
+<td class="address-2"><span id="35313"></span>89F1</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="8">Kind 4 mostly becomes 3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35315"></span>89F3</td>
+<td class="instruction">JR NZ,<a href="35283.html#35326">start_attacker_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35317"></span>89F5</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35318"></span>89F6</td>
+<td class="instruction">LD A,R</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35320"></span>89F8</td>
+<td class="instruction">AND $32</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35322"></span>89FA</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35323"></span>89FB</td>
+<td class="instruction">JR Z,<a href="35283.html#35326">start_attacker_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35325"></span>89FD</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_2</td>
+<td class="address-2"><span id="35326"></span>89FE</td>
+<td class="instruction">LD (<a href="35282.html">attacker_kind</a>),A</td>
+<td class="comment-1" rowspan="12">Clouds only in screen rows 3-9; elsewhere kind 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35329"></span>8A01</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35331"></span>8A03</td>
+<td class="instruction">JR Z,<a href="35283.html#35337">start_attacker_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35333"></span>8A05</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35335"></span>8A07</td>
+<td class="instruction">JR NZ,<a href="35283.html#35352">start_attacker_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_3</td>
+<td class="address-2"><span id="35337"></span>8A09</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35340"></span>8A0C</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35342"></span>8A0E</td>
+<td class="instruction">JR C,<a href="35283.html#35348">start_attacker_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35344"></span>8A10</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35346"></span>8A12</td>
+<td class="instruction">JR C,<a href="35283.html#35352">start_attacker_5</a></td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_4</td>
+<td class="address-2"><span id="35348"></span>8A14</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35349"></span>8A15</td>
+<td class="instruction">LD (<a href="35282.html">attacker_kind</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_5</td>
+<td class="address-2"><span id="35352"></span>8A18</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+<td class="comment-1" rowspan="6">A meteor shower above row $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35355"></span>8A1B</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35357"></span>8A1D</td>
+<td class="instruction">JR NC,<a href="35283.html#35366">start_attacker_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35359"></span>8A1F</td>
+<td class="instruction">LD A,(<a href="34805.html">meteor_shower</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35362"></span>8A22</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35363"></span>8A23</td>
+<td class="instruction">JP NZ,<a href="35368.html#35739">start_at_edge_17</a></td>
+</tr>
+<tr>
+<td class="asm-label">start_attacker_6</td>
+<td class="address-2"><span id="35366"></span>8A26</td>
+<td class="instruction">LD B,$03</td>
+<td class="comment-1" rowspan="1">Any screen</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35282.html">89D2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35283">Map</a></td>
+<td class="next">
+Next: <a href="35368.html">8A28</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

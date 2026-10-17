@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at DDF8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56823.html">DDF7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56824">Map</a></td>
+<td class="next">
+Next: <a href="57052.html">DEDC</a>
+</td>
+</tr>
+</table>
+<div class="description">DDF8: Scroll the view, step through the map, and draw the landscape</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="50036.html">ship_pass</a> and <a href="56481.html">start_landscape</a>.
+</div>
+<div class="paragraph">
+Jumped to at the end of <a href="50036.html">ship_pass</a> (once a play pass) and from <a href="56481.html">start_landscape</a> (the fly-in). <a href="52410.html">scroll_down</a> and <a href="52411.html">scroll_across</a> are this pass's vertical and horizontal scroll in pixels (signed, from the ship's movement). The scroll origins <a href="52802.html">origin_y</a> and <a href="52801.html">origin_x</a> move by them, and the in-cell positions at the play area's bottom and left edges (<a href="52806.html">view_y</a> = $B7 - <a href="52802.html">origin_y</a>, <a href="52805.html">view_x</a> = 8 - <a href="52801.html">origin_x</a>) move the other way. When an edge position leaves its map cell it wraps by a cell -- 160 rows or 224 columns -- and the map row or column (<a href="52824.html">view_row</a>, <a href="52823.html">view_column</a>) moves by one; C counts the wraps into <a href="23613.html">record_ground</a>.
+</div>
+<div class="paragraph">
+If any happened (or in the fly-in) the window of four map cells is rebuilt (<a href="57096.html">load_map_window</a>) and its colours chosen (<a href="57057.html">set_landscape_colours</a>). The landscape is drawn (<a href="53437.html">draw_landscape</a>) unless the view is in the top three map rows, which hold no landscape (the four collision-box lists are just emptied). The sprites are handled by <a href="44128.html">update_ground_objects</a> before or after the landscape by the scroll's direction, <a href="39898.html">draw_beams</a> and <a href="49123.html">draw_stars</a> run, four rows of the frame below the play area's bottom-left corner are made solid again, and the pass goes on at <a href="50147.html">draw_ship</a> -- or at <a href="56697.html">fly_in_step</a> during the fly-in.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape</td>
+<td class="address-2"><span id="56824"></span>DDF8</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+<td class="comment-1" rowspan="5"><a href="52799.html">vertical_step_size</a> = size of the vertical scroll.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56827"></span>DDFB</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56829"></span>DDFD</td>
+<td class="instruction">JR Z,<a href="56824.html#56833">scroll_landscape_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56831"></span>DDFF</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_0</td>
+<td class="address-2"><span id="56833"></span>DE01</td>
+<td class="instruction">LD (<a href="52799.html">vertical_step_size</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56836"></span>DE04</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="2">No wraps yet; HL = map column and row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56838"></span>DE06</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_1</td>
+<td class="address-2"><span id="56841"></span>DE09</td>
+<td class="instruction">LD A,(<a href="52802.html">origin_y</a>)</td>
+<td class="comment-1" rowspan="13">Move vertically.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56844"></span>DE0C</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56845"></span>DE0D</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56848"></span>DE10</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56849"></span>DE11</td>
+<td class="instruction">LD (<a href="52802.html">origin_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56852"></span>DE14</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56855"></span>DE17</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56857"></span>DE19</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56858"></span>DE1A</td>
+<td class="instruction">LD A,(<a href="52806.html">view_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56861"></span>DE1D</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56862"></span>DE1E</td>
+<td class="instruction">LD (<a href="52806.html">view_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56865"></span>DE21</td>
+<td class="instruction">CP $B8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56867"></span>DE23</td>
+<td class="instruction">JR NC,<a href="56824.html#56887">scroll_landscape_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56869"></span>DE25</td>
+<td class="instruction">CP $16</td>
+<td class="comment-1" rowspan="9">The bottom edge has passed the cell's top: wrap to the cell above (row - 1).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56871"></span>DE27</td>
+<td class="instruction">JR NC,<a href="56824.html#56902">scroll_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56873"></span>DE29</td>
+<td class="instruction">LD A,$B7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56875"></span>DE2B</td>
+<td class="instruction">LD (<a href="52806.html">view_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56878"></span>DE2E</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56879"></span>DE2F</td>
+<td class="instruction">LD (<a href="52802.html">origin_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56882"></span>DE32</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56883"></span>DE33</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56884"></span>DE34</td>
+<td class="instruction">JP <a href="56824.html#56841">scroll_landscape_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_2</td>
+<td class="address-2"><span id="56887"></span>DE37</td>
+<td class="instruction">LD A,$17</td>
+<td class="comment-1" rowspan="7">Past its bottom: wrap to the cell below (row + 1).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56889"></span>DE39</td>
+<td class="instruction">LD (<a href="52806.html">view_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56892"></span>DE3C</td>
+<td class="instruction">LD A,$A0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56894"></span>DE3E</td>
+<td class="instruction">LD (<a href="52802.html">origin_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56897"></span>DE41</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56898"></span>DE42</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56899"></span>DE43</td>
+<td class="instruction">JP <a href="56824.html#56841">scroll_landscape_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_3</td>
+<td class="address-2"><span id="56902"></span>DE46</td>
+<td class="instruction">LD A,(<a href="52411.html">scroll_across</a>)</td>
+<td class="comment-1" rowspan="13">Move horizontally.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56905"></span>DE49</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56906"></span>DE4A</td>
+<td class="instruction">LD A,(<a href="52801.html">origin_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56909"></span>DE4D</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56910"></span>DE4E</td>
+<td class="instruction">LD (<a href="52801.html">origin_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56913"></span>DE51</td>
+<td class="instruction">LD A,(<a href="52411.html">scroll_across</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56916"></span>DE54</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56918"></span>DE56</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56919"></span>DE57</td>
+<td class="instruction">LD A,(<a href="52805.html">view_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56922"></span>DE5A</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56923"></span>DE5B</td>
+<td class="instruction">LD (<a href="52805.html">view_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56926"></span>DE5E</td>
+<td class="instruction">CP $E9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56928"></span>DE60</td>
+<td class="instruction">JR NC,<a href="56824.html#56949">scroll_landscape_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56930"></span>DE62</td>
+<td class="instruction">CP $07</td>
+<td class="comment-1" rowspan="9">The left edge has passed the cell's left: wrap (column - 1).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56932"></span>DE64</td>
+<td class="instruction">JR NC,<a href="56824.html#56963">scroll_landscape_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56934"></span>DE66</td>
+<td class="instruction">LD A,$E8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56936"></span>DE68</td>
+<td class="instruction">LD (<a href="52805.html">view_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56939"></span>DE6B</td>
+<td class="instruction">LD A,$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56941"></span>DE6D</td>
+<td class="instruction">LD (<a href="52801.html">origin_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56944"></span>DE70</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56945"></span>DE71</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56946"></span>DE72</td>
+<td class="instruction">JP <a href="56824.html#56902">scroll_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_4</td>
+<td class="address-2"><span id="56949"></span>DE75</td>
+<td class="instruction">LD A,$08</td>
+<td class="comment-1" rowspan="7">Past its right: wrap (column + 1).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56951"></span>DE77</td>
+<td class="instruction">LD (<a href="52805.html">view_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56954"></span>DE7A</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56955"></span>DE7B</td>
+<td class="instruction">LD (<a href="52801.html">origin_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56958"></span>DE7E</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56959"></span>DE7F</td>
+<td class="instruction">INC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56960"></span>DE80</td>
+<td class="instruction">JP <a href="56824.html#56902">scroll_landscape_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_5</td>
+<td class="address-2"><span id="56963"></span>DE83</td>
+<td class="instruction">LD A,C</td>
+<td class="comment-1" rowspan="5">Rebuild the window if a cell was crossed; colours.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56964"></span>DE84</td>
+<td class="instruction">LD (<a href="23613.html">record_ground</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56967"></span>DE87</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56968"></span>DE88</td>
+<td class="instruction">CALL NZ,<a href="57096.html">load_map_window</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56971"></span>DE8B</td>
+<td class="instruction">CALL <a href="57057.html">set_landscape_colours</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56974"></span>DE8E</td>
+<td class="instruction">LD DE,<a href="56457.html">map_window_tiles</a></td>
+<td class="comment-1" rowspan="2">Walk the window's four cells from the first.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56977"></span>DE91</td>
+<td class="instruction">LD (<a href="56455.html">map_window_pointer</a>),DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56981"></span>DE95</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+<td class="comment-1" rowspan="3"><a href="52410.html">scroll_down</a> negative (the landscape moving up): sprites first.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56984"></span>DE98</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56986"></span>DE9A</td>
+<td class="instruction">CALL NZ,<a href="44128.html">update_ground_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56989"></span>DE9D</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+<td class="comment-1" rowspan="4">Map rows 0-2 hold no landscape:</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56992"></span>DEA0</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56994"></span>DEA2</td>
+<td class="instruction">JR NC,<a href="56824.html#57011">scroll_landscape_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56996"></span>DEA4</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56997"></span>DEA5</td>
+<td class="instruction">LD (<a href="23424.html">loader_entry</a>),A</td>
+<td class="comment-1" rowspan="5">empty the four collision-box lists instead.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57000"></span>DEA8</td>
+<td class="instruction">LD (<a href="23461.html">ground_cell_bottom_left</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57003"></span>DEAB</td>
+<td class="instruction">LD (<a href="23498.html">ground_cell_top_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57006"></span>DEAE</td>
+<td class="instruction">LD (<a href="23535.html">ground_cell_bottom_right</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57009"></span>DEB1</td>
+<td class="instruction">JR <a href="56824.html#57014">scroll_landscape_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_6</td>
+<td class="address-2"><span id="57011"></span>DEB3</td>
+<td class="instruction">CALL <a href="53437.html">draw_landscape</a></td>
+<td class="comment-1" rowspan="1">Draw the landscape.</td>
+</tr>
+<tr>
+<td class="asm-label">scroll_landscape_7</td>
+<td class="address-2"><span id="57014"></span>DEB6</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+<td class="comment-1" rowspan="3">Otherwise sprites after.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57017"></span>DEB9</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57019"></span>DEBB</td>
+<td class="instruction">CALL Z,<a href="44128.html">update_ground_objects</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57022"></span>DEBE</td>
+<td class="instruction">CALL <a href="39898.html">draw_beams</a></td>
+<td class="comment-1" rowspan="2"><a href="39898.html">draw_beams</a>, <a href="49123.html">draw_stars</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57025"></span>DEC1</td>
+<td class="instruction">CALL <a href="49123.html">draw_stars</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57028"></span>DEC4</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="5">Solid frame bytes at column 1, pixel rows 185, 186, 189 and 190.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57030"></span>DEC6</td>
+<td class="instruction">LD ($56E1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57033"></span>DEC9</td>
+<td class="instruction">LD ($55E1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57036"></span>DECC</td>
+<td class="instruction">LD ($52E1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57039"></span>DECF</td>
+<td class="instruction">LD ($51E1),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57042"></span>DED2</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="4">On with the play pass, or the fly-in.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57045"></span>DED5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57046"></span>DED6</td>
+<td class="instruction">JP Z,<a href="50147.html">draw_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57049"></span>DED9</td>
+<td class="instruction">JP <a href="56697.html">fly_in_step</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56823.html">DDF7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56824">Map</a></td>
+<td class="next">
+Next: <a href="57052.html">DEDC</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

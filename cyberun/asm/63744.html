@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F900</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63714.html">F8E2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63744">Map</a></td>
+<td class="next">
+Next: <a href="63801.html">F939</a>
+</td>
+</tr>
+</table>
+<div class="description">F900: Make a flat piece's shifted copies (continued); later, the bit-reversed table</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The rest of <a href="63714.html">shift_flat_piece</a>. Once the start-up is over this is the bit-reversed table <a href="63574.html">build_bit_reverse</a> builds: <a href="63744.html">bit_reverse_table</a> + n holds n with its bits reversed, 256 bytes over the end of <a href="63714.html">shift_flat_piece</a> and all of <a href="63801.html">shift_slope_piece</a>, which have done their work by then. The game reads it with LD B,$F9 and the byte in C, to mirror the ship (<a href="49029.html">mirror_ship_sprite</a>), the left-climbing landscape steps (<a href="58668.html">blit_mirror_two</a>, <a href="58715.html">blit_mirror_one</a>) and other sprites (<a href="50147.html">draw_ship</a>, <a href="56317.html">blit_mirrored_left_clip</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">bit_reverse_table</td>
+<td class="address-2"><span id="63744"></span>F900</td>
+<td class="instruction">INC B</td>
+<td class="comment-1" rowspan="1">One byte more than the width</td>
+</tr>
+<tr>
+<td class="asm-label">bit_reverse_table_0</td>
+<td class="address-2"><span id="63745"></span>F901</td>
+<td class="instruction">CALL <a href="63689.html">shift_byte_high</a></td>
+<td class="comment-1" rowspan="4">Shift the bytes in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63748"></span>F904</td>
+<td class="instruction">CALL <a href="63683.html#63684">shift_byte_low_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63751"></span>F907</td>
+<td class="instruction">CALL <a href="63673.html#63676">pad_right_checker_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63754"></span>F90A</td>
+<td class="instruction">DJNZ <a href="63744.html#63745">bit_reverse_table_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63756"></span>F90C</td>
+<td class="instruction">INC D</td>
+<td class="comment-1" rowspan="7">Take out the spill of the next row's byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63757"></span>F90D</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63758"></span>F90E</td>
+<td class="instruction">DEC D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63759"></span>F90F</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63760"></span>F910</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63761"></span>F911</td>
+<td class="instruction">XOR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63762"></span>F912</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63763"></span>F913</td>
+<td class="instruction">LD A,(<a href="23584.html">pieces_left</a>)</td>
+<td class="comment-1" rowspan="2">And put the first byte's low part in the last byte, rotating</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63766"></span>F916</td>
+<td class="instruction">CALL <a href="63673.html#63677">pad_right_checker_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63769"></span>F919</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="4">The next pair of rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63772"></span>F91C</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63773"></span>F91D</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63776"></span>F920</td>
+<td class="instruction">JR NZ,<a href="63714.html#63718">shift_flat_piece_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63778"></span>F922</td>
+<td class="instruction">CALL <a href="63696.html#63702">next_shift_0</a></td>
+<td class="comment-1" rowspan="7">The next shift, 48 bytes further on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63781"></span>F925</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63782"></span>F926</td>
+<td class="instruction">LD DE,$0030</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63785"></span>F929</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63786"></span>F92A</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63787"></span>F92B</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63788"></span>F92C</td>
+<td class="instruction">JR NZ,<a href="63714.html#63717">shift_flat_piece_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63790"></span>F92E</td>
+<td class="instruction">LD A,$5C</td>
+<td class="comment-1" rowspan="5">Two bytes of the copies mended</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63792"></span>F930</td>
+<td class="instruction">LD ($EB34),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63795"></span>F933</td>
+<td class="instruction">LD A,$40</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63797"></span>F935</td>
+<td class="instruction">LD ($EC30),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63800"></span>F938</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63714.html">F8E2</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63744">Map</a></td>
+<td class="next">
+Next: <a href="63801.html">F939</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

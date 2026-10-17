@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C421</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50147.html">C3E3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50209">Map</a></td>
+<td class="next">
+Next: <a href="50413.html">C4ED</a>
+</td>
+</tr>
+</table>
+<div class="description">C421: Erase and redraw the ship's image</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="38258.html">draw_rocket</a> and <a href="50147.html">draw_ship</a>.
+</div>
+<div class="paragraph">
+Entered from <a href="50147.html">draw_ship</a> on odd passes or when the image must change, and called by <a href="38258.html">draw_rocket</a>. The old image is erased only on a turn, while a part is being fitted (<a href="51460.html">part_being_fitted</a>) or while docking with the finished rocket (death byte 10); the new one is drawn at the same place (<a href="51458.html">ship_screen_x</a>, <a href="51459.html">ship_screen_y</a>), mirrored if the ship now faces left. Then on into <a href="50413.html">draw_trail</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image</td>
+<td class="address-2"><span id="50209"></span>C421</td>
+<td class="instruction">LD HL,$0000</td>
+<td class="comment-1" rowspan="7">No erase so far (old height 0), y the ship's (<a href="51459.html">ship_screen_y</a>), widths 6, IX the ship record.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50212"></span>C424</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50215"></span>C427</td>
+<td class="instruction">LD A,(<a href="51459.html">ship_screen_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50218"></span>C42A</td>
+<td class="instruction">LD (<a href="41609.html">direct_old_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50221"></span>C42D</td>
+<td class="instruction">LD HL,$0606</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50224"></span>C430</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50227"></span>C433</td>
+<td class="instruction">LD IX,<a href="51429.html">ship_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50231"></span>C437</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Docking with the rocket: erase it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50234"></span>C43A</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50236"></span>C43C</td>
+<td class="instruction">JR Z,<a href="50209.html#50259">draw_ship_image_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50238"></span>C43E</td>
+<td class="instruction">LD C,(IX+$18)</td>
+<td class="comment-1" rowspan="10">Turning? <a href="51136.html">ship_turned</a> says so (the trail is then redrawn too), and the fire delay is cleared.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50241"></span>C441</td>
+<td class="instruction">LD A,(<a href="23606.html">steer_push</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50244"></span>C444</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50245"></span>C445</td>
+<td class="instruction">JR Z,<a href="50209.html#50347">draw_ship_image_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50247"></span>C447</td>
+<td class="instruction">XOR C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50248"></span>C448</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50250"></span>C44A</td>
+<td class="instruction">LD (<a href="51136.html">ship_turned</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50253"></span>C44D</td>
+<td class="instruction">JR Z,<a href="50209.html#50347">draw_ship_image_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50255"></span>C44F</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50256"></span>C450</td>
+<td class="instruction">LD (<a href="23609.html">gun_cooling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_0</td>
+<td class="address-2"><span id="50259"></span>C453</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+<td class="comment-1" rowspan="10">Set up the erase: the old graphic (<a href="49578.html">ship_graphic</a>), height (<a href="49577.html">ship_height</a>) and place (<a href="51458.html">ship_screen_x</a>), the 6-wide eraser, mirrored if it faced left (<a href="49029.html">mirror_ship_sprite</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50262"></span>C456</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50265"></span>C459</td>
+<td class="instruction">LD DE,(<a href="49578.html">ship_graphic</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50269"></span>C45D</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50272"></span>C460</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50275"></span>C463</td>
+<td class="instruction">LD IY,<a href="42537.html">direct_erase_row</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50279"></span>C467</td>
+<td class="instruction">CALL <a href="49029.html">mirror_ship_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50282"></span>C46A</td>
+<td class="instruction">LD HL,(<a href="49027.html">sprite_screen_pos</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50285"></span>C46D</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50288"></span>C470</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50289"></span>C471</td>
+<td class="instruction">LD A,(IX+$1F)</td>
+<td class="comment-1" rowspan="3">A part being fitted?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50292"></span>C474</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50293"></span>C475</td>
+<td class="instruction">JR Z,<a href="50209.html#50347">draw_ship_image_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50295"></span>C477</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="6">One with bit 7 set is drawn by <a href="43575.html">toggle_carried_part</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50297"></span>C479</td>
+<td class="instruction">JR Z,<a href="50209.html#50309">draw_ship_image_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50299"></span>C47B</td>
+<td class="instruction">CALL <a href="43575.html">toggle_carried_part</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50302"></span>C47E</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50304"></span>C480</td>
+<td class="instruction">LD (<a href="49786.html">carried_part_redraw</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50307"></span>C483</td>
+<td class="instruction">JR <a href="50209.html#50353">draw_ship_image_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_1</td>
+<td class="address-2"><span id="50309"></span>C485</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="15">Otherwise it goes into the player's list of parts (from +7 of <a href="62951.html">score</a>), the old image is erased now, the ship's graphic rebuilt with it (<a href="45033.html">build_ship_sprite</a>), and the erase set up again for nothing (read only).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50310"></span>C486</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50311"></span>C487</td>
+<td class="instruction">LD HL,<a href="62958.html">addon_slots</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50314"></span>C48A</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50317"></span>C48D</td>
+<td class="instruction">LD (HL),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50318"></span>C48E</td>
+<td class="instruction">CALL <a href="42399.html">draw_direct_pair</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50321"></span>C491</td>
+<td class="instruction">CALL <a href="45033.html">build_ship_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50324"></span>C494</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50326"></span>C496</td>
+<td class="instruction">LD (<a href="49786.html">carried_part_redraw</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50329"></span>C499</td>
+<td class="instruction">LD IX,<a href="51429.html">ship_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50333"></span>C49D</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50336"></span>C4A0</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50339"></span>C4A3</td>
+<td class="instruction">LD HL,$0606</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50342"></span>C4A6</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50345"></span>C4A9</td>
+<td class="instruction">JR <a href="50209.html#50353">draw_ship_image_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_2</td>
+<td class="address-2"><span id="50347"></span>C4AB</td>
+<td class="instruction">LD A,(IX+$1F)</td>
+<td class="comment-1" rowspan="3">Not turning: erase only if a part is being fitted.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50350"></span>C4AE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50351"></span>C4AF</td>
+<td class="instruction">JR NZ,<a href="50209.html#50259">draw_ship_image_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_3</td>
+<td class="address-2"><span id="50353"></span>C4B1</td>
+<td class="instruction">LD A,(<a href="23606.html">steer_push</a>)</td>
+<td class="comment-1" rowspan="4">Being steered: the facing byte follows.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50356"></span>C4B4</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50357"></span>C4B5</td>
+<td class="instruction">JR Z,<a href="50209.html#50362">draw_ship_image_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50359"></span>C4B7</td>
+<td class="instruction">LD (IX+$18),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_4</td>
+<td class="address-2"><span id="50362"></span>C4BA</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Docking: no new image.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50365"></span>C4BD</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50367"></span>C4BF</td>
+<td class="instruction">JR Z,<a href="50209.html#50401">draw_ship_image_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50369"></span>C4C1</td>
+<td class="instruction">LD A,(<a href="51459.html">ship_screen_y</a>)</td>
+<td class="comment-1" rowspan="10">The new image at the same place, with the current graphic and height, mirrored if it now faces left.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50372"></span>C4C4</td>
+<td class="instruction">LD (<a href="41610.html">direct_new_line</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50375"></span>C4C7</td>
+<td class="instruction">LD DE,(<a href="49578.html">ship_graphic</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50379"></span>C4CB</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50382"></span>C4CE</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50385"></span>C4D1</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50388"></span>C4D4</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50391"></span>C4D7</td>
+<td class="instruction">LD (<a href="23581.html">ground_cell</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50394"></span>C4DA</td>
+<td class="instruction">LD IX,<a href="42616.html">direct_draw_row</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50398"></span>C4DE</td>
+<td class="instruction">CALL <a href="49080.html">set_mirrored_drawer</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship_image_5</td>
+<td class="address-2"><span id="50401"></span>C4E1</td>
+<td class="instruction">CALL <a href="42399.html">draw_direct_pair</a></td>
+<td class="comment-1" rowspan="1">Erase and draw.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50404"></span>C4E4</td>
+<td class="instruction">CALL <a href="61885.html">colour_ship</a></td>
+<td class="comment-1" rowspan="1">Colour the ship (<a href="61885.html">colour_ship</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50407"></span>C4E7</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">Docking or dying: stop here.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50410"></span>C4EA</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50412"></span>C4EC</td>
+<td class="instruction">RET NC</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50147.html">C3E3</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50209">Map</a></td>
+<td class="next">
+Next: <a href="50413.html">C4ED</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

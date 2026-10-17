@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BF85</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49027.html">BF83</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49029">Map</a></td>
+<td class="next">
+Next: <a href="49080.html">BFB8</a>
+</td>
+</tr>
+</table>
+<div class="description">BF85: Draw the ship's sprite mirrored when it faces left</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50209.html">draw_ship_image</a>.
+</div>
+<div class="paragraph">
+The ship's sprite is drawn the right way round facing right. Facing left (<a href="51453.html">ship_facing</a> bit 7) the drawing starts at its right-hand byte -- x moved by the width less one, in bytes (<a href="23592.html">sprite_width</a>), times 8 -- and runs right to left through a blitter that turns each byte round with the table at <a href="63744.html">bit_reverse_table</a> (B = $F9): <a href="42916.html">direct_erase_row_mirrored</a> for a width of 6 bytes, or one of its later entries for 5, 4, or 3 or fewer. <a href="49791.html">draw_carried_piece</a> comes in at the second instruction with the facing of the thing it draws in A.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the blitter for drawing the right way round</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">$F9, the reversal table's page</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the screen position</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">the blitter</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">mirror_ship_sprite</td>
+<td class="address-2"><span id="49029"></span>BF85</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+<td class="comment-1" rowspan="1">the ship's facing</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="49032"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="49791.html">draw_carried_piece</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">mirror_ship_sprite_0</td>
+<td class="address-2"><span id="49032"></span>BF88</td>
+<td class="instruction">LD HL,(<a href="49027.html">sprite_screen_pos</a>)</td>
+<td class="comment-1" rowspan="3">the position; facing right, as it is</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49035"></span>BF8B</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49037"></span>BF8D</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49038"></span>BF8E</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="8">the reversal table; start at the right-hand byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49040"></span>BF90</td>
+<td class="instruction">LD A,(<a href="23592.html">sprite_width</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49043"></span>BF93</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49044"></span>BF94</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49045"></span>BF95</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49046"></span>BF96</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49047"></span>BF97</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49048"></span>BF98</td>
+<td class="instruction">LD (<a href="49027.html">sprite_screen_pos</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49051"></span>BF9B</td>
+<td class="instruction">LD A,(<a href="23592.html">sprite_width</a>)</td>
+<td class="comment-1" rowspan="12">the blitter by the width</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49054"></span>BF9E</td>
+<td class="instruction">LD IY,<a href="42916.html">direct_erase_row_mirrored</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49058"></span>BFA2</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49060"></span>BFA4</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49061"></span>BFA5</td>
+<td class="instruction">LD IY,<a href="42924.html">mirrored_erase_five</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49065"></span>BFA9</td>
+<td class="instruction">CP $05</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49067"></span>BFAB</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49068"></span>BFAC</td>
+<td class="instruction">LD IY,<a href="42932.html">mirrored_erase_four</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49072"></span>BFB0</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49074"></span>BFB2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49075"></span>BFB3</td>
+<td class="instruction">LD IY,<a href="42940.html">mirrored_erase_three</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49079"></span>BFB7</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49027.html">BF83</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49029">Map</a></td>
+<td class="next">
+Next: <a href="49080.html">BFB8</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

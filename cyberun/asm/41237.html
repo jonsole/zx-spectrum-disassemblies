@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A115</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41179.html">A0DB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41237">Map</a></td>
+<td class="next">
+Next: <a href="41289.html">A149</a>
+</td>
+</tr>
+</table>
+<div class="description">A115: Print a string</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="33742.html">print_strings</a>, <a href="33750.html">planet_secured</a>, <a href="37244.html">test_player_shots</a>, <a href="51761.html">print_lives</a>, <a href="62702.html">show_player</a> and <a href="62716.html">game_over</a>.
+</div>
+<div class="paragraph">
+Prints one string record and returns DE pointing at the next, so a list of strings can be printed by calling this again. The record is: x in pixels, y in pixels (the pixel line the characters' bottom rows go on), an attribute byte, a character count, and that many character codes. Bit 7 of the attribute byte asks for double size (<a href="41179.html">print_char_double</a>); the other seven bits are the colour, so a string can never FLASH. Character n's glyph is the seven bytes at <a href="40822.html">font</a> plus 7n, bottom row first.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The string record</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The byte after it</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">print_string</td>
+<td class="address-2"><span id="41237"></span>A115</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">Normal size: point the character printer's JR (at the end of <a href="41137.html">print_char</a>) at the normal-size loop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41238"></span>A116</td>
+<td class="instruction">LD ($A0CA),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41241"></span>A119</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">The x and y coordinates</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41242"></span>A11A</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41243"></span>A11B</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41244"></span>A11C</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41245"></span>A11D</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41246"></span>A11E</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41247"></span>A11F</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="3">Keep the pointer and coordinates; HL becomes the screen address</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41248"></span>A120</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41249"></span>A121</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41252"></span>A124</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">In the other register set: HL' the attribute address, DE' the pointer to the attribute byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41253"></span>A125</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41254"></span>A126</td>
+<td class="instruction">CALL <a href="41328.html">pixel_to_attribute</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41257"></span>A129</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41258"></span>A12A</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="3">Bit 7 of the attribute byte: double size?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41259"></span>A12B</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41261"></span>A12D</td>
+<td class="instruction">JR Z,<a href="41237.html#41274">print_string_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41263"></span>A12F</td>
+<td class="instruction">LD A,$10</td>
+<td class="comment-1" rowspan="5">Yes: patch the JR to reach <a href="41179.html">print_char_double</a>, strip bit 7, and keep DE' at 32 to step an attribute row up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41265"></span>A131</td>
+<td class="instruction">LD ($A0CA),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41268"></span>A134</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41269"></span>A135</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41271"></span>A137</td>
+<td class="instruction">LD DE,$0020</td>
+</tr>
+<tr>
+<td class="asm-label">print_string_0</td>
+<td class="address-2"><span id="41274"></span>A13A</td>
+<td class="instruction">LD B,A</td>
+<td class="comment-1" rowspan="1">The colour in B'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41275"></span>A13B</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">Back in the main set: B is the character count</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41276"></span>A13C</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41277"></span>A13D</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41278"></span>A13E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">print_string_1</td>
+<td class="address-2"><span id="41279"></span>A13F</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">Print each character (<a href="41137.html">print_char</a> steps HL along)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41280"></span>A140</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41281"></span>A141</td>
+<td class="instruction">CALL <a href="41137.html">print_char</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41284"></span>A144</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41285"></span>A145</td>
+<td class="instruction">DJNZ <a href="41237.html#41279">print_string_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41287"></span>A147</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="2">Point DE past the string</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41288"></span>A148</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41179.html">A0DB</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41237">Map</a></td>
+<td class="next">
+Next: <a href="41289.html">A149</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

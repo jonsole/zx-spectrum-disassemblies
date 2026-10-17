@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at D86A</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55390.html">D85E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55402">Map</a></td>
+<td class="next">
+Next: <a href="55514.html">D8DA</a>
+</td>
+</tr>
+</table>
+<div class="description">D86A: Draw the lip at the end of a flat piece whose end cap is $13</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55057.html">after_step_drawn</a>.
+</div>
+<div class="paragraph">
+A flat run ending in cap $13 ($93 once seen) gets a lip one byte wide and four rows tall in the byte column after its last step, from <a href="55377.html">floor_lip_bytes</a> (floor) or <a href="55390.html">ceiling_lip_bytes</a> (ceiling) for the current fine horizontal position. Nothing is drawn on a byte boundary or outside the play area's columns, and the lip is cut to two rows at the play area's bottom (<a href="23597.html">piece_y</a> = $B9) or top (<a href="23597.html">piece_y</a> = $19).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_flat_end_lip</td>
+<td class="address-2"><span id="55402"></span>D86A</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+<td class="comment-1" rowspan="10">Only for a flat piece with end cap $13 that drew something.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55405"></span>D86D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55406"></span>D86E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55407"></span>D86F</td>
+<td class="instruction">LD A,(<a href="23604.html">piece_extra_b</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55410"></span>D872</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55412"></span>D874</td>
+<td class="instruction">CP $13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55414"></span>D876</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55415"></span>D877</td>
+<td class="instruction">LD A,(<a href="23599.html">piece_steps_done</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55418"></span>D87A</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55419"></span>D87B</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55420"></span>D87C</td>
+<td class="instruction">LD HL,<a href="55377.html">floor_lip_bytes</a></td>
+<td class="comment-1" rowspan="14">DE = the lip for this direction and fine position.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55423"></span>D87F</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55426"></span>D882</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55427"></span>D883</td>
+<td class="instruction">JR Z,<a href="55402.html#55432">draw_flat_end_lip_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55429"></span>D885</td>
+<td class="instruction">LD HL,<a href="55390.html">ceiling_lip_bytes</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_flat_end_lip_0</td>
+<td class="address-2"><span id="55432"></span>D888</td>
+<td class="instruction">LD A,(<a href="52801.html">origin_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55435"></span>D88B</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55437"></span>D88D</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55438"></span>D88E</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55439"></span>D88F</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55440"></span>D890</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55441"></span>D891</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55442"></span>D892</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55444"></span>D894</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55445"></span>D895</td>
+<td class="instruction">EX DE,HL</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55446"></span>D896</td>
+<td class="instruction">LD A,(<a href="55389.html">last_step_in_border</a>)</td>
+<td class="comment-1" rowspan="14">The column after the last step; a last step hanging into the border puts it a character row up.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55449"></span>D899</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55450"></span>D89A</td>
+<td class="instruction">LD HL,(<a href="52809.html">column_address</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55453"></span>D89D</td>
+<td class="instruction">JR Z,<a href="55402.html#55466">draw_flat_end_lip_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55455"></span>D89F</td>
+<td class="instruction">LD (IX+$01),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55459"></span>D8A3</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55460"></span>D8A4</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55462"></span>D8A6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55463"></span>D8A7</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55464"></span>D8A8</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55465"></span>D8A9</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label">draw_flat_end_lip_1</td>
+<td class="address-2"><span id="55466"></span>D8AA</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55467"></span>D8AB</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55468"></span>D8AC</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55469"></span>D8AD</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="5">Outside columns 1-28: nothing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55470"></span>D8AE</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55472"></span>D8B0</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55473"></span>D8B1</td>
+<td class="instruction">CP $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55475"></span>D8B3</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55476"></span>D8B4</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="13">At the bottom edge: two rows only, from the play area's bottom row (the cut never came up in the build's sessions).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55478"></span>D8B6</td>
+<td class="instruction">LD A,(<a href="23597.html">piece_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55481"></span>D8B9</td>
+<td class="instruction">CP $B9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55483"></span>D8BB</td>
+<td class="instruction">JR NZ,<a href="55402.html#55499">draw_flat_end_lip_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55485"></span>D8BD</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55486"></span>D8BE</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55487"></span>D8BF</td>
+<td class="instruction">LD H,$57</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55489"></span>D8C1</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55490"></span>D8C2</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55492"></span>D8C4</td>
+<td class="instruction">OR $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55494"></span>D8C6</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55495"></span>D8C7</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55497"></span>D8C9</td>
+<td class="instruction">JR <a href="55402.html#55505">draw_flat_end_lip_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">draw_flat_end_lip_2</td>
+<td class="address-2"><span id="55499"></span>D8CB</td>
+<td class="instruction">CP $19</td>
+<td class="comment-1" rowspan="3">At the top edge: two rows only.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55501"></span>D8CD</td>
+<td class="instruction">JR NZ,<a href="55402.html#55505">draw_flat_end_lip_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55503"></span>D8CF</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="asm-label">draw_flat_end_lip_3</td>
+<td class="address-2"><span id="55505"></span>D8D1</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="6">Write the lip upwards.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55506"></span>D8D2</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55507"></span>D8D3</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55508"></span>D8D4</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55511"></span>D8D7</td>
+<td class="instruction">DJNZ <a href="55402.html#55505">draw_flat_end_lip_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="55513"></span>D8D9</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="55390.html">D85E</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#55402">Map</a></td>
+<td class="next">
+Next: <a href="55514.html">D8DA</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F4FC</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62702.html">F4EE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62716">Map</a></td>
+<td class="next">
+Next: <a href="62762.html">F52A</a>
+</td>
+</tr>
+</table>
+<div class="description">F4FC: The current player's game is over</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62662.html">lose_life</a>.
+</div>
+<div class="paragraph">
+Called by <a href="62662.html">lose_life</a> when the last life has gone. Prints the player's name and GAME OVER (both messages at <a href="62926.html">messages_and_players</a>), puts the score in the high score if it beats it (<a href="62797.html">check_high_score</a>), plays the game-over tune (<a href="62848.html">game_over_tune</a>), waits twelve delays or until 0 is pressed, clears the play area and, with two players, hands over to the other one (<a href="62865.html">swap_players</a> does nothing if that one has no lives either). <a href="62528.html">play</a> then finds the current player with no lives and goes back to the menu.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">game_over</td>
+<td class="address-2"><span id="62716"></span>F4FC</td>
+<td class="instruction">CALL <a href="62702.html">show_player</a></td>
+<td class="comment-1" rowspan="3">PLAYER n, GAME OVER</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62719"></span>F4FF</td>
+<td class="instruction">LD DE,<a href="62926.html">messages_and_players</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62722"></span>F502</td>
+<td class="instruction">CALL <a href="41237.html">print_string</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62725"></span>F505</td>
+<td class="instruction">CALL <a href="62797.html">check_high_score</a></td>
+<td class="comment-1" rowspan="1">A new high score?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62728"></span>F508</td>
+<td class="instruction">LD DE,<a href="62848.html">game_over_tune</a></td>
+<td class="comment-1" rowspan="2">The game-over tune</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62731"></span>F50B</td>
+<td class="instruction">CALL <a href="39593.html">play_tune</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62734"></span>F50E</td>
+<td class="instruction">LD B,$0C</td>
+<td class="comment-1" rowspan="8">Wait twelve delays, or until 0 is pressed</td>
+</tr>
+<tr>
+<td class="asm-label">game_over_0</td>
+<td class="address-2"><span id="62736"></span>F510</td>
+<td class="instruction">CALL <a href="43010.html">delay</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62739"></span>F513</td>
+<td class="instruction">LD A,$EF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62741"></span>F515</td>
+<td class="instruction">OUT ($FD),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62743"></span>F517</td>
+<td class="instruction">IN A,($FE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62745"></span>F519</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62747"></span>F51B</td>
+<td class="instruction">JR Z,<a href="62716.html#62751">game_over_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62749"></span>F51D</td>
+<td class="instruction">DJNZ <a href="62716.html#62736">game_over_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">game_over_1</td>
+<td class="address-2"><span id="62751"></span>F51F</td>
+<td class="instruction">CALL <a href="40748.html">clear_play_area</a></td>
+<td class="comment-1" rowspan="1">Clear the play area</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62754"></span>F522</td>
+<td class="instruction">LD A,(<a href="62178.html">player_count</a>)</td>
+<td class="comment-1" rowspan="4">Two players: the other one's turn, if they have lives</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62757"></span>F525</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62758"></span>F526</td>
+<td class="instruction">CALL NZ,<a href="62865.html">swap_players</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="62761"></span>F529</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="62702.html">F4EE</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#62716">Map</a></td>
+<td class="next">
+Next: <a href="62762.html">F52A</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

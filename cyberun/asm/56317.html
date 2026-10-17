@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at DBFD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56247.html">DBB7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56317">Map</a></td>
+<td class="next">
+Next: <a href="56391.html">DC47</a>
+</td>
+</tr>
+</table>
+<div class="description">DBFD: Draw a mirrored sloped step cut off by the left edge</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="55043.html">step_dispatch</a>.
+</div>
+<div class="paragraph">
+Reached through <a href="55043.html">step_dispatch</a> (dispatch 11) for a sloped step of a piece running left (directions 4-6 and their ceilings) that hangs over the left edge. Those directions are drawn as mirror images: each byte is looked up in the bit-reversing table <a href="63744.html">bit_reverse_table</a> with B = its page and C = the byte, so the row count lives in B' and the loop switches register sets. HL goes to column 1; INC SP and the first patched JR skip one or two graphic bytes; the second patched JR (displacement 0, $26 or $2A, set by <a href="54475.html">slope_step_at_left_edge</a>) picks how many columns of each row pair are written.
+</div>
+<div class="paragraph">
+This was code partly typed as data in the first code map.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">Row pairs</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">Screen address</td>
+</tr>
+<tr>
+<td class="register">SP</td>
+<td class="register-desc">The step's graphic</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip</td>
+<td class="address-2"><span id="56317"></span>DBFD</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="3">Row count into B'.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56318"></span>DBFE</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56319"></span>DBFF</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56320"></span>DC00</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="6">Column 1 of this character row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56321"></span>DC01</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56322"></span>DC02</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56323"></span>DC03</td>
+<td class="instruction">AND $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56325"></span>DC05</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56326"></span>DC06</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56327"></span>DC07</td>
+<td class="instruction">LD B,$F9</td>
+<td class="comment-1" rowspan="1">B = the page of the bit-reversing table.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56329"></span>DC09</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="2">Skip one graphic byte...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56330"></span>DC0A</td>
+<td class="instruction">INC SP</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_0</td>
+<td class="address-2"><span id="56331"></span>DC0B</td>
+<td class="instruction">JR <a href="56317.html#56331">blit_mirrored_left_clip_0</a></td>
+<td class="comment-1" rowspan="1">...patched: and another (displacement 0) or not (1).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56333"></span>DC0D</td>
+<td class="instruction">INC SP</td>
+<td class="comment-1" rowspan="1">The second byte skipped.</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_1</td>
+<td class="address-2"><span id="56334"></span>DC0E</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="5">Lower row, column 1, mirrored.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56335"></span>DC0F</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56336"></span>DC10</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56337"></span>DC11</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56338"></span>DC12</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_2</td>
+<td class="address-2"><span id="56339"></span>DC13</td>
+<td class="instruction">JR <a href="56317.html#56339">blit_mirrored_left_clip_2</a></td>
+<td class="comment-1" rowspan="1">Patched: how much more of the row pair is drawn.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56341"></span>DC15</td>
+<td class="instruction">INC L</td>
+<td class="comment-1" rowspan="10">Column 2; up a row; upper row column 2.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56342"></span>DC16</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56343"></span>DC17</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56344"></span>DC18</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56345"></span>DC19</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56346"></span>DC1A</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56347"></span>DC1B</td>
+<td class="instruction">LD C,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56348"></span>DC1C</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56349"></span>DC1D</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56350"></span>DC1E</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_3</td>
+<td class="address-2"><span id="56351"></span>DC1F</td>
+<td class="instruction">LD C,D</td>
+<td class="comment-1" rowspan="3">Upper row, column 1.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56352"></span>DC20</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56353"></span>DC21</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_4</td>
+<td class="address-2"><span id="56354"></span>DC22</td>
+<td class="instruction">POP DE</td>
+<td class="comment-1" rowspan="1">Pass the rest of the row pair.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56355"></span>DC23</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="12">Up a pixel row, crossing a character row if need be.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56356"></span>DC24</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56357"></span>DC25</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56358"></span>DC26</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56360"></span>DC28</td>
+<td class="instruction">JR NZ,<a href="56317.html#56372">blit_mirrored_left_clip_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56362"></span>DC2A</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56363"></span>DC2B</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56365"></span>DC2D</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56366"></span>DC2E</td>
+<td class="instruction">JR C,<a href="56317.html#56372">blit_mirrored_left_clip_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56368"></span>DC30</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56369"></span>DC31</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56371"></span>DC33</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label">blit_mirrored_left_clip_5</td>
+<td class="address-2"><span id="56372"></span>DC34</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="4">Next row pair (counted in B'); done.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56373"></span>DC35</td>
+<td class="instruction">DJNZ <a href="56317.html#56334">blit_mirrored_left_clip_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56375"></span>DC37</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56376"></span>DC38</td>
+<td class="instruction">JP <a href="55057.html">after_step_drawn</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56379"></span>DC3B</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="2">One column of a two-byte step: up a row, the upper row's byte.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56380"></span>DC3C</td>
+<td class="instruction">JP <a href="56317.html#56351">blit_mirrored_left_clip_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56383"></span>DC3F</td>
+<td class="instruction">DEC H</td>
+<td class="comment-1" rowspan="6">One column of a three-byte step: up a row, the upper row's byte, pass a pair.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56384"></span>DC40</td>
+<td class="instruction">LD C,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56385"></span>DC41</td>
+<td class="instruction">LD A,(BC)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56386"></span>DC42</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56387"></span>DC43</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56388"></span>DC44</td>
+<td class="instruction">JP <a href="56317.html#56354">blit_mirrored_left_clip_4</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56247.html">DBB7</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56317">Map</a></td>
+<td class="next">
+Next: <a href="56391.html">DC47</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

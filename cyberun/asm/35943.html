@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8C67</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35928.html">8C58</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35943">Map</a></td>
+<td class="next">
+Next: <a href="36017.html">8CB1</a>
+</td>
+</tr>
+</table>
+<div class="description">8C67: Turn an object towards the view</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="35368.html">start_at_edge</a>.
+</div>
+<div class="paragraph">
+Fallen into from <a href="35928.html">steer_to_view</a>, and jumped to by <a href="35368.html">start_at_edge</a> for a new attacker. Stops the object and sets its acceleration: $20 (an eighth of a pixel a pass, each pass) to the right if it is in the view's own screen column, otherwise to the left; down if it is in the view's screen row above the view's top line; up if it is in another screen row below that line; otherwise none in Y. (The view is one screen in size, so it covers the part of its own screen from that line down and the part of the screen below above it.)
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">head_for_view</td>
+<td class="address-2"><span id="35943"></span>8C67</td>
+<td class="instruction">LD (IX+$0B),$00</td>
+<td class="comment-1" rowspan="7">Accelerate right in the view's column, left in the next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35947"></span>8C6B</td>
+<td class="instruction">LD (IX+$0C),$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35951"></span>8C6F</td>
+<td class="instruction">LD A,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35954"></span>8C72</td>
+<td class="instruction">CP (IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35957"></span>8C75</td>
+<td class="instruction">JR Z,<a href="35943.html#35967">head_for_view_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35959"></span>8C77</td>
+<td class="instruction">LD (IX+$0C),$E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35963"></span>8C7B</td>
+<td class="instruction">LD (IX+$0B),$FF</td>
+</tr>
+<tr>
+<td class="asm-label">head_for_view_0</td>
+<td class="address-2"><span id="35967"></span>8C7F</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="5">Stop it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35968"></span>8C80</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35971"></span>8C83</td>
+<td class="instruction">LD (IX+$0A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35974"></span>8C86</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35977"></span>8C89</td>
+<td class="instruction">LD (IX+$0F),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35980"></span>8C8C</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+<td class="comment-1" rowspan="4">Its screen row against the view's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35983"></span>8C8F</td>
+<td class="instruction">CP (IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35986"></span>8C92</td>
+<td class="instruction">LD A,(<a href="52806.html">view_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35989"></span>8C95</td>
+<td class="instruction">JR NZ,<a href="35943.html#36004">head_for_view_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35991"></span>8C97</td>
+<td class="instruction">CP (IX+$05)</td>
+<td class="comment-1" rowspan="5">The view's row, above the view: down</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35994"></span>8C9A</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35995"></span>8C9B</td>
+<td class="instruction">LD (IX+$0E),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35999"></span>8C9F</td>
+<td class="instruction">LD (IX+$0F),$20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36003"></span>8CA3</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">head_for_view_1</td>
+<td class="address-2"><span id="36004"></span>8CA4</td>
+<td class="instruction">CP (IX+$05)</td>
+<td class="comment-1" rowspan="5">The row below, beneath the view: up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36007"></span>8CA7</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36008"></span>8CA8</td>
+<td class="instruction">LD (IX+$0E),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36012"></span>8CAC</td>
+<td class="instruction">LD (IX+$0F),$E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36016"></span>8CB0</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35928.html">8C58</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35943">Map</a></td>
+<td class="next">
+Next: <a href="36017.html">8CB1</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

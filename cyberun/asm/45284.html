@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B0E4</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45212.html">B09C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45284">Map</a></td>
+<td class="next">
+Next: <a href="45333.html">B115</a>
+</td>
+</tr>
+</table>
+<div class="description">B0E4: Mask and draw an add-on into the ship's picture</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+<a href="45212.html">fit_addon</a> runs into it, to its second instruction for the mask or to the draw if there is no mask. A row at a time for the height in A': the mask, C bytes of it, ANDed onto the buffer at HL, then HL 6 bytes on to the next row. Then the stack gives back the buffer address and the graphic, the width and height are read again, and the picture is ORed on the same way. Returns to <a href="45033.html">build_ship_sprite</a>'s loop.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A'</td>
+<td class="register-desc">the height in lines</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">the width in bytes</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">the mask</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the place in the buffer</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw</td>
+<td class="address-2"><span id="45284"></span>B0E4</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="1">keep the row count</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45285"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45212.html">fit_addon</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw_0</td>
+<td class="address-2"><span id="45285"></span>B0E5</td>
+<td class="instruction">LD B,C</td>
+<td class="comment-1" rowspan="8">AND a row of the mask onto the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45286"></span>B0E6</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw_1</td>
+<td class="address-2"><span id="45287"></span>B0E7</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45288"></span>B0E8</td>
+<td class="instruction">AND (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45289"></span>B0E9</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45290"></span>B0EA</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45291"></span>B0EB</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45292"></span>B0EC</td>
+<td class="instruction">DJNZ <a href="45284.html#45287">addon_mask_and_draw_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45294"></span>B0EE</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">the next row, 6 bytes on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45295"></span>B0EF</td>
+<td class="instruction">LD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45297"></span>B0F1</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45300"></span>B0F4</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45301"></span>B0F5</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45302"></span>B0F6</td>
+<td class="instruction">JR NZ,<a href="45284.html#45284">addon_mask_and_draw</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45304"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="45212.html">fit_addon</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw_2</td>
+<td class="address-2"><span id="45304"></span>B0F8</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="8">the buffer address and the graphic back; its width and height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45305"></span>B0F9</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45306"></span>B0FA</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45307"></span>B0FB</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45308"></span>B0FC</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45309"></span>B0FD</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45310"></span>B0FE</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45311"></span>B0FF</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw_3</td>
+<td class="address-2"><span id="45312"></span>B100</td>
+<td class="instruction">EX AF,AF'</td>
+<td class="comment-1" rowspan="9">OR a row of the picture onto the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45313"></span>B101</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45314"></span>B102</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label">addon_mask_and_draw_4</td>
+<td class="address-2"><span id="45315"></span>B103</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45316"></span>B104</td>
+<td class="instruction">OR (HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45317"></span>B105</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45318"></span>B106</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45319"></span>B107</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45320"></span>B108</td>
+<td class="instruction">DJNZ <a href="45284.html#45315">addon_mask_and_draw_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45322"></span>B10A</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="6">the next row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45323"></span>B10B</td>
+<td class="instruction">LD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45325"></span>B10D</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45328"></span>B110</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45329"></span>B111</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45330"></span>B112</td>
+<td class="instruction">JR NZ,<a href="45284.html#45312">addon_mask_and_draw_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45332"></span>B114</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">done</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45212.html">B09C</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45284">Map</a></td>
+<td class="next">
+Next: <a href="45333.html">B115</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

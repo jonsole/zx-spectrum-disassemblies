@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 5B80</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="23418.html">5B7A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#23424">Map</a></td>
+<td class="next">
+Next: <a href="23449.html">5B99</a>
+</td>
+</tr>
+</table>
+<div class="description">5B80: Move the game block down and undo its nibble shift</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The tape's BASIC calls this once the game block has loaded, 512 bytes above where it runs. It ran during loading, which the build does not see, so it is described from reading alone. <a href="64512.html">loader_copy</a>, the copy routine the earlier PIC block left at the top of memory, moves the block down 512 bytes to <a href="23680.html">game_entry</a>; then an RRD walk down from the block's top moves every byte's nibbles along by one -- the tape holds the game four bits out of step -- and the game starts at <a href="23680.html">game_entry</a>.
+</div>
+<div class="paragraph">
+After the game starts these 25 bytes are dead: the view's page's collision-box list (see <a href="23449.html">ground_cell_top_left_rest</a>) is written over them, and the stack grows down from just below them.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">loader_entry</td>
+<td class="address-2"><span id="23424"></span>5B80</td>
+<td class="instruction">LD SP,<a href="65024.html">loader_leftover_charset</a></td>
+<td class="comment-1" rowspan="2">Stack under the copy routine's home; interrupts off for good</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23427"></span>5B83</td>
+<td class="instruction">DI</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23428"></span>5B84</td>
+<td class="instruction">CALL <a href="64512.html">loader_copy</a></td>
+<td class="comment-1" rowspan="1">Move the block down 512 bytes to <a href="23680.html">game_entry</a> (<a href="64512.html">loader_copy</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23431"></span>5B87</td>
+<td class="instruction">LD HL,<a href="64000.html">shift_tables</a></td>
+<td class="comment-1" rowspan="3">From the top of the block down, 158 times 256 bytes; A starts at 0, so the top byte's high nibble becomes a zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23434"></span>5B8A</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23435"></span>5B8B</td>
+<td class="instruction">LD BC,$9E00</td>
+</tr>
+<tr>
+<td class="asm-label">loader_entry_0</td>
+<td class="address-2"><span id="23438"></span>5B8E</td>
+<td class="instruction">RRD</td>
+<td class="comment-1" rowspan="1">RRD: (HL)'s low nibble to A, A's old low nibble to (HL)'s high nibble, (HL)'s high nibble to its low nibble</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23440"></span>5B90</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="4">Down a byte, for every byte of the block: the whole block and the system variables under it, all but their first byte (hence the nonsense in them)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23441"></span>5B91</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23442"></span>5B92</td>
+<td class="instruction">JR NZ,<a href="23424.html#23438">loader_entry_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23444"></span>5B94</td>
+<td class="instruction">DJNZ <a href="23424.html#23438">loader_entry_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="23446"></span>5B96</td>
+<td class="instruction">JP <a href="23680.html">game_entry</a></td>
+<td class="comment-1" rowspan="1">Start the game</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="23418.html">5B7A</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#23424">Map</a></td>
+<td class="next">
+Next: <a href="23449.html">5B99</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

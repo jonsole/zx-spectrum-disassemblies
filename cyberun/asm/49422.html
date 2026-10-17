@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C10E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49386.html">C0EA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49422">Map</a></td>
+<td class="next">
+Next: <a href="49490.html">C152</a>
+</td>
+</tr>
+</table>
+<div class="description">C10E: Decide whether a star is in sight, and where</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="49202.html">draw_star_layer</a>.
+</div>
+<div class="paragraph">
+Called by <a href="49202.html">draw_star_layer</a> for each star. The first code map typed these bytes as data, because no session then flew high enough for stars; the tour at map row 3 runs them.
+</div>
+<div class="paragraph">
+The new x is the star's x (flag off) plus the layer's x offset, and the star is out of sight unless that is between 8 and $E7 (inside the frame); the new y is the star's y plus the layer's y offset, out of sight unless between $18 and $B8. In map row 3, the lowest with stars, it is also out of sight once it is level with or below the top of the landscape (y against the complement of the view's y less $31), so stars do not show through the hills.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">F</td>
+<td class="register-desc">NZ in sight, Z out of sight</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">star_in_sight</td>
+<td class="address-2"><span id="49422"></span>C10E</td>
+<td class="instruction">LD HL,(<a href="49382.html">star_layer_pointer</a>)</td>
+<td class="comment-1" rowspan="3">The layer's offsets and the star.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49425"></span>C111</td>
+<td class="instruction">LD DE,(<a href="49384.html">star_pointer</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49429"></span>C115</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49430"></span>C116</td>
+<td class="instruction">AND $FE</td>
+<td class="comment-1" rowspan="9">x: inside 8 to $E7, or out of sight; into the mover's new x (<a href="41427.html">old_sprite_x</a>'s second pair).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49432"></span>C118</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49433"></span>C119</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49435"></span>C11B</td>
+<td class="instruction">CP $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49437"></span>C11D</td>
+<td class="instruction">JR NC,<a href="49422.html#49488">star_in_sight_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49439"></span>C11F</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49441"></span>C121</td>
+<td class="instruction">LD (<a href="41429.html">new_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49444"></span>C124</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49445"></span>C125</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49446"></span>C126</td>
+<td class="instruction">LD A,(DE)</td>
+<td class="comment-1" rowspan="5">y: inside $18 to $B8, or out of sight.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49447"></span>C127</td>
+<td class="instruction">ADD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49448"></span>C128</td>
+<td class="instruction">SUB $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49450"></span>C12A</td>
+<td class="instruction">CP $A1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49452"></span>C12C</td>
+<td class="instruction">JR NC,<a href="49422.html#49488">star_in_sight_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49454"></span>C12E</td>
+<td class="instruction">ADD A,$18</td>
+<td class="comment-1" rowspan="3">Into the mover's new y. In map row 3 ...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49456"></span>C130</td>
+<td class="instruction">LD (<a href="41430.html">new_sprite_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49459"></span>C133</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49462"></span>C136</td>
+<td class="instruction">CP $03</td>
+<td class="comment-1" rowspan="4">... the star must be above the top of the landscape.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49464"></span>C138</td>
+<td class="instruction">JR NZ,<a href="49422.html#49479">star_in_sight_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49466"></span>C13A</td>
+<td class="instruction">LD A,(<a href="52806.html">view_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49469"></span>C13D</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49470"></span>C13E</td>
+<td class="instruction">SUB $31</td>
+<td class="comment-1" rowspan="11">In sight: say there is something to draw (<a href="52412.html">star_drawn</a>) and return NZ; out of sight return Z.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49472"></span>C140</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49473"></span>C141</td>
+<td class="instruction">LD A,(<a href="41430.html">new_sprite_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49476"></span>C144</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49477"></span>C145</td>
+<td class="instruction">JR NC,<a href="49422.html#49488">star_in_sight_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">star_in_sight_0</td>
+<td class="address-2"><span id="49479"></span>C147</td>
+<td class="instruction">LD A,(<a href="52412.html">star_drawn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49482"></span>C14A</td>
+<td class="instruction">OR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49484"></span>C14C</td>
+<td class="instruction">LD (<a href="52412.html">star_drawn</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49487"></span>C14F</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">star_in_sight_1</td>
+<td class="address-2"><span id="49488"></span>C150</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="49489"></span>C151</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="49386.html">C0EA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#49422">Map</a></td>
+<td class="next">
+Next: <a href="49490.html">C152</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

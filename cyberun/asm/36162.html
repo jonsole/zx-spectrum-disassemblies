@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8D42</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36157.html">8D3D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36162">Map</a></td>
+<td class="next">
+Next: <a href="36385.html">8E21</a>
+</td>
+</tr>
+</table>
+<div class="description">8D42: Update the nine object records, once a pass</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+Called from the play loop (<a href="62528.html">play</a>) once a pass, and the most expensive thing in it: for each of the nine records at <a href="39284.html">object_records</a> that is not free it rubs out last pass's picture, runs the type's update routine through <a href="41357.html">run_sky_object_handler</a> (which moves, animates and redraws it), tests it against the ship (<a href="36397.html">ship_contact</a>) and against the player's shots (<a href="37244.html">test_player_shots</a>). It also keeps the death byte (<a href="36691.html">death_count</a>) counting, and at the end starts a new cloud or attacker when the load (<a href="36395.html">object_load</a>) is light.
+</div>
+<div class="paragraph">
+The load is the throttle on spawning: one for every record in use, one more for each that was on the screen last pass, one more for a big cloud, and half the number of rocket parts delivered (<a href="36156.html">rocket_parts_load</a>), since <a href="38258.html">draw_rocket</a> draws those in the same pass. Below 4 this routine spawns; <a href="34735.html">spawn_tick</a> stops at 8 and <a href="34806.html">find_free_record</a> at 7.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects</td>
+<td class="address-2"><span id="36162"></span>8D42</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="5">Count the death byte up once a pass while it is not zero</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36165"></span>8D45</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36166"></span>8D46</td>
+<td class="instruction">JR Z,<a href="36162.html#36172">update_objects_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36168"></span>8D48</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36169"></span>8D49</td>
+<td class="instruction">LD (<a href="36691.html">death_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_0</td>
+<td class="address-2"><span id="36172"></span>8D4C</td>
+<td class="instruction">CP $0A</td>
+<td class="comment-1" rowspan="2">At 10 the ship breaks up into nine pieces (<a href="36018.html">wreck_ship</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36174"></span>8D4E</td>
+<td class="instruction">CALL Z,<a href="36018.html">wreck_ship</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36177"></span>8D51</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="3">From 10 on, the death sound (<a href="29355.html">sound_death</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36180"></span>8D54</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36182"></span>8D56</td>
+<td class="instruction">CALL NC,<a href="29355.html">sound_death</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36185"></span>8D59</td>
+<td class="instruction">LD A,(<a href="23616.html">fuel_saver</a>)</td>
+<td class="comment-1" rowspan="5">Keep last pass's contact flag (<a href="36017.html">last_pass_contact</a>) and clear it for this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36188"></span>8D5C</td>
+<td class="instruction">LD (<a href="36017.html">last_pass_contact</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36191"></span>8D5F</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36192"></span>8D60</td>
+<td class="instruction">LD (<a href="36395.html">object_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36195"></span>8D63</td>
+<td class="instruction">LD (<a href="23616.html">fuel_saver</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36198"></span>8D66</td>
+<td class="instruction">LD A,(<a href="36156.html">rocket_parts_load</a>)</td>
+<td class="comment-1" rowspan="2">The load starts at the rocket parts' share (<a href="36156.html">rocket_parts_load</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36201"></span>8D69</td>
+<td class="instruction">LD (<a href="36395.html">object_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36204"></span>8D6C</td>
+<td class="instruction">LD IX,<a href="39284.html">object_records</a></td>
+<td class="comment-1" rowspan="2">Nine records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36208"></span>8D70</td>
+<td class="instruction">LD B,$09</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_1</td>
+<td class="address-2"><span id="36210"></span>8D72</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="5">A free record (type $FF) is skipped (<a href="36157.html">skip_free_record</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36211"></span>8D73</td>
+<td class="instruction">PUSH IX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36213"></span>8D75</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36216"></span>8D78</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36217"></span>8D79</td>
+<td class="instruction">JP Z,<a href="36157.html">skip_free_record</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36220"></span>8D7C</td>
+<td class="instruction">LD A,(IX+$17)</td>
+<td class="comment-1" rowspan="9">Count the contact cool-down in the high nibble of +$17 down by one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36223"></span>8D7F</td>
+<td class="instruction">AND $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36225"></span>8D81</td>
+<td class="instruction">JR Z,<a href="36162.html#36239">update_objects_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36227"></span>8D83</td>
+<td class="instruction">SUB $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36229"></span>8D85</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36230"></span>8D86</td>
+<td class="instruction">LD A,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36233"></span>8D89</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36235"></span>8D8B</td>
+<td class="instruction">OR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36236"></span>8D8C</td>
+<td class="instruction">LD (IX+$17),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_2</td>
+<td class="address-2"><span id="36239"></span>8D8F</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+<td class="comment-1" rowspan="6">While the ship is beginning to die (death byte 1-3) every object explodes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36242"></span>8D92</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36243"></span>8D93</td>
+<td class="instruction">JR Z,<a href="36162.html#36253">update_objects_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36245"></span>8D95</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36247"></span>8D97</td>
+<td class="instruction">JR NC,<a href="36162.html#36253">update_objects_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36249"></span>8D99</td>
+<td class="instruction">SET 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_3</td>
+<td class="address-2"><span id="36253"></span>8D9D</td>
+<td class="instruction">LD A,$50</td>
+<td class="comment-1" rowspan="2">The default contact effect: damage and push ($50, see <a href="36397.html">ship_contact</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36255"></span>8D9F</td>
+<td class="instruction">LD (<a href="36396.html">contact_effect</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36258"></span>8DA2</td>
+<td class="instruction">LD A,(<a href="36395.html">object_load</a>)</td>
+<td class="comment-1" rowspan="3">Count the record in the load</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36261"></span>8DA5</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36262"></span>8DA6</td>
+<td class="instruction">LD (<a href="36395.html">object_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36265"></span>8DA9</td>
+<td class="instruction">CALL <a href="41706.html">clear_sprite_pair</a></td>
+<td class="comment-1" rowspan="1">No sprite sizes yet this pass (<a href="41706.html">clear_sprite_pair</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36268"></span>8DAC</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Drawn last pass: count it again and rub it out (<a href="36385.html">count_and_erase</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36272"></span>8DB0</td>
+<td class="instruction">CALL NZ,<a href="36385.html">count_and_erase</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36275"></span>8DB3</td>
+<td class="instruction">RES 6,(IX+$10)</td>
+<td class="comment-1" rowspan="1">Clear the straddling flag; placing it sets it again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36279"></span>8DB7</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">The update routines run in the other register set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36280"></span>8DB8</td>
+<td class="instruction">CALL <a href="41357.html">run_sky_object_handler</a></td>
+<td class="comment-1" rowspan="1">The type's update routine (<a href="41357.html">run_sky_object_handler</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36283"></span>8DBB</td>
+<td class="instruction">CALL <a href="36397.html">ship_contact</a></td>
+<td class="comment-1" rowspan="1">Contact with the ship (<a href="36397.html">ship_contact</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36286"></span>8DBE</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="9">Clouds (type $13), type $1D and type $1C...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36288"></span>8DC0</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36291"></span>8DC3</td>
+<td class="instruction">CP $13</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36293"></span>8DC5</td>
+<td class="instruction">JR Z,<a href="36162.html#36312">update_objects_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36295"></span>8DC7</td>
+<td class="instruction">CP $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36297"></span>8DC9</td>
+<td class="instruction">JR Z,<a href="36162.html#36305">update_objects_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36299"></span>8DCB</td>
+<td class="instruction">CP $1D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36301"></span>8DCD</td>
+<td class="instruction">JR Z,<a href="36162.html#36312">update_objects_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36303"></span>8DCF</td>
+<td class="instruction">JR <a href="36162.html#36328">update_objects_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_4</td>
+<td class="address-2"><span id="36305"></span>8DD1</td>
+<td class="instruction">LD A,(IX+$14)</td>
+<td class="comment-1" rowspan="3">...but not a piece of the ship's wreck (+$14 = 2)...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36308"></span>8DD4</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36310"></span>8DD6</td>
+<td class="instruction">JR Z,<a href="36162.html#36328">update_objects_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_5</td>
+<td class="address-2"><span id="36312"></span>8DD8</td>
+<td class="instruction">LD A,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="7">...are freed once they have left the view: drawn last pass and not this one (the two heights in <a href="41427.html">old_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36315"></span>8DDB</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36316"></span>8DDC</td>
+<td class="instruction">JR Z,<a href="36162.html#36328">update_objects_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36318"></span>8DDE</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36321"></span>8DE1</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36322"></span>8DE2</td>
+<td class="instruction">JR NZ,<a href="36162.html#36328">update_objects_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36324"></span>8DE4</td>
+<td class="instruction">LD (IX+$00),$FF</td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_6</td>
+<td class="address-2"><span id="36328"></span>8DE8</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+<td class="comment-1" rowspan="4">Shot already, or exploding: no shot test</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36332"></span>8DEC</td>
+<td class="instruction">JR NZ,<a href="36162.html#36346">next_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36334"></span>8DEE</td>
+<td class="instruction">BIT 3,(IX+$17)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36338"></span>8DF2</td>
+<td class="instruction">JR NZ,<a href="36162.html#36346">next_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36340"></span>8DF4</td>
+<td class="instruction">CALL <a href="37187.html">object_box</a></td>
+<td class="comment-1" rowspan="2">Its box (<a href="37187.html">object_box</a>) against the player's shots (<a href="37244.html">test_player_shots</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36343"></span>8DF7</td>
+<td class="instruction">CALL <a href="37244.html">test_player_shots</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="36346"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="36157.html">skip_free_record</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">next_object</td>
+<td class="address-2"><span id="36346"></span>8DFA</td>
+<td class="instruction">LD BC,$0018</td>
+<td class="comment-1" rowspan="5">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36349"></span>8DFD</td>
+<td class="instruction">ADD IX,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36351"></span>8DFF</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36352"></span>8E00</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36353"></span>8E01</td>
+<td class="instruction">JP NZ,<a href="36162.html#36210">update_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36356"></span>8E04</td>
+<td class="instruction">LD A,(<a href="36395.html">object_load</a>)</td>
+<td class="comment-1" rowspan="3">A load of 4 or more: nothing new this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36359"></span>8E07</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36361"></span>8E09</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36362"></span>8E0A</td>
+<td class="instruction">LD A,R</td>
+<td class="comment-1" rowspan="9">Half the time, while the view is in page rows 3-10, a cloud (<a href="34706.html">spawn_cloud</a>, which makes one only in rows 3-9)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36364"></span>8E0C</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36366"></span>8E0E</td>
+<td class="instruction">JR Z,<a href="36162.html#36382">update_objects_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36368"></span>8E10</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36371"></span>8E13</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36373"></span>8E15</td>
+<td class="instruction">JR NC,<a href="36162.html#36382">update_objects_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36375"></span>8E17</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36377"></span>8E19</td>
+<td class="instruction">JR C,<a href="36162.html#36382">update_objects_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="36379"></span>8E1B</td>
+<td class="instruction">JP <a href="34706.html">spawn_cloud</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_objects_7</td>
+<td class="address-2"><span id="36382"></span>8E1E</td>
+<td class="instruction">JP <a href="34791.html">spawn_attacker</a></td>
+<td class="comment-1" rowspan="1">Otherwise an attacker from the wave table (the entry point in <a href="34735.html">spawn_tick</a>)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="36157.html">8D3D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#36162">Map</a></td>
+<td class="next">
+Next: <a href="36385.html">8E21</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

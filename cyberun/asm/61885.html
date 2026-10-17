@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F1BD</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61714.html">F112</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61885">Map</a></td>
+<td class="next">
+Next: <a href="61951.html">F1FF</a>
+</td>
+</tr>
+</table>
+<div class="description">F1BD: Colour the player's ship</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50209.html">draw_ship_image</a>.
+</div>
+<div class="paragraph">
+Called once a pass by <a href="50147.html">draw_ship</a>. Works out the ship's attribute and paints it over the ship with the colour patch at <a href="61951.html">ship_colour_patch</a> (6 cells wide, as many deep as the ship's height in <a href="49577.html">ship_height</a> needs): white ($47) as a rule, yellow ($46) when the ore count at <a href="51461.html">ore</a> has reached 18, and while the hit-immunity timer <a href="35183.html">shield_timer</a> runs, cyan ($45) -- flashing between cyan and the usual colour every 8 passes (bit 3 of the pass counter <a href="39524.html">pass_counter</a>) in its last 32. A change of colour from the last one used (kept in the patch's third byte) makes a short sound through <a href="29276.html">sound_ship_colour</a>.
+</div>
+<div class="paragraph">
+The ore count <a href="51461.html">ore</a> goes up (to 18 at most) at <a href="43173.html">load_ore</a> while the rocket part carried (<a href="62977.html">rocket_part_carried</a>) is part 6, the one that needs 18 ore.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">colour_ship</td>
+<td class="address-2"><span id="61885"></span>F1BD</td>
+<td class="instruction">LD B,$47</td>
+<td class="comment-1" rowspan="5">White, or yellow with 18 ore aboard</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61887"></span>F1BF</td>
+<td class="instruction">LD A,(<a href="51461.html">ore</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61890"></span>F1C2</td>
+<td class="instruction">CP $12</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61892"></span>F1C4</td>
+<td class="instruction">JR NZ,<a href="61885.html#61896">colour_ship_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61894"></span>F1C6</td>
+<td class="instruction">LD B,$46</td>
+</tr>
+<tr>
+<td class="asm-label">colour_ship_0</td>
+<td class="address-2"><span id="61896"></span>F1C8</td>
+<td class="instruction">LD C,B</td>
+<td class="comment-1" rowspan="1">C keeps it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61897"></span>F1C9</td>
+<td class="instruction">LD A,(<a href="35183.html">shield_timer</a>)</td>
+<td class="comment-1" rowspan="3">Is the hit-immunity timer running?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61900"></span>F1CC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61901"></span>F1CD</td>
+<td class="instruction">JR Z,<a href="61885.html#61917">colour_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61903"></span>F1CF</td>
+<td class="instruction">LD B,$45</td>
+<td class="comment-1" rowspan="3">Cyan; steady while the timer is 32 or more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61905"></span>F1D1</td>
+<td class="instruction">CP $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61907"></span>F1D3</td>
+<td class="instruction">JR NC,<a href="61885.html#61917">colour_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61909"></span>F1D5</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+<td class="comment-1" rowspan="4">In its last 32, the usual colour every other 8 passes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61912"></span>F1D8</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61914"></span>F1DA</td>
+<td class="instruction">JR Z,<a href="61885.html#61917">colour_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61916"></span>F1DC</td>
+<td class="instruction">LD B,C</td>
+</tr>
+<tr>
+<td class="asm-label">colour_ship_1</td>
+<td class="address-2"><span id="61917"></span>F1DD</td>
+<td class="instruction">LD A,($F201)</td>
+<td class="comment-1" rowspan="5">A sound if the colour has changed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61920"></span>F1E0</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61921"></span>F1E1</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61922"></span>F1E2</td>
+<td class="instruction">CALL NZ,<a href="29276.html">sound_ship_colour</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61925"></span>F1E5</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61926"></span>F1E6</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+<td class="comment-1" rowspan="1">Where the ship is on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61929"></span>F1E9</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+<td class="comment-1" rowspan="6">Its height in character rows, rounded up</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61932"></span>F1EC</td>
+<td class="instruction">ADD A,$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61934"></span>F1EE</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61936"></span>F1F0</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61938"></span>F1F2</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61940"></span>F1F4</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61941"></span>F1F5</td>
+<td class="instruction">LD ($F200),BC</td>
+<td class="comment-1" rowspan="1">Into the patch: depth and attribute</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61945"></span>F1F9</td>
+<td class="instruction">LD DE,<a href="61951.html">ship_colour_patch</a></td>
+<td class="comment-1" rowspan="2">Paint it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="61948"></span>F1FC</td>
+<td class="instruction">JP <a href="51601.html">fill_attributes</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="61714.html">F112</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#61885">Map</a></td>
+<td class="next">
+Next: <a href="61951.html">F1FF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

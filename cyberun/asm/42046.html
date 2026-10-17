@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A43E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42009.html">A419</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42046">Map</a></td>
+<td class="next">
+Next: <a href="42136.html">A498</a>
+</td>
+</tr>
+</table>
+<div class="description">A43E: Rub out the old image in the buffer, then draw the new one</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="41731.html">draw_sprite_pair</a> and <a href="41974.html">copy_box_in</a>.
+</div>
+<div class="paragraph">
+The middle of <a href="41731.html">draw_sprite_pair</a>. The register sets are swapped so that the main set holds the old image's graphic and shift page (saved by the EXX after <a href="44327.html">prepare_erase</a>) while the new image's wait in the other set. Each row routine finishes by adding the patched step to L (the box's width less the bytes the routine covered), counting the rows in A', and either jumping back through IY (or IX) for the next row or on to the next stage.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">erase_old_draw_new</td>
+<td class="address-2"><span id="42046"></span>A43E</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="1">Drop the unused screen address left by the copy in</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42047"></span>A43F</td>
+<td class="instruction">POP BC</td>
+<td class="comment-1" rowspan="3">Restore the new image's graphic and page, and swap them out of the way</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42048"></span>A440</td>
+<td class="instruction">POP DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42049"></span>A441</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42050"></span>A442</td>
+<td class="instruction">LD A,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">No old image: straight on to drawing the new one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42053"></span>A445</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42054"></span>A446</td>
+<td class="instruction">JP Z,<a href="42046.html#42089">erase_old_draw_new_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42057"></span>A449</td>
+<td class="instruction">LD HL,(<a href="41427.html">old_sprite_x</a>)</td>
+<td class="comment-1" rowspan="2">Where the old image starts in the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42060"></span>A44C</td>
+<td class="instruction">CALL <a href="42366.html">buffer_address</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42063"></span>A44F</td>
+<td class="instruction">LD A,(<a href="41720.html">old_sprite_width</a>)</td>
+<td class="comment-1" rowspan="6">The bytes a row covers: the width, less one if byte-aligned (a shifted row spills into one more byte)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42066"></span>A452</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42067"></span>A453</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42068"></span>A454</td>
+<td class="instruction">CP $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42070"></span>A456</td>
+<td class="instruction">JR NZ,<a href="42046.html#42073">erase_old_draw_new_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42072"></span>A458</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label">erase_old_draw_new_0</td>
+<td class="address-2"><span id="42073"></span>A459</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+<td class="comment-1" rowspan="4">The step from the end of one row to the start of the next, into both erase loops</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42076"></span>A45C</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42077"></span>A45D</td>
+<td class="instruction">LD ($A6D6),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42080"></span>A460</td>
+<td class="instruction">LD ($A728),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42083"></span>A463</td>
+<td class="instruction">LD A,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">Rub out the old image's rows (A' counts them)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42086"></span>A466</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42087"></span>A467</td>
+<td class="instruction">JP (IY)</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="42089"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="42674.html">erase_aligned_row</a> and <a href="42721.html">erase_row_shifted</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">erase_old_draw_new_1</td>
+<td class="address-2"><span id="42089"></span>A469</td>
+<td class="instruction">EXX</td>
+<td class="comment-1" rowspan="1">Swap to the new image's graphic and page</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42090"></span>A46A</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">No new image: copy the box back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42093"></span>A46D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42094"></span>A46E</td>
+<td class="instruction">JP Z,<a href="42136.html#42187">dissolve_sprite_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42097"></span>A471</td>
+<td class="instruction">LD HL,(<a href="41429.html">new_sprite_x</a>)</td>
+<td class="comment-1" rowspan="2">Where the new image starts in the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42100"></span>A474</td>
+<td class="instruction">CALL <a href="42366.html">buffer_address</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42103"></span>A477</td>
+<td class="instruction">LD A,(<a href="41721.html">new_sprite_width</a>)</td>
+<td class="comment-1" rowspan="6">The bytes a row covers</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42106"></span>A47A</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42107"></span>A47B</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42108"></span>A47C</td>
+<td class="instruction">CP $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42110"></span>A47E</td>
+<td class="instruction">JR NZ,<a href="42046.html#42113">erase_old_draw_new_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42112"></span>A480</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label">erase_old_draw_new_2</td>
+<td class="address-2"><span id="42113"></span>A481</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+<td class="comment-1" rowspan="4">The step to the next row, into both draw loops</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42116"></span>A484</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42117"></span>A485</td>
+<td class="instruction">LD ($A751),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42120"></span>A488</td>
+<td class="instruction">LD ($A799),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42123"></span>A48B</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="2">The dissolve's step (<a href="42136.html">dissolve_sprite</a>) is one less, as it covers one byte more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42124"></span>A48C</td>
+<td class="instruction">LD ($A4C5),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42127"></span>A48F</td>
+<td class="instruction">LD (<a href="47757.html">saved_speed</a>),HL</td>
+<td class="comment-1" rowspan="1">Keep the start for the dissolve, in <a href="47757.html">saved_speed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42130"></span>A492</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">Draw the new image's rows</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42133"></span>A495</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="42134"></span>A496</td>
+<td class="instruction">JP (IX)</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="42009.html">A419</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#42046">Map</a></td>
+<td class="next">
+Next: <a href="42136.html">A498</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

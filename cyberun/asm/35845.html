@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8C05</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35844.html">8C04</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35845">Map</a></td>
+<td class="next">
+Next: <a href="35903.html">8C3F</a>
+</td>
+</tr>
+</table>
+<div class="description">8C05: Add an object's acceleration to its velocity, within its top speed</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="37773.html">move_missile</a>, <a href="37874.html">update_cloud</a>, <a href="37975.html">update_small_object</a>, <a href="38056.html">update_tough_attacker</a>, <a href="38151.html">update_attacker</a> and <a href="38180.html">update_rocket_part</a>.
+</div>
+<div class="paragraph">
+Called by the update routines <a href="37773.html">move_missile</a>, <a href="37874.html">update_cloud</a>, <a href="37975.html">update_small_object</a>, <a href="38056.html">update_tough_attacker</a> and <a href="38151.html">update_attacker</a>. Velocity (+7 +8 in X, +9 +A in Y) and acceleration (+B +C, +E +F) are signed 8.8 numbers, high byte first. The top speed is (+$10 AND 7) + 1 whole pixels a pass; a velocity that goes past it is set to exactly that (<a href="35903.html">limit_speed</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The object</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">accelerate</td>
+<td class="address-2"><span id="35845"></span>8C05</td>
+<td class="instruction">LD A,(IX+$10)</td>
+<td class="comment-1" rowspan="6">The limits, n and -(n + 1)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35848"></span>8C08</td>
+<td class="instruction">AND $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35850"></span>8C0A</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35851"></span>8C0B</td>
+<td class="instruction">LD (<a href="35843.html">speed_limit</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35854"></span>8C0E</td>
+<td class="instruction">CPL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35855"></span>8C0F</td>
+<td class="instruction">LD (<a href="35844.html">speed_limit_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35858"></span>8C12</td>
+<td class="instruction">LD H,(IX+$07)</td>
+<td class="comment-1" rowspan="8">X velocity plus X acceleration, limited</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35861"></span>8C15</td>
+<td class="instruction">LD L,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35864"></span>8C18</td>
+<td class="instruction">LD D,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35867"></span>8C1B</td>
+<td class="instruction">LD E,(IX+$0C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35870"></span>8C1E</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35871"></span>8C1F</td>
+<td class="instruction">CALL <a href="35903.html">limit_speed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35874"></span>8C22</td>
+<td class="instruction">LD (IX+$07),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35877"></span>8C25</td>
+<td class="instruction">LD (IX+$08),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35880"></span>8C28</td>
+<td class="instruction">LD H,(IX+$09)</td>
+<td class="comment-1" rowspan="9">Y velocity plus Y acceleration, limited</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35883"></span>8C2B</td>
+<td class="instruction">LD L,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35886"></span>8C2E</td>
+<td class="instruction">LD D,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35889"></span>8C31</td>
+<td class="instruction">LD E,(IX+$0F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35892"></span>8C34</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35893"></span>8C35</td>
+<td class="instruction">CALL <a href="35903.html">limit_speed</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35896"></span>8C38</td>
+<td class="instruction">LD (IX+$09),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35899"></span>8C3B</td>
+<td class="instruction">LD (IX+$0A),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="35902"></span>8C3E</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="35844.html">8C04</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#35845">Map</a></td>
+<td class="next">
+Next: <a href="35903.html">8C3F</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

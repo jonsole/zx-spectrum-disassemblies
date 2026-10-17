@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C3E3</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50036.html">C374</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50147">Map</a></td>
+<td class="next">
+Next: <a href="50209.html">C421</a>
+</td>
+</tr>
+</table>
+<div class="description">C3E3: Draw the ship, its trail and its jets</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+Reached by a jump from <a href="56824.html">scroll_landscape</a> at the end of each pass's landscape drawing; returns to the play loop. IY was pushed by <a href="50036.html">ship_pass</a>.
+</div>
+<div class="paragraph">
+The ship stays where it is on the screen and the world moves under it, so its image is drawn over itself and only erased when it changes: when the ship turns (the steering direction <a href="23606.html">steer_push</a> against the facing byte, +$18 of the ship record), when a part is being fitted (+$1F of the record, <a href="51460.html">part_being_fitted</a>), or while docking with the finished rocket (death byte 10). It is redrawn on every odd pass, and on even passes only when one of those things happens; on even passes the carried part (<a href="49614.html">carried_part</a>) is drawn instead.
+</div>
+<div class="paragraph">
+The ship's image is <a href="50209.html">draw_ship_image</a>; then come the trail (<a href="50413.html">draw_trail</a>), the pause key (<a href="40788.html">check_pause_in_play</a>), the fire button (<a href="46897.html">fire</a>), and one of the two jets: the lift jet (<a href="50898.html">lift_jet</a>) on even passes, the side jet (<a href="50687.html">side_jet</a>) on odd ones.
+</div>
+<div class="paragraph">
+All of them are drawn by <a href="42399.html">draw_direct_pair</a>, which interleaves an erase of the old image (main registers: DE the graphic, HL the screen, IY the eraser for its width, <a href="23580.html">scratch_count</a> its height, <a href="41609.html">direct_old_line</a> its y) with the drawing of the new (alternate registers, IX the drawer, <a href="23581.html">ground_cell</a> the height, the byte after <a href="41609.html">direct_old_line</a> the y), a row of each in turn, so that nothing is ever missing from the screen for long. Images are drawn with OR and erased with AND NOT, without masks.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_ship</td>
+<td class="address-2"><span id="50147"></span>C3E3</td>
+<td class="instruction">POP IY</td>
+<td class="comment-1" rowspan="1">IY as it was before <a href="50036.html">ship_pass</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50149"></span>C3E5</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="6">Nothing to draw once the rocket is lifting off or the ship is dying.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50152"></span>C3E8</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50153"></span>C3E9</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50154"></span>C3EA</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50157"></span>C3ED</td>
+<td class="instruction">CP $0B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50159"></span>C3EF</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50160"></span>C3F0</td>
+<td class="instruction">CALL <a href="38692.html">drop_part</a></td>
+<td class="comment-1" rowspan="1">First <a href="38692.html">drop_part</a>, which lets a carried rocket part go over its slot.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50163"></span>C3F3</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+<td class="comment-1" rowspan="3">Odd pass: redraw the ship.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50166"></span>C3F6</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50168"></span>C3F8</td>
+<td class="instruction">JR NZ,<a href="50209.html">draw_ship_image</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50170"></span>C3FA</td>
+<td class="instruction">CALL <a href="49614.html">carried_part</a></td>
+<td class="comment-1" rowspan="1">Even pass: the carried part.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50173"></span>C3FD</td>
+<td class="instruction">LD A,(<a href="51460.html">part_being_fitted</a>)</td>
+<td class="comment-1" rowspan="9">Redraw the ship anyway when a part is being fitted, while docking with the finished rocket (death byte 10) or when <a href="48146.html">ship_on_slope</a> is set.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50176"></span>C400</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50177"></span>C401</td>
+<td class="instruction">JR NZ,<a href="50209.html">draw_ship_image</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50179"></span>C403</td>
+<td class="instruction">LD A,(<a href="36691.html">death_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50182"></span>C406</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50184"></span>C408</td>
+<td class="instruction">JR Z,<a href="50209.html">draw_ship_image</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50186"></span>C40A</td>
+<td class="instruction">LD A,(<a href="48146.html">ship_on_slope</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50189"></span>C40D</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50190"></span>C40E</td>
+<td class="instruction">JR NZ,<a href="50209.html">draw_ship_image</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50192"></span>C410</td>
+<td class="instruction">LD A,(<a href="23606.html">steer_push</a>)</td>
+<td class="comment-1" rowspan="8">Otherwise only when it is steered the other way from the way it faces.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50195"></span>C413</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50196"></span>C414</td>
+<td class="instruction">JP Z,<a href="50413.html#50666">draw_trail_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50199"></span>C417</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50200"></span>C418</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50203"></span>C41B</td>
+<td class="instruction">XOR B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50204"></span>C41C</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="50206"></span>C41E</td>
+<td class="instruction">JP Z,<a href="50413.html#50666">draw_trail_9</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="50036.html">C374</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#50147">Map</a></td>
+<td class="next">
+Next: <a href="50209.html">C421</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

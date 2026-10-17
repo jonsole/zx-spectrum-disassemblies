@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 6113</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="24667.html">605B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#24851">Map</a></td>
+<td class="next">
+Next: <a href="25001.html">61A9</a>
+</td>
+</tr>
+</table>
+<div class="description">6113: Deal a player the places of the pick-ups</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="62397.html">new_game</a>.
+</div>
+<div class="paragraph">
+Called twice by <a href="62397.html">new_game</a> at a new game, once for each player's record (<a href="62951.html">score</a>, <a href="63056.html">other_player_record</a>). Goes through the dealing list at <a href="25001.html">dealing_list</a> and, for each entry, writes a four-byte place (see <a href="24667.html">place_pool_kind3</a>) to the record and moves on four bytes. An entry of 1 to 5 deals a place at random from that group of the pool, one not dealt already; an entry of 0 deals nothing, leaving the four bytes as they were ($FF, no place) -- unless the next entry is 3, when it copies the place before it, 16 to the right and 35 up, so the two pick-ups lie side by side. The list ends with its entry of 4, which is dealt too.
+</div>
+<div class="paragraph">
+Every place in the pool is free again at the start, so the two players are dealt independently and may be given the same places.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The player record's first place (+$1D)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places</td>
+<td class="address-2"><span id="24851"></span>6113</td>
+<td class="instruction">LD IY,<a href="25001.html">dealing_list</a></td>
+<td class="comment-1" rowspan="1">The whole list, nineteen entries</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="24855"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="33750.html">planet_secured</a>.
+</div>
+<div class="paragraph">
+With IY at the list's last entry alone (<a href="33750.html">planet_secured</a>, at the end of a stage), this deals the record's last place again.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_0</td>
+<td class="address-2"><span id="24855"></span>6117</td>
+<td class="instruction">LD HL,<a href="24667.html">place_pool_kind3</a></td>
+<td class="comment-1" rowspan="10">Mark all 46 places in the pool free</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24858"></span>611A</td>
+<td class="instruction">LD B,$2E</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_1</td>
+<td class="address-2"><span id="24860"></span>611C</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24861"></span>611D</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24863"></span>611F</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24864"></span>6120</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24865"></span>6121</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24866"></span>6122</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24867"></span>6123</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24868"></span>6124</td>
+<td class="instruction">DJNZ <a href="24851.html#24860">deal_places_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24870"></span>6126</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="3">Except the first and third places of kind 2, never dealt</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24872"></span>6128</td>
+<td class="instruction">LD (<a href="24667.html#24803">place_pool_kind2</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24875"></span>612B</td>
+<td class="instruction">LD (<a href="24667.html#24811">place_pool_kind2_third</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_2</td>
+<td class="address-2"><span id="24878"></span>612E</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">An entry of 1-5: deal from a group</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24881"></span>6131</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24882"></span>6132</td>
+<td class="instruction">JR NZ,<a href="24851.html#24914">deal_places_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24884"></span>6134</td>
+<td class="instruction">LD A,(IY+$01)</td>
+<td class="comment-1" rowspan="3">An entry of 0: unless the next entry is 3, leave this place alone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24887"></span>6137</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24889"></span>6139</td>
+<td class="instruction">JR NZ,<a href="24851.html#24987">deal_places_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24891"></span>613B</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="8">Copy the place before it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24892"></span>613C</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24893"></span>613D</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24894"></span>613E</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24895"></span>613F</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24896"></span>6140</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24897"></span>6141</td>
+<td class="instruction">LD BC,$0004</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24900"></span>6144</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24902"></span>6146</td>
+<td class="instruction">DEC DE</td>
+<td class="comment-1" rowspan="4">Its y 35 less</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24903"></span>6147</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24904"></span>6148</td>
+<td class="instruction">SUB $23</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24906"></span>614A</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24907"></span>614B</td>
+<td class="instruction">DEC DE</td>
+<td class="comment-1" rowspan="4">Its x 16 more</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24908"></span>614C</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24909"></span>614D</td>
+<td class="instruction">ADD A,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24911"></span>614F</td>
+<td class="instruction">LD (DE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24912"></span>6150</td>
+<td class="instruction">JR <a href="24851.html#24989">deal_places_7</a></td>
+<td class="comment-1" rowspan="1">Next entry</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_3</td>
+<td class="address-2"><span id="24914"></span>6152</td>
+<td class="instruction">LD C,$0F</td>
+<td class="comment-1" rowspan="17">Pick the kind's group and a mask one less than its size: kind 1 the second group of <a href="24667.html">place_pool_kind3</a>, 3 the first, 2 the fourth, 4 the fifth, 5 the third</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24916"></span>6154</td>
+<td class="instruction">LD HL,<a href="24667.html#24731">place_pool_kind1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24919"></span>6157</td>
+<td class="instruction">CP $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24921"></span>6159</td>
+<td class="instruction">JR Z,<a href="24851.html#24953">deal_places_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24923"></span>615B</td>
+<td class="instruction">LD HL,<a href="24667.html">place_pool_kind3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24926"></span>615E</td>
+<td class="instruction">CP $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24928"></span>6160</td>
+<td class="instruction">JR Z,<a href="24851.html#24953">deal_places_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24930"></span>6162</td>
+<td class="instruction">LD C,$07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24932"></span>6164</td>
+<td class="instruction">LD HL,<a href="24667.html#24803">place_pool_kind2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24935"></span>6167</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24937"></span>6169</td>
+<td class="instruction">JR Z,<a href="24851.html#24953">deal_places_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24939"></span>616B</td>
+<td class="instruction">LD C,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24941"></span>616D</td>
+<td class="instruction">LD HL,<a href="24667.html#24835">place_pool_kind4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24944"></span>6170</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24946"></span>6172</td>
+<td class="instruction">JR Z,<a href="24851.html#24953">deal_places_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24948"></span>6174</td>
+<td class="instruction">LD HL,<a href="24667.html#24795">place_pool_kind5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24951"></span>6177</td>
+<td class="instruction">LD C,$01</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_4</td>
+<td class="address-2"><span id="24953"></span>6179</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="6">A place of the group chosen by the random number (<a href="39883.html">random_a</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24954"></span>617A</td>
+<td class="instruction">LD A,(<a href="39883.html">random_a</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24957"></span>617D</td>
+<td class="instruction">AND C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24958"></span>617E</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24959"></span>617F</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24960"></span>6180</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24963"></span>6183</td>
+<td class="instruction">BIT 7,(HL)</td>
+<td class="comment-1" rowspan="5">Already dealt: stir the random number (<a href="62011.html">random</a>) and try again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24965"></span>6185</td>
+<td class="instruction">JR Z,<a href="24851.html#24973">deal_places_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24967"></span>6187</td>
+<td class="instruction">CALL <a href="62011.html">random</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24970"></span>618A</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24971"></span>618B</td>
+<td class="instruction">JR <a href="24851.html#24953">deal_places_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_5</td>
+<td class="address-2"><span id="24973"></span>618D</td>
+<td class="instruction">LD BC,$0004</td>
+<td class="comment-1" rowspan="2">Copy it to the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24976"></span>6190</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24978"></span>6192</td>
+<td class="instruction">DEC HL</td>
+<td class="comment-1" rowspan="5">Mark it dealt</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24979"></span>6193</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24980"></span>6194</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24981"></span>6195</td>
+<td class="instruction">DEC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24982"></span>6196</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24984"></span>6198</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="2">Next entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24985"></span>6199</td>
+<td class="instruction">JR <a href="24851.html#24991">deal_places_8</a></td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_6</td>
+<td class="address-2"><span id="24987"></span>619B</td>
+<td class="instruction">INC DE</td>
+<td class="comment-1" rowspan="4">Leave four bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24988"></span>619C</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_7</td>
+<td class="address-2"><span id="24989"></span>619D</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24990"></span>619E</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label">deal_places_8</td>
+<td class="address-2"><span id="24991"></span>619F</td>
+<td class="instruction">LD A,(IY+$00)</td>
+<td class="comment-1" rowspan="3">Stop after the entry of 4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24994"></span>61A2</td>
+<td class="instruction">CP $04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24996"></span>61A4</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24997"></span>61A5</td>
+<td class="instruction">INC IY</td>
+<td class="comment-1" rowspan="2">Next entry</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="24999"></span>61A7</td>
+<td class="instruction">JR <a href="24851.html#24878">deal_places_2</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="24667.html">605B</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#24851">Map</a></td>
+<td class="next">
+Next: <a href="25001.html">61A9</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at C96F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51549.html">C95D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51567">Map</a></td>
+<td class="next">
+Next: <a href="51601.html">C991</a>
+</td>
+</tr>
+</table>
+<div class="description">C96F: Copy a bitmap to the screen</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="34448.html">move_method_arrow</a>, <a href="51775.html">draw_panel</a>, <a href="51915.html">draw_frame</a>, <a href="52142.html">draw_fuel_gauge</a> and <a href="62060.html">menu</a>.
+</div>
+<div class="paragraph">
+Draws a byte-aligned bitmap with no mask, overwriting what is there: a width in bytes, a height in rows, then the rows, bottom row first, drawn upwards from the given pixel position (<a href="41411.html">line_up_hl</a> steps up a row). Used for the panel and the play area's frame.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">The y of the bottom row</td>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">The x (a multiple of 8)</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The bitmap</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The byte after it</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_bitmap</td>
+<td class="address-2"><span id="51567"></span>C96F</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="10">Read the width and height; the screen address (<a href="41289.html">pixel_to_screen</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51568"></span>C970</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51569"></span>C971</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51570"></span>C972</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51571"></span>C973</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51572"></span>C974</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51573"></span>C975</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51574"></span>C976</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51577"></span>C979</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51578"></span>C97A</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_bitmap_0</td>
+<td class="address-2"><span id="51581"></span>C97D</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="13">Each row: copy the bytes, then up one pixel row.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51582"></span>C97E</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51585"></span>C981</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_bitmap_1</td>
+<td class="address-2"><span id="51586"></span>C982</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51587"></span>C983</td>
+<td class="instruction">LD (HL),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51588"></span>C984</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51589"></span>C985</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51590"></span>C986</td>
+<td class="instruction">DJNZ <a href="51567.html#51586">draw_bitmap_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51592"></span>C988</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51593"></span>C989</td>
+<td class="instruction">CALL <a href="41411.html">line_up_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51596"></span>C98C</td>
+<td class="instruction">DEC C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51597"></span>C98D</td>
+<td class="instruction">JR NZ,<a href="51567.html#51581">draw_bitmap_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51599"></span>C98F</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51600"></span>C990</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51549.html">C95D</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51567">Map</a></td>
+<td class="next">
+Next: <a href="51601.html">C991</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

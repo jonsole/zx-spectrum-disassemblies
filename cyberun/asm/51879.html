@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at CAA7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51775.html">CA3F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51879">Map</a></td>
+<td class="next">
+Next: <a href="51915.html">CACB</a>
+</td>
+</tr>
+</table>
+<div class="description">CAA7: Colour the fuel gauge, flashing red when fuel is low</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="52343.html">update_fuel_gauge</a>.
+</div>
+<div class="paragraph">
+On odd passes only. With fuel low (the high byte of <a href="52299.html">fuel</a>, $98 or more: about seven tenths used) the gauge's colour patch (2 cells by 16, at x $F0) is red on two passes in four and yellow on the others; otherwise yellow. From the entry point near its end (used by <a href="51775.html">draw_panel</a>): always yellow.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">flash_fuel_gauge</td>
+<td class="address-2"><span id="51879"></span>CAA7</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+<td class="comment-1" rowspan="4">Even passes: nothing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51882"></span>CAAA</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51883"></span>CAAB</td>
+<td class="instruction">AND $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51885"></span>CAAD</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51886"></span>CAAE</td>
+<td class="instruction">LD A,($CC4C)</td>
+<td class="comment-1" rowspan="7">Low and bit 1 of the pass counter set: red.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51889"></span>CAB1</td>
+<td class="instruction">CP $98</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51891"></span>CAB3</td>
+<td class="instruction">JR C,<a href="51879.html#51901">flash_fuel_gauge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51893"></span>CAB5</td>
+<td class="instruction">BIT 1,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51895"></span>CAB7</td>
+<td class="instruction">JR Z,<a href="51879.html#51901">flash_fuel_gauge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51897"></span>CAB9</td>
+<td class="instruction">LD A,$42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51899"></span>CABB</td>
+<td class="instruction">JR <a href="51879.html#51903">flash_fuel_gauge_1</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="51901"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="51775.html">draw_panel</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">flash_fuel_gauge_0</td>
+<td class="address-2"><span id="51901"></span>CABD</td>
+<td class="instruction">LD A,$46</td>
+<td class="comment-1" rowspan="1">Yellow.</td>
+</tr>
+<tr>
+<td class="asm-label">flash_fuel_gauge_1</td>
+<td class="address-2"><span id="51903"></span>CABF</td>
+<td class="instruction">LD (<a href="52141.html">gauge_colour</a>),A</td>
+<td class="comment-1" rowspan="4">Set the patch's attribute and apply it.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51906"></span>CAC2</td>
+<td class="instruction">LD HL,$BFF0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51909"></span>CAC5</td>
+<td class="instruction">LD DE,<a href="52139.html">gauge_patch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51912"></span>CAC8</td>
+<td class="instruction">JP <a href="51601.html">fill_attributes</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51775.html">CA3F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51879">Map</a></td>
+<td class="next">
+Next: <a href="51915.html">CACB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

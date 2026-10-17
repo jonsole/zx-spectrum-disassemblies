@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E3D8</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58301.html">E3BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58328">Map</a></td>
+<td class="next">
+Next: <a href="58395.html">E41B</a>
+</td>
+</tr>
+</table>
+<div class="description">E3D8: Look up a terrain piece's shape</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="52488.html">load_piece_steps</a> and <a href="52587.html">piece_ends</a>.
+</div>
+<div class="paragraph">
+Called by <a href="52488.html">load_piece_steps</a> and <a href="52587.html">piece_ends</a> with the piece in hand. Copies its direction's three bytes from <a href="58301.html">piece_shapes</a> to <a href="52789.html">piece_dx</a> (run in pixels), <a href="52790.html">piece_dcolumn</a> (width in bytes) and <a href="52791.html">piece_rise</a> (rise in rows); directions 7 and up (the ceilings, and the walls) use the records seven lower and set <a href="23605.html">piece_ceiling</a> to $80. Then sets <a href="58395.html">direction_flag</a> and the displacement of the JR at the end of <a href="54041.html">landscape_step_loop</a> to match: for a piece that climbs to the right (width positive) <a href="58395.html">direction_flag</a> is $FF and the JR skips the NEG at <a href="54372.html">slope_step_at_right_edge</a>; for one that climbs to the left it is 1 and the NEG is done.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the collision-box list of the map cell being drawn (see <a href="53437.html">draw_landscape</a>); (IX+3) the piece's direction</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">set_piece_shape</td>
+<td class="address-2"><span id="58328"></span>E3D8</td>
+<td class="instruction">LD HL,<a href="58301.html">piece_shapes</a></td>
+<td class="comment-1" rowspan="1">The shape records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58331"></span>E3DB</td>
+<td class="instruction">LD A,(IX+$03)</td>
+<td class="comment-1" rowspan="3">Directions 0 to 6 go straight to their record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58334"></span>E3DE</td>
+<td class="instruction">CP $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58336"></span>E3E0</td>
+<td class="instruction">JR C,<a href="58328.html#58348">set_piece_shape_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58338"></span>E3E2</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="4">Directions 7 to 15: say so, and use records 0 to 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58340"></span>E3E4</td>
+<td class="instruction">LD (<a href="23605.html">piece_ceiling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58343"></span>E3E7</td>
+<td class="instruction">LD A,(IX+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58346"></span>E3EA</td>
+<td class="instruction">SUB $07</td>
+</tr>
+<tr>
+<td class="asm-label">set_piece_shape_0</td>
+<td class="address-2"><span id="58348"></span>E3EC</td>
+<td class="instruction">LD E,A</td>
+<td class="comment-1" rowspan="6">Three bytes a record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58349"></span>E3ED</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58350"></span>E3EE</td>
+<td class="instruction">ADD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58351"></span>E3EF</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58352"></span>E3F0</td>
+<td class="instruction">LD D,$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58354"></span>E3F2</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58355"></span>E3F3</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="8">Run, width and rise</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58356"></span>E3F4</td>
+<td class="instruction">LD (<a href="52789.html">piece_dx</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58359"></span>E3F7</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58360"></span>E3F8</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58361"></span>E3F9</td>
+<td class="instruction">LD (<a href="52790.html">piece_dcolumn</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58364"></span>E3FC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58365"></span>E3FD</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58366"></span>E3FE</td>
+<td class="instruction">LD (<a href="52791.html">piece_rise</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58369"></span>E401</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="4">Say it climbs to the left: direction 1, the NEG done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58371"></span>E403</td>
+<td class="instruction">LD (<a href="58395.html">direction_flag</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58374"></span>E406</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58375"></span>E407</td>
+<td class="instruction">LD ($D463),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58378"></span>E40A</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58381"></span>E40D</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="2">It does if the width is negative</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58383"></span>E40F</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58384"></span>E410</td>
+<td class="instruction">LD A,$FF</td>
+<td class="comment-1" rowspan="5">Climbs to the right: $FF, and the JR jumps over the NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58386"></span>E412</td>
+<td class="instruction">LD (<a href="58395.html">direction_flag</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58389"></span>E415</td>
+<td class="instruction">LD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58391"></span>E417</td>
+<td class="instruction">LD ($D463),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58394"></span>E41A</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="58301.html">E3BD</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#58328">Map</a></td>
+<td class="next">
+Next: <a href="58395.html">E41B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B234</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45423.html">B16F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45620">Map</a></td>
+<td class="next">
+Next: <a href="45842.html">B312</a>
+</td>
+</tr>
+</table>
+<div class="description">B234: Steer the ship: its speed across and up, and this pass's scroll</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50036.html">ship_pass</a>.
+</div>
+<div class="paragraph">
+Called first thing in a pass (<a href="50036.html">ship_pass</a>). The ship never moves on the screen across, and up and down only with its height: the landscape moves under it. This works out how far, in pixels, up and across (<a href="52410.html">scroll_down</a> and the byte after it), for the landscape (<a href="53437.html">draw_landscape</a>) and, negated, for the ship's position in the world (<a href="47596.html">ship_speed_from_scroll</a>).
+</div>
+<div class="paragraph">
+Across, <a href="51196.html">accelerate_across</a> does the work: this gives it the push in DE, in 256ths of a pixel a pass a pass: $40 left or -$40 right, plus a drag of 12 against the way the ship was going (the step across last pass) -- but only when pushing against it; pushing the way the ship goes ignores the drag. With nothing pushed the drag alone slows the ship. Nothing is pushed while <a href="23616.html">fuel_saver</a> is set (knocked sideways). <a href="23606.html">steer_push</a> says which way it was pushed ($80 left, 3 right, 0 not), for <a href="51196.html">accelerate_across</a> and the ship's drawing.
+</div>
+<div class="paragraph">
+Up: gravity takes $40 a pass from the climb speed (the ship's record +$1B +$1C), or, while thrusting, thrust adds $50 instead -- one or the other is loaded, never both. The speed is clamped (<a href="45858.html">clamp_climb</a>): no faster than half the top climb (<a href="23615.html">top_climb</a>, 2 or 4) up, and -3 down. It is added to a fraction kept in <a href="45856.html">climb_fraction</a>, and the change in the whole part, doubled, is the step: the screen moves 2 lines a unit. A step one unit too big upwards, or down by 6, is cut to the top climb, or 4. At a step of 4 either way, every other fine-scroll position (<a href="52802.html">origin_y</a> bit 1) moves only 2.
+</div>
+<div class="paragraph">
+While the special beam is on (<a href="47154.html">special_beam_on</a>) the ship hangs still. Once it has docked with the finished rocket (<a href="38571.html">launch_state</a> set) it thrusts by itself at the fast climb until the view reaches y page 0, then stops.
+</div>
+<div class="paragraph">
+The second entry, at the adding of the speed to the fraction, works the step out from a speed in HL; <a href="43541.html">bounce_up_down</a> and <a href="47759.html">hit_block</a> (a bounce) use it.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the ship's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship</td>
+<td class="address-2"><span id="45620"></span>B234</td>
+<td class="instruction">CALL <a href="45333.html">read_controls</a></td>
+<td class="comment-1" rowspan="1">the controls, and fuel (<a href="45333.html">read_controls</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45623"></span>B237</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="3">not pushed yet; no drag</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45624"></span>B238</td>
+<td class="instruction">LD (<a href="23606.html">steer_push</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45627"></span>B23B</td>
+<td class="instruction">LD DE,(<a href="45850.html">no_push</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45631"></span>B23F</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="12">docked with the rocket: thrust on and the fast climb; at the top page, stop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45634"></span>B242</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45635"></span>B243</td>
+<td class="instruction">JR Z,<a href="45620.html#45657">move_ship_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45637"></span>B245</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45639"></span>B247</td>
+<td class="instruction">LD (<a href="23607.html">controls_now</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45642"></span>B24A</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45644"></span>B24C</td>
+<td class="instruction">LD (<a href="23615.html">top_climb</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45647"></span>B24F</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45650"></span>B252</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45651"></span>B253</td>
+<td class="instruction">JR NZ,<a href="45620.html#45677">move_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45653"></span>B255</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45656"></span>B258</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_0</td>
+<td class="address-2"><span id="45657"></span>B259</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="8">the drag: 12 against last pass's way across, if it moved</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45660"></span>B25C</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45662"></span>B25E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45663"></span>B25F</td>
+<td class="instruction">JR Z,<a href="45620.html#45677">move_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45665"></span>B261</td>
+<td class="instruction">LD DE,(<a href="45854.html">drag_going_right</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45669"></span>B265</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45671"></span>B267</td>
+<td class="instruction">JR NZ,<a href="45620.html#45677">move_ship_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45673"></span>B269</td>
+<td class="instruction">LD DE,(<a href="45852.html">drag_going_left</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_1</td>
+<td class="address-2"><span id="45677"></span>B26D</td>
+<td class="instruction">LD A,(<a href="23607.html">controls_now</a>)</td>
+<td class="comment-1" rowspan="13">left: $40, with the drag if the ship was going right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45680"></span>B270</td>
+<td class="instruction">BIT 1,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45682"></span>B272</td>
+<td class="instruction">JR Z,<a href="45620.html#45703">move_ship_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45684"></span>B274</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45685"></span>B275</td>
+<td class="instruction">LD DE,(<a href="45848.html">push_left</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45689"></span>B279</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45691"></span>B27B</td>
+<td class="instruction">LD (<a href="23606.html">steer_push</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45694"></span>B27E</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45695"></span>B27F</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45697"></span>B281</td>
+<td class="instruction">JR Z,<a href="45620.html#45723">move_ship_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45699"></span>B283</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45700"></span>B284</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45701"></span>B285</td>
+<td class="instruction">JR <a href="45620.html#45723">move_ship_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_2</td>
+<td class="address-2"><span id="45703"></span>B287</td>
+<td class="instruction">BIT 0,A</td>
+<td class="comment-1" rowspan="11">right: -$40, with the drag if the ship was going left</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45705"></span>B289</td>
+<td class="instruction">JR Z,<a href="45620.html#45723">move_ship_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45707"></span>B28B</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45708"></span>B28C</td>
+<td class="instruction">LD DE,(<a href="45846.html">push_right</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45712"></span>B290</td>
+<td class="instruction">LD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45714"></span>B292</td>
+<td class="instruction">LD (<a href="23606.html">steer_push</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45717"></span>B295</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45718"></span>B296</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45719"></span>B297</td>
+<td class="instruction">JR Z,<a href="45620.html#45723">move_ship_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45721"></span>B299</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45722"></span>B29A</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_3</td>
+<td class="address-2"><span id="45723"></span>B29B</td>
+<td class="instruction">LD A,(<a href="23616.html">fuel_saver</a>)</td>
+<td class="comment-1" rowspan="4">knocked sideways this pass: no push</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45726"></span>B29E</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45727"></span>B29F</td>
+<td class="instruction">JR Z,<a href="45620.html#45732">move_ship_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45729"></span>B2A1</td>
+<td class="instruction">LD DE,$0000</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_4</td>
+<td class="address-2"><span id="45732"></span>B2A4</td>
+<td class="instruction">CALL <a href="51196.html">accelerate_across</a></td>
+<td class="comment-1" rowspan="1">the speed across, the position across and the step across (<a href="51196.html">accelerate_across</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45735"></span>B2A7</td>
+<td class="instruction">LD DE,(<a href="45842.html">gravity</a>)</td>
+<td class="comment-1" rowspan="5">gravity, or thrust</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45739"></span>B2AB</td>
+<td class="instruction">LD A,(<a href="23607.html">controls_now</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45742"></span>B2AE</td>
+<td class="instruction">AND $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45744"></span>B2B0</td>
+<td class="instruction">JR Z,<a href="45620.html#45750">move_ship_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45746"></span>B2B2</td>
+<td class="instruction">LD DE,(<a href="45844.html">thrust</a>)</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_5</td>
+<td class="address-2"><span id="45750"></span>B2B6</td>
+<td class="instruction">LD H,(IX+$1B)</td>
+<td class="comment-1" rowspan="2">the climb speed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45753"></span>B2B9</td>
+<td class="instruction">LD L,(IX+$1C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45756"></span>B2BC</td>
+<td class="instruction">LD A,(<a href="47154.html">special_beam_on</a>)</td>
+<td class="comment-1" rowspan="6">the special beam on: no climb, no fall</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45759"></span>B2BF</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45760"></span>B2C0</td>
+<td class="instruction">JR Z,<a href="45620.html#45771">move_ship_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45762"></span>B2C2</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45765"></span>B2C5</td>
+<td class="instruction">LD DE,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45768"></span>B2C8</td>
+<td class="instruction">LD (<a href="45856.html">climb_fraction</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_6</td>
+<td class="address-2"><span id="45771"></span>B2CB</td>
+<td class="instruction">ADD HL,DE</td>
+<td class="comment-1" rowspan="4">add, clamp (<a href="45858.html">clamp_climb</a>) and keep</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45772"></span>B2CC</td>
+<td class="instruction">CALL <a href="45858.html">clamp_climb</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45775"></span>B2CF</td>
+<td class="instruction">LD (IX+$1B),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45778"></span>B2D2</td>
+<td class="instruction">LD (IX+$1C),L</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="45781"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routines at <a href="43541.html">bounce_up_down</a> and <a href="47759.html">hit_block</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_7</td>
+<td class="address-2"><span id="45781"></span>B2D5</td>
+<td class="instruction">LD DE,(<a href="45856.html">climb_fraction</a>)</td>
+<td class="comment-1" rowspan="3">the second entry: add the speed to the fraction in <a href="45856.html">climb_fraction</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45785"></span>B2D9</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45786"></span>B2DA</td>
+<td class="instruction">LD (<a href="45856.html">climb_fraction</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45789"></span>B2DD</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="4">the whole lines moved, doubled</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45790"></span>B2DE</td>
+<td class="instruction">SUB D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45791"></span>B2DF</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45792"></span>B2E0</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45793"></span>B2E1</td>
+<td class="instruction">BIT 7,A</td>
+<td class="comment-1" rowspan="9">upwards: one unit too many (the top climb + 2) becomes the top climb</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45795"></span>B2E3</td>
+<td class="instruction">JR NZ,<a href="45620.html#45811">move_ship_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45797"></span>B2E5</td>
+<td class="instruction">LD A,(<a href="23615.html">top_climb</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45800"></span>B2E8</td>
+<td class="instruction">ADD A,$02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45802"></span>B2EA</td>
+<td class="instruction">CP H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45803"></span>B2EB</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45804"></span>B2EC</td>
+<td class="instruction">JR NZ,<a href="45620.html#45817">move_ship_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45806"></span>B2EE</td>
+<td class="instruction">LD A,(<a href="23615.html">top_climb</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45809"></span>B2F1</td>
+<td class="instruction">JR <a href="45620.html#45817">move_ship_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_8</td>
+<td class="address-2"><span id="45811"></span>B2F3</td>
+<td class="instruction">CP $FA</td>
+<td class="comment-1" rowspan="3">downwards: -6 becomes -4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45813"></span>B2F5</td>
+<td class="instruction">JR NZ,<a href="45620.html#45817">move_ship_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45815"></span>B2F7</td>
+<td class="instruction">LD A,$FC</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_9</td>
+<td class="address-2"><span id="45817"></span>B2F9</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+<td class="comment-1" rowspan="1">the step up this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45820"></span>B2FC</td>
+<td class="instruction">CP $04</td>
+<td class="comment-1" rowspan="11">4 either way: halved when <a href="52802.html">origin_y</a> bit 1 is set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45822"></span>B2FE</td>
+<td class="instruction">JR Z,<a href="45620.html#45827">move_ship_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45824"></span>B300</td>
+<td class="instruction">CP $FC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45826"></span>B302</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">move_ship_10</td>
+<td class="address-2"><span id="45827"></span>B303</td>
+<td class="instruction">LD A,(<a href="52802.html">origin_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45830"></span>B306</td>
+<td class="instruction">AND $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45832"></span>B308</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45833"></span>B309</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45836"></span>B30C</td>
+<td class="instruction">SRA A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45838"></span>B30E</td>
+<td class="instruction">LD (<a href="52410.html">scroll_down</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="45841"></span>B311</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="45423.html">B16F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#45620">Map</a></td>
+<td class="next">
+Next: <a href="45842.html">B312</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

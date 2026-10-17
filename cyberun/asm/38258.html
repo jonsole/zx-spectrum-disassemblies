@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 9572</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38239.html">955F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38258">Map</a></td>
+<td class="next">
+Next: <a href="38571.html">96AB</a>
+</td>
+</tr>
+</table>
+<div class="description">9572: Draw the rocket parts delivered, and launch the rocket</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+Called by <a href="44128.html">update_ground_objects</a>. The rocket is built at a fixed place, page column $52 and row 10, from up to eight parts brought there by the ship (<a href="38692.html">drop_part</a>, <a href="38180.html">update_rocket_part</a>). Each pass the view is near it (columns $51-$52, rows 9-10) -- or the rocket is launching -- every part delivered is drawn from the one record <a href="39500.html">rocket_record</a>: the base position (<a href="38572.html">rocket_x</a>, <a href="38574.html">rocket_y</a>) plus the part's offset from <a href="38576.html">rocket_part_table</a>, frame the part's number (part 6 uses frame 8). The part's flags and drawn position are kept in its entry of the table between passes, so its old picture can be rubbed out. Half the parts' number counts in the load (<a href="36156.html">rocket_parts_load</a>).
+</div>
+<div class="paragraph">
+When all eight are there and the ship stops in place in the rocket (column $52 pixel $5C, row 10, line $63 or below), the launch starts: <a href="38571.html">launch_state</a> is set, the ship is put away (two routines inside <a href="50147.html">draw_ship</a>, run with the death byte at 10 for their sake), and from then on the base moves up each pass (at the view's vertical scroll speed (<a href="52410.html">scroll_down</a>), or 4 lines a pass in page row 0), with the launch sound (<a href="29443.html">sound_launch</a>). Once part 0 has left the screen <a href="38571.html">launch_state</a> is set to $FF, which ends the play loop (<a href="62528.html">play</a>) in the game's end sequence.
+</div>
+<div class="paragraph">
+It all ran in the build's sessions: the launch, and the deliveries of part 0 and of the ore tank. In the staged launch the rocket kept its place on the screen while the view climbed from page row 10 to row 0, its base moving up by the view's own scroll, and then rose 4 lines a pass off the top; the launch took about 390 passes (run in SkoolKit's simulator for the Animations page).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket</td>
+<td class="address-2"><span id="38258"></span>9572</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="2">No share in the load yet</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38259"></span>9573</td>
+<td class="instruction">LD (<a href="36156.html">rocket_parts_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38262"></span>9576</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="3">Launching: draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38265"></span>9579</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38266"></span>957A</td>
+<td class="instruction">JR NZ,<a href="38258.html#38287">draw_rocket_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38268"></span>957C</td>
+<td class="instruction">LD HL,(<a href="52823.html">view_column</a>)</td>
+<td class="comment-1" rowspan="11">Otherwise only with the rocket's place in view</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38271"></span>957F</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38272"></span>9580</td>
+<td class="instruction">CP $51</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38274"></span>9582</td>
+<td class="instruction">JR Z,<a href="38258.html#38279">draw_rocket_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38276"></span>9584</td>
+<td class="instruction">CP $52</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38278"></span>9586</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_0</td>
+<td class="address-2"><span id="38279"></span>9587</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38280"></span>9588</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38282"></span>958A</td>
+<td class="instruction">JR Z,<a href="38258.html#38287">draw_rocket_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38284"></span>958C</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38286"></span>958E</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_1</td>
+<td class="address-2"><span id="38287"></span>958F</td>
+<td class="instruction">LD A,(<a href="62978.html">parts_built</a>)</td>
+<td class="comment-1" rowspan="6">No parts: nothing; half their number counts in the load</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38290"></span>9592</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38291"></span>9593</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38292"></span>9594</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38293"></span>9595</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38295"></span>9597</td>
+<td class="instruction">LD (<a href="36156.html">rocket_parts_load</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38298"></span>959A</td>
+<td class="instruction">LD IX,<a href="39500.html">rocket_record</a></td>
+<td class="comment-1" rowspan="5">The drawing record; part 0 first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38302"></span>959E</td>
+<td class="instruction">LD (IX+$13),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38306"></span>95A2</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38309"></span>95A5</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38310"></span>95A6</td>
+<td class="instruction">JR Z,<a href="38258.html#38362">draw_rocket_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38312"></span>95A8</td>
+<td class="instruction">LD A,(<a href="39524.html">pass_counter</a>)</td>
+<td class="comment-1" rowspan="3">Launching: the sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38315"></span>95AB</td>
+<td class="instruction">AND $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38317"></span>95AD</td>
+<td class="instruction">CALL <a href="29443.html">sound_launch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38320"></span>95B0</td>
+<td class="instruction">CALL <a href="38239.html">put_rocket_record</a></td>
+<td class="comment-1" rowspan="9">Move the base up with the view, or by 4 at the top</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38323"></span>95B3</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38326"></span>95B6</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38328"></span>95B8</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38331"></span>95BB</td>
+<td class="instruction">LD A,(<a href="52824.html">view_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38334"></span>95BE</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38335"></span>95BF</td>
+<td class="instruction">JR NZ,<a href="38258.html#38341">draw_rocket_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38337"></span>95C1</td>
+<td class="instruction">LD (IX+$09),$FC</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_2</td>
+<td class="address-2"><span id="38341"></span>95C5</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38344"></span>95C8</td>
+<td class="instruction">LD L,(IX+$02)</td>
+<td class="comment-1" rowspan="6">Keep the base</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38347"></span>95CB</td>
+<td class="instruction">LD H,(IX+$01)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38350"></span>95CE</td>
+<td class="instruction">LD (<a href="38572.html">rocket_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38353"></span>95D1</td>
+<td class="instruction">LD L,(IX+$05)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38356"></span>95D4</td>
+<td class="instruction">LD H,(IX+$04)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38359"></span>95D7</td>
+<td class="instruction">LD (<a href="38574.html">rocket_y</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_3</td>
+<td class="address-2"><span id="38362"></span>95DA</td>
+<td class="instruction">CALL <a href="38239.html">put_rocket_record</a></td>
+<td class="comment-1" rowspan="1">Each part: the base...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38365"></span>95DD</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="10">...its flags and drawn position from the table...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38368"></span>95E0</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38369"></span>95E1</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38370"></span>95E2</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38371"></span>95E3</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38372"></span>95E4</td>
+<td class="instruction">LD HL,<a href="38576.html">rocket_part_table</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38375"></span>95E7</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38378"></span>95EA</td>
+<td class="instruction">LD DE,<a href="39500.html#39516">rocket_record_flags</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38381"></span>95ED</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38384"></span>95F0</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38386"></span>95F2</td>
+<td class="instruction">LD A,(HL)</td>
+<td class="comment-1" rowspan="8">...plus its offset</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38387"></span>95F3</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38390"></span>95F6</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38391"></span>95F7</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38392"></span>95F8</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38395"></span>95FB</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38398"></span>95FE</td>
+<td class="instruction">LD (IX+$07),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38402"></span>9602</td>
+<td class="instruction">LD (IX+$09),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38406"></span>9606</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="4">Part 6 is drawn with frame 8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38409"></span>9609</td>
+<td class="instruction">CP $06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38411"></span>960B</td>
+<td class="instruction">JR NZ,<a href="38258.html#38417">draw_rocket_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38413"></span>960D</td>
+<td class="instruction">LD (IX+$13),$08</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_4</td>
+<td class="address-2"><span id="38417"></span>9611</td>
+<td class="instruction">CALL <a href="41706.html">clear_sprite_pair</a></td>
+<td class="comment-1" rowspan="5">Rub out its old picture</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38420"></span>9614</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38424"></span>9618</td>
+<td class="instruction">CALL NZ,<a href="44327.html">prepare_erase</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38427"></span>961B</td>
+<td class="instruction">RES 6,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38431"></span>961F</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38432"></span>9620</td>
+<td class="instruction">CALL <a href="37100.html">place_object</a></td>
+<td class="comment-1" rowspan="3">Place, draw and colour it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38435"></span>9623</td>
+<td class="instruction">CALL <a href="44315.html">draw_object_images</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38438"></span>9626</td>
+<td class="instruction">CALL <a href="44696.html">colour_sprite</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38441"></span>9629</td>
+<td class="instruction">LD IX,<a href="39500.html">rocket_record</a></td>
+<td class="comment-1" rowspan="16">Its flags and drawn position back to the table</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38445"></span>962D</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38448"></span>9630</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38450"></span>9632</td>
+<td class="instruction">JR NZ,<a href="38258.html#38457">draw_rocket_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38452"></span>9634</td>
+<td class="instruction">LD A,$06</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38454"></span>9636</td>
+<td class="instruction">LD (IX+$13),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_5</td>
+<td class="address-2"><span id="38457"></span>9639</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38458"></span>963A</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38459"></span>963B</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38460"></span>963C</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38461"></span>963D</td>
+<td class="instruction">LD HL,<a href="38576.html">rocket_part_table</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38464"></span>9640</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38467"></span>9643</td>
+<td class="instruction">LD DE,<a href="39500.html#39516">rocket_record_flags</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38470"></span>9646</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38471"></span>9647</td>
+<td class="instruction">LD BC,$0003</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38474"></span>964A</td>
+<td class="instruction">LDIR</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38476"></span>964C</td>
+<td class="instruction">INC (IX+$13)</td>
+<td class="comment-1" rowspan="4">Next part</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38479"></span>964F</td>
+<td class="instruction">LD A,(<a href="62978.html">parts_built</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38482"></span>9652</td>
+<td class="instruction">CP (IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38485"></span>9655</td>
+<td class="instruction">JP NZ,<a href="38258.html#38362">draw_rocket_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38488"></span>9658</td>
+<td class="instruction">LD A,(<a href="62978.html">parts_built</a>)</td>
+<td class="comment-1" rowspan="3">All eight?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38491"></span>965B</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38493"></span>965D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38494"></span>965E</td>
+<td class="instruction">LD A,(<a href="38571.html">launch_state</a>)</td>
+<td class="comment-1" rowspan="3">Launching...</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38497"></span>9661</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38498"></span>9662</td>
+<td class="instruction">JR Z,<a href="38258.html#38514">draw_rocket_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38500"></span>9664</td>
+<td class="instruction">CALL <a href="50898.html">lift_jet</a></td>
+<td class="comment-1" rowspan="7">...until part 0 is off the screen: then the game's end</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38503"></span>9667</td>
+<td class="instruction">LD A,(<a href="38576.html">rocket_part_table</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38506"></span>966A</td>
+<td class="instruction">AND $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38508"></span>966C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38509"></span>966D</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38510"></span>966E</td>
+<td class="instruction">LD (<a href="38571.html">launch_state</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38513"></span>9671</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">draw_rocket_6</td>
+<td class="address-2"><span id="38514"></span>9672</td>
+<td class="instruction">LD HL,(<a href="51430.html">view_page_column</a>)</td>
+<td class="comment-1" rowspan="14">The ship in place in the rocket?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38517"></span>9675</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38518"></span>9676</td>
+<td class="instruction">CP $52</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38520"></span>9678</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38521"></span>9679</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38522"></span>967A</td>
+<td class="instruction">CP $5C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38524"></span>967C</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38525"></span>967D</td>
+<td class="instruction">LD HL,(<a href="51433.html">view_page_row</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38528"></span>9680</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38529"></span>9681</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38531"></span>9683</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38532"></span>9684</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38533"></span>9685</td>
+<td class="instruction">CP $63</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38535"></span>9687</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38536"></span>9688</td>
+<td class="instruction">LD (<a href="38571.html">launch_state</a>),A</td>
+<td class="comment-1" rowspan="3">The launch begins; the death byte 10 for the next two calls</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38539"></span>968B</td>
+<td class="instruction">LD A,$0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38541"></span>968D</td>
+<td class="instruction">LD (<a href="36691.html">death_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38544"></span>9690</td>
+<td class="instruction">CALL <a href="50209.html">draw_ship_image</a></td>
+<td class="comment-1" rowspan="2">Put the ship away</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38547"></span>9693</td>
+<td class="instruction">CALL <a href="50413.html">draw_trail</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38550"></span>9696</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="8">The death byte back to 0; the carried thing's state $80 (<a href="49614.html">carried_part</a>); the ship's X velocity 0; a sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38551"></span>9697</td>
+<td class="instruction">LD (<a href="36691.html">death_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38554"></span>969A</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38556"></span>969C</td>
+<td class="instruction">LD (<a href="49786.html">carried_part_redraw</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38559"></span>969F</td>
+<td class="instruction">CALL <a href="49614.html">carried_part</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38562"></span>96A2</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38565"></span>96A5</td>
+<td class="instruction">LD (<a href="51454.html">ship_across_speed</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="38568"></span>96A8</td>
+<td class="instruction">JP <a href="29260.html">sound_zap</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="38239.html">955F</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#38258">Map</a></td>
+<td class="next">
+Next: <a href="38571.html">96AB</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

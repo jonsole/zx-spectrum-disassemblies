@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AAD7</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43575.html">AA37</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43735">Map</a></td>
+<td class="next">
+Next: <a href="43928.html">AB98</a>
+</td>
+</tr>
+</table>
+<div class="description">AAD7: Pick up a pick-up the ship touches</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+For each pick-up record (bit 7 of +3) every pass (<a href="44128.html">update_ground_objects</a>). A pick-up is taken when it was on the screen last pass, between line $28 and the bottom and between x=$30 and $90, and its box touches a narrow box under the middle of the ship: 16 pixels from x=$70, the ship's height less ten. Then a sound (<a href="29182.html">sound_pick_up</a>), 1000 added to the score (the score adder near the end of <a href="37244.html">test_player_shots</a>), the record is emptied (bit 4 of +$10, so its image is rubbed out this pass), and:
+</div>
+<div class="paragraph">
+A rocket part (graphic $1E) is taken only when add-on 1 is fitted (+7 of the player's record <a href="62951.html">score</a>) and it is the part due next (its kind against +$1B, the parts delivered); its colours become $FA. It is hung under the ship: the ship record's +$1F gets the part number with bits 6 and 7 set (<a href="50147.html">draw_ship</a> then calls <a href="43575.html">toggle_carried_part</a>), +$1A of the player's record the part carried, and the part's 4-byte entry from +$49 of the player's record is marked taken.
+</div>
+<div class="paragraph">
+Any other pick-up is an add-on: +$1F gets its kind plus one, which <a href="50147.html">draw_ship</a> fits (<a href="45033.html">build_ship_sprite</a>), and its entry from +$1D of the player's record is marked. Kinds 9 and $0A are the slab and the spire (add-ons 10 and 11), the load <a href="49614.html">carried_part</a> puts down: kind $0A, the spire, is never taken; kind 9, the slab, only with add-on 9 fitted (+$0F), and taking it clears +$1F and <a href="49785.html">carried_part_facing</a>, sets +$10 of the player's record (<a href="62967.html">player_count_nine</a>) to 9 (the whole load is carried again) and empties <a href="43149.html">second_pickup_record</a>, which holds the spire. Much of this never ran in the build's sessions: the rocket parts' tests, their hanging and the kind-9 code.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The pick-up's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">collect_pickup</td>
+<td class="address-2"><span id="43735"></span>AAD7</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">A rocket part?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43738"></span>AADA</td>
+<td class="instruction">CP $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43740"></span>AADC</td>
+<td class="instruction">JR NZ,<a href="43735.html#43762">collect_pickup_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43742"></span>AADE</td>
+<td class="instruction">LD A,(<a href="62958.html">addon_slots</a>)</td>
+<td class="comment-1" rowspan="10">Only with add-on 1 fitted and when it is the part due next; recolour it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43745"></span>AAE1</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43746"></span>AAE2</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43747"></span>AAE3</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43750"></span>AAE6</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43752"></span>AAE8</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43753"></span>AAE9</td>
+<td class="instruction">LD A,(<a href="62978.html">parts_built</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43756"></span>AAEC</td>
+<td class="instruction">CP B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43757"></span>AAED</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43758"></span>AAEE</td>
+<td class="instruction">LD (IX+$0D),$FA</td>
+</tr>
+<tr>
+<td class="asm-label">collect_pickup_0</td>
+<td class="address-2"><span id="43762"></span>AAF2</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="9">Kind $0A is never taken; kind 9 only with add-on 9</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43765"></span>AAF5</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43767"></span>AAF7</td>
+<td class="instruction">CP $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43769"></span>AAF9</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43770"></span>AAFA</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43772"></span>AAFC</td>
+<td class="instruction">JR NZ,<a href="43735.html#43779">collect_pickup_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43774"></span>AAFE</td>
+<td class="instruction">LD A,(<a href="62966.html">addon_nine</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43777"></span>AB01</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43778"></span>AB02</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label">collect_pickup_1</td>
+<td class="address-2"><span id="43779"></span>AB03</td>
+<td class="instruction">LD A,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="3">Not if it was not on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43782"></span>AB06</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43783"></span>AB07</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43784"></span>AB08</td>
+<td class="instruction">LD ($ABA7),A</td>
+<td class="comment-1" rowspan="10">Its height, and where it was drawn: only from line $28 down and between x=$30 and $90</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43787"></span>AB0B</td>
+<td class="instruction">LD HL,(<a href="41427.html">old_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43790"></span>AB0E</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43791"></span>AB0F</td>
+<td class="instruction">CP $28</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43793"></span>AB11</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43794"></span>AB12</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43795"></span>AB13</td>
+<td class="instruction">CP $30</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43797"></span>AB15</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43798"></span>AB16</td>
+<td class="instruction">CP $90</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43800"></span>AB18</td>
+<td class="instruction">RET NC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43801"></span>AB19</td>
+<td class="instruction">LD (<a href="43940.html">collision_box</a>),HL</td>
+<td class="comment-1" rowspan="6">Its box</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43804"></span>AB1C</td>
+<td class="instruction">LD A,(<a href="23592.html">sprite_width</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43807"></span>AB1F</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43808"></span>AB20</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43809"></span>AB21</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43810"></span>AB22</td>
+<td class="instruction">LD (<a href="43942.html">collision_box_size</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43813"></span>AB25</td>
+<td class="instruction">LD HL,(<a href="51458.html">ship_screen_x</a>)</td>
+<td class="comment-1" rowspan="7">The ship's: 16 pixels from x=$70, its height less ten</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43816"></span>AB28</td>
+<td class="instruction">LD L,$70</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43818"></span>AB2A</td>
+<td class="instruction">LD D,$10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43820"></span>AB2C</td>
+<td class="instruction">LD A,(<a href="49577.html">ship_height</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43823"></span>AB2F</td>
+<td class="instruction">SUB $0A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43825"></span>AB31</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43826"></span>AB32</td>
+<td class="instruction">CALL <a href="43928.html">test_collision_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43829"></span>AB35</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+<td class="comment-1" rowspan="3">Not touching</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43832"></span>AB38</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43833"></span>AB39</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43834"></span>AB3A</td>
+<td class="instruction">CALL <a href="29182.html">sound_pick_up</a></td>
+<td class="comment-1" rowspan="1">Taken: a sound</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43837"></span>AB3D</td>
+<td class="instruction">LD BC,$1000</td>
+<td class="comment-1" rowspan="2">1000 to the score</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43840"></span>AB40</td>
+<td class="instruction">CALL <a href="37244.html#37470">add_score</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43843"></span>AB43</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="11">A rocket part: hang it with bits 6 and 7 set, and keep the part number</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43846"></span>AB46</td>
+<td class="instruction">CP $1E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43848"></span>AB48</td>
+<td class="instruction">JR NZ,<a href="43735.html#43870">collect_pickup_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43850"></span>AB4A</td>
+<td class="instruction">LD A,(IX+$13)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43853"></span>AB4D</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43855"></span>AB4F</td>
+<td class="instruction">OR $C0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43857"></span>AB51</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43860"></span>AB54</td>
+<td class="instruction">LD HL,<a href="63024.html">place_eleven</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43863"></span>AB57</td>
+<td class="instruction">AND $0F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43865"></span>AB59</td>
+<td class="instruction">LD (<a href="62977.html">rocket_part_carried</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43868"></span>AB5C</td>
+<td class="instruction">JR <a href="43735.html#43881">collect_pickup_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">collect_pickup_2</td>
+<td class="address-2"><span id="43870"></span>AB5E</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="5">An add-on: fit kind+1</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43873"></span>AB61</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43874"></span>AB62</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43877"></span>AB65</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43878"></span>AB66</td>
+<td class="instruction">LD HL,<a href="62980.html">player_places</a></td>
+</tr>
+<tr>
+<td class="asm-label">collect_pickup_3</td>
+<td class="address-2"><span id="43881"></span>AB69</td>
+<td class="instruction">ADD A,A</td>
+<td class="comment-1" rowspan="4">Mark it as taken in the player's record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43882"></span>AB6A</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43883"></span>AB6B</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43886"></span>AB6E</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43888"></span>AB70</td>
+<td class="instruction">SET 4,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Rub it out this pass and free the record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43892"></span>AB74</td>
+<td class="instruction">LD (IX+$00),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43896"></span>AB78</td>
+<td class="instruction">LD A,(IX+$13)</td>
+<td class="comment-1" rowspan="14">Kind 9, the slab: carry the load again, and empty the other pick-up record (the spire)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43899"></span>AB7B</td>
+<td class="instruction">CP $09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43901"></span>AB7D</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43902"></span>AB7E</td>
+<td class="instruction">XOR A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43903"></span>AB7F</td>
+<td class="instruction">LD (<a href="51460.html">part_being_fitted</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43906"></span>AB82</td>
+<td class="instruction">LD (<a href="49785.html">carried_part_facing</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43909"></span>AB85</td>
+<td class="instruction">LD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43911"></span>AB87</td>
+<td class="instruction">LD (<a href="62967.html">player_count_nine</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43914"></span>AB8A</td>
+<td class="instruction">LD A,($A89D)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43917"></span>AB8D</td>
+<td class="instruction">OR $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43919"></span>AB8F</td>
+<td class="instruction">LD ($A89D),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43922"></span>AB92</td>
+<td class="instruction">LD HL,<a href="63020.html">place_ten</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43925"></span>AB95</td>
+<td class="instruction">SET 7,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="43927"></span>AB97</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="43575.html">AA37</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#43735">Map</a></td>
+<td class="next">
+Next: <a href="43928.html">AB98</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

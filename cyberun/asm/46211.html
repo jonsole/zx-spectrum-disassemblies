@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B483</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46100.html">B414</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46211">Map</a></td>
+<td class="next">
+Next: <a href="46511.html">B5AF</a>
+</td>
+</tr>
+</table>
+<div class="description">B483: Update a laser shot</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="46854.html">update_shots</a>.
+</div>
+<div class="paragraph">
+Called for each laser (and special beam) in flight (<a href="46854.html">update_shots</a>). A laser is a line one pixel high, drawn on the screen and coloured a cell high, which grows out of the ship's nose: its head 16 pixels a pass and its tail 8, its length (+E, in cells) one more each pass. A probe moves through the world 16 pixels a pass ahead of the ship (<a href="46828.html">probe_laser</a>, the record's +7 being the ship's speed plus 16); when it meets the landscape, or the head reaches the play area's edge (x $B8 for the left end of a beam going right), the head stops (+10 bit 7). The pattern's offset (+F) then counts down to 0, after which the tail catches up (bit 6) a cell a pass until the beam has gone. While stopped the beam is moved by the scroll, so it stays on what it hit. The attackers are checked against it in <a href="37244.html">test_player_shots</a>.
+</div>
+<div class="paragraph">
+On its first pass (+E 0) the line is set: the ship's shot line (<a href="23608.html">ship_line</a>) less this pass's climb, plus a random -1, 0 or +1, and a random colour (<a href="46066.html">random_beam_colour</a>), and the record's world position is moved by that. Going left is <a href="46632.html">update_left_shot</a>; both end in <a href="46511.html">draw_shot</a>, which draws the beam and frees the record when it has gone.
+</div>
+<div class="paragraph">
+<a href="23589.html">piece_step_x</a> is set to $80 for <a href="47649.html">collide_with_landscape</a>: a shot stops at the first box of landscape it touches.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the shot's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot</td>
+<td class="address-2"><span id="46211"></span>B483</td>
+<td class="instruction">LD A,(<a href="51436.html">ship_dx</a>)</td>
+<td class="comment-1" rowspan="4">the probe moves with the ship; <a href="23589.html">piece_step_x</a> = $80, a shot</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46214"></span>B486</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46217"></span>B489</td>
+<td class="instruction">LD A,$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46219"></span>B48B</td>
+<td class="instruction">LD (<a href="23589.html">piece_step_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46222"></span>B48E</td>
+<td class="instruction">BIT 7,(IX+$15)</td>
+<td class="comment-1" rowspan="2">the special beam: <a href="46100.html">update_special_beam</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46226"></span>B492</td>
+<td class="instruction">JP NZ,<a href="46100.html">update_special_beam</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46229"></span>B495</td>
+<td class="instruction">LD A,$01</td>
+<td class="comment-1" rowspan="3">a laser is one line high, drawn and rubbed out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46231"></span>B497</td>
+<td class="instruction">LD (<a href="41431.html">old_sprite_rows</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46234"></span>B49A</td>
+<td class="instruction">LD (<a href="41432.html">new_sprite_rows</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46237"></span>B49D</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="3">not its first pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46240"></span>B4A0</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46241"></span>B4A1</td>
+<td class="instruction">JR NZ,<a href="46211.html#46281">update_shot_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46243"></span>B4A3</td>
+<td class="instruction">LD (IX+$10),$00</td>
+<td class="comment-1" rowspan="14">its first: no flags, no speed; the line, shaken by one; a colour; move the record to it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46247"></span>B4A7</td>
+<td class="instruction">LD (IX+$07),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46251"></span>B4AB</td>
+<td class="instruction">CALL <a href="46083.html">random_jitter</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46254"></span>B4AE</td>
+<td class="instruction">LD A,(<a href="52410.html">scroll_down</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46257"></span>B4B1</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46259"></span>B4B3</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46260"></span>B4B4</td>
+<td class="instruction">LD (IX+$09),B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46263"></span>B4B7</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46264"></span>B4B8</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46267"></span>B4BB</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46268"></span>B4BC</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46271"></span>B4BF</td>
+<td class="instruction">CALL <a href="46066.html">random_beam_colour</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46274"></span>B4C2</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46277"></span>B4C5</td>
+<td class="instruction">LD (IX+$09),$00</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_0</td>
+<td class="address-2"><span id="46281"></span>B4C9</td>
+<td class="instruction">BIT 7,(IX+$00)</td>
+<td class="comment-1" rowspan="2">going left: <a href="46632.html">update_left_shot</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46285"></span>B4CD</td>
+<td class="instruction">JP NZ,<a href="46632.html">update_left_shot</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46288"></span>B4D0</td>
+<td class="instruction">LD DE,<a href="46042.html">laser_pattern_right</a></td>
+<td class="comment-1" rowspan="5">last pass's pattern, screen address and width into the alternate set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46291"></span>B4D3</td>
+<td class="instruction">CALL <a href="46058.html">beam_pattern</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46294"></span>B4D6</td>
+<td class="instruction">CALL <a href="41611.html">record_screen_address</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46297"></span>B4D9</td>
+<td class="instruction">LD B,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46300"></span>B4DC</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46301"></span>B4DD</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+<td class="comment-1" rowspan="2">the head has stopped</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46305"></span>B4E1</td>
+<td class="instruction">JR NZ,<a href="46211.html#46386">update_shot_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46307"></span>B4E3</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="5">first pass: the pattern's offset 8; the left end at x $88</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46310"></span>B4E6</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46311"></span>B4E7</td>
+<td class="instruction">JR NZ,<a href="46211.html#46321">update_shot_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46313"></span>B4E9</td>
+<td class="instruction">LD (IX+$0F),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46317"></span>B4ED</td>
+<td class="instruction">LD (IX+$0B),$88</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_1</td>
+<td class="address-2"><span id="46321"></span>B4F1</td>
+<td class="instruction">LD A,$10</td>
+<td class="comment-1" rowspan="3">the probe 16 pixels ahead</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46323"></span>B4F3</td>
+<td class="instruction">ADD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46326"></span>B4F6</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46329"></span>B4F9</td>
+<td class="instruction">CALL <a href="46828.html">probe_laser</a></td>
+<td class="comment-1" rowspan="2">in the landscape (<a href="46828.html">probe_laser</a>)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46332"></span>B4FC</td>
+<td class="instruction">JR Z,<a href="46211.html#46353">update_shot_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46334"></span>B4FE</td>
+<td class="instruction">LD A,$F0</td>
+<td class="comment-1" rowspan="6">yes: the probe back; the head stops, a hit</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46336"></span>B500</td>
+<td class="instruction">ADD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46339"></span>B503</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46342"></span>B506</td>
+<td class="instruction">SET 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46346"></span>B50A</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46350"></span>B50E</td>
+<td class="instruction">JP <a href="46211.html#46493">update_shot_9</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_2</td>
+<td class="address-2"><span id="46353"></span>B511</td>
+<td class="instruction">LD A,$08</td>
+<td class="comment-1" rowspan="6">the left end 8 on; at $B8 the head is at the edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46355"></span>B513</td>
+<td class="instruction">ADD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46358"></span>B516</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46361"></span>B519</td>
+<td class="instruction">CP $B8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46363"></span>B51B</td>
+<td class="instruction">JR NZ,<a href="46211.html#46369">update_shot_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46365"></span>B51D</td>
+<td class="instruction">SET 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_3</td>
+<td class="address-2"><span id="46369"></span>B521</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="7">a cell longer, the pattern's offset one less; draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46372"></span>B524</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46373"></span>B525</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46376"></span>B528</td>
+<td class="instruction">LD A,(IX+$0F)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46379"></span>B52B</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46380"></span>B52C</td>
+<td class="instruction">LD (IX+$0F),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46383"></span>B52F</td>
+<td class="instruction">JP <a href="46211.html#46506">update_shot_10</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_4</td>
+<td class="address-2"><span id="46386"></span>B532</td>
+<td class="instruction">BIT 5,(IX+$10)</td>
+<td class="comment-1" rowspan="5">stopped: probe again until it hits</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46390"></span>B536</td>
+<td class="instruction">JR NZ,<a href="46211.html#46401">update_shot_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46392"></span>B538</td>
+<td class="instruction">CALL <a href="46828.html">probe_laser</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46395"></span>B53B</td>
+<td class="instruction">JR Z,<a href="46211.html#46470">update_shot_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46397"></span>B53D</td>
+<td class="instruction">SET 5,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_5</td>
+<td class="address-2"><span id="46401"></span>B541</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="5">follow the scroll across; no more probing speed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46404"></span>B544</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46406"></span>B546</td>
+<td class="instruction">ADD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46409"></span>B549</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46412"></span>B54C</td>
+<td class="instruction">LD (IX+$07),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46416"></span>B550</td>
+<td class="instruction">BIT 6,(IX+$10)</td>
+<td class="comment-1" rowspan="19">the right end past the edge at $E4-$EF: a cell shorter; past $F0 (off the screen): gone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46420"></span>B554</td>
+<td class="instruction">LD B,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46423"></span>B557</td>
+<td class="instruction">LD C,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46426"></span>B55A</td>
+<td class="instruction">JR Z,<a href="46211.html#46433">update_shot_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46428"></span>B55C</td>
+<td class="instruction">DEC B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46429"></span>B55D</td>
+<td class="instruction">LD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46430"></span>B55E</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46432"></span>B560</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_6</td>
+<td class="address-2"><span id="46433"></span>B561</td>
+<td class="instruction">SLA B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46435"></span>B563</td>
+<td class="instruction">SLA B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46437"></span>B565</td>
+<td class="instruction">SLA B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46439"></span>B567</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46440"></span>B568</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46441"></span>B569</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46443"></span>B56B</td>
+<td class="instruction">CP $E4</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46445"></span>B56D</td>
+<td class="instruction">JR C,<a href="46211.html#46470">update_shot_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46447"></span>B56F</td>
+<td class="instruction">CP $F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46449"></span>B571</td>
+<td class="instruction">JR C,<a href="46211.html#46455">update_shot_7</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46451"></span>B573</td>
+<td class="instruction">LD (IX+$0E),$00</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_7</td>
+<td class="address-2"><span id="46455"></span>B577</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="6">a cell shorter at the right</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46458"></span>B57A</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46459"></span>B57B</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46462"></span>B57E</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46465"></span>B581</td>
+<td class="instruction">SUB $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46467"></span>B583</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_8</td>
+<td class="address-2"><span id="46470"></span>B586</td>
+<td class="instruction">BIT 6,(IX+$10)</td>
+<td class="comment-1" rowspan="9">the tail catching up: a cell shorter, the left end 8 on</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46474"></span>B58A</td>
+<td class="instruction">JR Z,<a href="46211.html#46493">update_shot_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46476"></span>B58C</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46479"></span>B58F</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46480"></span>B590</td>
+<td class="instruction">LD (IX+$0E),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46483"></span>B593</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46486"></span>B596</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46488"></span>B598</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46491"></span>B59B</td>
+<td class="instruction">JR <a href="46211.html#46506">update_shot_10</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_9</td>
+<td class="address-2"><span id="46493"></span>B59D</td>
+<td class="instruction">LD A,(IX+$0F)</td>
+<td class="comment-1" rowspan="5">the pattern's offset down to 0: then the tail starts</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46496"></span>B5A0</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46497"></span>B5A1</td>
+<td class="instruction">LD (IX+$0F),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46500"></span>B5A4</td>
+<td class="instruction">JR NZ,<a href="46211.html#46506">update_shot_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46502"></span>B5A6</td>
+<td class="instruction">SET 6,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label">update_shot_10</td>
+<td class="address-2"><span id="46506"></span>B5AA</td>
+<td class="instruction">LD DE,<a href="46042.html">laser_pattern_right</a></td>
+<td class="comment-1" rowspan="2">the right-going pattern; draw it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46509"></span>B5AD</td>
+<td class="instruction">JR <a href="46511.html#46514">draw_shot_0</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46100.html">B414</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46211">Map</a></td>
+<td class="next">
+Next: <a href="46511.html">B5AF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

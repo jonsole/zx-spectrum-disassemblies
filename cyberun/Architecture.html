@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: How the game is put together</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="aticatac.css" />
+<link rel="stylesheet" type="text/css" href="knightlore.css" />
+<link rel="stylesheet" type="text/css" href="cyberun.css" />
+<link rel="stylesheet" type="text/css" href="site.css" />
+</head>
+<body class="Architecture">
+<table class="header">
+<tr>
+<td class="logo"><a href="index.html"><img alt="Cyberun" src="images/logo.png" /></a></td>
+<td class="page-header">How the game is put together</td>
+</tr>
+</table>
+<div class="kl-list">
+<p>How Cyberun is put together: what runs from loading to the menu, a game, a life and a pass of play, what sets the speed, and where everything lies in memory.</p>
+<h3>From loading to the menu, a game and a life</h3>
+<pre><a href="asm/23680.html">game_entry</a>    DI; JP start (the loader jumps here)
+<a href="asm/39526.html">start</a>         SP = $5B80; border black; <a href="asm/63595.html">build_shift_tables</a>; JP game
+<a href="asm/62498.html">game</a>          every game starts here
+<a href="asm/62060.html">menu</a>        the title tune until a key, the menu until 0
+<a href="asm/62397.html">new_game</a>    both player records cleared, 5 lives each, places dealt
+<a href="asm/39538.html">clear_attributes</a>, <a href="asm/39550.html">clear_pixels</a>, <a href="asm/51775.html">draw_panel</a>
+<a href="asm/62702.html">show_player</a>, a pause, <a href="asm/40748.html">clear_play_area</a>
+into the first life at $F44C, past the reset
+<a href="asm/62528.html">play</a>          every later life
+<a href="asm/62225.html">reset_for_life</a>    the per-life tables reset; no lives left: back to game
+the ore back from the player record; the gone bit's BIT and SETs patched
+<a href="asm/56481.html">start_landscape</a>    the fly-in, until play begins
+the play loop at $F46C, until
+the death byte reaches 12: the death sequence, <a href="asm/62662.html">lose_life</a>, round to play
+<a href="asm/38571.html">launch_state</a> is $FF: <a href="asm/62762.html">level_done</a>, the next planet, round to play</pre>
+<p>The start-up -- <a href="asm/39526.html">start</a> to <a href="asm/62498.html">game</a>, almost all of it <a href="asm/63595.html">build_shift_tables</a> and <a href="asm/63467.html">build_shifted_pieces</a> building the shift tables and the shifted landscape pieces -- took 571,650 T-states in the simulator, 0.16 seconds. Interrupts are never enabled: <a href="asm/23424.html">loader_entry</a> and <a href="asm/23680.html">game_entry</a> both execute DI and nothing executes EI. There is no HALT and no interrupt routine, and the game's stack is the 128 bytes under $5B80, in the printer buffer.</p>
+<h3>One pass of play</h3>
+<pre>$F46C  <a href="asm/50036.html">ship_pass</a>
+the pass counted; every fourth, <a href="asm/49980.html">save_restart_point</a>
+<a href="asm/45620.html">move_ship</a>: <a href="asm/45333.html">read_controls</a> (controls, fuel), the speeds and the steps
+<a href="asm/47596.html">ship_speed_from_scroll</a>, <a href="asm/47649.html">collide_with_landscape</a>, <a href="asm/43252.html">ship_hits_ground_objects</a>, <a href="asm/48998.html">move_object</a>
+<a href="asm/46854.html">update_shots</a>: the shots
+JP <a href="asm/56824.html">scroll_landscape</a>
+[a cell crossed] <a href="asm/57096.html">load_map_window</a>, <a href="asm/57057.html">set_landscape_colours</a>
+<a href="asm/44128.html">update_ground_objects</a> before or after the landscape, by the vertical scroll
+<a href="asm/53437.html">draw_landscape</a>
+<a href="asm/39898.html">draw_beams</a>, <a href="asm/49123.html">draw_stars</a>
+JP <a href="asm/50147.html">draw_ship</a>: the ship, trail and jets, the pause test, <a href="asm/46897.html">fire</a>; RET
+$F46F  <a href="asm/52343.html">update_fuel_gauge</a>: the gauge, <a href="asm/52323.html">check_fuel_empty</a>
+$F472  <a href="asm/34735.html">spawn_tick</a>: clouds and attackers
+$F475  <a href="asm/36162.html">update_objects</a>: the death byte; the nine sky objects
+$F478  <a href="asm/62011.html">random</a>
+the death byte at 12? the launch done? else round again</pre>
+<p><a href="asm/50036.html">ship_pass</a> does not return to the loop itself: it jumps to <a href="asm/56824.html">scroll_landscape</a>, which jumps on to <a href="asm/50147.html">draw_ship</a>, whose RET goes back to the play loop. The IY that <a href="asm/50036.html">ship_pass</a> pushes is popped by <a href="asm/50147.html">draw_ship</a>; the push also puts the stack at the depth the landscape renderer assumes when it reloads SP from <a href="asm/23418.html">stack_top</a> after each piece -- checked in the simulator: <a href="asm/53437.html">draw_landscape</a> was entered with SP $5B7A. The ship's image is redrawn on odd passes, the carried part on even ones; the side jet on odd passes and the lift jet on even; the shield timer counts on odd passes.</p>
+<h3>Timing</h3>
+<p>Nothing paces the game: with interrupts off it never waits for a frame, so a pass takes as long as its work. Measured in the simulator over 410 passes of flying -- the flight to the terrace scene, then climbing left and firing -- a pass took 59,137 to 302,721 T-states, 145,362 on average: 2.1 television frames, about 24 passes a second. Where the time went, from the play loop round to the play loop, stopped after each stage of every pass:</p>
+<table class="kl-table"><tr><th>Stopped at</th><th>What ran</th><th>T-states a pass</th><th>Per cent</th></tr><tr><td><a href="asm/50036.html">$C3E0</a></td><td>ship_pass: the controls, the ship's movement, the landscape test, the shots</td><td>9,463</td><td>7</td></tr><tr><td><a href="asm/56824.html">$DEB3</a></td><td>scroll_landscape: the origins and the window (and the ground objects when the landscape moves up)</td><td>3,774</td><td>3</td></tr><tr><td><a href="asm/56824.html">$DEB6</a></td><td>draw_landscape</td><td>29,409</td><td>20</td></tr><tr><td><a href="asm/56824.html">$DEC4</a></td><td>the ground objects, the beams, the stars</td><td>12,995</td><td>9</td></tr><tr><td><a href="asm/62528.html">$F46F</a></td><td>draw_ship: the ship, trail, jets, firing</td><td>7,299</td><td>5</td></tr><tr><td><a href="asm/62528.html">$F472</a></td><td>update_fuel_gauge</td><td>1,481</td><td>1</td></tr><tr><td><a href="asm/62528.html">$F475</a></td><td>spawn_tick</td><td>461</td><td>0</td></tr><tr><td><a href="asm/62528.html">$F478</a></td><td>update_objects: the nine sky objects</td><td>80,148</td><td>55</td></tr><tr><td><a href="asm/62528.html">$F46C</a></td><td>random, and back round the loop</td><td>333</td><td>0</td></tr></table>
+<p>So a busy screen plays slower, and a sound effect -- a timing loop inside the pass -- stalls the pass it is played in. Counts kept in passes (the shield, the death sequence, the fuel's grace) are not fixed lengths of time.</p>
+<h3>The death byte</h3>
+<p><a href="asm/36691.html">death_count</a> is the whole of the death's state: 0 alive, set to 1 by a third hit or an empty tank, counted up a pass at a time by <a href="asm/36162.html">update_objects</a>; the play loop leaves for the death sequence at 12, which ends at $50 (see <a href="DamageAndFuel.html">damage, fuel and dying</a>). <a href="asm/38571.html">launch_state</a> reaching $FF ends the level instead (see <a href="RocketAndOre.html">the rocket</a>).</p>
+<h3>Two players</h3>
+<p>The two players never need to know which one is playing: their whole 105-byte records are swapped at each turn (<a href="asm/62865.html">swap_players</a>), and the one shared table, the objects lying in the world (<a href="asm/23700.html">map_object_kinds</a>), gets its per-player bit by patching the BIT and SET instructions that test it (<a href="asm/57620.html">spawn_objects_from_list</a>, <a href="asm/43252.html">ship_hits_ground_objects</a>, <a href="asm/43944.html">beam_hits_ground_object</a>).</p>
+<h3>Memory</h3>
+<p>The game runs from $5B00 to $FFFF. Below the loaded block are the stack, the four collision-box lists over the loader's entry and some forty scratch variables in the system variables. The block holds the world's level data first, then the tunes, the sound effects and the sprites, then the code with its tables and variables, the landscape pieces at its end. Above it: the menu and the game's flow, the player records, the ship's picture, and the start-up code that becomes a sprite buffer and a bit-reversal table, over the six pages of shift tables built on the loader's leftovers.</p>
+<table class="kl-table"><tr><th>Addresses</th><th>Starts at</th><th>What</th></tr><tr><td>$4000-$5AFF</td><td></td><td>the display</td></tr><tr><td>$5B00-$5B79</td><td><a href="asm/23296.html">stack_space</a></td><td>the stack, down from $5B80</td></tr><tr><td>$5B7A-$5B7F</td><td><a href="asm/23418.html">stack_top</a></td><td>the stack's top: three return addresses while the landscape is drawn</td></tr><tr><td>$5B80-$5C13</td><td><a href="asm/23424.html">loader_entry</a></td><td>the four on-screen cells' collision-box lists, over the loader's entry</td></tr><tr><td>$5C15-$5C40</td><td><a href="asm/23573.html">saved_step_x</a></td><td>scratch variables, in the system variables</td></tr><tr><td>$5C80-$5C83</td><td><a href="asm/23680.html">game_entry</a></td><td>the entry: DI, JP start</td></tr><tr><td>$5C94-$6112</td><td><a href="asm/23700.html">map_object_kinds</a></td><td>the objects lying in the world and the places pick-ups are dealt to</td></tr><tr><td>$61BC-$6C3B</td><td><a href="asm/25020.html">landscape_map</a></td><td>the map: 96 columns by 28 rows of tile numbers</td></tr><tr><td>$6C3C-$70D7</td><td><a href="asm/27708.html">tile_table</a></td><td>the tile table and the tile records</td></tr><tr><td>$70D8-$731E</td><td><a href="asm/28888.html">title_tune</a></td><td>the title tune and the sound effects</td></tr><tr><td>$731F-$8346</td><td><a href="asm/29471.html">rocket_bars_graphic</a></td><td>the sprite graphics</td></tr><tr><td>$8347-$E248</td><td><a href="asm/33607.html">landscape_end_pieces</a></td><td>the code, with its tables and variables</td></tr><tr><td>$E249-$E580</td><td><a href="asm/57929.html">flat_blit_lose_first</a></td><td>the POP blitters and the pieces' tables by shift</td></tr><tr><td>$E581-$E749</td><td><a href="asm/58753.html">flat_piece_gfx</a></td><td>the nine stored landscape graphics</td></tr><tr><td>$E74A-$F0FA</td><td><a href="asm/59210.html">slope_2_shifted</a></td><td>their shifted copies, made at the start</td></tr><tr><td>$F10F-$F5E6</td><td><a href="asm/61711.html">play_area_colour</a></td><td>the menu and the game's flow</td></tr><tr><td>$F5E7-$F6B8</td><td><a href="asm/62951.html">score</a></td><td>the two player records</td></tr><tr><td>$F6B9-$F7E4</td><td><a href="asm/63161.html">ship_picture</a></td><td>the ship's picture, built from its add-ons</td></tr><tr><td>$F7EB-$F8FF</td><td><a href="asm/63467.html">build_shifted_pieces</a></td><td>start-up code, then the compositor's buffer</td></tr><tr><td>$F900-$F9FF</td><td><a href="asm/63744.html">bit_reverse_table</a></td><td>start-up code, then the bit-reversal table</td></tr><tr><td>$FA00-$FFFF</td><td><a href="asm/64000.html">shift_tables</a></td><td>the loader's leftovers, then the shift tables</td></tr></table>
+<p>The listing's entries by type, a byte a pixel, 256 to a row from $5B00 (read from the listing): <span style="color:rgb(90, 140, 255)">code</span> (23,384 bytes), <span style="color:rgb(255, 160, 60)">data</span> (17,378 bytes), <span style="color:rgb(90, 220, 110)">variables</span> (421 bytes), <span style="color:rgb(120, 120, 120)">space</span> (1,055 bytes), <span style="color:rgb(150, 40, 40)">unused</span> (2 bytes).</p>
+<div class="kl-item"><img class="kl-piece" src="images/howitworks/architecture_memory.png" alt="The memory map" width="556" height="330"><p>Memory from $5B00 to $FFFF, by the listing's entries.</p></div>
+<h3>Confirmed and inferred</h3><ul><li>Run in the simulator when this page was built: the start-up's length; the stack pointer at draw_landscape; a pass's T-states, stage by stage, over 410 passes.</li><li>Read from the code: the order of everything and the alternate-pass work. The memory map is the listing's entries.</li><li>The simulator does not emulate the ULA's memory contention, so a real Spectrum's passes are somewhat longer than those measured here.</li></ul>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

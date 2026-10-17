@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at F86B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63574.html">F856</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63595">Map</a></td>
+<td class="next">
+Next: <a href="63616.html">F880</a>
+</td>
+</tr>
+</table>
+<div class="description">F86B: Build the shift tables</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="39526.html">start</a>.
+</div>
+<div class="paragraph">
+Called once by the start (<a href="39526.html">start</a>). Makes three pairs of pages: for a shift of 2 pixels, <a href="64000.html">shift_tables</a> + n is n shifted right two bits and the next page's byte n the two bits that fall off the right, at the top of a byte; for 4, <a href="64512.html">loader_copy</a> and the page after it; for 6, <a href="65024.html">loader_leftover_charset</a> and the page after it. A byte drawn shifted is then two lookups: the left-hand screen byte gets the high page, the right-hand one the low page. These pages overwrite the end of the loaded block, the loader's copy routine at <a href="64512.html">loader_copy</a> and the loader's stack below <a href="65024.html">loader_leftover_charset</a> among it. Then the landscape pieces are shifted with them (<a href="63467.html">build_shifted_pieces</a>) and the bit-reversed table made (<a href="63574.html">build_bit_reverse</a>).
+</div>
+<div class="paragraph">
+The tables are used afterwards too: <a href="43575.html">toggle_carried_part</a> reads the <a href="64512.html">loader_copy</a> page, <a href="45858.html">clamp_climb</a> and <a href="51328.html">clamp_object_speed</a> the page after it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">build_shift_tables</td>
+<td class="address-2"><span id="63595"></span>F86B</td>
+<td class="instruction">LD HL,<a href="64000.html">shift_tables</a></td>
+<td class="comment-1" rowspan="2">From <a href="64000.html">shift_tables</a>; two bits first</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63598"></span>F86E</td>
+<td class="instruction">LD B,$02</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63600"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="63616.html">sprite_buffer_two</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">build_shift_tables_0</td>
+<td class="address-2"><span id="63600"></span>F870</td>
+<td class="instruction">LD C,$00</td>
+<td class="comment-1" rowspan="1">DE = n shifted right B bits, across two bytes</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="63602"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="63616.html">sprite_buffer_two</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">build_shift_tables_1</td>
+<td class="address-2"><span id="63602"></span>F872</td>
+<td class="instruction">LD D,C</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63603"></span>F873</td>
+<td class="instruction">LD E,$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63605"></span>F875</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">build_shift_tables_2</td>
+<td class="address-2"><span id="63606"></span>F876</td>
+<td class="instruction">SRL D</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63608"></span>F878</td>
+<td class="instruction">RR E</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63610"></span>F87A</td>
+<td class="instruction">DEC A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63611"></span>F87B</td>
+<td class="instruction">JR NZ,<a href="63595.html#63606">build_shift_tables_2</a></td>
+<td class="comment-1" rowspan="1">}</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63613"></span>F87D</td>
+<td class="instruction">LD (HL),D</td>
+<td class="comment-1" rowspan="3">The high part in this page, the low part in the next</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63614"></span>F87E</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="63615"></span>F87F</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="63574.html">F856</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#63595">Map</a></td>
+<td class="next">
+Next: <a href="63616.html">F880</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

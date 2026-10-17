@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E08F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57442.html">E062</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57487">Map</a></td>
+<td class="next">
+Next: <a href="57597.html">E0FD</a>
+</td>
+</tr>
+</table>
+<div class="description">E08F: Bring in the map's objects for the window's two map columns</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="57096.html">load_map_window</a>.
+</div>
+<div class="paragraph">
+The things lying in the world are listed column by column: <a href="23990.html">map_objects_per_column</a> holds a count for each map column, <a href="23700.html">map_object_kinds</a> one byte per object (bits 0-5 its kind, bit 7 set once it is gone), and <a href="24087.html">map_object_places</a> two position bytes per object. The index of column <a href="52823.html">view_column</a>'s first object is the sum of the counts before it; <a href="57620.html">spawn_objects_from_list</a> brings in that column's objects, then the next column's (<a href="56823.html">right_map_column</a>), restarting at object 0 when the column wraps to 0. Last, slots still free get +$10 cleared.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects</td>
+<td class="address-2"><span id="57487"></span>E08F</td>
+<td class="instruction">LD A,(<a href="52823.html">view_column</a>)</td>
+<td class="comment-1" rowspan="11">Index of the column's first object, into <a href="52794.html">box_x</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57490"></span>E092</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57491"></span>E093</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57494"></span>E096</td>
+<td class="instruction">LD DE,<a href="23990.html">map_objects_per_column</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57497"></span>E099</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57498"></span>E09A</td>
+<td class="instruction">JR Z,<a href="57487.html#57507">spawn_column_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_0</td>
+<td class="address-2"><span id="57500"></span>E09C</td>
+<td class="instruction">LD A,(DE)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57501"></span>E09D</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57504"></span>E0A0</td>
+<td class="instruction">INC DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57505"></span>E0A1</td>
+<td class="instruction">DJNZ <a href="57487.html#57500">spawn_column_objects_0</a></td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_1</td>
+<td class="address-2"><span id="57507"></span>E0A3</td>
+<td class="instruction">LD (<a href="52794.html">box_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57510"></span>E0A6</td>
+<td class="instruction">ADD HL,HL</td>
+<td class="comment-1" rowspan="7">Object counts of the two columns.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57511"></span>E0A7</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57512"></span>E0A8</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57513"></span>E0A9</td>
+<td class="instruction">LD (<a href="56821.html">left_column_objects</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57516"></span>E0AC</td>
+<td class="instruction">INC HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57517"></span>E0AD</td>
+<td class="instruction">LD A,(HL)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57518"></span>E0AE</td>
+<td class="instruction">LD (<a href="56822.html">right_column_objects</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57521"></span>E0B1</td>
+<td class="instruction">LD IX,<a href="24087.html">map_object_places</a></td>
+<td class="comment-1" rowspan="10">Pointers to its positions and kinds; bring them in.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57525"></span>E0B5</td>
+<td class="instruction">ADD IX,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57527"></span>E0B7</td>
+<td class="instruction">LD DE,<a href="23700.html">map_object_kinds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57530"></span>E0BA</td>
+<td class="instruction">LD HL,(<a href="52794.html">box_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57533"></span>E0BD</td>
+<td class="instruction">ADD HL,DE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57534"></span>E0BE</td>
+<td class="instruction">LD A,(<a href="52823.html">view_column</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57537"></span>E0C1</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57538"></span>E0C2</td>
+<td class="instruction">LD A,(<a href="56821.html">left_column_objects</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57541"></span>E0C5</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57542"></span>E0C6</td>
+<td class="instruction">CALL <a href="57620.html">spawn_objects_from_list</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57545"></span>E0C9</td>
+<td class="instruction">LD A,(<a href="56823.html">right_map_column</a>)</td>
+<td class="comment-1" rowspan="11">The next column (from object 0 if it wrapped; that path never ran).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57548"></span>E0CC</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57549"></span>E0CD</td>
+<td class="instruction">JR NZ,<a href="57487.html#57564">spawn_column_objects_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57551"></span>E0CF</td>
+<td class="instruction">LD HL,$0000</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57554"></span>E0D2</td>
+<td class="instruction">LD (<a href="52794.html">box_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57557"></span>E0D5</td>
+<td class="instruction">LD HL,<a href="23700.html">map_object_kinds</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57560"></span>E0D8</td>
+<td class="instruction">LD IX,<a href="24087.html">map_object_places</a></td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_2</td>
+<td class="address-2"><span id="57564"></span>E0DC</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57565"></span>E0DD</td>
+<td class="instruction">LD A,(<a href="56822.html">right_column_objects</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57568"></span>E0E0</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57569"></span>E0E1</td>
+<td class="instruction">CALL <a href="57620.html">spawn_objects_from_list</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57572"></span>E0E4</td>
+<td class="instruction">LD B,$04</td>
+<td class="comment-1" rowspan="2">Free slots: +$10 cleared.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57574"></span>E0E6</td>
+<td class="instruction">LD IX,<a href="43019.html">ground_objects</a></td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="57578"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="57096.html">load_map_window</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_3</td>
+<td class="address-2"><span id="57578"></span>E0EA</td>
+<td class="instruction">LD DE,$001A</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_4</td>
+<td class="address-2"><span id="57581"></span>E0ED</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57584"></span>E0F0</td>
+<td class="instruction">CP $FF</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57586"></span>E0F2</td>
+<td class="instruction">JR NZ,<a href="57487.html#57592">spawn_column_objects_5</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57588"></span>E0F4</td>
+<td class="instruction">LD (IX+$10),$00</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label">spawn_column_objects_5</td>
+<td class="address-2"><span id="57592"></span>E0F8</td>
+<td class="instruction">ADD IX,DE</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57594"></span>E0FA</td>
+<td class="instruction">DJNZ <a href="57487.html#57581">spawn_column_objects_4</a></td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57596"></span>E0FC</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1">}</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57442.html">E062</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57487">Map</a></td>
+<td class="next">
+Next: <a href="57597.html">E0FD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

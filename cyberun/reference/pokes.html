@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Pokes</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Pokes">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Pokes</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#nohits">No damage</a></li>
+<li><a href="#nofuel">No fuel burned</a></li>
+<li><a href="#lives">Infinite lives</a></li>
+<li><a href="#noattackers">No attackers, no meteor showers</a></li>
+<li><a href="#beams">Harmless beams</a></li>
+<li><a href="#shield">A shield that lasts</a></li>
+<li><a href="#rapid">No gun cooling</a></li>
+<li><a href="#hook">Rocket parts without the hook</a></li>
+<li><a href="#beamkey">The special beam without add-on 7</a></li>
+<li><a href="#emptytank">Deliver the ore tank empty</a></li>
+<li><a href="#startlives">Lives at a new game</a></li>
+<li><a href="#128k">Play on a 128K in 128 mode</a></li>
+</ul>
+<div><span id="nohits"></span></div>
+<div class="box box-1">
+<div class="box-title">No damage</div>
+<div class="paragraph">
+Every hit -- an attacker, a bullet, a rock, a flickering beam -- goes through
+damage_ship, the second half of <a href="../asm/36692.html">contact_damage</a>, at $8F76:
+it counts the hit in <a href="../asm/36803.html">hit_count</a> and kills on the third. A RET as its
+first instruction and nothing is counted. A refuel pad repairs through the
+same routine (see the facts), so with the poke a pad leaves the count at $FF
+instead of nought; nothing else counts it up, so that does no harm.
+Tested: from the first pass of a new game, build_cyberun's round of keys
+(thrust, steering both ways, fire) twelve times over, 124 seconds of play,
+with the tank refilled between slices so that only hits could kill. Without
+the poke the ship died on its third hit five times, 6.7, 23.5, 37.2, 48.5 and 72
+seconds in, and the game was over at 79.7 seconds; with it, no hit
+was counted and the five lives were still there at the end.
+</div>
+<div class="paragraph">
+POKE 36726,201
+</div>
+</div>
+<div><span id="nofuel"></span></div>
+<div class="box box-2">
+<div class="box-title">No fuel burned</div>
+<div class="paragraph">
+<a href="../asm/45333.html">read_controls</a> burns fuel on every pass the ship steers or thrusts: 8
+(16 for both at once, halved with add-on 6) added to <a href="../asm/52299.html">fuel</a> through
+<a href="../asm/52301.html">add_fuel</a>, from $B149. A RET there and the burn never
+happens. The pick-ups and pads still work: a refuel pick-up or pad fills the
+tank, and a fuel thief still takes its 16 steps.
+Tested: the same round of keys 24 times, 247 seconds, with the hits undone
+between slices so that only the fuel could kill. Without the poke the tank ran
+dry and the ship died 155.4 seconds in; with it, no death, and the
+gauge moved only for four fuel thieves' drains, to
+$82 at most (it reads $42 full, $BE empty).
+</div>
+<div class="paragraph">
+POKE 45385,201
+</div>
+</div>
+<div><span id="lives"></span></div>
+<div class="box box-1">
+<div class="box-title">Infinite lives</div>
+<div class="paragraph">
+<a href="../asm/62662.html">lose_life</a> takes a life with the DEC A at $F4CF, stores it,
+and goes to <a href="../asm/62716.html">game_over</a> on a zero. The obvious poke, a NOP for the DEC
+(POKE 62671,0), keeps the lives but not the game: the JR Z then tests the
+flags the caller left, and the death sequence's last call,
+<a href="../asm/40748.html">clear_play_area</a>, ends on a DEC C that reaches nought -- so every death
+shows GAME OVER, plays its tune and checks the high score before play goes on
+(game_over returns, and the lives are not nought). OR A in place of the DEC
+leaves the lives as they are and sets the flags from them, never nought.
+Tested: seven deaths in a row by emptying the tank, from a new
+game. Without a poke the lives went 4, 3, 2, 1, 0, and the fifth death was the game
+over. With OR A, five lives after each of the seven and <a href="../asm/62716.html">game_over</a> never ran, a
+death taking 7.6 seconds to the next ship. With the NOP, five
+lives too, but <a href="../asm/62716.html">game_over</a> ran at every death and each took
+13.6 seconds.
+</div>
+<div class="paragraph">
+POKE 62671,183
+</div>
+</div>
+<div><span id="noattackers"></span></div>
+<div class="box box-2">
+<div class="box-title">No attackers, no meteor showers</div>
+<div class="paragraph">
+<a href="../asm/34791.html">spawn_attacker</a> finds a free record among the first four and calls
+<a href="../asm/35283.html">start_attacker</a>, which takes the next kind from the wave table -- or,
+during a meteor shower, a rock or a comet -- and places it. A RET as its first
+instruction and the record is left free. Clouds still come, through
+<a href="../asm/34706.html">spawn_cloud</a>, which goes straight to the placing code, and the ground
+objects still throw their bullets and pick-ups (read).
+Tested: the round of keys six times, 62 seconds, refuelled and repaired.
+Without the poke 38 things started in the attackers' four records:
+7 pillars, 5 eye pods, 5 domes, one tough
+attacker, 11 clouds, and 9 rocks and comets of a meteor shower.
+With it, none; a meteor shower began and brought nothing, and
+47 clouds came in the clouds' own two records.
+</div>
+<div class="paragraph">
+POKE 35283,201
+</div>
+</div>
+<div><span id="beams"></span></div>
+<div class="box box-1">
+<div class="box-title">Harmless beams</div>
+<div class="paragraph">
+A flickering beam that touches the ship's box damages it through
+<a href="../asm/40206.html">beam_hits_ship</a>. A RET as its first instruction and the beams are only
+lines. (The no-damage poke makes them harmless too, since they hurt through
+damage_ship; this one leaves every other kind of hit as it was.)
+Tested with the attackers stopped in both trials (the poke above), the ship
+hovering for 600 passes where a beam crosses its line -- a new life by the
+game's own restart at map column 44, row 8, with tile $A6 below -- and the hits
+undone each pass: without the poke the beam touched the ship
+27 times, each a hit; with it, the beams were drawn on
+465 of the 600 passes and no hit was counted.
+</div>
+<div class="paragraph">
+POKE 40206,201
+</div>
+</div>
+<div><span id="shield"></span></div>
+<div class="box box-2">
+<div class="box-title">A shield that lasts</div>
+<div class="paragraph">
+The shield ball sets <a href="../asm/35183.html">shield_timer</a> to $FF, and <a href="../asm/50036.html">ship_pass</a>
+counts it down on odd passes with the DEC A at $C385; while it is
+not nought no hit counts, and an attacker that touches the ship is destroyed.
+A NOP for the DEC and a shield once picked up lasts the rest of the life (each
+new life clears it).
+Tested: the timer set to $FF as the pick-up sets it, at the end of a pass,
+then 1200 passes of the round of keys with the tank refilled. Without the
+poke it ran out after 509 passes, and three hits and a death
+followed; with it, it was still $FF after 1200 passes, and no hit counted.
+</div>
+<div class="paragraph">
+POKE 50053,0
+</div>
+</div>
+<div><span id="rapid"></span></div>
+<div class="box box-1">
+<div class="box-title">No gun cooling</div>
+<div class="paragraph">
+<a href="../asm/46897.html">fire</a> sets <a href="../asm/23609.html">gun_cooling</a> to 6 with each shot and counts it down
+a pass at a time before the next. Make the 6 a nought and the gun fires on
+every pass that fire is held and one of the four shot records is free.
+Tested: 420 passes holding fire from the start of a game:
+60 shots without the poke, one every seven passes;
+120 with it, as many as four records allow.
+</div>
+<div class="paragraph">
+POKE 46918,0
+</div>
+</div>
+<div><span id="hook"></span></div>
+<div class="box box-2">
+<div class="box-title">Rocket parts without the hook</div>
+<div class="paragraph">
+<a href="../asm/43735.html">collect_pickup</a> takes a rocket part only with add-on 1, the hook,
+fitted: the RET Z at $AAE2. A NOP there and the part due next is
+taken without it. But the ship's picture is not ready for it:
+<a href="../asm/43575.html">toggle_carried_part</a> sets the picture to start at the first row of the
+buffer whenever a part hangs, which is right only for a ship as tall as the
+hook makes it. Without the hook the picture drawn is the part and the empty
+rows above it, and the ship vanishes, leaving the part hanging in the air;
+after the part is delivered it starts 30 bytes on, still empty, until a new
+life or an add-on rebuilds it (<a href="../asm/45033.html">build_ship_sprite</a>).
+Tested: rocket part 0 put in the second pick-up record under the middle of
+the ship as it stands on its pad at the start, as <a href="../asm/57096.html">load_map_window</a>
+fills one. Without the poke it lay there for 100 passes; with it, it was taken
+on pass 2, as it was with the hook fitted and no poke. Carried
+without the hook from a new life over the rocket's place and let go there,
+the part left the ship's picture blank.
+</div>
+<div class="paragraph">
+<div><img src="../images/reference/part_no_hook.png" alt="Rocket part 0 taken without the hook: the ship has vanished"/> <img src="../images/reference/part_hook.png" alt="The same with the hook fitted"/></div>
+Drawn by the game's own code in SkoolKit's simulator, from the screen, the ship
+on its pad at the start: part 0 taken with the poke and no hook, and without
+the poke with the hook.
+</div>
+<div class="paragraph">
+POKE 43746,0
+</div>
+</div>
+<div><span id="beamkey"></span></div>
+<div class="box box-1">
+<div class="box-title">The special beam without add-on 7</div>
+<div class="paragraph">
+<a href="../asm/47155.html">special_beam_key</a> launches the special beam when the special key is
+pressed (the number row on the keyboard), add-on 7 is fitted and the ship is
+still. A NOP for the RET Z that tests the add-on, and the beam needs only the
+key and a still ship.
+Tested: a new life in open sky at map column 30, row 5, by the game's own
+restart, holding 1 from the first pass. Without the poke, nothing. With it,
+the beam came out on pass 2, grew a cell every other pass to
+8 cells by pass 17 and began to shrink on pass
+24 -- pass for pass what add-on 7 gives without the poke.
+</div>
+<div class="paragraph">
+POKE 47171,0
+</div>
+</div>
+<div><span id="emptytank"></span></div>
+<div class="box box-2">
+<div class="box-title">Deliver the ore tank empty</div>
+<div class="paragraph">
+<a href="../asm/38692.html">drop_part</a> lets a carried part go over the rocket's place, but part 6,
+the ore tank, only with 18 ore aboard: the JR NZ at $9740 skips the
+ore test for the other parts. Make it a JR and the tank goes like any other
+part. It falls with the full tank's picture (frame 8 is chosen by the part's
+number, further on) and the ore aboard is emptied. Taking it off the ship's
+picture XORs out the empty tank where the full one would be, so with more than
+five units aboard some rows of ore stay drawn under the hook.
+Tested: a new life by the game's own restart in the sky over the rocket's
+place, carrying the tank with six parts built. With the tank empty and no
+poke it was kept for 150 passes, the ship at x $5C throughout; with the poke
+it was let go on pass 2, fell with frame
+8 and was counted the seventh part on pass
+10 -- just as a full tank went without the poke. With 12
+units aboard and the poke, seven rows of ore stayed in the
+picture under the hook; with five, none.
+</div>
+<div class="paragraph">
+POKE 38720,24
+</div>
+</div>
+<div><span id="startlives"></span></div>
+<div class="box box-1">
+<div class="box-title">Lives at a new game</div>
+<div class="paragraph">
+<a href="../asm/62397.html">new_game</a> gives each player five lives with the LD A,5 at
+$F3CE. Poke its operand with n from 1 to 9; the panel shows one digit,
+the lives less the ship in play.
+Tested: the lives at the first pass of a new game were 5 without the poke,
+and 9 and 1 with it set to 9 and to 1.
+</div>
+<div class="paragraph">
+POKE 62415,n
+</div>
+</div>
+<div><span id="128k"></span></div>
+<div class="box box-2">
+<div class="box-title">Play on a 128K in 128 mode</div>
+<div class="paragraph">
+Every keyboard read writes the half-rows it is about to read to port $FD
+first, which pages memory on a 128K (see the bugs). Five of the 15 reads
+can be given a value with bit 7 clear -- the menu's B, the pause test, the
+keyboard method's two reads of the bottom right half-row, and
+<a href="../asm/39875.html">read_keyboard</a>, which the title tune calls with nought and a
+joystick's special key with $7E -- and the IN after each selects the half-rows
+by itself, so their five OUTs can go: two NOPs each.
+Tested in SkoolKit's 128K machine, the game put in RAM as a 128 in 128 mode
+leaves a machine-code program (the 48 BASIC ROM and bank 0 paged in, paging
+unlocked): without the poke the game crashed on the menu's first pass (see the
+bugs); with it, the menu, a new game and a round of play, with no write to the
+paging port. On a 48K the poked game steered, thrust, fired and paused as
+before.
+</div>
+<div class="paragraph">
+POKE 34504,0: POKE 34505,0: POKE 39875,0: POKE 39876,0: POKE 40677,0: POKE 40678,0: POKE 45535,0: POKE 45536,0: POKE 45563,0: POKE 45564,0
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

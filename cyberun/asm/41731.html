@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A303</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41730.html">A302</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41731">Map</a></td>
+<td class="next">
+Next: <a href="41935.html">A3CF</a>
+</td>
+</tr>
+</table>
+<div class="description">A303: Rub out an object's old image and draw its new one, without flicker</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="44315.html">draw_object_images</a> and <a href="49202.html">draw_star_layer</a>.
+</div>
+<div class="paragraph">
+The sprite compositor, which draws every ground object and sky object, and the stars (<a href="49202.html">draw_star_layer</a>): about a third of all the game's time goes through here. Both images are worked on in a buffer, never on the screen, and the screen is written once, so nothing flickers. The steps:
+</div>
+<div class="paragraph">
+1. The box: the smallest rectangle, whole bytes wide, covering both images: its left edge (<a href="23596.html">piece_x</a>) and bottom line (<a href="23597.html">piece_y</a>), and its width in bytes (at most 7) and height plus one, kept in <a href="52789.html">piece_dx</a> and <a href="52791.html">piece_rise</a>. If only one image is present, the other's position is taken as its own.
+</div>
+<div class="paragraph">
+2. Copy the box from the screen into the buffer (<a href="41974.html">copy_box_in</a>), bottom row first, rows packed at the box's width. The buffer is page $F8, in the middle of the start-up code that runs once from <a href="63467.html">build_shifted_pieces</a> and is no longer wanted; the drawing addresses it by L alone, so the box can be no more than 256 bytes.
+</div>
+<div class="paragraph">
+3. Rub out the old image in the buffer: AND each byte with the complement of the graphic, shifted to the image's x (<a href="42046.html">erase_old_draw_new</a>, <a href="42674.html">erase_aligned_row</a>, <a href="42721.html">erase_row_shifted</a>). This clears every pixel the graphic sets, whatever was under it; there is no mask, and nothing restores what the old image covered.
+</div>
+<div class="paragraph">
+4. Draw the new image into the buffer: OR (<a href="42803.html">draw_aligned_row</a>, <a href="42844.html">draw_row_shifted</a>). Then, if the object is dissolving, AND its rows with that step's mask (<a href="42136.html">dissolve_sprite</a>).
+</div>
+<div class="paragraph">
+5. Copy the box back to the screen (the end of <a href="42136.html">dissolve_sprite</a> onwards), clipped to the play area: column 0 is never written, nor anything right of x=$E8 (the fuel gauge's columns).
+</div>
+<div class="paragraph">
+Graphics are not pre-shifted. An image at x AND 6 = 2, 4 or 6 is shifted as it is drawn, each byte through a pair of 256-byte tables (<a href="64000.html">shift_tables</a>); x is always even. The loops are unrolled, with patched entry points: the row loops are entered so many steps from their ends (<a href="41620.html">erase_row_routines</a>, <a href="41642.html">draw_row_routines</a>), and the copies are LDI chains entered by DJNZs whose displacements are patched (see <a href="41974.html">copy_box_in</a>).
+</div>
+<div class="paragraph">
+A sprite straddling the left edge of the play area (<a href="41722.html">sprite_left_clip</a>) is handled by taking $60 off both x positions, which moves positions either side of 0 into one unbroken range; only the part of the box right of the edge, at x=8, is copied in and out (<a href="41935.html">copy_in_clipped</a>, <a href="42276.html">copy_out_part_row</a>).
+</div>
+<div class="paragraph">
+The cost, worked out from the instructions: for a 3-byte-wide sprite 16 rows tall, moved and shifted, a 5-byte box of 17 rows, about 2,500 T-states to copy in, 4,500 to rub out, 4,100 to draw, 2,500 to copy out -- some 13,500 in all, a fifth of a frame.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The new image's first row (<a href="41433.html">new_sprite_header</a>)</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The new image's shift page (<a href="41543.html">set_new_sprite</a>)</td>
+</tr>
+<tr>
+<td class="register">IY</td>
+<td class="register-desc">The old image's erase-row routine (<a href="41524.html">set_old_sprite</a>)</td>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The new image's draw-row routine (<a href="41543.html">set_new_sprite</a>)</td>
+</tr>
+<tr>
+<td class="register">DE'</td>
+<td class="register-desc">The old image's first row</td>
+</tr>
+<tr>
+<td class="register">B'</td>
+<td class="register-desc">The old image's shift page</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair</td>
+<td class="address-2"><span id="41731"></span>A303</td>
+<td class="instruction">PUSH DE</td>
+<td class="comment-1" rowspan="2">Keep the new image's graphic and page (restored at <a href="42046.html">erase_old_draw_new</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41732"></span>A304</td>
+<td class="instruction">PUSH BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41733"></span>A305</td>
+<td class="instruction">LD HL,(<a href="23592.html">sprite_width</a>)</td>
+<td class="comment-1" rowspan="6">Keep both widths in bytes; turn the working copies into pixels</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41736"></span>A308</td>
+<td class="instruction">LD (<a href="41720.html">old_sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41739"></span>A30B</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41740"></span>A30C</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41741"></span>A30D</td>
+<td class="instruction">ADD HL,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41742"></span>A30E</td>
+<td class="instruction">LD (<a href="23592.html">sprite_width</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41745"></span>A311</td>
+<td class="instruction">LD A,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="5">No old image: give it the new one's position, so the box is the new image's alone</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41748"></span>A314</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41749"></span>A315</td>
+<td class="instruction">JR NZ,<a href="41731.html#41757">draw_sprite_pair_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41751"></span>A317</td>
+<td class="instruction">LD HL,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41754"></span>A31A</td>
+<td class="instruction">LD (<a href="41427.html">old_sprite_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_0</td>
+<td class="address-2"><span id="41757"></span>A31D</td>
+<td class="instruction">LD A,(<a href="41432.html">new_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="5">No new image: give it the old one's</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41760"></span>A320</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41761"></span>A321</td>
+<td class="instruction">JR NZ,<a href="41731.html#41769">draw_sprite_pair_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41763"></span>A323</td>
+<td class="instruction">LD HL,(<a href="41427.html">old_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41766"></span>A326</td>
+<td class="instruction">LD (<a href="41429.html">new_sprite_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_1</td>
+<td class="address-2"><span id="41769"></span>A329</td>
+<td class="instruction">LD A,(<a href="41722.html">sprite_left_clip</a>)</td>
+<td class="comment-1" rowspan="9">Left-clip mode: take $60 off both x positions</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41772"></span>A32C</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41773"></span>A32D</td>
+<td class="instruction">JR Z,<a href="41731.html#41791">draw_sprite_pair_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41775"></span>A32F</td>
+<td class="instruction">LD A,(<a href="41427.html">old_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41778"></span>A332</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41780"></span>A334</td>
+<td class="instruction">LD (<a href="41427.html">old_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41783"></span>A337</td>
+<td class="instruction">LD A,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41786"></span>A33A</td>
+<td class="instruction">SUB $60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41788"></span>A33C</td>
+<td class="instruction">LD (<a href="41429.html">new_sprite_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_2</td>
+<td class="address-2"><span id="41791"></span>A33F</td>
+<td class="instruction">LD A,(<a href="41428.html">old_sprite_y</a>)</td>
+<td class="comment-1" rowspan="9">The box's bottom line is the lower of the two bottom lines</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41794"></span>A342</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41795"></span>A343</td>
+<td class="instruction">LD A,(<a href="41430.html">new_sprite_y</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41798"></span>A346</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41799"></span>A347</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41800"></span>A348</td>
+<td class="instruction">JR NC,<a href="41731.html#41803">draw_sprite_pair_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41802"></span>A34A</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_3</td>
+<td class="address-2"><span id="41803"></span>A34B</td>
+<td class="instruction">LD (<a href="23597.html">piece_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41806"></span>A34E</td>
+<td class="instruction">LD H,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41807"></span>A34F</td>
+<td class="instruction">LD BC,(<a href="41431.html">old_sprite_rows</a>)</td>
+<td class="comment-1" rowspan="9">The line above the box's top: the smaller of each image's y less its height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41811"></span>A353</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41812"></span>A354</td>
+<td class="instruction">SUB C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41813"></span>A355</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41814"></span>A356</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41815"></span>A357</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41816"></span>A358</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41817"></span>A359</td>
+<td class="instruction">JR NC,<a href="41731.html#41820">draw_sprite_pair_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41819"></span>A35B</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_4</td>
+<td class="address-2"><span id="41820"></span>A35C</td>
+<td class="instruction">LD A,H</td>
+<td class="comment-1" rowspan="4">The box's rows, plus one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41821"></span>A35D</td>
+<td class="instruction">SUB E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41822"></span>A35E</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41823"></span>A35F</td>
+<td class="instruction">LD (<a href="52791.html">piece_rise</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41826"></span>A362</td>
+<td class="instruction">LD A,(<a href="41427.html">old_sprite_x</a>)</td>
+<td class="comment-1" rowspan="10">The box's left edge: the smaller x, rounded down to a byte</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41829"></span>A365</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41830"></span>A366</td>
+<td class="instruction">LD A,(<a href="41429.html">new_sprite_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41833"></span>A369</td>
+<td class="instruction">LD D,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41834"></span>A36A</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41835"></span>A36B</td>
+<td class="instruction">JR C,<a href="41731.html#41838">draw_sprite_pair_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41837"></span>A36D</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_5</td>
+<td class="address-2"><span id="41838"></span>A36E</td>
+<td class="instruction">AND $F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41840"></span>A370</td>
+<td class="instruction">LD (<a href="23596.html">piece_x</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41843"></span>A373</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41844"></span>A374</td>
+<td class="instruction">LD BC,(<a href="23592.html">sprite_width</a>)</td>
+<td class="comment-1" rowspan="11">The further right edge of the two, from the box's left edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41848"></span>A378</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41849"></span>A379</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41850"></span>A37A</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41851"></span>A37B</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41852"></span>A37C</td>
+<td class="instruction">LD A,D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41853"></span>A37D</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41854"></span>A37E</td>
+<td class="instruction">ADD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41855"></span>A37F</td>
+<td class="instruction">CP E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41856"></span>A380</td>
+<td class="instruction">JR NC,<a href="41731.html#41859">draw_sprite_pair_6</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41858"></span>A382</td>
+<td class="instruction">LD A,E</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_6</td>
+<td class="address-2"><span id="41859"></span>A383</td>
+<td class="instruction">ADD A,$06</td>
+<td class="comment-1" rowspan="6">The box's width in bytes, rounding up (x is always even, so 6 is enough)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41861"></span>A385</td>
+<td class="instruction">LD C,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41862"></span>A386</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41864"></span>A388</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41866"></span>A38A</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41868"></span>A38C</td>
+<td class="instruction">LD (<a href="52789.html">piece_dx</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41871"></span>A38F</td>
+<td class="instruction">LD A,(<a href="41722.html">sprite_left_clip</a>)</td>
+<td class="comment-1" rowspan="3">Not straddling the left edge: copy the whole box in (<a href="41974.html">copy_box_in</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41874"></span>A392</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41875"></span>A393</td>
+<td class="instruction">JP Z,<a href="41974.html">copy_box_in</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41878"></span>A396</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="7">Straddling: the bytes of the box right of the play area's edge (x=8, now $A8)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41879"></span>A397</td>
+<td class="instruction">ADD A,C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41880"></span>A398</td>
+<td class="instruction">SUB $A8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41882"></span>A39A</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41884"></span>A39C</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41886"></span>A39E</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41888"></span>A3A0</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41889"></span>A3A1</td>
+<td class="instruction">LD A,(<a href="52789.html">piece_dx</a>)</td>
+<td class="comment-1" rowspan="5">Skip the rest in the buffer at the end of each row; start that far into the buffer</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41892"></span>A3A4</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41893"></span>A3A5</td>
+<td class="instruction">LD ($A531),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41896"></span>A3A8</td>
+<td class="instruction">LD ($A3DC),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41899"></span>A3AB</td>
+<td class="instruction">LD E,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41900"></span>A3AC</td>
+<td class="instruction">LD A,B</td>
+<td class="comment-1" rowspan="7">Patch the DJNZs of the clipped copies in and out to copy that many bytes</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41901"></span>A3AD</td>
+<td class="instruction">XOR $07</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41903"></span>A3AF</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41904"></span>A3B0</td>
+<td class="instruction">ADD A,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41905"></span>A3B1</td>
+<td class="instruction">ADD A,$03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41907"></span>A3B3</td>
+<td class="instruction">LD ($A520),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41910"></span>A3B6</td>
+<td class="instruction">LD ($A3CB),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41913"></span>A3B9</td>
+<td class="instruction">LD C,$FF</td>
+<td class="comment-1" rowspan="5">The screen address of the box's bottom row at the play area's left edge</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41915"></span>A3BB</td>
+<td class="instruction">LD D,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41917"></span>A3BD</td>
+<td class="instruction">LD L,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41919"></span>A3BF</td>
+<td class="instruction">CALL <a href="41289.html">pixel_to_screen</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41922"></span>A3C2</td>
+<td class="instruction">LD (<a href="52803.html">piece_page_x</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41925"></span>A3C5</td>
+<td class="instruction">LD A,(<a href="52791.html">piece_rise</a>)</td>
+<td class="comment-1" rowspan="2">The box's rows plus one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41928"></span>A3C8</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="41929"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="41935.html">copy_in_clipped</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_7</td>
+<td class="address-2"><span id="41929"></span>A3C9</td>
+<td class="instruction">PUSH HL</td>
+<td class="comment-1" rowspan="1">Keep this row's screen address</td>
+</tr>
+<tr>
+<td class="asm-label">draw_sprite_pair_8</td>
+<td class="address-2"><span id="41930"></span>A3CA</td>
+<td class="instruction">DJNZ <a href="41731.html#41930">draw_sprite_pair_8</a></td>
+<td class="comment-1" rowspan="1">The DJNZ whose patched displacement enters the chain of LDIs at <a href="41935.html">copy_in_clipped</a>, and leaves when the rows are done</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41932"></span>A3CC</td>
+<td class="instruction">JP <a href="42046.html">erase_old_draw_new</a></td>
+<td class="comment-1" rowspan="1">Then rub out and draw</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41730.html">A302</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41731">Map</a></td>
+<td class="next">
+Next: <a href="41935.html">A3CF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

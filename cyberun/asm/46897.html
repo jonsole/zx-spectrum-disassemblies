@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B731</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46896.html">B730</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46897">Map</a></td>
+<td class="next">
+Next: <a href="47154.html">B832</a>
+</td>
+</tr>
+</table>
+<div class="description">B731: Fire, if the fire key is pressed</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="50413.html">draw_trail</a>.
+</div>
+<div class="paragraph">
+Called every pass from <a href="50147.html">draw_ship</a>. First the special beam's key (<a href="47155.html">special_beam_key</a>); then, if the fire key is held and the gun has cooled (6 passes, <a href="23609.html">gun_cooling</a>), a shot in the first free record of four. Its record is cleared (<a href="44084.html">free_object</a>), takes the ship's facing and world position, 8 pixels ahead of it (24 facing right), at the ship's shot line (<a href="47370.html">place_shot</a>), and is moved there. Then one of three kinds:
+</div>
+<div class="paragraph">
+A laser (<a href="46211.html">update_shot</a> takes it on), with a zap (<a href="29426.html">sound_crackle_b</a>).
+</div>
+<div class="paragraph">
+A missile, every other shot with add-on 8 (<a href="46896.html">shot_alternator</a> bit 0): type 0, the small 8 by 3 sprite of <a href="47414.html">missile_frames</a>, steady bright cyan, flying 8 pixels a pass from 32 ahead of the ship (8 facing left) and 3 lines higher, updated as an ordinary object by <a href="37639.html">update_missile</a> (+16 $80).
+</div>
+<div class="paragraph">
+The special beam (<a href="46896.html">shot_alternator</a> bit 2, from <a href="47155.html">special_beam_key</a>): +15 $80, bright magenta, at x $90 going right or $60 going left, stepping 8 a pass; it holds the ship still (<a href="47154.html">special_beam_on</a>).
+</div>
+<div class="paragraph">
+Both ran in the build's every-add-on session, though a missile was never fired facing left.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fire</td>
+<td class="address-2"><span id="46897"></span>B731</td>
+<td class="instruction">CALL <a href="47155.html">special_beam_key</a></td>
+<td class="comment-1" rowspan="1">the special beam's key</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46900"></span>B734</td>
+<td class="instruction">LD A,(<a href="23609.html">gun_cooling</a>)</td>
+<td class="comment-1" rowspan="6">the gun cooling</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46903"></span>B737</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46904"></span>B738</td>
+<td class="instruction">JR Z,<a href="46897.html#46911">fire_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46906"></span>B73A</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46907"></span>B73B</td>
+<td class="instruction">LD (<a href="23609.html">gun_cooling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46910"></span>B73E</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">fire_0</td>
+<td class="address-2"><span id="46911"></span>B73F</td>
+<td class="instruction">LD A,(<a href="23607.html">controls_now</a>)</td>
+<td class="comment-1" rowspan="3">fire not pressed</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46914"></span>B742</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46916"></span>B744</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46917"></span>B745</td>
+<td class="instruction">LD A,$06</td>
+<td class="comment-1" rowspan="5">6 passes to the next; flip the alternator</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46919"></span>B747</td>
+<td class="instruction">LD (<a href="23609.html">gun_cooling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46922"></span>B74A</td>
+<td class="instruction">LD A,(<a href="46896.html">shot_alternator</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46925"></span>B74D</td>
+<td class="instruction">XOR $01</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46927"></span>B74F</td>
+<td class="instruction">LD (<a href="46896.html">shot_alternator</a>),A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="46930"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="47155.html">special_beam_key</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fire_1</td>
+<td class="address-2"><span id="46930"></span>B752</td>
+<td class="instruction">LD IX,<a href="45946.html">shot_records</a></td>
+<td class="comment-1" rowspan="5">(entry from <a href="47155.html">special_beam_key</a>) four records; a missile's is free when its +0 is $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46934"></span>B756</td>
+<td class="instruction">LD A,$04</td>
+</tr>
+<tr>
+<td class="asm-label">fire_2</td>
+<td class="address-2"><span id="46936"></span>B758</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46937"></span>B759</td>
+<td class="instruction">BIT 7,(IX+$16)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46941"></span>B75D</td>
+<td class="instruction">JR NZ,<a href="46897.html#46949">fire_3</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46943"></span>B75F</td>
+<td class="instruction">LD A,(IX+$0B)</td>
+<td class="comment-1" rowspan="6">a beam's when +B is 0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46946"></span>B762</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46947"></span>B763</td>
+<td class="instruction">JR Z,<a href="46897.html#46955">fire_4</a></td>
+</tr>
+<tr>
+<td class="asm-label">fire_3</td>
+<td class="address-2"><span id="46949"></span>B765</td>
+<td class="instruction">LD A,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46952"></span>B768</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46953"></span>B769</td>
+<td class="instruction">JR NZ,<a href="46897.html#46998">fire_6</a></td>
+</tr>
+<tr>
+<td class="asm-label">fire_4</td>
+<td class="address-2"><span id="46955"></span>B76B</td>
+<td class="instruction">CALL <a href="44084.html">free_object</a></td>
+<td class="comment-1" rowspan="5">clear it; the ship's facing; in use; the ship's position (<a href="47370.html">place_shot</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46958"></span>B76E</td>
+<td class="instruction">LD A,(<a href="51453.html">ship_facing</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46961"></span>B771</td>
+<td class="instruction">LD (IX+$00),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46964"></span>B774</td>
+<td class="instruction">LD (IX+$0B),$99</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46968"></span>B778</td>
+<td class="instruction">CALL <a href="47370.html">place_shot</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46971"></span>B77B</td>
+<td class="instruction">LD A,(<a href="46896.html">shot_alternator</a>)</td>
+<td class="comment-1" rowspan="5">the special beam, or (every other shot) a missile</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46974"></span>B77E</td>
+<td class="instruction">BIT 2,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46976"></span>B780</td>
+<td class="instruction">JP NZ,<a href="46897.html#47094">fire_10</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46979"></span>B783</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46980"></span>B784</td>
+<td class="instruction">JP Z,<a href="46897.html#47008">fire_7</a></td>
+</tr>
+<tr>
+<td class="asm-label">fire_5</td>
+<td class="address-2"><span id="46983"></span>B787</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+<td class="comment-1" rowspan="5">a laser: move it ahead of the ship; a zap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46986"></span>B78A</td>
+<td class="instruction">LD (IX+$09),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46990"></span>B78E</td>
+<td class="instruction">BIT 7,(IX+$15)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46994"></span>B792</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46995"></span>B793</td>
+<td class="instruction">JP <a href="29426.html">sound_crackle_b</a></td>
+</tr>
+<tr>
+<td class="asm-label">fire_6</td>
+<td class="address-2"><span id="46998"></span>B796</td>
+<td class="instruction">LD BC,$0018</td>
+<td class="comment-1" rowspan="6">the next record; none free, no shot</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47001"></span>B799</td>
+<td class="instruction">ADD IX,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47003"></span>B79B</td>
+<td class="instruction">EX AF,AF'</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47004"></span>B79C</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47005"></span>B79D</td>
+<td class="instruction">JR NZ,<a href="46897.html#46936">fire_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47007"></span>B79F</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">fire_7</td>
+<td class="address-2"><span id="47008"></span>B7A0</td>
+<td class="instruction">LD A,(<a href="62965.html">addon_eight</a>)</td>
+<td class="comment-1" rowspan="3">no add-on 8: a laser after all</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47011"></span>B7A3</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47012"></span>B7A4</td>
+<td class="instruction">JP Z,<a href="46897.html#46983">fire_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47015"></span>B7A7</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="11">32 ahead facing right, 3 lines up; put it there</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47018"></span>B7AA</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47020"></span>B7AC</td>
+<td class="instruction">JR Z,<a href="46897.html#47026">fire_8</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47022"></span>B7AE</td>
+<td class="instruction">LD (IX+$07),$20</td>
+</tr>
+<tr>
+<td class="asm-label">fire_8</td>
+<td class="address-2"><span id="47026"></span>B7B2</td>
+<td class="instruction">LD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47029"></span>B7B5</td>
+<td class="instruction">SUB $03</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47031"></span>B7B7</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47034"></span>B7BA</td>
+<td class="instruction">LD (IX+$08),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47038"></span>B7BE</td>
+<td class="instruction">LD (IX+$0A),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47042"></span>B7C2</td>
+<td class="instruction">CALL <a href="48998.html">move_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47045"></span>B7C5</td>
+<td class="instruction">LD (IX+$09),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47049"></span>B7C9</td>
+<td class="instruction">LD (IX+$10),$27</td>
+<td class="comment-1" rowspan="10">8 a pass, the right way; type 0, bright cyan, a missile</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47053"></span>B7CD</td>
+<td class="instruction">LD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47056"></span>B7D0</td>
+<td class="instruction">LD (IX+$07),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47060"></span>B7D4</td>
+<td class="instruction">CP $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47062"></span>B7D6</td>
+<td class="instruction">JR Z,<a href="46897.html#47068">fire_9</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47064"></span>B7D8</td>
+<td class="instruction">LD (IX+$07),$F8</td>
+</tr>
+<tr>
+<td class="asm-label">fire_9</td>
+<td class="address-2"><span id="47068"></span>B7DC</td>
+<td class="instruction">LD (IX+$00),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47072"></span>B7E0</td>
+<td class="instruction">LD (IX+$0D),$DD</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47076"></span>B7E4</td>
+<td class="instruction">LD (IX+$15),$7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47080"></span>B7E8</td>
+<td class="instruction">LD (IX+$16),$80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47084"></span>B7EC</td>
+<td class="instruction">CALL <a href="47356.html">clear_screen_fields</a></td>
+<td class="comment-1" rowspan="3">nothing on the screen yet; a zap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47087"></span>B7EF</td>
+<td class="instruction">LD (IX+$17),$F0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47091"></span>B7F3</td>
+<td class="instruction">JP <a href="29426.html">sound_crackle_b</a></td>
+</tr>
+<tr>
+<td class="asm-label">fire_10</td>
+<td class="address-2"><span id="47094"></span>B7F6</td>
+<td class="instruction">LD A,$80</td>
+<td class="comment-1" rowspan="4">the special beam: hold the ship; bright magenta</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47096"></span>B7F8</td>
+<td class="instruction">LD (IX+$15),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47099"></span>B7FB</td>
+<td class="instruction">LD (<a href="47154.html">special_beam_on</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47102"></span>B7FE</td>
+<td class="instruction">LD (IX+$0D),$43</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47106"></span>B802</td>
+<td class="instruction">LD A,(<a href="23608.html">ship_line</a>)</td>
+<td class="comment-1" rowspan="6">the shot line, and 9 down in the world</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47109"></span>B805</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47111"></span>B807</td>
+<td class="instruction">LD (IX+$0C),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47114"></span>B80A</td>
+<td class="instruction">LD A,(IX+$09)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47117"></span>B80D</td>
+<td class="instruction">ADD A,$09</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47119"></span>B80F</td>
+<td class="instruction">LD (IX+$09),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47122"></span>B812</td>
+<td class="instruction">LD A,(IX+$07)</td>
+<td class="comment-1" rowspan="10">facing left: x $60, -8 a pass; facing right: x $90, +8 a pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47125"></span>B815</td>
+<td class="instruction">ADD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47127"></span>B817</td>
+<td class="instruction">AND $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47129"></span>B819</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47132"></span>B81C</td>
+<td class="instruction">LD (IX+$12),$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47136"></span>B820</td>
+<td class="instruction">LD (IX+$0B),$60</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47140"></span>B824</td>
+<td class="instruction">JP Z,<a href="46897.html#46983">fire_5</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47143"></span>B827</td>
+<td class="instruction">LD (IX+$12),$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47147"></span>B82B</td>
+<td class="instruction">LD (IX+$0B),$90</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="47151"></span>B82F</td>
+<td class="instruction">JP <a href="46897.html#46983">fire_5</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46896.html">B730</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46897">Map</a></td>
+<td class="next">
+Next: <a href="47154.html">B832</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

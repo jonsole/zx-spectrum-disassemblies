@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at B414</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46083.html">B403</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46100">Map</a></td>
+<td class="next">
+Next: <a href="46211.html">B483</a>
+</td>
+</tr>
+</table>
+<div class="description">B414: Update the special beam</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="46211.html">update_shot</a>.
+</div>
+<div class="paragraph">
+The special beam (record +15 bit 7) is fired by the special key with add-on 7 while the ship is still (<a href="47155.html">special_beam_key</a>), and the ship hangs still while it lasts. It is a band 5 to 8 lines high (<a href="47311.html">beam_frames</a>'s frames, cycling 0, 1, 2, 3, 2, 1 a pass) that grows a cell every other pass up to 8 cells, its probe 8 pixels further each time (+12), stops growing when the probe meets the landscape (<a href="46832.html">probe_special_beam</a>), and after 22 passes ($16 in +11), or when the key is let go (<a href="47241.html">end_special_beam</a>), shrinks a cell a pass until gone. Going left, its left end moves out as it grows. A sound every pass (<a href="29236.html">sound_flutter</a>).
+</div>
+<div class="paragraph">
+Drawing as for a laser (<a href="46511.html">draw_shot</a>), but the pattern for rubbing out is last pass's frame expanded into the sprite buffer at the end of <a href="63467.html">build_shifted_pieces</a> (<a href="47255.html">old_beam_frame</a>), and the new one into <a href="63616.html">sprite_buffer_two</a> (<a href="47285.html">new_beam_frame</a>); the beam is coloured bright magenta. When it has gone the ship is free again (<a href="47154.html">special_beam_on</a>).
+</div>
+<div class="paragraph">
+It ran in the build's every-add-on session, but only going right and never with the probe in the landscape: the left end's moves going left and the probe's return to the ship are read only. Fired with the ship on the ground, the probe is in the landscape at once: the cell the beam has just grown is taken off again, its length is back to 0, and <a href="46511.html">draw_shot</a> frees the record that same pass, so the beam shows only in the air (run in SkoolKit's simulator for the Animations page).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the shot's record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_special_beam</td>
+<td class="address-2"><span id="46100"></span>B414</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="3">a buzz while it is out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46103"></span>B417</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46104"></span>B418</td>
+<td class="instruction">CALL NZ,<a href="29236.html">sound_flutter</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46107"></span>B41B</td>
+<td class="instruction">INC (IX+$11)</td>
+<td class="comment-1" rowspan="1">age it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46110"></span>B41E</td>
+<td class="instruction">CALL <a href="47255.html">old_beam_frame</a></td>
+<td class="comment-1" rowspan="4">last pass's frame for rubbing out; its screen address and width into the alternate set</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46113"></span>B421</td>
+<td class="instruction">CALL <a href="41611.html">record_screen_address</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46116"></span>B424</td>
+<td class="instruction">LD B,(IX+$0E)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46119"></span>B427</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46120"></span>B428</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+<td class="comment-1" rowspan="2">stopped: shrink</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46124"></span>B42C</td>
+<td class="instruction">JR NZ,<a href="46100.html#46176">update_special_beam_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46126"></span>B42E</td>
+<td class="instruction">BIT 0,(IX+$11)</td>
+<td class="comment-1" rowspan="2">grow only every other pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46130"></span>B432</td>
+<td class="instruction">JR Z,<a href="46100.html#46193">update_special_beam_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46132"></span>B434</td>
+<td class="instruction">LD A,(IX+$12)</td>
+<td class="comment-1" rowspan="3">move the probe a step out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46135"></span>B437</td>
+<td class="instruction">ADD A,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46138"></span>B43A</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46141"></span>B43D</td>
+<td class="instruction">LD A,(IX+$0E)</td>
+<td class="comment-1" rowspan="3">at most 8 cells</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46144"></span>B440</td>
+<td class="instruction">CP $08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46146"></span>B442</td>
+<td class="instruction">JR Z,<a href="46100.html#46165">update_special_beam_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46148"></span>B444</td>
+<td class="instruction">INC (IX+$0E)</td>
+<td class="comment-1" rowspan="6">a cell longer; going left, the left end a cell further out</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46151"></span>B447</td>
+<td class="instruction">BIT 7,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46155"></span>B44B</td>
+<td class="instruction">JR Z,<a href="46100.html#46165">update_special_beam_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46157"></span>B44D</td>
+<td class="instruction">LD A,$F8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46159"></span>B44F</td>
+<td class="instruction">ADD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46162"></span>B452</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_special_beam_0</td>
+<td class="address-2"><span id="46165"></span>B455</td>
+<td class="instruction">CALL <a href="46832.html">probe_special_beam</a></td>
+<td class="comment-1" rowspan="2">the probe in the landscape (<a href="46832.html">probe_special_beam</a>)?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46168"></span>B458</td>
+<td class="instruction">JR Z,<a href="46100.html#46193">update_special_beam_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46170"></span>B45A</td>
+<td class="instruction">LD A,(<a href="51436.html">ship_dx</a>)</td>
+<td class="comment-1" rowspan="2">yes: the probe moves with the ship again</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46173"></span>B45D</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_special_beam_1</td>
+<td class="address-2"><span id="46176"></span>B460</td>
+<td class="instruction">DEC (IX+$0E)</td>
+<td class="comment-1" rowspan="6">a cell shorter; going left, the left end a cell back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46179"></span>B463</td>
+<td class="instruction">BIT 7,(IX+$00)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46183"></span>B467</td>
+<td class="instruction">JR Z,<a href="46100.html#46193">update_special_beam_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46185"></span>B469</td>
+<td class="instruction">LD A,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46187"></span>B46B</td>
+<td class="instruction">ADD A,(IX+$0B)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46190"></span>B46E</td>
+<td class="instruction">LD (IX+$0B),A</td>
+</tr>
+<tr>
+<td class="asm-label">update_special_beam_2</td>
+<td class="address-2"><span id="46193"></span>B471</td>
+<td class="instruction">CALL <a href="47285.html">new_beam_frame</a></td>
+<td class="comment-1" rowspan="1">this pass's frame (<a href="47285.html">new_beam_frame</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46196"></span>B474</td>
+<td class="instruction">LD A,(IX+$11)</td>
+<td class="comment-1" rowspan="5">22 passes old: start shrinking; draw it (<a href="46511.html">draw_shot</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46199"></span>B477</td>
+<td class="instruction">CP $16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46201"></span>B479</td>
+<td class="instruction">JP NZ,<a href="46511.html#46517">draw_shot_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46204"></span>B47C</td>
+<td class="instruction">SET 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="46208"></span>B480</td>
+<td class="instruction">JP <a href="46511.html#46517">draw_shot_1</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="46083.html">B403</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#46100">Map</a></td>
+<td class="next">
+Next: <a href="46211.html">B483</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

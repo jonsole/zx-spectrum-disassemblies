@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BC13</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48146.html">BC12</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48147">Map</a></td>
+<td class="next">
+Next: <a href="48219.html">BC5B</a>
+</td>
+</tr>
+</table>
+<div class="description">BC13: Test a part against a slope, and bounce off it</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="47662.html">next_part_boxes</a>.
+</div>
+<div class="paragraph">
+One slope a pass (<a href="23605.html">piece_ceiling</a> bit 4). <a href="40501.html">test_landscape_piece</a> tests the part against the slope's shape and leaves in <a href="23578.html">touch_depth</a> how far into it the part is. A shot that hits stops; the ship sets <a href="53436.html">trail_collision</a> to $FE. Then the speed is reflected, by the slope's kind and facing: a 45-degree slope swaps the speeds across and up (<a href="48388.html">bounce_45_negate</a>, <a href="48443.html">bounce_45_swap_only</a>), any other mixes them with factors of 3/8 and 3/4 (<a href="48452.html">bounce_shallow_negate</a>, <a href="48573.html">bounce_shallow</a>).
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the box</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">hit_slope</td>
+<td class="address-2"><span id="48147"></span>BC13</td>
+<td class="instruction">LD A,(<a href="23605.html">piece_ceiling</a>)</td>
+<td class="comment-1" rowspan="3">a slope already hit this pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48150"></span>BC16</td>
+<td class="instruction">BIT 4,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48152"></span>BC18</td>
+<td class="instruction">JP NZ,<a href="47693.html">next_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48155"></span>BC1B</td>
+<td class="instruction">CALL <a href="40501.html">test_landscape_piece</a></td>
+<td class="comment-1" rowspan="4">the shape test (<a href="40501.html">test_landscape_piece</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48158"></span>BC1E</td>
+<td class="instruction">LD A,(<a href="23580.html">scratch_count</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48161"></span>BC21</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48162"></span>BC22</td>
+<td class="instruction">JP Z,<a href="47693.html">next_box</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48165"></span>BC25</td>
+<td class="instruction">LD A,(<a href="23605.html">piece_ceiling</a>)</td>
+<td class="comment-1" rowspan="6">a slope hit; a shot: stop</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48168"></span>BC28</td>
+<td class="instruction">OR $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48170"></span>BC2A</td>
+<td class="instruction">LD (<a href="23605.html">piece_ceiling</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48173"></span>BC2D</td>
+<td class="instruction">LD A,(<a href="23589.html">piece_step_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48176"></span>BC30</td>
+<td class="instruction">CP $80</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48178"></span>BC32</td>
+<td class="instruction">JP Z,<a href="47693.html#47734">next_box_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48181"></span>BC35</td>
+<td class="instruction">AND A</td>
+<td class="comment-1" rowspan="4">the ship: <a href="53436.html">trail_collision</a> = $FE</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48182"></span>BC36</td>
+<td class="instruction">JR Z,<a href="48147.html#48188">hit_slope_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48184"></span>BC38</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48185"></span>BC39</td>
+<td class="instruction">LD (<a href="53436.html">trail_collision</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">hit_slope_0</td>
+<td class="address-2"><span id="48188"></span>BC3C</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="5">kind 2, facing bit 6 clear: swap and negate</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48191"></span>BC3F</td>
+<td class="instruction">LD (<a href="23584.html">pieces_left</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48194"></span>BC42</td>
+<td class="instruction">AND $7F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48196"></span>BC44</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48198"></span>BC46</td>
+<td class="instruction">JP Z,<a href="48388.html">bounce_45_negate</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48201"></span>BC49</td>
+<td class="instruction">AND $07</td>
+<td class="comment-1" rowspan="3">kind 2, facing bit 6 set: swap</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48203"></span>BC4B</td>
+<td class="instruction">CP $02</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48205"></span>BC4D</td>
+<td class="instruction">JP Z,<a href="48443.html">bounce_45_swap_only</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48208"></span>BC50</td>
+<td class="instruction">LD A,(IX+$04)</td>
+<td class="comment-1" rowspan="4">other kinds, by bit 6</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48211"></span>BC53</td>
+<td class="instruction">BIT 6,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48213"></span>BC55</td>
+<td class="instruction">JP Z,<a href="48452.html">bounce_shallow_negate</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48216"></span>BC58</td>
+<td class="instruction">JP <a href="48573.html">bounce_shallow</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48146.html">BC12</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48147">Map</a></td>
+<td class="next">
+Next: <a href="48219.html">BC5B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

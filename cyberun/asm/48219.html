@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at BC5B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48147.html">BC13</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48219">Map</a></td>
+<td class="next">
+Next: <a href="48319.html">BCBF</a>
+</td>
+</tr>
+</table>
+<div class="description">BC5B: Push an object out of a slope, and keep it sliding</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="48388.html">bounce_45_negate</a> and <a href="48452.html">bounce_shallow_negate</a>.
+</div>
+<div class="paragraph">
+Where every slope bounce ends. An object (not the ship) is moved across out of the slope by the depth <a href="40501.html">test_landscape_piece</a> found, through <a href="47488.html">move_across</a> with that as its speed for a moment; a push of 16 or more sets its +10 bit 3. Its screen fields are cleared. If its new speeds are both too small to matter, it is set sliding a pixel a pass downhill (<a href="48319.html">downhill</a>). Then <a href="48337.html">ship_on_slope_response</a> for the ship.
+</div>
+</div>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">the record</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">leave_slope</td>
+<td class="address-2"><span id="48219"></span>BC5B</td>
+<td class="instruction">LD IX,(<a href="47625.html">collision_object</a>)</td>
+<td class="comment-1" rowspan="4">the ship: no pushing</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48223"></span>BC5F</td>
+<td class="instruction">LD A,(<a href="23589.html">piece_step_x</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48226"></span>BC62</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48227"></span>BC63</td>
+<td class="instruction">JR Z,<a href="48219.html#48282">leave_slope_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48229"></span>BC65</td>
+<td class="instruction">LD L,(IX+$07)</td>
+<td class="comment-1" rowspan="12">the depth as the speed across for a moment; a deep one sets +10 bit 3</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48232"></span>BC68</td>
+<td class="instruction">LD H,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48235"></span>BC6B</td>
+<td class="instruction">LD (<a href="47757.html">saved_speed</a>),HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48238"></span>BC6E</td>
+<td class="instruction">LD A,(<a href="23578.html">touch_depth</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48241"></span>BC71</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48243"></span>BC73</td>
+<td class="instruction">LD (IX+$07),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48246"></span>BC76</td>
+<td class="instruction">BIT 7,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48248"></span>BC78</td>
+<td class="instruction">JR Z,<a href="48219.html#48252">leave_slope_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48250"></span>BC7A</td>
+<td class="instruction">NEG</td>
+</tr>
+<tr>
+<td class="asm-label">leave_slope_0</td>
+<td class="address-2"><span id="48252"></span>BC7C</td>
+<td class="instruction">CP $10</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48254"></span>BC7E</td>
+<td class="instruction">JR C,<a href="48219.html#48260">leave_slope_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48256"></span>BC80</td>
+<td class="instruction">SET 3,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label">leave_slope_1</td>
+<td class="address-2"><span id="48260"></span>BC84</td>
+<td class="instruction">LD (IX+$08),$00</td>
+<td class="comment-1" rowspan="7">move across by it; the speed back</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48264"></span>BC88</td>
+<td class="instruction">CALL <a href="47488.html">move_across</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48267"></span>BC8B</td>
+<td class="instruction">LD (IX+$01),H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48270"></span>BC8E</td>
+<td class="instruction">LD (IX+$02),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48273"></span>BC91</td>
+<td class="instruction">LD HL,(<a href="47757.html">saved_speed</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48276"></span>BC94</td>
+<td class="instruction">LD (IX+$07),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48279"></span>BC97</td>
+<td class="instruction">LD (IX+$08),H</td>
+</tr>
+<tr>
+<td class="asm-label">leave_slope_2</td>
+<td class="address-2"><span id="48282"></span>BC9A</td>
+<td class="instruction">CALL <a href="47356.html">clear_screen_fields</a></td>
+<td class="comment-1" rowspan="1">clear the screen fields</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48285"></span>BC9D</td>
+<td class="instruction">LD H,(IX+$09)</td>
+<td class="comment-1" rowspan="15">both speeds too small: slide downhill</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48288"></span>BCA0</td>
+<td class="instruction">LD L,(IX+$0A)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48291"></span>BCA3</td>
+<td class="instruction">CALL <a href="47627.html">dead_band</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48294"></span>BCA6</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48295"></span>BCA7</td>
+<td class="instruction">OR H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48296"></span>BCA8</td>
+<td class="instruction">JR NZ,<a href="48337.html">ship_on_slope_response</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48298"></span>BCAA</td>
+<td class="instruction">LD H,(IX+$07)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48301"></span>BCAD</td>
+<td class="instruction">LD L,(IX+$08)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48304"></span>BCB0</td>
+<td class="instruction">CALL <a href="47627.html">dead_band</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48307"></span>BCB3</td>
+<td class="instruction">LD (IX+$08),L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48310"></span>BCB6</td>
+<td class="instruction">LD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48311"></span>BCB7</td>
+<td class="instruction">OR L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48312"></span>BCB8</td>
+<td class="instruction">JR NZ,<a href="48337.html">ship_on_slope_response</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48314"></span>BCBA</td>
+<td class="instruction">CALL <a href="48319.html">downhill</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="48317"></span>BCBD</td>
+<td class="instruction">JR <a href="48337.html">ship_on_slope_response</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="48147.html">BC13</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#48219">Map</a></td>
+<td class="next">
+Next: <a href="48319.html">BCBF</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

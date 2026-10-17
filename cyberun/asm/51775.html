@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at CA3F</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51761.html">CA31</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51775">Map</a></td>
+<td class="next">
+Next: <a href="51879.html">CAA7</a>
+</td>
+</tr>
+</table>
+<div class="description">CA3F: Draw the panel and the play area's frame</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="62498.html">game</a> and <a href="62528.html">play</a>.
+</div>
+<div class="paragraph">
+<img class="cy-picture" src="../images/graphics/ca3f.png" alt="The panel and the frame"> What it draws on a clear screen, run in the simulator after the game's start-up (twice the size).
+</div>
+<div class="paragraph">
+Called by <a href="62498.html">game</a> before a game and by <a href="62528.html">play</a> at the start of each life. Player 1's score in yellow and player 2's in red, the colour patch behind the panel's top, both players' lives, the eight text records from <a href="51674.html">score_labels</a>, a bitmap under each score, the frame (<a href="51915.html">draw_frame</a>), the fuel gauge (the entry at the end of <a href="51879.html">flash_fuel_gauge</a>, <a href="52142.html">draw_fuel_gauge</a>) and the word 'FUEL' beside it.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">draw_panel</td>
+<td class="address-2"><span id="51775"></span>CA3F</td>
+<td class="instruction">LD A,$46</td>
+<td class="comment-1" rowspan="4">Score colours: player 1 yellow, player 2 red.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51777"></span>CA41</td>
+<td class="instruction">LD ($C9EE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51780"></span>CA44</td>
+<td class="instruction">LD A,$42</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51782"></span>CA46</td>
+<td class="instruction">LD ($C9FE),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51785"></span>CA49</td>
+<td class="instruction">LD HL,$0F30</td>
+<td class="comment-1" rowspan="3">The white patch behind the top of the panel.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51788"></span>CA4C</td>
+<td class="instruction">LD DE,<a href="51758.html">panel_patch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51791"></span>CA4F</td>
+<td class="instruction">CALL <a href="51601.html">fill_attributes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51794"></span>CA52</td>
+<td class="instruction">CALL <a href="51761.html">print_lives</a></td>
+<td class="comment-1" rowspan="4">Player 1's lives; player 2's digit is all its lives (+6 of <a href="63056.html">other_player_record</a>, plus $1A).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51797"></span>CA55</td>
+<td class="instruction">LD A,($F656)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51800"></span>CA58</td>
+<td class="instruction">ADD A,$1A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51802"></span>CA5A</td>
+<td class="instruction">LD (<a href="51723.html">p2_lives_digit</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51805"></span>CA5D</td>
+<td class="instruction">LD DE,<a href="51674.html">score_labels</a></td>
+<td class="comment-1" rowspan="3">The eight text records.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51808"></span>CA60</td>
+<td class="instruction">LD B,$08</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51810"></span>CA62</td>
+<td class="instruction">CALL <a href="33742.html">print_strings</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51813"></span>CA65</td>
+<td class="instruction">LD HL,$0B30</td>
+<td class="comment-1" rowspan="6">The bitmap under each score.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51816"></span>CA68</td>
+<td class="instruction">LD DE,<a href="51495.html">score_bitmap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51819"></span>CA6B</td>
+<td class="instruction">CALL <a href="51567.html">draw_bitmap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51822"></span>CA6E</td>
+<td class="instruction">LD HL,$0BB0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51825"></span>CA71</td>
+<td class="instruction">LD DE,<a href="51495.html">score_bitmap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51828"></span>CA74</td>
+<td class="instruction">CALL <a href="51567.html">draw_bitmap</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51831"></span>CA77</td>
+<td class="instruction">LD IX,<a href="51741.html">frame_description</a></td>
+<td class="comment-1" rowspan="8">The frame: its corners at <a href="52216.html">frame_corners</a>, its ornaments' places at <a href="52197.html">ornament_places</a>.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51835"></span>CA7B</td>
+<td class="instruction">LD DE,<a href="52216.html">frame_corners</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51838"></span>CA7E</td>
+<td class="instruction">LD (IX+$09),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51841"></span>CA81</td>
+<td class="instruction">LD (IX+$0A),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51844"></span>CA84</td>
+<td class="instruction">LD DE,<a href="52197.html">ornament_places</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51847"></span>CA87</td>
+<td class="instruction">LD (IX+$0C),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51850"></span>CA8A</td>
+<td class="instruction">LD (IX+$0D),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51853"></span>CA8D</td>
+<td class="instruction">CALL <a href="51915.html">draw_frame</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51856"></span>CA90</td>
+<td class="instruction">CALL <a href="51879.html#51901">flash_fuel_gauge_0</a></td>
+<td class="comment-1" rowspan="2">The gauge: its colour and its outline.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51859"></span>CA93</td>
+<td class="instruction">CALL <a href="52142.html">draw_fuel_gauge</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51862"></span>CA96</td>
+<td class="instruction">LD HL,$37F0</td>
+<td class="comment-1" rowspan="4">The cyan patch behind the label.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51865"></span>CA99</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51866"></span>CA9A</td>
+<td class="instruction">LD DE,<a href="52136.html">fuel_label_patch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51869"></span>CA9D</td>
+<td class="instruction">CALL <a href="51601.html">fill_attributes</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51872"></span>CAA0</td>
+<td class="instruction">POP HL</td>
+<td class="comment-1" rowspan="3">The label, 2 bytes by 32 rows, at x $F0 (<a href="52070.html">fuel_label</a>).</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51873"></span>CAA1</td>
+<td class="instruction">LD DE,<a href="52070.html">fuel_label</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="51876"></span>CAA4</td>
+<td class="instruction">JP <a href="51567.html">draw_bitmap</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="51761.html">CA31</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#51775">Map</a></td>
+<td class="next">
+Next: <a href="51879.html">CAA7</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

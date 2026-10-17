@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at DB5B</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56137.html">DB49</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56155">Map</a></td>
+<td class="next">
+Next: <a href="56201.html">DB89</a>
+</td>
+</tr>
+</table>
+<div class="description">DB5B: Fill one row pair across a step's width</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="56129.html">fill_two_rows</a> and <a href="56137.html">fill_four_rows</a>.
+</div>
+<div class="paragraph">
+Writes D on the row at HL and E on the row above, for C bytes rightwards, skipping any byte outside columns 1-28, and only when the row (<a href="52804.html">piece_page_y</a>) is inside the play area. Then moves <a href="52804.html">piece_page_y</a> and HL two rows up and a byte advance on.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">Screen address</td>
+</tr>
+<tr>
+<td class="register">C</td>
+<td class="register-desc">Width in bytes</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">Fill pattern: $55AA (checker) or 0</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">fill_row_pair</td>
+<td class="address-2"><span id="56155"></span>DB5B</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+<td class="comment-1" rowspan="5">Row outside the play area: nothing.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56158"></span>DB5E</td>
+<td class="instruction">CP $B8</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56160"></span>DB60</td>
+<td class="instruction">JR NC,<a href="56155.html#56184">fill_row_pair_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56162"></span>DB62</td>
+<td class="instruction">CP $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56164"></span>DB64</td>
+<td class="instruction">JR C,<a href="56155.html#56184">fill_row_pair_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56166"></span>DB66</td>
+<td class="instruction">LD B,C</td>
+<td class="comment-1" rowspan="14">Across the width, inside columns 1-28 only.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56167"></span>DB67</td>
+<td class="instruction">PUSH HL</td>
+</tr>
+<tr>
+<td class="asm-label">fill_row_pair_0</td>
+<td class="address-2"><span id="56168"></span>DB68</td>
+<td class="instruction">LD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56169"></span>DB69</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56171"></span>DB6B</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56172"></span>DB6C</td>
+<td class="instruction">CP $1C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56174"></span>DB6E</td>
+<td class="instruction">JR NC,<a href="56155.html#56180">fill_row_pair_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56176"></span>DB70</td>
+<td class="instruction">LD (HL),D</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56177"></span>DB71</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56178"></span>DB72</td>
+<td class="instruction">LD (HL),E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56179"></span>DB73</td>
+<td class="instruction">INC H</td>
+</tr>
+<tr>
+<td class="asm-label">fill_row_pair_1</td>
+<td class="address-2"><span id="56180"></span>DB74</td>
+<td class="instruction">INC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56181"></span>DB75</td>
+<td class="instruction">DJNZ <a href="56155.html#56168">fill_row_pair_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56183"></span>DB77</td>
+<td class="instruction">POP HL</td>
+</tr>
+<tr>
+<td class="asm-label">fill_row_pair_2</td>
+<td class="address-2"><span id="56184"></span>DB78</td>
+<td class="instruction">LD A,(<a href="52804.html">piece_page_y</a>)</td>
+<td class="comment-1" rowspan="9">Two rows up, a byte advance across.</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56187"></span>DB7B</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56188"></span>DB7C</td>
+<td class="instruction">DEC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56189"></span>DB7D</td>
+<td class="instruction">LD (<a href="52804.html">piece_page_y</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56192"></span>DB80</td>
+<td class="instruction">LD A,(<a href="52790.html">piece_dcolumn</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56195"></span>DB83</td>
+<td class="instruction">ADD A,L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56196"></span>DB84</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56197"></span>DB85</td>
+<td class="instruction">DEC H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="56198"></span>DB86</td>
+<td class="instruction">JP <a href="41411.html">line_up_hl</a></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="56137.html">DB49</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#56155">Map</a></td>
+<td class="next">
+Next: <a href="56201.html">DB89</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

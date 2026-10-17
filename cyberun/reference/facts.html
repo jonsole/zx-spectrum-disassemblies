@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Trivia</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Facts">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Trivia</td>
+</tr>
+</table>
+<ul class="contents">
+<li><a href="#planets">Every planet is the same map</a></li>
+<li><a href="#lives">Extra lives come faster when losing</a></li>
+<li><a href="#still">The ship never moves on the screen</a></li>
+<li><a href="#scroll">The background is never cleared, so the scroll is 2 pixels</a></li>
+<li><a href="#pieces">Nine graphics draw sixteen directions at four shifts</a></li>
+<li><a href="#players">Two players are two swapped records</a></li>
+<li><a href="#repair">A refuel pad repairs through the damage routine</a></li>
+<li><a href="#shield">The shield lasts 510 passes</a></li>
+<li><a href="#meteors">Meteor showers</a></li>
+<li><a href="#restart">Where the next ship starts</a></li>
+<li><a href="#out">Every key read writes to port $FD first</a></li>
+<li><a href="#interrupts">No interrupts, no frame sync</a></li>
+<li><a href="#fuel">A tank lasts about three minutes of steering</a></li>
+<li><a href="#world">What lies in the world</a></li>
+<li><a href="#missiles">The missiles go for what is worth most</a></li>
+<li><a href="#docking">Docking borrows the death byte</a></li>
+<li><a href="#tough">The tough attacker ignores seven hits in eight</a></li>
+</ul>
+<div><span id="planets"></span></div>
+<div class="box box-1">
+<div class="box-title">Every planet is the same map</div>
+<div class="paragraph">
+When the rocket has risen, <a href="../asm/62762.html">level_done</a> and <a href="../asm/33750.html">planet_secured</a>
+take the player on to the next of five planets, and the map does not change:
+the planet's number, in the player's record, is read only for the planet's
+name and for its landscape's two colours, which <a href="../asm/56481.html">start_landscape</a>
+takes from <a href="../asm/56471.html">planet_ground_colours</a>. The map, the objects in it and the
+places the parts are dealt from are the same; the objects the player took or
+destroyed come back; rocket parts 0-5 stand built, the empty ore tank hangs
+under the ship and the nose cone is dealt a new place. After the fifth the
+first comes round again. Read from the snapshot at build time:
+</div>
+<div class="paragraph">
+<table class="kl-table"><tr><th>Planet</th><th>Name</th><th>Above the caverns</th><th>The caverns</th></tr><tr><td>1</td><td>TITAN 4</td><td>bright magenta</td><td>yellow</td></tr><tr><td>2</td><td>GAMMA 27</td><td>bright green</td><td>bright yellow</td></tr><tr><td>3</td><td>PROTONIUM</td><td>bright white</td><td>bright magenta</td></tr><tr><td>4</td><td>MEGALON PRIME</td><td>bright yellow</td><td>bright white</td></tr><tr><td>5</td><td>ZARTAN PENDULOS</td><td>bright cyan</td><td>bright green</td></tr></table>
+Watched in SkoolKit's simulator: a new life by the game's own restart inside
+the finished rocket docked, the rocket rose, 50,000 points were added
+and the next life began on GAMMA 27, in its colours, with six parts built,
+the tank aboard and the map's bytes unchanged.
+</div>
+</div>
+<div><span id="lives"></span></div>
+<div class="box box-2">
+<div class="box-title">Extra lives come faster when losing</div>
+<div class="paragraph">
+The spiky mounds (6 of the objects in the world) throw bullets,
+now and then a shield ball, and now and then an extra life.
+<a href="../asm/35182.html">extra_life_countdown</a> counts the bullet throws down and, at nought,
+makes that throw the extra life and starts again from the current lives times
+four (<a href="../asm/34859.html">fire_from</a>, which throws for <a href="../asm/34848.html">ground_object_fires</a>):
+</div>
+<div class="paragraph">
+<table class="kl-table"><tr><th>Lives</th><th>Bullet throws that are an extra life</th></tr><tr><td>1</td><td>one in 4</td></tr><tr><td>2</td><td>one in 8</td></tr><tr><td>3</td><td>one in 12</td></tr><tr><td>4</td><td>one in 16</td></tr><tr><td>5</td><td>one in 20</td></tr><tr><td>6</td><td>one in 24</td></tr><tr><td>7</td><td>one in 28</td></tr><tr><td>8</td><td>one in 32</td></tr><tr><td>9</td><td>one in 36</td></tr></table>
+So a player down to the last ship sees a life every fourth throw, five times
+as often as a player with five. <a href="../asm/36896.html">contact_extra_life</a> adds it, to nine
+at most. Read; no trial here met a mound throwing.
+</div>
+</div>
+<div><span id="still"></span></div>
+<div class="box box-1">
+<div class="box-title">The ship never moves on the screen</div>
+<div class="paragraph">
+The ship stays at x $60, in the middle of the play area: steering and thrust
+become this pass's scroll, 2 or 4 pixels (<a href="../asm/45620.html">move_ship</a>, <a href="../asm/56824.html">scroll_landscape</a>), the world moves
+the other way, and the ship's record moves through the world with the view.
+So it can be drawn over itself with OR on every other pass and rubbed out only
+when its picture changes -- a turn, an add-on, a part (<a href="../asm/50147.html">draw_ship</a>).
+Read.
+</div>
+</div>
+<div><span id="scroll"></span></div>
+<div class="box box-2">
+<div class="box-title">The background is never cleared, so the scroll is 2 pixels</div>
+<div class="paragraph">
+Nothing clears the play area during play. The landscape is drawn again every
+pass, straight onto the screen (<a href="../asm/53437.html">draw_landscape</a>), but only its pieces:
+the sky is black and the inside of the ground a checker of $55 and $AA bytes,
+and both look the same after a move of 2 pixels across or 2 lines up or down,
+so only the thin strips a moving edge uncovers need painting. That is why
+every scroll step is 2 pixels, or 4, two at once (measured in the emulator),
+and why every life starts with a fly-in that paints the play area into a
+known state.
+</div>
+</div>
+<div><span id="pieces"></span></div>
+<div class="box box-1">
+<div class="box-title">Nine graphics draw sixteen directions at four shifts</div>
+<div class="paragraph">
+A landscape piece runs in one of 16 directions -- flat, three slopes each way,
+the same as ceilings, two walls -- and is drawn at one of four fine shifts.
+The shift-0 table (<a href="../asm/58237.html">piece_blitters_shift0</a>) draws all sixteen from
+nine stored graphics, and the other three shifts' tables from nine
+more, each holding one graphic's three shifted copies, made at start-up
+(<a href="../asm/63467.html">build_shifted_pieces</a>) -- counted from the four tables in the snapshot
+at build time. A slope climbing left is the right-climbing graphic started a
+row later: the graphics are stored in zig-zag rows, so that reverses each
+row's bytes, and a bit-reversal table, which <a href="../asm/63574.html">build_bit_reverse</a> writes
+over the start-up code once it has run, reverses the bits.
+</div>
+</div>
+<div><span id="players"></span></div>
+<div class="box box-2">
+<div class="box-title">Two players are two swapped records</div>
+<div class="paragraph">
+Everything that belongs to a player is in one 105-byte record, the current
+player's always at <a href="../asm/62951.html">score</a>, the other's at <a href="../asm/63056.html">other_player_record</a>; at a change of turn
+<a href="../asm/62865.html">swap_players</a> swaps the two byte for byte, and the two score lines on
+the panel with them, so no other code asks who is playing. The one thing the
+players share is the world's table of objects (<a href="../asm/23700.html">map_object_kinds</a>), a byte an object
+with a gone bit for each player, and <a href="../asm/62528.html">play</a> patches the one BIT and the
+two SETs that use it at the start of every life (the opcode bytes read from
+the snapshot at build time):
+</div>
+<div class="paragraph">
+<table class="kl-table"><tr><th>Byte</th><th>In</th><th>For</th><th>Player 1</th><th>Player 2</th></tr><tr><td>$E118</td><td><a href="../asm/57620.html">spawn_objects_from_list</a></td><td>is it gone?</td><td>BIT 7,(HL), $7E</td><td>BIT 6,(HL), $76</td></tr><tr><td>$A9B8</td><td><a href="../asm/43252.html">ship_hits_ground_objects</a></td><td>a refuel pad used up</td><td>SET 7,(HL), $FE</td><td>SET 6,(HL), $F6</td></tr><tr><td>$ABDE</td><td><a href="../asm/43944.html">beam_hits_ground_object</a></td><td>destroyed by the special beam</td><td>SET 7,(HL), $FE</td><td>SET 6,(HL), $F6</td></tr></table>
+</div>
+</div>
+<div><span id="repair"></span></div>
+<div class="box box-1">
+<div class="box-title">A refuel pad repairs through the damage routine</div>
+<div class="paragraph">
+damage_ship (in <a href="../asm/36692.html">contact_damage</a>) counts a hit in <a href="../asm/36803.html">hit_count</a> and colours the
+panel's ship icon by the new count: yellow after one, magenta after two, black
+and the death after three, and white for nought. A refuel pad
+(<a href="../asm/43252.html">ship_hits_ground_objects</a>) repairs by setting the count to $FF and
+calling damage_ship, which counts it on to nought: one routine both damages
+and repairs. The pad also fills the tank and is used up, for that player,
+until the planet is secured. Read, and run in the simulator (see
+<a href="bugs.html#padshield">the bugs</a> for what the shield does to it).
+</div>
+</div>
+<div><span id="shield"></span></div>
+<div class="box box-2">
+<div class="box-title">The shield lasts 510 passes</div>
+<div class="paragraph">
+The shield ball, one bullet throw in eight, sets <a href="../asm/35183.html">shield_timer</a> to $FF,
+and <a href="../asm/50036.html">ship_pass</a> counts it down on odd passes, so it lasts 510 passes -- about
+23 seconds at the 22.3 passes a second the simulator's flying ran
+at. While it runs no hit counts, an attacker that touches the ship is
+destroyed instead, and <a href="../asm/61885.html">colour_ship</a> paints the ship cyan, flashing over its last 32
+counts. Measured in the simulator: set to $FF at the end of a pass, it reached
+nought 509 passes later.
+</div>
+</div>
+<div><span id="meteors"></span></div>
+<div class="box box-1">
+<div class="box-title">Meteor showers</div>
+<div class="paragraph">
+Once a pass, <a href="../asm/34735.html">spawn_tick</a> starts a meteor shower when one random byte
+is $6A and two bits of another are nought -- one pass in 1024, under a minute
+at the pass rate -- and <a href="../asm/34805.html">meteor_shower</a> then counts 128 passes. While
+it runs and the view is above the caverns, <a href="../asm/35283.html">start_attacker</a> puts a rock or a comet near
+the ship instead of an attacker, aimed across it from the top of the play
+area; they damage the ship and die on touching it. Watched in the simulator:
+one shower in the 62 seconds of the attackers trial, its
+9 rocks and comets among the things started.
+</div>
+</div>
+<div><span id="restart"></span></div>
+<div class="box box-2">
+<div class="box-title">Where the next ship starts</div>
+<div class="paragraph">
+Every fourth pass <a href="../asm/49980.html">save_restart_point</a> saves the view's place in the
+player's record as the next life's start -- but only at a safe place: the play
+area's bottom pixel row nothing but the ground's checker, or all four
+on-screen map cells empty sky or beam tiles. At the next life
+<a href="../asm/56481.html">start_landscape</a> flies the landscape in to that place. A new game
+starts from <a href="../asm/62391.html">start_position</a>. The trials on these pages stage their
+scenes the same way: the place is written at the end of a death sequence,
+after the last save, and the game builds the rest.
+</div>
+</div>
+<div><span id="out"></span></div>
+<div class="box box-1">
+<div class="box-title">Every key read writes to port $FD first</div>
+<div class="paragraph">
+Each of the game's 15 keyboard reads -- counted in the listing at build
+time -- writes the half-rows it is about to read to port $FD before reading
+port $FE (<a href="../asm/39875.html">read_keyboard</a> is one). A 48K ignores the write, and why it
+is there is not known; on a 128K it pages memory, and the game crashes (see
+<a href="bugs.html#128k">the bugs</a>).
+</div>
+</div>
+<div><span id="interrupts"></span></div>
+<div class="box box-2">
+<div class="box-title">No interrupts, no frame sync</div>
+<div class="paragraph">
+The game runs with interrupts off from its first instruction: its code, from
+<a href="../asm/23680.html">game_entry</a> up, has one DI, no EI and
+no HALT (counted in the listing at build time), so
+there is no interrupt routine and nothing waits for a frame.
+A pass takes as long as its work -- the landscape, up to fifteen sprites,
+sounds that are timing loops -- about two or three frames: 22.3 passes a
+second in the simulator's flying, about 20 measured in the emulator.
+Everything counted in passes -- the shield, the death sequence, the fuel's
+grace -- lasts longer on a busy screen.
+</div>
+</div>
+<div><span id="fuel"></span></div>
+<div class="box box-1">
+<div class="box-title">A tank lasts about three minutes of steering</div>
+<div class="paragraph">
+The gauge has 124 steps from full to empty, and <a href="../asm/45333.html">read_controls</a>
+burns 8/256 of a step on each pass the ship steers or thrusts (twice that
+for both at once, half with add-on 6); coasting and falling cost nothing. So
+a full tank is 3,968 passes of steering, about
+3 minutes at 22.3 passes a second, and an empty
+gauge kills after up to 128 passes' grace (<a href="../asm/52323.html">check_fuel_empty</a>). Measured in the
+simulator: the round of keys, which steers or thrusts nearly all the time,
+emptied the tank and killed the ship 155.4 seconds in.
+</div>
+</div>
+<div><span id="world"></span></div>
+<div class="box box-2">
+<div class="box-title">What lies in the world</div>
+<div class="paragraph">
+290 objects lie at fixed places in the world, in tables sorted by map
+column (<a href="../asm/23700.html">map_object_kinds</a>). Counted from them at build time: 18 refuel pads;
+24 ore deposits -- 9 and 5 of the two kinds that give
+one unit, 10 of the kind that gives two -- 34 units in all for a
+tank of 18; and 6 spiky mounds. The map has 76 cells of tile
+$A6, the flickering beams', which the beams' generators switch off, a map row
+and half the world at a time, once the special beam has destroyed them.
+</div>
+</div>
+<div><span id="missiles"></span></div>
+<div class="box box-1">
+<div class="box-title">The missiles go for what is worth most</div>
+<div class="paragraph">
+A homing missile (add-on 8) without a target takes the best of the objects
+drawn in the first seven records by <a href="../asm/37614.html">missile_target_values</a>
+(<a href="../asm/37556.html">find_missile_target</a>). The code adds one to the type to test for a
+free record ($FF) and then subtracts $14 from that, so the table is read by the
+type less $13, as <a href="../asm/37532.html">type_points</a> is -- and so read, it ranks the
+attackers by their points, the tough attacker, which takes many hits, last.
+Clouds, debris, bullets and falling parts are never chosen. Read from the
+snapshot at build time:
+</div>
+<div class="paragraph">
+<table class="kl-table"><tr><th>Type</th><th>What</th><th>Missile value</th><th>Points</th></tr><tr><td>$1D</td><td>rock or comet</td><td>9</td><td>350</td></tr><tr><td>$14</td><td>rotor craft</td><td>8</td><td>250</td></tr><tr><td>$16</td><td>saucer</td><td>7</td><td>200</td></tr><tr><td>$17</td><td>eye pod</td><td>6</td><td>150</td></tr><tr><td>$18</td><td>pillar</td><td>5</td><td>100</td></tr><tr><td>$1A</td><td>dome</td><td>4</td><td>90</td></tr><tr><td>$19</td><td>tough attacker</td><td>2</td><td>75 a hit</td></tr><tr><td>$13</td><td>cloud</td><td>never</td><td>-</td></tr><tr><td>$15</td><td>debris</td><td>never</td><td>-</td></tr><tr><td>$1B</td><td>(ground objects only)</td><td>never</td><td>-</td></tr><tr><td>$1C</td><td>bullets, pick-ups, wreck pieces</td><td>never</td><td>-</td></tr><tr><td>$1E</td><td>a rocket part falling into place</td><td>never</td><td>-</td></tr></table>
+Watched in the simulator: 120 seconds of flying with fire held and add-on 8,
+and 120 more with add-ons 4 and 5 as well, which bring the rotor craft and the
+saucer. Every one of the 285 targets chosen was the best there by
+this ranking, rotor craft, saucers, eye pods, pillars, tough attackers, domes and meteor-shower rocks among them; clouds, debris and bullets were there and passed over.
+</div>
+</div>
+<div><span id="docking"></span></div>
+<div class="box box-2">
+<div class="box-title">Docking borrows the death byte</div>
+<div class="paragraph">
+When the ship flies into the finished rocket, <a href="../asm/38258.html">draw_rocket</a> sets
+<a href="../asm/36691.html">death_count</a> to 10 for the length of two calls -- <a href="../asm/50209.html">draw_ship_image</a> and the
+trail, which rub the ship out at 10 -- and puts it back to nought at once, so
+<a href="../asm/36162.html">update_objects</a>, which would start the wreck and the death sound, never
+sees it. Then <a href="../asm/38571.html">launch_state</a> is set and the rocket rises. Read, and run
+in the simulator's planet trial (see the first fact).
+</div>
+</div>
+<div><span id="tough"></span></div>
+<div class="box box-1">
+<div class="box-title">The tough attacker ignores seven hits in eight</div>
+<div class="paragraph">
+The tough attacker (type $19, <a href="../asm/38056.html">update_tough_attacker</a>) counts a laser
+hit only on a pass whose pass counter has its low three bits clear: seven
+laser hits in eight are thrown away. It flashes white from ten counted hits
+and explodes at fourteen, scoring 75 for each. A missile's hit counts at once,
+and the special beam kills it only once worn down, when it also gives a carried
+ore tank one or two units. Read.
+</div>
+</div>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

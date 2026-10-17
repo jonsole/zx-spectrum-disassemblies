@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at 8820</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34835.html">8813</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34848">Map</a></td>
+<td class="next">
+Next: <a href="34859.html">882B</a>
+</td>
+</tr>
+</table>
+<div class="description">8820: Let a ground object fire or throw something</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="44128.html">update_ground_objects</a>.
+</div>
+<div class="paragraph">
+Called by <a href="44128.html">update_ground_objects</a> for each ground object whose +$18 bits 1-3 give a kind of shot (1-7, in <a href="23580.html">scratch_count</a>). One pass in 16 at random (<a href="39883.html">random_a</a> AND $5A zero), and only when the object is on the screen (+$10 bit 7).
+</div>
+<div class="paragraph">
+<a href="34859.html">fire_from</a>, also used by attackers (<a href="34835.html">attacker_fires</a>), fires the shot. It needs a free record among the three for shots, 4-6 of <a href="39284.html">object_records</a>, and the shooter between x $18 and $BF on the screen; the kind's flags (<a href="35239.html">shot_kind_flags</a>) may also want it in the top or bottom part of the screen. The new record is a type $1C object at the shooter's place, given the kind's template (<a href="35247.html">shot_kind_templates</a>), its colour, and then moved once by the template's numbers (<a href="48998.html">move_object</a>), which puts the shot at the gun's mouth. Then its real velocity is set by the frame it has:
+</div>
+<div class="paragraph">
+Frame 0 (kind 1, a bullet thrown up): a random spray upwards (the spray code in <a href="34859.html">fire_from</a>) that gravity brings down (Y acceleration $0020); one throw in eight is the shield ball (frame 9) instead, and every (lives x 4)th throw is the extra-life ship icon (frame 8, counted by <a href="35182.html">extra_life_countdown</a>) -- so the fewer lives the player has, the more often extra lives come up. Frames 5 and 6 (kinds 4 and 5): a random spray upwards. Frame 7 (kind 6): the same, downwards when the shooter is in the upper part of the screen (<a href="35184.html">fire_spray_down</a>). Frame 10 (kinds 7 and 8, the attackers' shots): straight across at 6 pixels a pass, right for kind 7 and left for 8. Any other frame (kinds 2 and 3, the refuel pick-up thrown up and a pellet dropped): half the shooter's X velocity and 5 pixels a pass up, or down when the kind's flags have bit 7. A shot is sounded (<a href="29457.html">sound_fire</a>) unless the spray came to nothing.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">IX</td>
+<td class="register-desc">The ground object's record (26 bytes, <a href="43019.html">ground_objects</a>)</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">ground_object_fires</td>
+<td class="address-2"><span id="34848"></span>8820</td>
+<td class="instruction">LD A,(<a href="39883.html">random_a</a>)</td>
+<td class="comment-1" rowspan="3">One pass in 16</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34851"></span>8823</td>
+<td class="instruction">AND $5A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34853"></span>8825</td>
+<td class="instruction">RET NZ</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34854"></span>8826</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Only while on the screen</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="34858"></span>882A</td>
+<td class="instruction">RET Z</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="34835.html">8813</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#34848">Map</a></td>
+<td class="next">
+Next: <a href="34859.html">882B</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

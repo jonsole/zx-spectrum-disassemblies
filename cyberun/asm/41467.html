@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at A1FB</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41450.html">A1EA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41467">Map</a></td>
+<td class="next">
+Next: <a href="41500.html">A21C</a>
+</td>
+</tr>
+</table>
+<div class="description">A1FB: Clip a sprite's rows to the play area</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routines at <a href="41433.html">new_sprite_header</a> and <a href="41450.html">old_sprite_header</a>.
+</div>
+<div class="paragraph">
+Sprites are drawn upwards from their bottom row, inside the lines $18-$B7 (24 to 183): below the panel at the top and above the bottom row of the screen. A sprite reaching above line $18 has its height cut so that its top row is $18; one reaching below line $B7 has its bottom rows skipped (the graphic is stored bottom row first, so DE moves on by width times the rows cut) and its y put at $B7. A sprite wholly outside is not caught here; <a href="44504.html">place_on_screen</a> decides what is visible.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">y of the bottom row</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">Height in rows</td>
+</tr>
+<tr>
+<td class="register">H</td>
+<td class="register-desc">Width in bytes</td>
+</tr>
+<tr>
+<td class="register">DE</td>
+<td class="register-desc">The graphic's rows</td>
+</tr>
+</table>
+<table class="output">
+<tr class="asm-output-header">
+<th colspan="2">Output</th>
+</tr>
+<tr>
+<td class="register">L</td>
+<td class="register-desc">The y to draw from</td>
+</tr>
+<tr>
+<td class="register">B</td>
+<td class="register-desc">The rows to draw</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">clip_sprite_rows</td>
+<td class="address-2"><span id="41467"></span>A1FB</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="4">Does the top row reach above line $18?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41468"></span>A1FC</td>
+<td class="instruction">SUB $17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41470"></span>A1FE</td>
+<td class="instruction">SUB B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41471"></span>A1FF</td>
+<td class="instruction">JR NC,<a href="41467.html#41478">clip_sprite_rows_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41473"></span>A201</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="4">Yes: draw only the rows from y up to line $18</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41474"></span>A202</td>
+<td class="instruction">SUB $17</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41476"></span>A204</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41477"></span>A205</td>
+<td class="instruction">RET</td>
+</tr>
+<tr>
+<td class="asm-label">clip_sprite_rows_0</td>
+<td class="address-2"><span id="41478"></span>A206</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="4">Does the bottom row lie below line $B7? Return if not</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41479"></span>A207</td>
+<td class="instruction">SUB $B7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41481"></span>A209</td>
+<td class="instruction">RET Z</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41482"></span>A20A</td>
+<td class="instruction">RET C</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41483"></span>A20B</td>
+<td class="instruction">LD L,A</td>
+<td class="comment-1" rowspan="4">Rows below: take them off the height</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41484"></span>A20C</td>
+<td class="instruction">LD A,B</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41485"></span>A20D</td>
+<td class="instruction">SUB L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41486"></span>A20E</td>
+<td class="instruction">LD B,A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41487"></span>A20F</td>
+<td class="instruction">XOR A</td>
+<td class="comment-1" rowspan="7">Skip them in the graphic: width times the rows cut</td>
+</tr>
+<tr>
+<td class="asm-label">clip_sprite_rows_1</td>
+<td class="address-2"><span id="41488"></span>A210</td>
+<td class="instruction">ADD A,H</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41489"></span>A211</td>
+<td class="instruction">DEC L</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41490"></span>A212</td>
+<td class="instruction">JR NZ,<a href="41467.html#41488">clip_sprite_rows_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41492"></span>A214</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41493"></span>A215</td>
+<td class="instruction">CALL <a href="39887.html">add_a_to_hl</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41496"></span>A218</td>
+<td class="instruction">EX DE,HL</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41497"></span>A219</td>
+<td class="instruction">LD L,$B7</td>
+<td class="comment-1" rowspan="2">And draw from line $B7</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="41499"></span>A21B</td>
+<td class="instruction">RET</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="41450.html">A1EA</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#41467">Map</a></td>
+<td class="next">
+Next: <a href="41500.html">A21C</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

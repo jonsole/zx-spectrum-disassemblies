@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at AC60</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44084.html">AC34</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44128">Map</a></td>
+<td class="next">
+Next: <a href="44253.html">ACDD</a>
+</td>
+</tr>
+</table>
+<div class="description">AC60: Update and draw the ground objects</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+Used by the routine at <a href="56824.html">scroll_landscape</a>.
+</div>
+<div class="paragraph">
+Once a pass, from the landscape's drawing (<a href="56824.html">scroll_landscape</a>): before or after the landscape is drawn depending on which way the screen is moving up or down. For each of the six records at <a href="43019.html">ground_objects</a> in use:
+</div>
+<div class="paragraph">
+A ground object (not a pick-up) whose +$18 bits 1-3 are set may fire (<a href="34848.html">ground_object_fires</a>). The pair of images is started (<a href="41706.html">clear_sprite_pair</a>) and, if it was drawn last pass, its erase set up (<a href="44327.html">prepare_erase</a>). <a href="37130.html">animate_object</a> animates it if bit 7 of +$15 is set; a pick-up is tested against the ship (<a href="43735.html">collect_pickup</a>). An object to be removed is freed and only rubbed out; any other is placed for this pass (<a href="44360.html">prepare_draw</a>). The compositor rubs out and draws (<a href="44315.html">draw_object_images</a>); a ground object's colour patch is trimmed (<a href="44253.html">trim_colour_patch</a>); the colours are put on (<a href="44696.html">colour_sprite</a>); and a ground object is tested against the special beam (<a href="43944.html">beam_hits_ground_object</a>).
+</div>
+<div class="paragraph">
+The ground objects do not move by themselves: their positions in the world are fixed, and they move on the screen as the view scrolls (<a href="44504.html">place_on_screen</a>).
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects</td>
+<td class="address-2"><span id="44128"></span>AC60</td>
+<td class="instruction">LD A,(<a href="23612.html">map_rebuild</a>)</td>
+<td class="comment-1" rowspan="3">Unless the view is being built (<a href="23612.html">map_rebuild</a>), the rocket first (<a href="38258.html">draw_rocket</a>)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44131"></span>AC63</td>
+<td class="instruction">AND A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44132"></span>AC64</td>
+<td class="instruction">CALL Z,<a href="38258.html">draw_rocket</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44135"></span>AC67</td>
+<td class="instruction">LD IX,<a href="43019.html">ground_objects</a></td>
+<td class="comment-1" rowspan="2">The six records</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44139"></span>AC6B</td>
+<td class="instruction">LD B,$06</td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects_0</td>
+<td class="address-2"><span id="44141"></span>AC6D</td>
+<td class="instruction">PUSH BC</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44142"></span>AC6E</td>
+<td class="instruction">PUSH IX</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44144"></span>AC70</td>
+<td class="instruction">LD A,(IX+$00)</td>
+<td class="comment-1" rowspan="3">Free</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44147"></span>AC73</td>
+<td class="instruction">CP $FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44149"></span>AC75</td>
+<td class="instruction">JR Z,<a href="44128.html#44242">update_ground_objects_4</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44151"></span>AC77</td>
+<td class="instruction">BIT 7,(IX+$03)</td>
+<td class="comment-1" rowspan="7">A ground object: let it fire, if +$18 bits 1-3 give a kind of shot</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44155"></span>AC7B</td>
+<td class="instruction">JR NZ,<a href="44128.html#44170">update_ground_objects_1</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44157"></span>AC7D</td>
+<td class="instruction">LD A,(IX+$18)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44160"></span>AC80</td>
+<td class="instruction">AND $0E</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44162"></span>AC82</td>
+<td class="instruction">SRL A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44164"></span>AC84</td>
+<td class="instruction">LD (<a href="23580.html">scratch_count</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44167"></span>AC87</td>
+<td class="instruction">CALL NZ,<a href="34848.html">ground_object_fires</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects_1</td>
+<td class="address-2"><span id="44170"></span>AC8A</td>
+<td class="instruction">CALL <a href="41706.html">clear_sprite_pair</a></td>
+<td class="comment-1" rowspan="3">Start the pair; set up the erase if it was drawn last pass</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44173"></span>AC8D</td>
+<td class="instruction">BIT 7,(IX+$10)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44177"></span>AC91</td>
+<td class="instruction">CALL NZ,<a href="44327.html">prepare_erase</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44180"></span>AC94</td>
+<td class="instruction">RES 6,(IX+$10)</td>
+<td class="comment-1" rowspan="2">Clear the left-clip mark (<a href="44327.html">prepare_erase</a> has passed it on); keep the erase in the other registers</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44184"></span>AC98</td>
+<td class="instruction">EXX</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44185"></span>AC99</td>
+<td class="instruction">BIT 7,(IX+$15)</td>
+<td class="comment-1" rowspan="2">Animate it if bit 7 of +$15</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44189"></span>AC9D</td>
+<td class="instruction">CALL NZ,<a href="37130.html">animate_object</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44192"></span>ACA0</td>
+<td class="instruction">BIT 7,(IX+$03)</td>
+<td class="comment-1" rowspan="2">A pick-up: is it taken?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44196"></span>ACA4</td>
+<td class="instruction">CALL NZ,<a href="43735.html">collect_pickup</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44199"></span>ACA7</td>
+<td class="instruction">BIT 4,(IX+$10)</td>
+<td class="comment-1" rowspan="5">To be removed: free it, and draw nothing new</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44203"></span>ACAB</td>
+<td class="instruction">JR Z,<a href="44128.html#44215">update_ground_objects_2</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44205"></span>ACAD</td>
+<td class="instruction">LD (IX+$00),$FF</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44209"></span>ACB1</td>
+<td class="instruction">LD (IX+$10),$00</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44213"></span>ACB5</td>
+<td class="instruction">JR <a href="44128.html#44218">update_ground_objects_3</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects_2</td>
+<td class="address-2"><span id="44215"></span>ACB7</td>
+<td class="instruction">CALL <a href="44360.html">prepare_draw</a></td>
+<td class="comment-1" rowspan="1">Otherwise place it for this pass</td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects_3</td>
+<td class="address-2"><span id="44218"></span>ACBA</td>
+<td class="instruction">CALL <a href="44315.html">draw_object_images</a></td>
+<td class="comment-1" rowspan="1">Rub out and draw</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44221"></span>ACBD</td>
+<td class="instruction">LD IY,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="3">A ground object: trim its colour patch</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44225"></span>ACC1</td>
+<td class="instruction">BIT 7,(IY+$03)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44229"></span>ACC5</td>
+<td class="instruction">CALL Z,<a href="44253.html">trim_colour_patch</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44232"></span>ACC8</td>
+<td class="instruction">CALL <a href="44696.html">colour_sprite</a></td>
+<td class="comment-1" rowspan="1">Colour it</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44235"></span>ACCB</td>
+<td class="instruction">LD IX,(<a href="44358.html">current_object</a>)</td>
+<td class="comment-1" rowspan="2">Test it against the special beam</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44239"></span>ACCF</td>
+<td class="instruction">CALL <a href="43944.html">beam_hits_ground_object</a></td>
+</tr>
+<tr>
+<td class="asm-label">update_ground_objects_4</td>
+<td class="address-2"><span id="44242"></span>ACD2</td>
+<td class="instruction">POP IX</td>
+<td class="comment-1" rowspan="5">Next record</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44244"></span>ACD4</td>
+<td class="instruction">LD BC,$001A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44247"></span>ACD7</td>
+<td class="instruction">ADD IX,BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44249"></span>ACD9</td>
+<td class="instruction">POP BC</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44250"></span>ACDA</td>
+<td class="instruction">DJNZ <a href="44128.html#44141">update_ground_objects_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="44252"></span>ACDC</td>
+<td class="instruction">RET</td>
+<td class="comment-1" rowspan="1"></td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="44084.html">AC34</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#44128">Map</a></td>
+<td class="next">
+Next: <a href="44253.html">ACDD</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>

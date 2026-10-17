@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Cyberun: Routine at E28E</title>
+<meta charset="utf-8" />
+<link rel="stylesheet" type="text/css" href="../skoolkit.css" />
+<link rel="stylesheet" type="text/css" href="../aticatac.css" />
+<link rel="stylesheet" type="text/css" href="../knightlore.css" />
+<link rel="stylesheet" type="text/css" href="../cyberun.css" />
+<link rel="stylesheet" type="text/css" href="../site.css" />
+</head>
+<body class="Asm-c">
+<table class="header">
+<tr>
+<td class="logo"><a href="../index.html"><img alt="Cyberun" src="../images/logo.png" /></a></td>
+<td class="page-header">Routines</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57993.html">E289</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57998">Map</a></td>
+<td class="next">
+Next: <a href="58022.html">E2A6</a>
+</td>
+</tr>
+</table>
+<div class="description">E28E: Start a flat piece that crosses the left-hand side of the play area</div>
+<table class="disassembly">
+<tr>
+<td class="routine-comment" colspan="5">
+<div class="details">
+<div class="paragraph">
+The first pass of the flat-piece blitter <a href="57933.html">blit_flat_step</a> comes here when <a href="54664.html">flat_step_clip</a> has patched the JR at the top of its loop to offset $33 (the piece's column is $1C or $1D, that is, it begins just left of the play area, whose columns are 1 to 28). It keeps the column saved for the next piece (<a href="52809.html">column_address</a>) in the right character row, moves L to column 1 of the row, and patches the loop's JR again (offset $4C) so that every later pair of rows goes straight to <a href="58022.html">flat_blit_left_rows</a>'s second instruction. Then it skips the graphic's first byte, and through the JR <a href="54664.html">flat_step_clip</a> also patched (0 or 1) maybe a second one, so that only the bytes that lie on the play area are drawn.
+</div>
+<div class="paragraph">
+Column $1D leaves two bytes of each row to draw (<a href="58027.html">flat_blit_left_two_rows</a>), column $1C one (<a href="58038.html">flat_blit_left_one_row</a>). The POPs that follow are one byte out of step with the graphic's pairs, which is why each row's last write and the drops in those two routines look lopsided.
+</div>
+</div>
+<table class="input">
+<tr class="asm-input-header">
+<th colspan="2">Input</th>
+</tr>
+<tr>
+<td class="register">A</td>
+<td class="register-desc">the column kept for the next piece, low byte (<a href="52809.html">column_address</a> after the blitter added 3)</td>
+</tr>
+<tr>
+<td class="register">HL</td>
+<td class="register-desc">the screen address of the piece's first byte</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td class="asm-label">flat_blit_left_edge</td>
+<td class="address-2"><span id="57998"></span>E28E</td>
+<td class="instruction">INC A</td>
+<td class="comment-1" rowspan="3">Has the next piece's column come round to the start of a character row?</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="57999"></span>E28F</td>
+<td class="instruction">AND $1F</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58001"></span>E291</td>
+<td class="instruction">JR NZ,<a href="57998.html#58009">flat_blit_left_edge_0</a></td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58003"></span>E293</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="3">If so, take it back into this one</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58004"></span>E294</td>
+<td class="instruction">SUB $20</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58006"></span>E296</td>
+<td class="instruction">LD (<a href="52809.html">column_address</a>),A</td>
+</tr>
+<tr>
+<td class="asm-label">flat_blit_left_edge_0</td>
+<td class="address-2"><span id="58009"></span>E299</td>
+<td class="instruction">LD A,L</td>
+<td class="comment-1" rowspan="4">L to column 1 of this pixel row</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58010"></span>E29A</td>
+<td class="instruction">AND $E0</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58012"></span>E29C</td>
+<td class="instruction">INC A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58013"></span>E29D</td>
+<td class="instruction">LD L,A</td>
+</tr>
+<tr>
+<td class="routine-comment" colspan="5">
+<span id="58014"></span>
+<div class="comments">
+<div class="paragraph">
+This entry point is used by the routine at <a href="57929.html">flat_blit_lose_first</a>.
+</div>
+</div>
+</td>
+</tr>
+<tr>
+<td class="asm-label">flat_blit_left_edge_1</td>
+<td class="address-2"><span id="58014"></span>E29E</td>
+<td class="instruction">LD A,$4C</td>
+<td class="comment-1" rowspan="2">From now on the loop's JR goes to <a href="58022.html">flat_blit_left_rows</a> + 1 (offset $4C)</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58016"></span>E2A0</td>
+<td class="instruction">LD ($E25A),A</td>
+</tr>
+<tr>
+<td class="asm-label"></td>
+<td class="address-1"><span id="58019"></span>E2A3</td>
+<td class="instruction">INC SP</td>
+<td class="comment-1" rowspan="1">Skip the graphic's first byte</td>
+</tr>
+<tr>
+<td class="asm-label">flat_blit_left_edge_2</td>
+<td class="address-2"><span id="58020"></span>E2A4</td>
+<td class="instruction">JR <a href="57998.html#58020">flat_blit_left_edge_2</a></td>
+<td class="comment-1" rowspan="1">JR patched by <a href="54664.html">flat_step_clip</a>: 0 skips a second byte at <a href="58022.html">flat_blit_left_rows</a>, 1 does not</td>
+</tr>
+</table>
+<table class="asm-navigation">
+<tr>
+<td class="prev">
+Prev: <a href="57993.html">E289</a>
+</td>
+<td class="up">Up: <a href="../maps/all.html#57998">Map</a></td>
+<td class="next">
+Next: <a href="58022.html">E2A6</a>
+</td>
+</tr>
+</table>
+<footer>
+<div class="release">Disassembled from the original tape image</div>
+<div class="copyright">&copy; 1986 Ultimate Play the Game</div>
+<div class="created">Disassembled from the tape by <a href="https://skoolkit.ca">SkoolKit</a> 10.1, driven by <code>scripts/build_cyberun.py</code>.</div>
+</footer>
+</body>
+</html>
