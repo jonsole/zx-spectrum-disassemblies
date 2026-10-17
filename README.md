@@ -13,11 +13,12 @@ a snapshot you can debug at source level.
 | Knight Lore (1984, Ultimate) | **100%** &mdash; 40696 of 40696 bytes, all 844 entries titled and described, no placeholder names, the rooms laid out record by record from the game at build time (map credited below) | `scripts/build_knightlore.py` |
 | Pentagram (1986, Ultimate) | **100%** &mdash; 41472 bytes from $5E00, the 31390 the tape loads and the buffers above; all 592 entries titled, described and labelled, 4089 of 4185 instructions seen to run; the rooms, templates and sprites laid out record by record from the game at build time | `scripts/build_pentagram.py` |
 | Alien 8 (1985, Ultimate) | **100%** &mdash; 42240 bytes from $5B00, the 40195 the tape loads and the variables below; all 622 entries titled, described and labelled, 4550 of 4602 instructions seen to run; the rooms, templates, places and sprites laid out record by record from the game at build time | `scripts/build_alien8.py` |
+| Cyberun (1986, Ultimate) | **100%** &mdash; 42240 bytes from $5B00, the 40320 the tape loads, moved and decoded by the game's own loader, and the loader's leftovers; all 900 entries titled, described and labelled; 10745 of 11340 instructions seen to run, with staged scenes for the rocket's assembly, the launch, the add-ons and the deep caverns; the map, tiles, objects and pick-up places laid out record by record and every graphic drawn in its entry from the game at build time; how-it-works, planet, graphics, animation, sound and reference pages | `scripts/build_cyberun.py` |
 | Nightshade (1985, Ultimate) | **100%** &mdash; 42240 bytes from $5B00, the 35328 the protected tape loads and unscrambles and the variables below; all 476 entries titled, described and labelled, 4705 of 4806 instructions seen to run; the town, its buildings, tiles and sprites laid out record by record from the game at build time | `scripts/build_nightshade.py` |
 | The Hobbit (1982, Melbourne House) | **100%** &mdash; 40000 of 40000 bytes, every routine, table, variable and message named and described, every record field described, the character scripts decoded step by step, and every address the code or the comments use a label | `scripts/build_hobbit.py` |
 | Ant Attack (1983, Sandy White / Quicksilva) | **100%** &mdash; 41984 of 41984 bytes, the system variables and the BASIC included; every routine named, described and commented, every address the code uses a label, every instruction but three seen to run; no placeholder titles, each sprite frame and each row of the city an entry of its own | `scripts/build_antattack.py` |
 
-The Hobbit's, Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's, Nightshade's and Fairlight's HTML disassemblies are published at
+The Hobbit's, Atic Atac's, Ant Attack's, Knight Lore's, Pentagram's, Alien 8's, Nightshade's, Fairlight's and Cyberun's HTML disassemblies are published at
 **<https://jonsole.github.io/zx-spectrum-disassemblies/>**: The Hobbit with a
 page on how the game works and deep dives on the parser, the characters,
 fighting, the text and the pictures; a map with its layers, and pages for its
@@ -80,6 +81,7 @@ python scripts/build_pentagram.py --tape "Pentagram.tzx" --html
 python scripts/build_alien8.py --tape "Alien 8 (1985)(Ultimate).tap" --html
 python scripts/build_nightshade.py --tape "Nightshade (1985)(Ultimate).tzx" --html
 python scripts/build_fairlight.py --tape "Fairlight (1985)(The Edge)(Release 2).tzx" --html
+python scripts/build_cyberun.py --tape "Cyberun (1986)(Ultimate Play The Game).tzx" --html
 ```
 
 The build ends by reassembling what it disassembled and comparing it with the
@@ -162,8 +164,8 @@ prose and addresses only, with no bytes of the game. So far:
 [The Hobbit](notes/hobbit/README.md), [Atic Atac](notes/aticatac/README.md),
 [Knight Lore](notes/knightlore/README.md),
 [Ant Attack](notes/antattack/README.md), [Pentagram](notes/pentagram/README.md),
-[Alien 8](notes/alien8/README.md), [Nightshade](notes/nightshade/README.md) and
-[Fairlight](notes/fairlight/README.md).
+[Alien 8](notes/alien8/README.md), [Nightshade](notes/nightshade/README.md),
+[Fairlight](notes/fairlight/README.md) and [Cyberun](notes/cyberun/README.md).
 
 ## Debugging
 

@@ -62,6 +62,9 @@ GAMES = {
     "fairlight": (ROOT / "game_disassembly" / "fairlight" / "html" / "fairlight",
                   ROOT / "scripts" / "build_fairlight.py",
                   ROOT / "game_disassembly" / "fairlight" / "fairlight.asm"),
+    "cyberun": (ROOT / "game_disassembly" / "cyberun" / "html" / "cyberun",
+                ROOT / "scripts" / "build_cyberun.py",
+                ROOT / "game_disassembly" / "cyberun" / "cyberun.asm"),
 }
 # What each build is given to build from. Knight Lore is built from a snapshot
 # of the loaded game, not a tape; --tape passes it on under its own name.

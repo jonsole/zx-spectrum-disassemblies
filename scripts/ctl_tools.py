@@ -1,7 +1,7 @@
 """Tools for writing annotation control files against a game's listing.
 
     python scripts/ctl_tools.py ranges SKOOL DRAFT OUT
-    python scripts/ctl_tools.py check SKOOL FRAGMENT START END
+    python scripts/ctl_tools.py check SKOOL FRAGMENT START END [--new-entries]
 
 An instruction comment in a control file is written `  $ADDR,N Comment`,
 where N is a byte count. Get N wrong and sna2skool neither complains nor
@@ -91,10 +91,25 @@ def ranges(skool: Path, draft: Path, out: Path) -> int:
     return 1 if problems else 0
 
 
-def check(skool: Path, fragment: Path, lo: int, hi: int) -> int:
+def check(skool: Path, fragment: Path, lo: int, hi: int, new_entries: bool = False) -> int:
+    """Check a fragment against the listing.
+
+    With new_entries, the fragment decides where its entries are, as a build
+    does whose annotations replace sna2ctl's blocks inside each annotated
+    entry (build_cyberun.py's annotated_entries): a block directive may start
+    a new entry -- a code entry only on an instruction start -- and the
+    listing's own entries need no title of their own, since the build folds
+    each into the annotated entry it falls inside.
+    """
     ordered, entries, labels = read_listing(skool)
     starts = set(ordered)
     problems, titled, new_labels = [], set(), {}
+    if new_entries:
+        for line in fragment.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^([bcgistuw]) \$([0-9A-F]{4})\b", line)
+            if m and (m.group(1) != "c" or int(m.group(2), 16) in starts):
+                entries.add(int(m.group(2), 16))
+                starts.add(int(m.group(2), 16))
     for n, line in enumerate(fragment.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip() or line.startswith("#"):
             continue
@@ -142,8 +157,11 @@ def check(skool: Path, fragment: Path, lo: int, hi: int) -> int:
             continue
         problems.append(f"line {n}: not a control-file line: {line[:60]}")
     for address in sorted(entries):
-        if lo <= address < hi and address not in titled:
+        if lo <= address < hi and address not in titled and not new_entries:
             problems.append(f"entry ${address:04X} has no title line")
+    if new_entries and lo not in titled:
+        problems.append(f"the range's first address ${lo:04X} has no entry: the bytes "
+                        f"before the fragment's first entry would join the previous range's")
     for problem in problems:
         print(problem)
     print("OK" if not problems else f"{len(problems)} problem(s)")
@@ -156,6 +174,9 @@ def main() -> int:
     if len(sys.argv) == 6 and sys.argv[1] == "check":
         return check(Path(sys.argv[2]), Path(sys.argv[3]),
                      int(sys.argv[4], 16), int(sys.argv[5], 16))
+    if len(sys.argv) == 7 and sys.argv[1] == "check" and sys.argv[6] == "--new-entries":
+        return check(Path(sys.argv[2]), Path(sys.argv[3]),
+                     int(sys.argv[4], 16), int(sys.argv[5], 16), new_entries=True)
     print(__doc__)
     return 2
 

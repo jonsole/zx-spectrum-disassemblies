@@ -428,3 +428,50 @@ Same copyright treatment as the others — `game_disassembly/` is gitignored and
 never committed, and no bytes of the game are in this repository. Load
 `game_disassembly/knightlore/knightlore.sna` + `knightlore.sld` over MCP or DAP
 for source-level debugging.
+
+## Example: Cyberun
+
+`scripts/build_cyberun.py`, from the Alien 8 build. What it added to the
+method:
+
+**A loader that decodes.** The tape's block is moved down 512 bytes and
+nibble-shifted back into shape by the game's own entry, so `tap2sna` stops
+at $5C80, after the decode, and the listing is the image the game runs.
+
+**The annotations decide where entries are.** sna2ctl cut every table into
+text and byte fragments; a second control file can add block boundaries but
+not remove them, and declaring a `; span` for every table did not scale to
+900 entries. So the build drops sna2ctl's block starts inside every entry
+the annotations start (`annotated_entries`), and `ctl_tools.py check
+--new-entries` checks a fragment the same way, which let eight describing
+agents add entries freely.
+
+**Edges out of code that never ran.** `codemap.walk` follows branches only
+out of executed instructions, by design. A call made from code no session
+ran is not followed, nor is a jump the game patches in at run time; each
+such edge read by a describing agent is listed in the build (`READ_EDGES`),
+keyed on the instruction that reaches it, along with the game's tables of
+entry points (object handlers, the sprite compositor's row loops, the
+landscape's blitters).
+
+**Staging by the game's own restart.** Writing the player's restart point
+at the very end of a death sequence -- after the sequence's last save of it
+-- puts the next life anywhere, with the landscape, collision lists and
+objects built by the game itself. The launch, part deliveries, every add-on
+and tours of the deep caverns raised the instructions seen to run from 78%
+to 95%. Two traps: a restart the game would never save can make its fly-in
+write outside the screen, and one staged tour ran the game off the bottom of
+the map into data. The build now fails if any executed address lies in an
+entry typed as data (`check_executed_in_code`), and the tours were checked
+for stray writes.
+
+**Corrections came from running things.** The notes agents, reading the
+whole listing, found about twenty descriptions wrong; the page agents, who
+recorded the sounds, drew the planet and ran the pokes, found more -- and
+reversed one: a "probable bug" in the missiles' target table that misread an
+`INC A` (a free-record test) and was disproved by a 285-target trial. Every
+correction was checked against the code before it went in, and a
+correction can be wrong too.
+
+Same copyright treatment as the others: `game_disassembly/` is gitignored,
+and no bytes of the game are in this repository.
